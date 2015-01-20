@@ -1,0 +1,31 @@
+{
+    "name": "ts-loader",
+    "version": "0.1.0",
+    "description": "TypeScript loader for webpack",
+    "main": "index.js",
+    "scripts": {
+        "prepublish": "tsc index.ts --module commonjs"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jbrantly/ts-loader.git"
+    },
+    "keywords": [
+        "ts-loader",
+        "typescript-loader",
+        "webpack",
+        "loader",
+        "typescript",
+        "ts"
+    ],
+    "author": "James Brantly <james@jbrantly.com> (http://www.jbrantly.com/)",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/jbrantly/ts-loader/issues"
+    },
+    "homepage": "https://github.com/jbrantly/ts-loader",
+    "dependencies": {
+        "q": "^1.1.2",
+        "typescript": "^1.4.1"
+    }
+}
