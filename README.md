@@ -68,7 +68,7 @@ require('!style!css!./style.css');
 
 ### React JSX
 
-Please see [selective-jsx-loader](https://github.com/jbrantly/selective-jsx-loader)
+Please see [ts-jsx-loader](https://github.com/jbrantly/ts-jsx-loader)
 
 ## Building from source
 
