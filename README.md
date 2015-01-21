@@ -70,6 +70,14 @@ require('!style!css!./style.css');
 
 Please see [selective-jsx-loader](https://github.com/jbrantly/selective-jsx-loader)
 
+## Building from source
+
+```
+tsd reinstall
+npm install
+tsc index.ts --module commonjs
+```
+
 ## License
 
 The MIT License (MIT)
