@@ -1,3 +1,4 @@
 *.ts
+test
 tsd.json
 typings

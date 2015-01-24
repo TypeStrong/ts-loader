@@ -4,6 +4,8 @@
     "description": "TypeScript loader for webpack",
     "main": "index.js",
     "scripts": {
+        "pretest": "tsc index.ts --module commonjs",
+        "test": "node ./node_modules/mocha/bin/mocha --reporter spec test/run.js",
         "prepublish": "tsc index.ts --module commonjs"
     },
     "repository": {
@@ -27,5 +29,9 @@
     "dependencies": {
         "q": "^1.1.2",
         "typescript": "^1.4.1"
+    },
+    "devDependencies": {
+        "mocha": "^2.1.0",
+        "webpack": "^1.5.3"
     }
 }
