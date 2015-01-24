@@ -12,6 +12,12 @@ var tests = [
             "./test/basic/submodule/submodule.ts",
             "./test/basic/lib/externalLib.js"
         ]
+    }, {
+        name: "instance", 
+        modules: [
+            "./test/instance/a.ts", 
+            "./test/instance/b.ts"
+        ]
     }
  ]
 
