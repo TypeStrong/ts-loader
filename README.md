@@ -18,11 +18,37 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: 'ts-loader' }
+            { test: /\.ts$/, loader: 'ts-loader?sourceMap&target=ES3' }
         ]
     }
 }
 ```
+#### Options
+
+##### target
+
+Specify the TypeScript output target.
+
+- ES3
+- **ES5 (default)**
+- ES6
+
+##### module
+
+Specify the type of modules that TypeScript emits.
+
+- **CommonJS (default)**
+- AMD
+
+##### sourceMap *(boolean) (default=false)*
+
+Specify whether or not TypeScript emits source maps. 
+
+##### instance *(string)*
+
+Advanced option to force files to go through different instances of the
+TypeScript compiler. Can be used to force segregation between different parts
+of your code. Can typically be ignored.
 
 ### Declaration files
 
