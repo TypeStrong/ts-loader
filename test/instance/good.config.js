@@ -10,14 +10,11 @@ module.exports = {
     resolve: {
         extensions: ['', '.js', '.ts']
     },
-    resolveLoader: {
-        alias: { ts: "../../index.js" }
-    },
     module: {
         loaders: [
             // this will fail if both files are passed through the same instance
-            { test: /\a.ts$/, loader: 'ts' }, // instance=default
-            { test: /\b.ts$/, loader: 'ts?instance=different' }
+            { test: /a\.ts$/, loader: '../../index.js?instance=instanceGood' },
+            { test: /b\.ts$/, loader: '../../index.js?instance=instanceGoodDifferent' }
         ]
     }
 }

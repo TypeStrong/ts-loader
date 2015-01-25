@@ -22,6 +22,9 @@ interface Dependency {
 
 interface Options {
     instance: string;
+    sourceMap: boolean;
+    target: string;
+    module: string;
 }
 
 interface TSFile {
@@ -55,10 +58,17 @@ function ensureTypeScriptInstance(options: Options): TSInstance {
     if (Object.prototype.hasOwnProperty.call(instances, options.instance))
         return instances[options.instance]
     
+    var target: typescript.ScriptTarget;
+    switch (options.target) {
+        case "ES3": target = typescript.ScriptTarget.ES3; break;
+        case "ES6": target = typescript.ScriptTarget.ES6; break;
+        default: target = typescript.ScriptTarget.ES5;
+    }
+
     var compilerOptions: typescript.CompilerOptions = {
-        target: typescript.ScriptTarget.ES5,
-        module: typescript.ModuleKind.CommonJS,
-        sourceMap: true
+        target: target,
+        module: options.module == "AMD" ? typescript.ModuleKind.AMD : typescript.ModuleKind.CommonJS,
+        sourceMap: !!options.sourceMap
     }
     
     var files = <TSFiles>{};
@@ -129,14 +139,15 @@ function ensureDependencies(resolver: Resolver, instance: TSInstance, filePath: 
     return Q(contents);
 }
 
-function loader(contents) {    
+function loader(contents) {
     this.cacheable && this.cacheable();
     var callback = this.async();
     var filePath = path.normalize(this.resourcePath);
-
+    
     var options = loaderUtils.parseQuery<Options>(this.query);
     options = objectAssign<Options>({}, {
-        instance: 'default'
+        instance: 'default',
+        sourceMap: false
     }, options);
     
     var instance = ensureTypeScriptInstance(options);
@@ -146,7 +157,7 @@ function loader(contents) {
         .then(contents => {
             var file = instance.files[filePath],
                 langService = instance.languageService;
-        
+
             file.text = contents;
             file.version++;
 
@@ -166,9 +177,16 @@ function loader(contents) {
                 });
 
             if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
-            contents = output.outputFiles[1].text;
-            var sourceMap = JSON.parse(output.outputFiles[0].text);
-            sourceMap.sourcesContent = [contents];
+            
+            var sourceMap: any;
+            if (options.sourceMap) {
+                contents = output.outputFiles[1].text;
+                sourceMap = JSON.parse(output.outputFiles[0].text);
+                sourceMap.sourcesContent = [contents];
+            }
+            else {
+                contents = output.outputFiles[0].text;
+            }
             return [contents, sourceMap];
         })
         .done(contents => callback(null, contents[0], contents[1]), err => callback(err));

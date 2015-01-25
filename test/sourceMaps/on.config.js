@@ -1,16 +1,16 @@
 module.exports = {
     context: __dirname,
-    entry: './app.ts',
+    entry: './a.ts',
     output: {
         path: __dirname
     },
     resolve: {
-        alias: { externalLib: "./lib/externalLib.js" },
         extensions: ['', '.js', '.ts']
     },
+    devtool: 'source-map',
     module: {
         loaders: [
-            { test: /\.ts$/, loader: '../../index.js?instance=basic' }
+            { test: /\.ts$/, loader: '../../index.js?instance=sourceMapsOn&sourceMap' }
         ]
     }
 }

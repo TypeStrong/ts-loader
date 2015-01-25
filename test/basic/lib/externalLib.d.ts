@@ -1,5 +1,5 @@
 module externalLib {
-  export function doSomething(): void;
+  export function doSomething(arg: any): void;
 }
 
 declare module 'externalLib' {
