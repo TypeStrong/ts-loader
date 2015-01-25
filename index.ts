@@ -8,6 +8,7 @@
 import typescript = require('typescript')
 import path = require('path')
 import fs = require('fs');
+import os = require('os');
 import Q = require('q');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
@@ -95,6 +96,9 @@ function ensureTypeScriptInstance(options: Options): TSInstance {
         getScriptIsOpen: () => true,
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFilename: options => 'lib.d.ts',
+        // getNewLine() should work in next version of TypeScript
+        // see https://github.com/Microsoft/TypeScript/issues/1653
+        //getNewLine: () => { return os.EOL },
         log: message => console.log(message)
     };
 
@@ -157,7 +161,7 @@ function loader(contents) {
         .then(contents => {
             var file = instance.files[filePath],
                 langService = instance.languageService;
-
+            
             file.text = contents;
             file.version++;
 
@@ -187,6 +191,7 @@ function loader(contents) {
             else {
                 contents = output.outputFiles[0].text;
             }
+            contents = contents.replace(/\r\n/g, os.EOL);
             return [contents, sourceMap];
         })
         .done(contents => callback(null, contents[0], contents[1]), err => callback(err));

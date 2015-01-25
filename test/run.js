@@ -5,8 +5,6 @@ var newLine = require('os').EOL;
 var tsLoader = require('../index');
 var webpack = require('webpack');
 
-newLine = "\r\n"; // temporary until newLines are fixed
-
 var tests = [
     {
         name: "basic", 
