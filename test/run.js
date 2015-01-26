@@ -5,23 +5,6 @@ var newLine = require('os').EOL;
 var tsLoader = require('../index');
 var webpack = require('webpack');
 
-var tests = [
-    {
-        name: "basic", 
-        modules: [
-            "./test/basic/app.ts", 
-            "./test/basic/submodule/submodule.ts",
-            "./test/basic/lib/externalLib.js"
-        ]
-    }, {
-        name: "instance", 
-        modules: [
-            "./test/instance/a.ts", 
-            "./test/instance/b.ts"
-        ]
-    }
- ]
-
 function handleErrors(err, stats, done) {
     if (err) { 
         done(err)
