@@ -2,7 +2,8 @@ module.exports = {
     context: __dirname,
     entry: './a.ts',
     output: {
-        path: __dirname
+        path: __dirname,
+        filename: 'bundle.js'
     },
     resolve: {
         extensions: ['', '.js', '.ts']

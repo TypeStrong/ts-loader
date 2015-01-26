@@ -5,7 +5,8 @@ module.exports = {
         let: './let.ts'
     },
     output: {
-        path: __dirname
+        path: __dirname,
+        filename: 'bundle.js'
     },
     resolve: {
         extensions: ['', '.js', '.ts']
