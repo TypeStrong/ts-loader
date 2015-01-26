@@ -5,6 +5,7 @@
 ///<reference path="typings/q/Q.d.ts" />
 ///<reference path="typings/loaderUtils/loaderUtils.d.ts" />
 ///<reference path="typings/objectAssign/objectAssign.d.ts" />
+///<reference path="typings/colors/colors.d.ts" />
 import typescript = require('typescript')
 import path = require('path')
 import fs = require('fs');
@@ -12,6 +13,7 @@ import os = require('os');
 import Q = require('q');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
+require('colors');
 
 interface Dependency {
     original: string;
@@ -173,10 +175,10 @@ function loader(contents) {
                 .forEach(diagnostic => {
                     if (diagnostic.file) {
                         var lineChar = diagnostic.file.getLineAndCharacterFromPosition(diagnostic.start);
-                        this.emitError(`  ${diagnostic.file && diagnostic.file.filename} (${lineChar.line},${lineChar.character}): ${diagnostic.messageText}`)
+                        this.emitError(`  ${diagnostic.file.filename.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${diagnostic.messageText.red}`)
                     }
                     else {
-                        this.emitError(`  unknown file: ${diagnostic.messageText}`)
+                        this.emitError(`  ${"unknown file".blue}: ${diagnostic.messageText.red}`)
                     }
                 });
 
