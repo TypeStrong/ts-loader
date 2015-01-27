@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1
+
+- Add colors to error output
+
 ## v0.2.0
 
 - Add new configuration options
