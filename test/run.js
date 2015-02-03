@@ -70,6 +70,30 @@ describe('instance', function() {
     })
 })
 
+describe('noImplicitAny', function() {
+    it('should fail when turned on', function(done) {
+        webpack(require('./noImplicitAny/on.config')).run(function(err, stats) {
+            if (err) return done(err)
+            
+            var errors = stats.toJson().errors;
+            
+            assert.equal(errors.length, 1, 'Exactly one errors should be reported');
+            assert.ok(errors[0].indexOf("Parameter 'a' implicitly has an 'any' type.") != -1, 'The error reported was the wrong error');
+            
+            done();
+        })
+    })
+    
+    it('should not fail when turned off', function(done) {
+        webpack(require('./noImplicitAny/off.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                done();   
+            }
+        })
+    })
+    
+})
+
 describe('sourceMaps', function() {
     it('should be present when turned on', function(done) {
         webpack(require('./sourceMaps/on.config')).run(function(err, stats) {

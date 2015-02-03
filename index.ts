@@ -26,6 +26,7 @@ interface Dependency {
 interface Options {
     instance: string;
     sourceMap: boolean;
+    noImplicitAny: boolean;
     target: string;
     module: string;
 }
@@ -71,7 +72,8 @@ function ensureTypeScriptInstance(options: Options): TSInstance {
     var compilerOptions: typescript.CompilerOptions = {
         target: target,
         module: options.module == "AMD" ? typescript.ModuleKind.AMD : typescript.ModuleKind.CommonJS,
-        sourceMap: !!options.sourceMap
+        sourceMap: !!options.sourceMap,
+        noImplicitAny: !!options.noImplicitAny
     }
     
     var files = <TSFiles>{};

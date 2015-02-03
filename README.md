@@ -44,6 +44,10 @@ Specify the type of modules that TypeScript emits.
 
 Specify whether or not TypeScript emits source maps. 
 
+##### noImplicitAny *(boolean) (default=false)*
+
+Specify whether or not TypeScript will allow inferring the `any` type.
+
 ##### instance *(string)*
 
 Advanced option to force files to go through different instances of the
