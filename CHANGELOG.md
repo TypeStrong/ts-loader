@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.3
+
+- Add noImplicitAny option (#2)
+
 ## v0.2.2
 
 - Fix issue with source maps
@@ -10,7 +14,7 @@
 
 ## v0.2.0
 
-- Add new configuration options
+- Add new configuration options (#1)
   - target, module, sourceMap, instance
   - sourceMap default changed from `true` to `false`
 - Workaround issue with TypeScript always emitting Windows-style new lines
