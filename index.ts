@@ -127,21 +127,21 @@ function ensureDependencies(resolver: Resolver, instance: TSInstance, filePath: 
 
         var dirname = path.dirname(filePath);
 
-        var dependencies = fileInfo.referencedFiles.concat(fileInfo.importedFiles).map(f => <Dependency>({
-                original: f.filename,
+        var dependencies = fileInfo.referencedFiles.concat(fileInfo.importedFiles).map(ref => <Dependency>({
+                original: ref.filename,
                 resolved: '',
-                pos: f.pos,
-                end: f.end,
-                reference: fileInfo.referencedFiles.indexOf(f) != -1
+                pos: ref.pos,
+                end: ref.end,
+                reference: fileInfo.referencedFiles.indexOf(ref) != -1
             }));
 
         instance.files[filePath] = { version: 0, text: contents }
 
-        return Q.all(dependencies.map(f => resolver(dirname, f.reference ? rootReferencePath(f.original, dirname) : f.original)
-                                           .then(newPath => f.resolved = newPath)
-                                           .then(newPath => f)))
-            .then(filePaths => filePaths.filter(f => f.resolved.match(/\.ts$/) != null)) // filter out any non-ts files
-            .then(filePaths => Q.all(filePaths.map(f => readFile(f.resolved, 'utf-8').then(fileContents => ensureDependencies(resolver, instance, f.resolved, fileContents)))))
+        return Q.all(dependencies.map(dep => resolver(dirname, dep.reference ? rootReferencePath(dep.original, dirname) : dep.original)
+                                           .then(newPath => dep.resolved = newPath)
+                                           .then(newPath => dep)))
+            .then(deps => deps.filter(dep => dep.resolved.match(/\.ts$/) != null)) // filter out any non-ts files
+            .then(deps => Q.all(deps.map(dep => readFile(dep.resolved, 'utf-8').then(fileContents => ensureDependencies(resolver, instance, dep.resolved, fileContents)))))
             .then(() => contents);
     }
     return Q(contents);
