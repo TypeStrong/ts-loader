@@ -128,7 +128,14 @@ function ensureDependencies(resolver: Resolver, instance: TSInstance, filePath: 
 
         var dirname = path.dirname(filePath);
 
-        var dependencies = fileInfo.referencedFiles.concat(fileInfo.importedFiles).map(ref => <Dependency>({
+        var referencedFiles = fileInfo.referencedFiles;
+        
+        // don't resolve imports for declaration files
+        if (!isDeclarationFile) {
+            referencedFiles = referencedFiles.concat(fileInfo.importedFiles)
+        }
+        
+        var dependencies = referencedFiles.map(ref => <Dependency>({
                 original: ref.filename,
                 resolved: '',
                 pos: ref.pos,
@@ -137,13 +144,10 @@ function ensureDependencies(resolver: Resolver, instance: TSInstance, filePath: 
             }));
 
         instance.files[filePath] = { version: 0, text: contents }
-
+        
         return Q.all(dependencies.map(dep => resolver(dirname, dep.reference ? rootReferencePath(dep.original, dirname) : dep.original)
-                                                 // ignore errors for import statements in declaration files
-                                                 .fail(reason => { if (isDeclarationFile && !dep.reference) return null; throw reason; })
                                                  .then(newPath => dep.resolved = newPath)
                                                  .then(newPath => dep)))
-            .then(deps => deps.filter(dep => dep.resolved != null))
             .then(deps => deps.filter(dep => dep.resolved.match(/\.ts$/) != null)) // filter out any non-ts files
             .then(deps => Q.all(deps.map(dep => readFile(dep.resolved, 'utf-8').then(fileContents => ensureDependencies(resolver, instance, dep.resolved, fileContents)))))
             .then(() => contents);
