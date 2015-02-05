@@ -123,7 +123,8 @@ function ensureDependencies(resolver: Resolver, instance: TSInstance, filePath: 
 
     if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
 
-        var fileInfo = typescript.preProcessFile(contents)
+        var fileInfo = typescript.preProcessFile(contents);
+        var isDeclarationFile = !!filePath.match(/\.d\.ts$/);
 
         var dirname = path.dirname(filePath);
 
@@ -138,8 +139,11 @@ function ensureDependencies(resolver: Resolver, instance: TSInstance, filePath: 
         instance.files[filePath] = { version: 0, text: contents }
 
         return Q.all(dependencies.map(dep => resolver(dirname, dep.reference ? rootReferencePath(dep.original, dirname) : dep.original)
-                                           .then(newPath => dep.resolved = newPath)
-                                           .then(newPath => dep)))
+                                                 // ignore errors for import statements in declaration files
+                                                 .fail(reason => { if (isDeclarationFile && !dep.reference) return null; throw reason; })
+                                                 .then(newPath => dep.resolved = newPath)
+                                                 .then(newPath => dep)))
+            .then(deps => deps.filter(dep => dep.resolved != null))
             .then(deps => deps.filter(dep => dep.resolved.match(/\.ts$/) != null)) // filter out any non-ts files
             .then(deps => Q.all(deps.map(dep => readFile(dep.resolved, 'utf-8').then(fileContents => ensureDependencies(resolver, instance, dep.resolved, fileContents)))))
             .then(() => contents);

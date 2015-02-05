@@ -70,6 +70,16 @@ describe('instance', function() {
     })
 })
 
+describe('node', function() {
+    it('should not error', function(done) {
+        webpack(require('./node/webpack.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                done()
+            }
+        })
+    })
+})
+
 describe('noImplicitAny', function() {
     it('should fail when turned on', function(done) {
         webpack(require('./noImplicitAny/on.config')).run(function(err, stats) {
