@@ -2,7 +2,6 @@
 ///<reference path="node_modules/typescript/bin/typescript_internal.d.ts" />
 ///<reference path="node_modules/typescript/bin/typescriptServices.d.ts" />
 ///<reference path="typings/node/node.d.ts" />
-///<reference path="typings/q/Q.d.ts" />
 ///<reference path="typings/loaderUtils/loaderUtils.d.ts" />
 ///<reference path="typings/objectAssign/objectAssign.d.ts" />
 ///<reference path="typings/colors/colors.d.ts" />
@@ -10,7 +9,6 @@ import typescript = require('typescript')
 import path = require('path')
 import fs = require('fs');
 import os = require('os');
-import Q = require('q');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
 require('colors');
@@ -41,6 +39,7 @@ interface TSFiles {
 }
 
 interface TSInstance {
+    compilerOptions: typescript.CompilerOptions;
     files: TSFiles;
     languageService: typescript.LanguageService;
 }
@@ -48,12 +47,6 @@ interface TSInstance {
 interface TSInstances {
     [name: string]: TSInstance;
 }
-
-interface Resolver {
-    (context: string, request: string): Q.Promise<string>;
-}
-
-var readFile = Q.denodeify<string>(fs.readFile);
 
 var instances = <TSInstances>{};
 
@@ -109,50 +102,10 @@ function ensureTypeScriptInstance(options: Options): TSInstance {
     var languageService = typescript.createLanguageService(servicesHost, typescript.createDocumentRegistry())
     
     return instances[options.instance] = {
+        compilerOptions: compilerOptions,
         files: files,
         languageService: languageService
     }
-}
-
-function rootReferencePath(referencePath: string, dirname: string) {
-    return typescript.isRootedDiskPath(referencePath) ? referencePath : typescript.combinePaths(dirname, referencePath)
-}
-
-function ensureDependencies(resolver: Resolver, instance: TSInstance, filePath: string, contents: string): Q.Promise<string> {
-    filePath = path.normalize(filePath);
-
-    if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
-
-        var fileInfo = typescript.preProcessFile(contents);
-        var isDeclarationFile = !!filePath.match(/\.d\.ts$/);
-
-        var dirname = path.dirname(filePath);
-
-        var referencedFiles = fileInfo.referencedFiles;
-        
-        // don't resolve imports for declaration files
-        if (!isDeclarationFile) {
-            referencedFiles = referencedFiles.concat(fileInfo.importedFiles)
-        }
-        
-        var dependencies = referencedFiles.map(ref => <Dependency>({
-                original: ref.filename,
-                resolved: '',
-                pos: ref.pos,
-                end: ref.end,
-                reference: fileInfo.referencedFiles.indexOf(ref) != -1
-            }));
-
-        instance.files[filePath] = { version: 0, text: contents }
-        
-        return Q.all(dependencies.map(dep => resolver(dirname, dep.reference ? rootReferencePath(dep.original, dirname) : dep.original)
-                                                 .then(newPath => dep.resolved = newPath)
-                                                 .then(newPath => dep)))
-            .then(deps => deps.filter(dep => dep.resolved.match(/\.ts$/) != null)) // filter out any non-ts files
-            .then(deps => Q.all(deps.map(dep => readFile(dep.resolved, 'utf-8').then(fileContents => ensureDependencies(resolver, instance, dep.resolved, fileContents)))))
-            .then(() => contents);
-    }
-    return Q(contents);
 }
 
 function loader(contents) {
@@ -167,46 +120,57 @@ function loader(contents) {
     }, options);
     
     var instance = ensureTypeScriptInstance(options);
-    var resolver = Q.denodeify<string>(this.resolve.bind(this));
+
+    if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
+
+        var filePaths = Object.keys(instance.files);
+        filePaths.push(filePath)
     
-    ensureDependencies(resolver, instance, filePath, contents)
-        .then(contents => {
-            var file = instance.files[filePath],
-                langService = instance.languageService;
-            
-            file.text = contents;
-            file.version++;
+        var program = typescript.createProgram(filePaths, instance.compilerOptions, typescript.createCompilerHost(instance.compilerOptions));
+ 
+        program.getSourceFiles().forEach(file => {
+            var filePath = path.normalize(file.filename);
+            if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
+                instance.files[filePath] = { version: 0, text: file.text };
+            }
+        })
+    }
+    
+    var file = instance.files[filePath],
+        langService = instance.languageService;
+    
+    file.text = contents;
+    file.version++;
 
-            var output = langService.getEmitOutput(filePath);
+    var output = langService.getEmitOutput(filePath);
 
-            var diagnostics = langService.getCompilerOptionsDiagnostics()
-                .concat(langService.getSyntacticDiagnostics(filePath))
-                .concat(langService.getSemanticDiagnostics(filePath))
-                .forEach(diagnostic => {
-                    if (diagnostic.file) {
-                        var lineChar = diagnostic.file.getLineAndCharacterFromPosition(diagnostic.start);
-                        this.emitError(`  ${diagnostic.file.filename.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${diagnostic.messageText.red}`)
-                    }
-                    else {
-                        this.emitError(`  ${"unknown file".blue}: ${diagnostic.messageText.red}`)
-                    }
-                });
-
-            if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
-            
-            var sourceMap: any;
-            if (options.sourceMap) {
-                sourceMap = JSON.parse(output.outputFiles[0].text);
-                sourceMap.sourcesContent = [contents];
-                contents = output.outputFiles[1].text;
+    var diagnostics = langService.getCompilerOptionsDiagnostics()
+        .concat(langService.getSyntacticDiagnostics(filePath))
+        .concat(langService.getSemanticDiagnostics(filePath))
+        .forEach(diagnostic => {
+            if (diagnostic.file) {
+                var lineChar = diagnostic.file.getLineAndCharacterFromPosition(diagnostic.start);
+                this.emitError(`  ${diagnostic.file.filename.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${diagnostic.messageText.red}`)
             }
             else {
-                contents = output.outputFiles[0].text;
+                this.emitError(`  ${"unknown file".blue}: ${diagnostic.messageText.red}`)
             }
-            contents = contents.replace(/\r\n/g, os.EOL);
-            return [contents, sourceMap];
-        })
-        .done(contents => callback(null, contents[0], contents[1]), err => callback(err));
+        });
+
+    if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
+    
+    var sourceMap: any;
+    if (options.sourceMap) {
+        sourceMap = JSON.parse(output.outputFiles[0].text);
+        sourceMap.sourcesContent = [contents];
+        contents = output.outputFiles[1].text;
+    }
+    else {
+        contents = output.outputFiles[0].text;
+    }
+    contents = contents.replace(/\r\n/g, os.EOL);
+    
+    callback(null, contents, sourceMap)
 }
 
 export = loader;

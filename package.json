@@ -30,7 +30,6 @@
     "colors": "^1.0.3",
     "loader-utils": "^0.2.6",
     "object-assign": "^2.0.0",
-    "q": "^1.1.2",
     "typescript": "^1.4.1"
   },
   "devDependencies": {
