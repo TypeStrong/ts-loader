@@ -10,6 +10,9 @@ npm install ts-loader
 
 ### Configuration
 
+1. Add `.ts` as a resolvable extension.
+2. Configure all files with a `.ts` extension to be handled by `ts-loader`.
+
 ```
 module.exports = {
     entry: './app.ts',
