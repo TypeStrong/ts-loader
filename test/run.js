@@ -18,6 +18,18 @@ function handleErrors(err, stats, done) {
     return false;
 }
 
+function assertSourceContains(stats, moduleRegExp, content) {
+    var statsJson = stats.toJson();
+    var module = statsJson.modules.filter(function(m) { return m.name.match(moduleRegExp) })[0];
+    assert.ok(module, 'module not found matching ' + moduleRegExp)
+    assert.ok(module.source.indexOf(content) != -1, 'module doe not have matching content');
+}
+
+function assertModuleCount(stats, expectedNumberOfModules) {
+    var statsJson = stats.toJson();
+    assert.equal(statsJson.modules.length, expectedNumberOfModules, 'wrong number of modules found')
+}
+
 describe('basic', function() {
     
     it('should have the correct output', function(done) {
@@ -102,6 +114,21 @@ describe('noImplicitAny', function() {
         })
     })
     
+})
+
+describe('replacement', function() {
+    it('should have the correct output', function(done) {
+        webpack(require('./replacement/webpack.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                
+                assertModuleCount(stats, 3);
+                assertSourceContains(stats, /a\.ts$/, "var dep = require('./dep')")
+                assertSourceContains(stats, /dep\.ts$/, "var dep = 'replacement'")
+                
+                done();     
+            }
+        })
+    })
 })
 
 describe('sourceMaps', function() {
