@@ -59,6 +59,16 @@ describe('basic', function() {
     })
 })
 
+describe('externals', function() {
+    it('should not error', function(done) {
+        webpack(require('./externals/webpack.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                done()
+            }
+        })
+    })
+})
+
 describe('instance', function() {
     it('should error when incorrectly configured', function(done) {
         webpack(require('./instance/bad.config')).run(function(err, stats) {
