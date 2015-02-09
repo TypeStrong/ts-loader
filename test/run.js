@@ -92,6 +92,16 @@ describe('instance', function() {
     })
 })
 
+describe('jsx', function() {
+    it('should not error', function(done) {
+        webpack(require('./jsx/webpack.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                done()
+            }
+        })
+    })
+})
+
 describe('node', function() {
     it('should not error', function(done) {
         webpack(require('./node/webpack.config')).run(function(err, stats) {
