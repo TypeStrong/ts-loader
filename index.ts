@@ -23,6 +23,7 @@ interface Dependency {
 
 interface Options {
     instance: string;
+    compiler: string;
     sourceMap: boolean;
     noImplicitAny: boolean;
     target: string;
@@ -39,6 +40,7 @@ interface TSFiles {
 }
 
 interface TSInstance {
+    compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
     files: TSFiles;
     languageService: typescript.LanguageService;
@@ -51,6 +53,8 @@ interface TSInstances {
 var instances = <TSInstances>{};
 
 function ensureTypeScriptInstance(options: Options): TSInstance {
+
+    var compiler = require(options.compiler);
 
     if (Object.prototype.hasOwnProperty.call(instances, options.instance))
         return instances[options.instance]
@@ -99,9 +103,10 @@ function ensureTypeScriptInstance(options: Options): TSInstance {
         log: message => console.log(message)
     };
 
-    var languageService = typescript.createLanguageService(servicesHost, typescript.createDocumentRegistry())
+    var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())
     
     return instances[options.instance] = {
+        compiler: compiler,
         compilerOptions: compilerOptions,
         files: files,
         languageService: languageService
@@ -116,6 +121,7 @@ function loader(contents) {
     var options = loaderUtils.parseQuery<Options>(this.query);
     options = objectAssign<Options>({}, {
         instance: 'default',
+        compiler: 'typescript',
         sourceMap: false
     }, options);
     
@@ -126,7 +132,7 @@ function loader(contents) {
         var filePaths = Object.keys(instance.files);
         filePaths.push(filePath)
     
-        var program = typescript.createProgram(filePaths, instance.compilerOptions, typescript.createCompilerHost(instance.compilerOptions));
+        var program = instance.compiler.createProgram(filePaths, instance.compilerOptions, instance.compiler.createCompilerHost(instance.compilerOptions));
  
         program.getSourceFiles().forEach(file => {
             var filePath = path.normalize(file.filename);
