@@ -51,6 +51,11 @@ Specify whether or not TypeScript emits source maps.
 
 Specify whether or not TypeScript will allow inferring the `any` type.
 
+##### compiler *(string) (default='typescript')*
+
+Allows use of TypeScript compilers other than the official one. Should be
+set to the NPM name of the compiler.
+
 ##### instance *(string)*
 
 Advanced option to force files to go through different instances of the
@@ -101,7 +106,11 @@ require('!style!css!./style.css');
 
 ### React JSX
 
-Please see [ts-jsx-loader](https://github.com/jbrantly/ts-jsx-loader)
+This loader supports using [jsx-typescript](https://github.com/fdecampredon/jsx-typescript).
+Simply install jsx-typescript and use the `compiler=jsx-typescript` option. 
+
+If for some reason using `jsx-typescript` doesn't work or you want to use the official
+TypeScript take a look at [ts-jsx-loader](https://github.com/jbrantly/ts-jsx-loader).
 
 ## Building from source
 
