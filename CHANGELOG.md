@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.1
+
+- Add support for specifying a custom TypeScript compiler
+
 ## v0.3.0
 
 - Change how modules are resolved. Imports and declaration file references are
