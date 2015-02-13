@@ -28,6 +28,7 @@ interface Options {
     noImplicitAny: boolean;
     target: string;
     module: string;
+    additionalFiles: string[];
 }
 
 interface TSFile {
@@ -55,9 +56,23 @@ var instances = <TSInstances>{};
 function ensureTypeScriptInstance(options: Options): TSInstance {
 
     var compiler = require(options.compiler);
-
-    if (Object.prototype.hasOwnProperty.call(instances, options.instance))
-        return instances[options.instance]
+    var files = <TSFiles>{};
+    
+    if (Object.prototype.hasOwnProperty.call(instances, options.instance)) {
+        var instance = instances[options.instance];
+        files = instance.files;
+        
+        options.additionalFiles.forEach(filePath => {
+            if (!Object.prototype.hasOwnProperty.call(options.additionalFiles, filePath)) {
+                files[filePath] = {
+                    text: fs.readFileSync(filePath, 'utf-8'),
+                    version: 0
+                }
+            }
+        });
+        
+        return instance;
+    }
     
     var target: typescript.ScriptTarget;
     switch (options.target) {
@@ -72,14 +87,15 @@ function ensureTypeScriptInstance(options: Options): TSInstance {
         sourceMap: !!options.sourceMap,
         noImplicitAny: !!options.noImplicitAny
     }
-    
-    var files = <TSFiles>{};
 
-    var libPath = path.join(path.dirname(require.resolve('typescript')), 'lib.d.ts');
-    files[libPath] = {
-        text: fs.readFileSync(libPath, 'utf-8'),
-        version: 0
-    }
+    options.additionalFiles.push(path.join(path.dirname(require.resolve('typescript')), 'lib.d.ts'));
+    
+    options.additionalFiles.forEach(filePath => {
+        files[filePath] = {
+            text: fs.readFileSync(filePath, 'utf-8'),
+            version: 0
+        }
+    });
 
     var servicesHost = {
         getScriptFileNames: () => Object.keys(files),
@@ -122,8 +138,11 @@ function loader(contents) {
     options = objectAssign<Options>({}, {
         instance: 'default',
         compiler: 'typescript',
-        sourceMap: false
+        sourceMap: false,
+        additionalFiles: []
     }, options);
+    
+    options.additionalFiles = options.additionalFiles.map(filePath => path.resolve(this.context, filePath));
     
     var instance = ensureTypeScriptInstance(options);
 
