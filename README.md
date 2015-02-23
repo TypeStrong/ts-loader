@@ -62,29 +62,6 @@ Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code. Can typically be ignored.
 
-### Declaration files
-
-All declaration files should be resolvable from the entry file. The easiest way
-to do this is to create a `_references.d.ts` file which contains references to
-all of your declaration files. Then reference `_references.d.ts` from your
-entry file.
-
-_references.d.ts
-```
-///<reference path="path/to/declaration.d.ts" />
-///<reference path="path/to/another/declaration.d.ts" />
-```
-
-app.ts
-```
-///<reference path="path/to/_references.d.ts" />
-
-import MyClass = require('./MyClass');
-
-...
-
-```
-
 ### Loading other resources and code splitting
 
 Loading css and other resources is possible but you will need to make sure that
