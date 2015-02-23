@@ -56,6 +56,13 @@ Specify whether or not TypeScript will allow inferring the `any` type.
 Allows use of TypeScript compilers other than the official one. Should be
 set to the NPM name of the compiler.
 
+##### additionalFiles *(array of string) (default=[])*
+
+Allows additional files to be manually passed to the TypeScript compiler.
+For example, if you want to make a declaration file available without
+actually referencing it in code with a `/// <references />` tag. Should
+consist of rooted paths.
+
 ##### instance *(string)*
 
 Advanced option to force files to go through different instances of the

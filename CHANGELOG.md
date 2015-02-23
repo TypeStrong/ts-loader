@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.2
+
+- Add support for manually adding files (#6)
+- Add paths to source maps (#8)
+
 ## v0.3.1
 
 - Add support for specifying a custom TypeScript compiler
