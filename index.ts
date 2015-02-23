@@ -187,6 +187,8 @@ function loader(contents) {
     var sourceMap: any;
     if (options.sourceMap) {
         sourceMap = JSON.parse(output.outputFiles[0].text);
+        sourceMap.sources = [loaderUtils.getRemainingRequest(this)];
+        sourceMap.file = loaderUtils.getCurrentRequest(this);
         sourceMap.sourcesContent = [contents];
         contents = output.outputFiles[1].text;
     }
