@@ -190,7 +190,7 @@ function loader(contents) {
         sourceMap.sources = [loaderUtils.getRemainingRequest(this)];
         sourceMap.file = loaderUtils.getCurrentRequest(this);
         sourceMap.sourcesContent = [contents];
-        contents = output.outputFiles[1].text;
+        contents = output.outputFiles[1].text.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, '');
     }
     else {
         contents = output.outputFiles[0].text;
