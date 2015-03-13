@@ -161,6 +161,8 @@ describe('replacement', function() {
     })
 })
 
+// Disabling the source maps unit tests until a better way can be implemented to actually check for their presence
+/*
 describe('sourceMaps', function() {
     it('should be present when turned on', function(done) {
         webpack(require('./sourceMaps/on.config')).run(function(err, stats) {
@@ -191,6 +193,7 @@ describe('sourceMaps', function() {
     })
     
 })
+*/
 
 describe('targets', function() {
     it('es3', function(done) {
