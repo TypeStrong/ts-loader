@@ -8,6 +8,11 @@
 npm install ts-loader
 ```
 
+### Running
+
+Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
+build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
+
 ### Configuration
 
 1. Add `.ts` as a resolvable extension.
@@ -26,11 +31,6 @@ module.exports = {
     }
 }
 ```
-
-### Running
-
-Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
-build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
 
 #### Options
 
