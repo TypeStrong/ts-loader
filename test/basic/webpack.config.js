@@ -1,3 +1,5 @@
+var path = require('path')
+
 module.exports = {
     context: __dirname,
     entry: './app.ts',
@@ -6,7 +8,7 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        alias: { externalLib: "./lib/externalLib.js" },
+        alias: { externalLib: path.join(__dirname, "./lib/externalLib.js") },
         extensions: ['', '.js', '.ts']
     },
     module: {
