@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.3
+
+- Add support for reporting errors in declaration files (#10)
+- Add support for watch mode for declaration files (#11)
+- Fix issue with extra `sourceMappingURL` in output files (#12)
+
 ## v0.3.2
 
 - Add support for manually adding files (#6)
