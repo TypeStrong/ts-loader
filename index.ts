@@ -53,7 +53,23 @@ interface TSInstances {
 
 var instances = <TSInstances>{};
 
-function ensureTypeScriptInstance(options: Options): TSInstance {
+function consoleError(msg) {
+    setTimeout(() => console.log('ERROR'+os.EOL+msg), 0)
+}
+
+function handleErrors(diagnostics: typescript.Diagnostic[], outputFn: (msg: string) => any) {
+    diagnostics.forEach(diagnostic => {
+        if (diagnostic.file) {
+            var lineChar = diagnostic.file.getLineAndCharacterFromPosition(diagnostic.start);
+            outputFn(`  ${diagnostic.file.filename.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${diagnostic.messageText.red}`)
+        }
+        else {
+            outputFn(`  ${"unknown file".blue}: ${diagnostic.messageText.red}`)
+        }
+    });
+}
+
+function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
 
     var compiler = require(options.compiler);
     var files = <TSFiles>{};
@@ -121,12 +137,41 @@ function ensureTypeScriptInstance(options: Options): TSInstance {
 
     var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())
     
-    return instances[options.instance] = {
+    var instance: TSInstance = instances[options.instance] = {
         compiler: compiler,
         compilerOptions: compilerOptions,
         files: files,
         languageService: languageService
-    }
+    };
+    
+    handleErrors(languageService.getCompilerOptionsDiagnostics(), consoleError);
+    
+    // handle errors for all declaration files at the end of each compilation
+    loader._compiler.plugin("done", stats => {
+        Object.keys(instance.files)
+            .filter(filePath => !!filePath.match(/\.d\.ts$/))
+            .forEach(filePath => {
+                handleErrors(languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)), consoleError);
+            });
+    });
+    
+    // manually update changed declaration files
+    loader._compiler.plugin("watch-run", (watching, cb) => {
+        var mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
+        Object.keys(mtimes)
+            .filter(filePath => !!filePath.match(/\.d\.ts$/))
+            .forEach(filePath => {
+                filePath = path.normalize(filePath);
+                var file = instance.files[filePath];
+                if (file) {
+                    file.text = fs.readFileSync(filePath, {encoding: 'utf8'});
+                    file.version++;
+                }
+            });
+        cb()
+    })
+    
+    return instance;
 }
 
 function loader(contents) {
@@ -144,7 +189,7 @@ function loader(contents) {
     
     options.additionalFiles = options.additionalFiles.map(filePath => path.resolve(this.context, filePath));
     
-    var instance = ensureTypeScriptInstance(options);
+    var instance = ensureTypeScriptInstance(options, this);
 
     if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
 
@@ -166,22 +211,14 @@ function loader(contents) {
     
     file.text = contents;
     file.version++;
+    
+    this.clearDependencies();
+    this.addDependency(filePath);
+    Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
 
     var output = langService.getEmitOutput(filePath);
-
-    var diagnostics = langService.getCompilerOptionsDiagnostics()
-        .concat(langService.getSyntacticDiagnostics(filePath))
-        .concat(langService.getSemanticDiagnostics(filePath))
-        .forEach(diagnostic => {
-            if (diagnostic.file) {
-                var lineChar = diagnostic.file.getLineAndCharacterFromPosition(diagnostic.start);
-                this.emitError(`  ${diagnostic.file.filename.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${diagnostic.messageText.red}`)
-            }
-            else {
-                this.emitError(`  ${"unknown file".blue}: ${diagnostic.messageText.red}`)
-            }
-        });
-
+    handleErrors(langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), this.emitError.bind(this));
+    
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
     
     var sourceMap: any;
