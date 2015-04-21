@@ -34,7 +34,7 @@ module.exports = {
 
 #### Options
 
-##### target
+##### target *(string)*
 
 Specify the TypeScript output target.
 
@@ -42,7 +42,7 @@ Specify the TypeScript output target.
 - **ES5 (default)**
 - ES6
 
-##### module
+##### module *(string)*
 
 Specify the type of modules that TypeScript emits.
 
