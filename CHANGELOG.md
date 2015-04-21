@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.3.4
+
+- Exclude TS 1.5 as a dependency since there are breaking changes
+
 ## v0.3.3
 
 - Add support for reporting errors in declaration files (#10)
