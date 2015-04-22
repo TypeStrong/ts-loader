@@ -97,15 +97,24 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         case "ES6": target = typescript.ScriptTarget.ES6; break;
         default: target = typescript.ScriptTarget.ES5;
     }
+    
+    var module = options.module == "AMD" ? typescript.ModuleKind.AMD : typescript.ModuleKind.CommonJS;
+    var libFileName = 'lib.d.ts';
+    
+    if (target == typescript.ScriptTarget.ES6) {
+        // Special handling for ES6 targets
+        module = typescript.ModuleKind.None;
+        libFileName = 'lib.es6.d.ts';
+    }
 
     var compilerOptions: typescript.CompilerOptions = {
         target: target,
-        module: options.module == "AMD" ? typescript.ModuleKind.AMD : typescript.ModuleKind.CommonJS,
+        module: module,
         sourceMap: !!options.sourceMap,
         noImplicitAny: !!options.noImplicitAny
     }
-
-    options.additionalFiles.push(path.join(path.dirname(require.resolve('typescript')), 'lib.d.ts'));
+    
+    options.additionalFiles.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
     
     options.additionalFiles.forEach(filePath => {
         files[filePath] = {
@@ -124,7 +133,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         },
         getCurrentDirectory: () => process.cwd(),
         getCompilationSettings: () => compilerOptions,
-        getDefaultLibFileName: options => 'lib.d.ts',
+        getDefaultLibFileName: options => libFileName,
         getNewLine: () => { return os.EOL },
         log: message => console.log(message)
     };
