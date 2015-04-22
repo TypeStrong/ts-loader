@@ -123,7 +123,6 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
             return compiler.ScriptSnapshot.fromString(file.text);
         },
         getCurrentDirectory: () => process.cwd(),
-        getScriptIsOpen: () => true,
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFilename: options => 'lib.d.ts',
         getNewLine: () => { return os.EOL },
