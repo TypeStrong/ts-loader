@@ -116,15 +116,15 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
 
     var servicesHost = {
         getScriptFileNames: () => Object.keys(files),
-        getScriptVersion: filename => files[filename] && files[filename].version.toString(),
-        getScriptSnapshot: filename => {
-            var file = files[filename];
+        getScriptVersion: fileName => files[fileName] && files[fileName].version.toString(),
+        getScriptSnapshot: fileName => {
+            var file = files[fileName];
             if (!file) return undefined;
             return compiler.ScriptSnapshot.fromString(file.text);
         },
         getCurrentDirectory: () => process.cwd(),
         getCompilationSettings: () => compilerOptions,
-        getDefaultLibFilename: options => 'lib.d.ts',
+        getDefaultLibFileName: options => 'lib.d.ts',
         getNewLine: () => { return os.EOL },
         log: message => console.log(message)
     };
