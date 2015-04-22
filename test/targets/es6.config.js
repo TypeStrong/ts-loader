@@ -2,7 +2,7 @@ module.exports = {
     context: __dirname,
     entry: { 
         accessor: './accessors.ts',
-        let: './let.ts'
+        symbol: './symbol.ts'
     },
     output: {
         path: __dirname,

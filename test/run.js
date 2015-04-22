@@ -202,9 +202,8 @@ describe('targets', function() {
             
             var errors = stats.toJson().errors;
             
-            assert.equal(errors.length, 2, 'Exactly two errors should be reported');
+            assert.equal(errors.length, 1, 'Exactly one error should be reported');
             assert.ok(errors[0].indexOf("Accessors are only available when targeting ECMAScript 5 and higher") != -1, 'The error reported was the wrong error');
-            assert.ok(errors[1].indexOf("Typescript emitted no output for") != -1, 'The error reported was the wrong error');
             
             done();
         })
@@ -217,9 +216,8 @@ describe('targets', function() {
             var statsJson = stats.toJson(),
                 errors = statsJson.errors;
             
-            assert.equal(errors.length, 2, 'Exactly two errors should be reported');
-            assert.ok(errors[0].indexOf("'let' declarations are only available when targeting ECMAScript 6 and higher") != -1, 'The error reported was the wrong error');
-            assert.ok(errors[1].indexOf("Typescript emitted no output for") != -1, 'The error reported was the wrong error');
+            assert.equal(errors.length, 1, 'Exactly one error should be reported');
+            assert.ok(errors[0].indexOf("Cannot find name 'Symbol'.") != -1, 'The error reported was the wrong error');
             
             done();
         })
