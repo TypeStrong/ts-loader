@@ -129,9 +129,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         getScriptIsOpen: () => true,
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFilename: options => 'lib.d.ts',
-        // getNewLine() should work in next version of TypeScript
-        // see https://github.com/Microsoft/TypeScript/issues/1653
-        //getNewLine: () => { return os.EOL },
+        getNewLine: () => { return os.EOL },
         log: message => console.log(message)
     };
 
@@ -232,7 +230,6 @@ function loader(contents) {
     else {
         contents = output.outputFiles[0].text;
     }
-    contents = contents.replace(/\r\n/g, os.EOL);
     
     callback(null, contents, sourceMap)
 }
