@@ -57,14 +57,15 @@ function consoleError(msg) {
     setTimeout(() => console.log('ERROR'+os.EOL+msg), 0)
 }
 
-function handleErrors(diagnostics: typescript.Diagnostic[], outputFn: (msg: string) => any) {
+function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (msg: string) => any) {
     diagnostics.forEach(diagnostic => {
+        var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
         if (diagnostic.file) {
-            var lineChar = diagnostic.file.getLineAndCharacterFromPosition(diagnostic.start);
-            outputFn(`  ${diagnostic.file.filename.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${diagnostic.messageText.red}`)
+            var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+            outputFn(`  ${diagnostic.file.fileName.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${messageText.red}`)
         }
         else {
-            outputFn(`  ${"unknown file".blue}: ${diagnostic.messageText.red}`)
+            outputFn(`  ${"unknown file".blue}: ${messageText.red}`)
         }
     });
 }
@@ -142,14 +143,14 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         languageService: languageService
     };
     
-    handleErrors(languageService.getCompilerOptionsDiagnostics(), consoleError);
+    handleErrors(languageService.getCompilerOptionsDiagnostics(), compiler, consoleError);
     
     // handle errors for all declaration files at the end of each compilation
     loader._compiler.plugin("done", stats => {
         Object.keys(instance.files)
             .filter(filePath => !!filePath.match(/\.d\.ts$/))
             .forEach(filePath => {
-                handleErrors(languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)), consoleError);
+                handleErrors(languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)), compiler, consoleError);
             });
     });
     
@@ -197,7 +198,7 @@ function loader(contents) {
         var program = instance.compiler.createProgram(filePaths, instance.compilerOptions, instance.compiler.createCompilerHost(instance.compilerOptions));
  
         program.getSourceFiles().forEach(file => {
-            var filePath = path.normalize(file.filename);
+            var filePath = path.normalize(file.fileName);
             if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
                 instance.files[filePath] = { version: 0, text: file.text };
             }
@@ -215,7 +216,7 @@ function loader(contents) {
     Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
 
     var output = langService.getEmitOutput(filePath);
-    handleErrors(langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), this.emitError.bind(this));
+    handleErrors(langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), instance.compiler, this.emitError.bind(this));
     
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
     
