@@ -119,12 +119,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         getScriptVersion: filename => files[filename] && files[filename].version.toString(),
         getScriptSnapshot: filename => {
             var file = files[filename];
-            return {
-                getText: (start, end) => file.text.substring(start, end),
-                getLength: () => file.text.length,
-                getLineStartPositions: () => [],
-                getChangeRange: oldSnapshot => undefined
-            };
+            if (!file) return undefined;
+            return compiler.ScriptSnapshot.fromString(file.text);
         },
         getCurrentDirectory: () => process.cwd(),
         getScriptIsOpen: () => true,
