@@ -87,7 +87,7 @@ describe('instance', function() {
             var errors = stats.toJson().errors;
             
             assert.equal(errors.length, 1, 'Exactly one error should be reported');
-            assert.ok(errors[0].indexOf("Subsequent variable declarations must have the same type.  Variable 'someGlobal' must be of type 'number', but here has type 'string'.") != -1, 'The error reported was the wrong error');
+            assert.ok(errors[0].indexOf("Subsequent variable declarations must have the same type") != -1, 'The error reported was the wrong error');
             
             done();
         })

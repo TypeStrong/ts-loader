@@ -1,5 +1,4 @@
 ///<reference path="node_modules/typescript/bin/typescript.d.ts" />
-///<reference path="node_modules/typescript/bin/typescript_internal.d.ts" />
 ///<reference path="node_modules/typescript/bin/typescriptServices.d.ts" />
 ///<reference path="typings/node/node.d.ts" />
 ///<reference path="typings/loaderUtils/loaderUtils.d.ts" />
