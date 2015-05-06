@@ -27,7 +27,7 @@ interface Options {
     noImplicitAny: boolean;
     target: string;
     module: string;
-    additionalFiles: string[];
+    files: string[];
 }
 
 interface TSFile {
@@ -78,8 +78,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         var instance = instances[options.instance];
         files = instance.files;
         
-        options.additionalFiles.forEach(filePath => {
-            if (!Object.prototype.hasOwnProperty.call(options.additionalFiles, filePath)) {
+        options.files.forEach(filePath => {
+            if (!Object.prototype.hasOwnProperty.call(options.files, filePath)) {
                 files[filePath] = {
                     text: fs.readFileSync(filePath, 'utf-8'),
                     version: 0
@@ -113,9 +113,9 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         noImplicitAny: !!options.noImplicitAny
     }
     
-    options.additionalFiles.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
+    options.files.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
     
-    options.additionalFiles.forEach(filePath => {
+    options.files.forEach(filePath => {
         files[filePath] = {
             text: fs.readFileSync(filePath, 'utf-8'),
             version: 0
@@ -186,10 +186,10 @@ function loader(contents) {
         instance: 'default',
         compiler: 'typescript',
         sourceMap: false,
-        additionalFiles: []
+        files: []
     }, options);
     
-    options.additionalFiles = options.additionalFiles.map(filePath => path.resolve(this.context, filePath));
+    options.files = options.files.map(filePath => path.resolve(this.context, filePath));
     
     var instance = ensureTypeScriptInstance(options, this);
 

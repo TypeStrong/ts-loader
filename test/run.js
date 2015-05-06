@@ -30,9 +30,9 @@ function assertModuleCount(stats, expectedNumberOfModules) {
     assert.equal(statsJson.modules.length, expectedNumberOfModules, 'wrong number of modules found')
 }
 
-describe('additionalFiles', function() {
+describe('files', function() {
     it('should not error', function(done) {
-        webpack(require('./additionalFiles/webpack.config')).run(function(err, stats) {
+        webpack(require('./files/webpack.config')).run(function(err, stats) {
             if (!handleErrors(err, stats, done)) {
                 done()
             }

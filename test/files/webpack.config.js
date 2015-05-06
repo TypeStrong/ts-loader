@@ -1,8 +1,8 @@
 var path = require('path')
 
 var tsLoaderOptions = {
-	instance: 'additionalFiles',
-	additionalFiles: [
+	instance: 'files',
+	files: [
 		path.join(__dirname, "./lib/externalLib.d.ts")
 	]
 }
