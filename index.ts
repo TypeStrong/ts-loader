@@ -125,6 +125,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
     filesToLoad.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
     
     filesToLoad.forEach(filePath => {
+        filePath = path.normalize(filePath);
         files[filePath] = {
             text: fs.readFileSync(filePath, 'utf-8'),
             version: 0
@@ -133,8 +134,12 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
 
     var servicesHost = {
         getScriptFileNames: () => Object.keys(files),
-        getScriptVersion: fileName => files[fileName] && files[fileName].version.toString(),
+        getScriptVersion: fileName => {
+            fileName = path.normalize(fileName);
+            return files[fileName] && files[fileName].version.toString();
+        },
         getScriptSnapshot: fileName => {
+            fileName = path.normalize(fileName);
             var file = files[fileName];
             if (!file) return undefined;
             return compiler.ScriptSnapshot.fromString(file.text);
