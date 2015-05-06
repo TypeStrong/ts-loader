@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.0
+
+- TypeScript 1.5 support! (#14)
+- tsconfig.json support (#2, #9)
+- ES6 target support
+- Remove TS-related options in favor of specifying them in tsconfig.json
+- Add `configFileName` option for custom tsconfig files
+
 ## v0.3.4
 
 - Exclude TS 1.5 as a dependency since there are breaking changes

@@ -8,6 +8,10 @@
 npm install ts-loader
 ```
 
+### Upgrading
+
+Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
+
 ### Running
 
 Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
@@ -26,7 +30,7 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: 'ts-loader?sourceMap&target=ES3' }
+            { test: /\.ts$/, loader: 'ts-loader' }
         ]
     }
 }
@@ -34,46 +38,25 @@ module.exports = {
 
 #### Options
 
-##### target *(string)*
-
-Specify the TypeScript output target.
-
-- ES3
-- **ES5 (default)**
-- ES6
-
-##### module *(string)*
-
-Specify the type of modules that TypeScript emits.
-
-- **CommonJS (default)**
-- AMD
-
-##### sourceMap *(boolean) (default=false)*
-
-Specify whether or not TypeScript emits source maps. 
-
-##### noImplicitAny *(boolean) (default=false)*
-
-Specify whether or not TypeScript will allow inferring the `any` type.
+Most TypeScript-related options should be set using a 
+[tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json)
+file. There are a few loader-specific options you can set although in general
+you should not need to.
 
 ##### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
 set to the NPM name of the compiler.
 
-##### files *(array of string) (default=[])*
-
-Allows additional files to be manually passed to the TypeScript compiler.
-For example, if you want to make a declaration file available without
-actually referencing it in code with a `/// <references />` tag. Should
-consist of rooted paths.
-
 ##### instance *(string)*
 
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
-of your code. Can typically be ignored.
+of your code.
+
+##### configFileName *(string) (default=tsconfig.json)*
+
+Allows you to specify a custom configuration file.
 
 ### Loading other resources and code splitting
 
