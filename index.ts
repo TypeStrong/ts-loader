@@ -69,6 +69,21 @@ function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typ
     });
 }
 
+function findConfigFile(compiler: typeof typescript, searchPath: string): string {
+    while (true) {
+        var fileName = path.join(searchPath, "tsconfig.json");
+        if (compiler.sys.fileExists(fileName)) {
+            return fileName;
+        }
+        var parentPath = path.dirname(searchPath);
+        if (parentPath === searchPath) {
+            break;
+        }
+        searchPath = parentPath;
+    }
+    return undefined;
+}
+
 function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
 
     var compiler = require(options.compiler);
@@ -111,6 +126,25 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         module: module,
         sourceMap: !!options.sourceMap,
         noImplicitAny: !!options.noImplicitAny
+    }
+
+    var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath));
+    if (configFilePath) {
+        var configFile = compiler.readConfigFile(configFilePath);
+        // TODO: when 1.5 stable comes out, this will never be undefined. Instead it will
+        // have an 'error' property
+        if (!configFile) {
+            throw new Error('tsconfig.json file found but not parsable');
+        }
+        
+        var configParseResult = compiler.parseConfigFile(configFile, path.dirname(configFilePath));
+        if (configParseResult.errors.length) {
+            handleErrors(languageService.getCompilerOptionsDiagnostics(), compiler, consoleError);
+            throw new Error('error while parsing tsconfig.json');
+        }
+        
+        objectAssign(compilerOptions, configParseResult.options);
+        options.files = options.files.concat(configParseResult.fileNames);
     }
     
     options.files.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
@@ -224,7 +258,7 @@ function loader(contents) {
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
     
     var sourceMap: any;
-    if (options.sourceMap) {
+    if (output.outputFiles.length == 2) {
         sourceMap = JSON.parse(output.outputFiles[0].text);
         sourceMap.sources = [loaderUtils.getRemainingRequest(this)];
         sourceMap.file = loaderUtils.getCurrentRequest(this);

@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "sourceMap": true
+    },
+    "files": [
+        "lib/externalLib.d.ts"
+    ]
+}

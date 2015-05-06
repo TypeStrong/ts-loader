@@ -264,3 +264,21 @@ describe('module', function() {
     })
     
 })
+
+describe('tsconfig', function() {
+    it('should not error', function(done) {
+        webpack(require('./tsconfig/webpack.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                done()
+            }
+        })
+    })
+    
+    it('should not error when using parent dir', function(done) {
+        webpack(require('./tsconfig/parentDir.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                done()
+            }
+        })
+    })
+})
