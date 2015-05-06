@@ -1,12 +1,5 @@
 var path = require('path')
 
-var tsLoaderOptions = {
-	instance: 'files',
-	files: [
-		path.join(__dirname, "./lib/externalLib.d.ts")
-	]
-}
-
 module.exports = {
     context: __dirname,
     entry: './app.ts',
@@ -20,7 +13,7 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: "../../index.js?"+JSON.stringify(tsLoaderOptions) }
+            { test: /\.ts$/, loader: "../../index.js?instance=files" }
         ]
     }
 }

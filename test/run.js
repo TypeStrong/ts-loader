@@ -123,30 +123,6 @@ describe('node', function() {
     })
 })
 
-describe('noImplicitAny', function() {
-    it('should fail when turned on', function(done) {
-        webpack(require('./noImplicitAny/on.config')).run(function(err, stats) {
-            if (err) return done(err)
-            
-            var errors = stats.toJson().errors;
-            
-            assert.equal(errors.length, 1, 'Exactly one errors should be reported');
-            assert.ok(errors[0].indexOf("Parameter 'a' implicitly has an 'any' type.") != -1, 'The error reported was the wrong error');
-            
-            done();
-        })
-    })
-    
-    it('should not fail when turned off', function(done) {
-        webpack(require('./noImplicitAny/off.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done();   
-            }
-        })
-    })
-    
-})
-
 describe('replacement', function() {
     it('should have the correct output', function(done) {
         webpack(require('./replacement/webpack.config')).run(function(err, stats) {
@@ -266,17 +242,9 @@ describe('module', function() {
     
 })
 
-describe('tsconfig', function() {
+describe('tsconfigSearch', function() {
     it('should not error', function(done) {
-        webpack(require('./tsconfig/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done()
-            }
-        })
-    })
-    
-    it('should not error when using parent dir', function(done) {
-        webpack(require('./tsconfig/parentDir.config')).run(function(err, stats) {
+        webpack(require('./tsconfigSearch/webpack.config')).run(function(err, stats) {
             if (!handleErrors(err, stats, done)) {
                 done()
             }

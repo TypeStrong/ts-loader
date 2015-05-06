@@ -13,7 +13,7 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: '../../index.js?instance=targetES6&target=ES6' }
+            { test: /\.ts$/, loader: '../../index.js?instance=targetES6&configFileName=es6.tsconfig.json' }
         ]
     }
 }

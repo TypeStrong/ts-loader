@@ -10,7 +10,7 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: '../../index.js?instance=moduleAMD&module=AMD' }
+            { test: /\.ts$/, loader: '../../index.js?instance=moduleAMD&configFileName=amd.tsconfig.json' }
         ]
     }
 }

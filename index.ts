@@ -23,11 +23,7 @@ interface Dependency {
 interface Options {
     instance: string;
     compiler: string;
-    sourceMap: boolean;
-    noImplicitAny: boolean;
-    target: string;
-    module: string;
-    files: string[];
+    configFileName: string;
 }
 
 interface TSFile {
@@ -69,9 +65,9 @@ function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typ
     });
 }
 
-function findConfigFile(compiler: typeof typescript, searchPath: string): string {
+function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string {
     while (true) {
-        var fileName = path.join(searchPath, "tsconfig.json");
+        var fileName = path.join(searchPath, configFileName);
         if (compiler.sys.fileExists(fileName)) {
             return fileName;
         }
@@ -90,46 +86,17 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
     var files = <TSFiles>{};
     
     if (Object.prototype.hasOwnProperty.call(instances, options.instance)) {
-        var instance = instances[options.instance];
-        files = instance.files;
-        
-        options.files.forEach(filePath => {
-            if (!Object.prototype.hasOwnProperty.call(options.files, filePath)) {
-                files[filePath] = {
-                    text: fs.readFileSync(filePath, 'utf-8'),
-                    version: 0
-                }
-            }
-        });
-        
-        return instance;
+        return instances[options.instance];        
     }
     
-    var target: typescript.ScriptTarget;
-    switch (options.target) {
-        case "ES3": target = typescript.ScriptTarget.ES3; break;
-        case "ES6": target = typescript.ScriptTarget.ES6; break;
-        default: target = typescript.ScriptTarget.ES5;
-    }
-    
-    var module = options.module == "AMD" ? typescript.ModuleKind.AMD : typescript.ModuleKind.CommonJS;
-    var libFileName = 'lib.d.ts';
-    
-    if (target == typescript.ScriptTarget.ES6) {
-        // Special handling for ES6 targets
-        module = typescript.ModuleKind.None;
-        libFileName = 'lib.es6.d.ts';
-    }
-
     var compilerOptions: typescript.CompilerOptions = {
-        target: target,
-        module: module,
-        sourceMap: !!options.sourceMap,
-        noImplicitAny: !!options.noImplicitAny
-    }
-
-    var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath));
+        module: typescript.ModuleKind.CommonJS
+    };
+    
+    var filesToLoad = [];
+    var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), options.configFileName);
     if (configFilePath) {
+        console.log('Using config file at '.green + configFilePath.blue);
         var configFile = compiler.readConfigFile(configFilePath);
         // TODO: when 1.5 stable comes out, this will never be undefined. Instead it will
         // have an 'error' property
@@ -144,12 +111,20 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         }
         
         objectAssign(compilerOptions, configParseResult.options);
-        options.files = options.files.concat(configParseResult.fileNames);
+        filesToLoad = configParseResult.fileNames;
     }
     
-    options.files.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
+    var libFileName = 'lib.d.ts';
+
+    if (compilerOptions.target == typescript.ScriptTarget.ES6) {
+        // Special handling for ES6 targets
+        compilerOptions.module = typescript.ModuleKind.None;
+        libFileName = 'lib.es6.d.ts';
+    }
     
-    options.files.forEach(filePath => {
+    filesToLoad.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
+    
+    filesToLoad.forEach(filePath => {
         files[filePath] = {
             text: fs.readFileSync(filePath, 'utf-8'),
             version: 0
@@ -219,11 +194,8 @@ function loader(contents) {
     options = objectAssign<Options>({}, {
         instance: 'default',
         compiler: 'typescript',
-        sourceMap: false,
-        files: []
+        configFileName: 'tsconfig.json'
     }, options);
-    
-    options.files = options.files.map(filePath => path.resolve(this.context, filePath));
     
     var instance = ensureTypeScriptInstance(options, this);
 
