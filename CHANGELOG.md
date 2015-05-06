@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.1
+
+- Fix Windows issue with paths (#14)
+
 ## v0.4.0
 
 - TypeScript 1.5 support! (#14)
