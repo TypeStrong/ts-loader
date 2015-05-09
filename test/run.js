@@ -69,6 +69,16 @@ describe('basic', function() {
     })
 })
 
+describe('declarationDeps', function() {
+    it('should not error', function(done) {
+        webpack(require('./declarationDeps/webpack.config')).run(function(err, stats) {
+            if (!handleErrors(err, stats, done)) {
+                done()
+            }
+        })
+    })
+})
+
 describe('externals', function() {
     it('should not error', function(done) {
         webpack(require('./externals/webpack.config')).run(function(err, stats) {

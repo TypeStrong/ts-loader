@@ -1,0 +1,6 @@
+{
+    "files": [
+        "./app.ts",
+        "./references.d.ts"
+    ]
+}
