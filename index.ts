@@ -141,7 +141,19 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         getScriptSnapshot: fileName => {
             fileName = path.normalize(fileName);
             var file = files[fileName];
-            if (!file) return undefined;
+            
+            if (!file) {
+                try {
+                    file = files[fileName] = {
+                        version: 0, 
+                        text: fs.readFileSync(fileName, {encoding: 'utf8'})
+                    }
+                }
+                catch (e) {
+                    return;
+                }
+            } 
+            
             return compiler.ScriptSnapshot.fromString(file.text);
         },
         getCurrentDirectory: () => process.cwd(),
@@ -202,25 +214,13 @@ function loader(contents) {
         configFileName: 'tsconfig.json'
     }, options);
     
-    var instance = ensureTypeScriptInstance(options, this);
-
-    if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
-
-        var filePaths = Object.keys(instance.files);
-        filePaths.push(filePath)
-    
-        var program = instance.compiler.createProgram(filePaths, instance.compilerOptions, instance.compiler.createCompilerHost(instance.compilerOptions));
- 
-        program.getSourceFiles().forEach(file => {
-            var filePath = path.normalize(file.fileName);
-            if (!Object.prototype.hasOwnProperty.call(instance.files, filePath)) {
-                instance.files[filePath] = { version: 0, text: file.text };
-            }
-        })
-    }
-    
-    var file = instance.files[filePath],
+    var instance = ensureTypeScriptInstance(options, this),
+        file = instance.files[filePath],
         langService = instance.languageService;
+    
+    if (!file) {
+        file = instance.files[filePath] = <TSFile>{};
+    }
     
     file.text = contents;
     file.version++;
