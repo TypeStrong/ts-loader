@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.2
+
+- Rework the way dependencies are loaded (#14)
+- Fix NPM dependency on TypeScript (#15, #16)
+
 ## v0.4.1
 
 - Fix Windows issue with paths (#14)
