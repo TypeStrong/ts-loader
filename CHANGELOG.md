@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.3
+
+- Fix error locations to be 1-based instead of 0-based (#18)
+
 ## v0.4.2
 
 - Rework the way dependencies are loaded (#14)
