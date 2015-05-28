@@ -4,6 +4,7 @@ var path = require('path');
 var newLine = require('os').EOL;
 var tsLoader = require('../index');
 var webpack = require('webpack');
+var colors = require('colors');
 
 function handleErrors(err, stats, done) {
     if (err) { 
@@ -85,6 +86,21 @@ describe('externals', function() {
             if (!handleErrors(err, stats, done)) {
                 done()
             }
+        })
+    })
+})
+
+describe('errorlocation', function() {
+    it('should report correct error location', function(done) {
+        webpack(require('./errorlocation/webpack.config')).run(function(err, stats) {
+            if (err) return done(err)
+            
+            var errors = stats.toJson().errors;
+            
+            assert.equal(errors.length, 2, 'Exactly two errors should be reported');
+            assert.ok(colors.strip(errors[0]).indexOf(" (1,7): ") != -1, 'The error reported was in the wrong location');
+            
+            done();
         })
     })
 })

@@ -57,7 +57,7 @@ function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typ
         var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
         if (diagnostic.file) {
             var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-            outputFn(`  ${diagnostic.file.fileName.blue} (${lineChar.line.toString().cyan},${lineChar.character.toString().cyan}): ${messageText.red}`)
+            outputFn(`  ${diagnostic.file.fileName.blue} (${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`)
         }
         else {
             outputFn(`  ${"unknown file".blue}: ${messageText.red}`)
