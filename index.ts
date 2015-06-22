@@ -122,7 +122,9 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         libFileName = 'lib.es6.d.ts';
     }
     
-    filesToLoad.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
+    if (!compilerOptions.noLib) {
+        filesToLoad.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
+    }
     
     filesToLoad.forEach(filePath => {
         filePath = path.normalize(filePath);

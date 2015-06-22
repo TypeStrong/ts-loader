@@ -149,6 +149,21 @@ describe('node', function() {
     })
 })
 
+describe('noLib', function() {
+    it('should report error', function(done) {
+        webpack(require('./nolib/webpack.config')).run(function(err, stats) {
+            if (err) return done(err)
+            
+            var errors = stats.toJson().errors;
+            
+            assert.equal(errors.length, 1, 'Exactly one error should be reported');
+            assert.ok(errors[0].indexOf("Cannot find name 'parseInt'") != -1, 'The error reported was in the wrong location');
+            
+            done();
+        })
+    })
+})
+
 describe('replacement', function() {
     it('should have the correct output', function(done) {
         webpack(require('./replacement/webpack.config')).run(function(err, stats) {
