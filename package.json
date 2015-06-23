@@ -35,6 +35,6 @@
   "devDependencies": {
     "jsx-typescript": "^1.5.0-alpha.4",
     "mocha": "^2.1.0",
-    "webpack": "^1.5.3"
+    "webpack": "^1.9.11"
   }
 }
