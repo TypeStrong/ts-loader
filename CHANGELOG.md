@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.4.4
+
+- Add support for "noLib" compiler option (#19)
+- Make errors easier to parse programmatically (#20)
+  - Errors in declaration files are now added to the stats object instead of written to console
+  - Errors now include `file`, `rawMessage`, and `location` properties
+- Make --watch option more robust
+  - Fix issue where changes to entry file were not detected
+  - Fix issue where changes to typing information only did not result in a rebuild (#21)
+
 ## v0.4.3
 
 - Fix error locations to be 1-based instead of 0-based (#18)
