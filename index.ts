@@ -52,18 +52,19 @@ function consoleError(msg) {
     setTimeout(() => console.log('ERROR'+os.EOL+msg), 0)
 }
 
-function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (msg: string, loc: {line: number, character: number}) => any) {
+function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (prettyMessage: string, rawMessage: string, loc: {line: number, character: number}) => any) {
     diagnostics.forEach(diagnostic => {
         var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
         if (diagnostic.file) {
             var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
             outputFn(
                 `  ${diagnostic.file.fileName.blue} (${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`, 
+                messageText,
                 {line: lineChar.line+1, character: lineChar.character+1}
             );
         }
         else {
-            outputFn(`  ${"unknown file".blue}: ${messageText.red}`, null)
+            outputFn(`  ${"unknown file".blue}: ${messageText.red}`, messageText, null)
         }
     });
 }
@@ -187,10 +188,11 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
                 handleErrors(
                     languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)),
                     compiler, 
-                    (message, location) => {
+                    (message, rawMessage, location) => {
                         stats.compilation.errors.push({
                             file: filePath,
                             message: message,
+                            rawMessage: rawMessage,
                             location: location
                         })
                     }
@@ -245,14 +247,19 @@ function loader(contents) {
     Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
 
     var output = langService.getEmitOutput(filePath);
-    handleErrors(langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), instance.compiler, (message, location) => {
-        this._module.errors.push({
-            file: filePath,
-            module: this._module,
-            message: message,
-            location: location
-        });
-    });
+    handleErrors(
+        langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), 
+        instance.compiler, 
+        (message, rawMessage, location) => {
+            this._module.errors.push({
+                file: filePath,
+                module: this._module,
+                message: message,
+                rawMessage: rawMessage,
+                location: location
+            });
+        }
+    );
 
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
     
