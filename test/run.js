@@ -90,9 +90,9 @@ describe('externals', function() {
     })
 })
 
-describe('errorlocation', function() {
+describe('errors', function() {
     it('should report correct error location', function(done) {
-        webpack(require('./errorlocation/webpack.config')).run(function(err, stats) {
+        webpack(require('./errors/webpack.config')).run(function(err, stats) {
             if (err) return done(err)
             
             var errors = stats.toJson().errors;
