@@ -26,7 +26,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 module.exports = {
     entry: './app.ts',
     resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.js', '.ts']
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
     },
     module: {
         loaders: [
