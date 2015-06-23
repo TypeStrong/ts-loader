@@ -91,7 +91,7 @@ describe('externals', function() {
 })
 
 describe('errors', function() {
-    it('should report correct error location', function(done) {
+    it('should report correct error information', function(done) {
         webpack(require('./errors/webpack.config')).run(function(err, stats) {
             if (err) return done(err)
             
@@ -99,6 +99,12 @@ describe('errors', function() {
             
             assert.equal(errors.length, 2, 'Exactly two errors should be reported');
             assert.ok(colors.strip(errors[0]).indexOf(" (1,7): ") != -1, 'The error reported was in the wrong location');
+            
+            var firstError = stats.compilation.errors[0];
+            assert.ok(firstError.rawMessage == "'=' expected.", 'rawMessage property is not correct');
+            assert.ok(firstError.location.line == 1, 'line property is not correct');
+            assert.ok(firstError.location.character == 7, 'character property is not correct');
+            assert.ok(firstError.file != null, 'file property does not exist');
             
             done();
         })
