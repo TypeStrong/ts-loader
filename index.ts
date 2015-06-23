@@ -52,15 +52,18 @@ function consoleError(msg) {
     setTimeout(() => console.log('ERROR'+os.EOL+msg), 0)
 }
 
-function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (msg: string) => any) {
+function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (msg: string, loc: {line: number, character: number}) => any) {
     diagnostics.forEach(diagnostic => {
         var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
         if (diagnostic.file) {
             var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-            outputFn(`  ${diagnostic.file.fileName.blue} (${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`)
+            outputFn(
+                `  ${diagnostic.file.fileName.blue} (${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`, 
+                {line: lineChar.line+1, character: lineChar.character+1}
+            );
         }
         else {
-            outputFn(`  ${"unknown file".blue}: ${messageText.red}`)
+            outputFn(`  ${"unknown file".blue}: ${messageText.red}`, null)
         }
     });
 }
@@ -181,7 +184,17 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         Object.keys(instance.files)
             .filter(filePath => !!filePath.match(/\.d\.ts$/))
             .forEach(filePath => {
-                handleErrors(languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)), compiler, consoleError);
+                handleErrors(
+                    languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)),
+                    compiler, 
+                    (message, location) => {
+                        stats.compilation.errors.push({
+                            file: filePath,
+                            message: message,
+                            location: location
+                        })
+                    }
+                );
             });
     });
     
@@ -232,7 +245,14 @@ function loader(contents) {
     Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
 
     var output = langService.getEmitOutput(filePath);
-    handleErrors(langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), instance.compiler, this.emitError.bind(this));
+    handleErrors(langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), instance.compiler, (message, location) => {
+        this._module.errors.push({
+            file: filePath,
+            module: this._module,
+            message: message,
+            location: location
+        });
+    });
 
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
     
