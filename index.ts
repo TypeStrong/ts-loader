@@ -233,7 +233,7 @@ function loader(contents) {
 
     var output = langService.getEmitOutput(filePath);
     handleErrors(langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), instance.compiler, this.emitError.bind(this));
-    
+
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
     
     var sourceMap: any;
@@ -247,7 +247,9 @@ function loader(contents) {
     else {
         contents = output.outputFiles[0].text;
     }
-    
+
+    this._module.meta['tsLoaderFileVersion'] = file.version;
+
     callback(null, contents, sourceMap)
 }
 
