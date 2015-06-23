@@ -234,7 +234,7 @@ function loader(contents) {
         langService = instance.languageService;
     
     if (!file) {
-        file = instance.files[filePath] = <TSFile>{};
+        file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
     
     file.text = contents;
