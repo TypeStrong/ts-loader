@@ -80,10 +80,10 @@ require('!style!css!./style.css');
 ### React JSX
 
 This loader supports using [jsx-typescript](https://github.com/fdecampredon/jsx-typescript).
-Simply install jsx-typescript and use the `compiler=jsx-typescript` option. 
+Simply install jsx-typescript and use the `compiler=jsx-typescript` option. Note that you
+will need to use ts-loader@0.3.x in order to use this as 0.4.x and above is not API-compatible. 
 
-If for some reason using `jsx-typescript` doesn't work or you want to use the official
-TypeScript take a look at [ts-jsx-loader](https://github.com/jbrantly/ts-jsx-loader).
+You may also be interested in using [ts-jsx-loader](https://github.com/jbrantly/ts-jsx-loader).
 
 ## Building from source
 
