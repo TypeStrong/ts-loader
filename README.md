@@ -43,6 +43,9 @@ Most TypeScript-related options should be set using a
 file. There are a few loader-specific options you can set although in general
 you should not need to.
 
+##### silent *(boolean) (default='false')*
+If true, no console.log messages will be emitted.
+
 ##### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
