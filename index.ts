@@ -21,6 +21,7 @@ interface Dependency {
 }
 
 interface Options {
+    silent: boolean;
     instance: string;
     compiler: string;
     configFileName: string;
@@ -86,6 +87,12 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 
 function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
 
+    function log(...messages: string[]): void {
+        if (!options.silent) {
+            console.log.apply(console, messages);
+        }
+    }
+
     var compiler = require(options.compiler);
     var files = <TSFiles>{};
     
@@ -100,7 +107,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
     var filesToLoad = [];
     var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), options.configFileName);
     if (configFilePath) {
-        console.log('Using config file at '.green + configFilePath.blue);
+        log('Using config file at '.green + configFilePath.blue);
         var configFile = compiler.readConfigFile(configFilePath);
         // TODO: when 1.5 stable comes out, this will never be undefined. Instead it will
         // have an 'error' property
@@ -166,7 +173,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: options => libFileName,
         getNewLine: () => { return os.EOL },
-        log: message => console.log(message)
+        log: log
     };
 
     var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())
