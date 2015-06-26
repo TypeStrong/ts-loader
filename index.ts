@@ -49,6 +49,9 @@ interface TSInstances {
 
 var instances = <TSInstances>{};
 
+// Take TypeScript errors, parse them and "pretty-print" to a passed-in function
+// The passed-in function can either console.log them or add them to webpack's
+// list of errors
 function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (prettyMessage: string, rawMessage: string, loc: {line: number, character: number}) => any) {
     diagnostics.forEach(diagnostic => {
         var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
@@ -66,6 +69,8 @@ function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typ
     });
 }
 
+// The tsconfig.json is found using the same method as `tsc`, starting in the current directory 
+// and continuing up the parent directory chain.
 function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string {
     while (true) {
         var fileName = path.join(searchPath, configFileName);
@@ -81,6 +86,11 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
     return undefined;
 }
 
+// The loader is executed once for each file seen by webpack. However, we need to keep 
+// a persistent instance of TypeScript that contains all of the files in the program
+// along with definition files and options. This function either creates an instance
+// or returns the existing one. Multiple instances are possible by using the
+// `instance` property.
 function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
 
     function log(...messages: string[]): void {
@@ -104,6 +114,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         module: typescript.ModuleKind.CommonJS
     };
     
+    // Load any available tsconfig.json file
     var filesToLoad = [];
     var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), options.configFileName);
     if (configFilePath) {
@@ -127,8 +138,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
     
     var libFileName = 'lib.d.ts';
 
+    // Special handling for ES6 targets
     if (compilerOptions.target == typescript.ScriptTarget.ES6) {
-        // Special handling for ES6 targets
         compilerOptions.module = typescript.ModuleKind.None;
         libFileName = 'lib.es6.d.ts';
     }
@@ -137,6 +148,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         filesToLoad.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
     }
     
+    // Load initial files (core lib files, any files specified in tsconfig.json)
     filesToLoad.forEach(filePath => {
         filePath = path.normalize(filePath);
         files[filePath] = {
@@ -145,6 +157,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         }
     });
 
+    // Create the TypeScript language service
     var servicesHost = {
         getScriptFileNames: () => Object.keys(files),
         getScriptVersion: fileName => {
@@ -152,6 +165,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
             return files[fileName] && files[fileName].version.toString();
         },
         getScriptSnapshot: fileName => {
+            // This is called any time TypeScript needs a file's text
+            // We either load from memory or from disk 
             fileName = path.normalize(fileName);
             var file = files[fileName];
             
@@ -243,6 +258,7 @@ function loader(contents) {
         file = instance.files[filePath],
         langService = instance.languageService;
     
+    // Update TypeScript with the new file contents
     if (!file) {
         file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
@@ -250,10 +266,12 @@ function loader(contents) {
     file.text = contents;
     file.version++;
     
+    // Make this file dependent on *all* definition files in the program
     this.clearDependencies();
     this.addDependency(filePath);
     Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
 
+    // Emit Javascript
     var output = langService.getEmitOutput(filePath);
     handleErrors(
         langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), 
@@ -283,6 +301,9 @@ function loader(contents) {
         contents = output.outputFiles[0].text;
     }
 
+    // Make sure webpack is aware that even though the emitted JavaScript may be the same as
+    // a previously cached version the TypeScript may be different and therefore should be
+    // treated as new
     this._module.meta['tsLoaderFileVersion'] = file.version;
 
     callback(null, contents, sourceMap)
