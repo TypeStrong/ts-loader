@@ -10,7 +10,7 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: '../../index.js?instance=sourceMapsOff' }
+            { test: /\.ts$/, loader: '../../index.js?instance=sourceMapsOff&configFileName=tsconfig.off.json' }
         ]
     }
 }

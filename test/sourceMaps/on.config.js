@@ -11,7 +11,7 @@ module.exports = {
     devtool: 'source-map',
     module: {
         loaders: [
-            { test: /\.ts$/, loader: '../../index.js?instance=sourceMapsOn&sourceMap' }
+            { test: /\.ts$/, loader: '../../index.js?instance=sourceMapsOn&configFileName=tsconfig.on.json' }
         ]
     }
 }
