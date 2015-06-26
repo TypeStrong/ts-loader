@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.5
+
+- Add `silent` flag (#22)
+
 ## v0.4.4
 
 - Add support for "noLib" compiler option (#19)
