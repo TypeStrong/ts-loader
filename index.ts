@@ -49,10 +49,6 @@ interface TSInstances {
 
 var instances = <TSInstances>{};
 
-function consoleError(msg) {
-    setTimeout(() => console.log('ERROR'+os.EOL+msg), 0)
-}
-
 function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (prettyMessage: string, rawMessage: string, loc: {line: number, character: number}) => any) {
     diagnostics.forEach(diagnostic => {
         var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
@@ -91,6 +87,10 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         if (!options.silent) {
             console.log.apply(console, messages);
         }
+    }
+    
+    function consoleError(msg) {
+        setTimeout(() => log('ERROR'+os.EOL+msg), 0)
     }
 
     var compiler = require(options.compiler);
@@ -233,6 +233,7 @@ function loader(contents) {
     
     var options = loaderUtils.parseQuery<Options>(this.query);
     options = objectAssign<Options>({}, {
+        silent: false,
         instance: 'default',
         compiler: 'typescript',
         configFileName: 'tsconfig.json'

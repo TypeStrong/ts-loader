@@ -43,8 +43,10 @@ Most TypeScript-related options should be set using a
 file. There are a few loader-specific options you can set although in general
 you should not need to.
 
-##### silent *(boolean) (default='false')*
-If true, no console.log messages will be emitted.
+##### silent *(boolean) (default=false)*
+
+If true, no console.log messages will be emitted. Note that most error
+messages are emitted via webpack which is not affected by this flag.
 
 ##### compiler *(string) (default='typescript')*
 
@@ -57,7 +59,7 @@ Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
 
-##### configFileName *(string) (default=tsconfig.json)*
+##### configFileName *(string) (default='tsconfig.json')*
 
 Allows you to specify a custom configuration file.
 
