@@ -47,12 +47,16 @@ interface TSInstances {
     [name: string]: TSInstance;
 }
 
+interface Diagnostic extends typescript.Diagnostic {
+    fileName?: string;
+}
+
 var instances = <TSInstances>{};
 
 // Take TypeScript errors, parse them and "pretty-print" to a passed-in function
 // The passed-in function can either console.log them or add them to webpack's
 // list of errors
-function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, outputFn: (prettyMessage: string, rawMessage: string, loc: {line: number, character: number}) => any) {
+function handleErrors(diagnostics: Diagnostic[], compiler: typeof typescript, outputFn: (prettyMessage: string, rawMessage: string, loc: {line: number, character: number}) => any) {
     diagnostics.forEach(diagnostic => {
         var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
         if (diagnostic.file) {
@@ -62,6 +66,9 @@ function handleErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typ
                 messageText,
                 {line: lineChar.line+1, character: lineChar.character+1}
             );
+        }
+        else if (diagnostic.fileName) {
+            outputFn(`  ${diagnostic.fileName.blue}: ${messageText.red}`, messageText, null)
         }
         else {
             outputFn(`  ${"unknown file".blue}: ${messageText.red}`, messageText, null)
@@ -91,7 +98,7 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // along with definition files and options. This function either creates an instance
 // or returns the existing one. Multiple instances are possible by using the
 // `instance` property.
-function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
+function ensureTypeScriptInstance(options: Options, loader: any): { instance?: TSInstance, error?: any } {
 
     function log(...messages: string[]): void {
         if (!options.silent) {
@@ -107,7 +114,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
     var files = <TSFiles>{};
     
     if (Object.prototype.hasOwnProperty.call(instances, options.instance)) {
-        return instances[options.instance];        
+        return { instance: instances[options.instance] };        
     }
     
     var compilerOptions: typescript.CompilerOptions = {
@@ -128,8 +135,25 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         
         var configParseResult = compiler.parseConfigFile(configFile, path.dirname(configFilePath));
         if (configParseResult.errors.length) {
-            handleErrors(configParseResult.errors, compiler, consoleError);
-            throw new Error('error while parsing tsconfig.json');
+            configParseResult.errors.forEach(error => error.fileName = configFilePath);
+            handleErrors(
+                configParseResult.errors, 
+                compiler, 
+                (message, rawMessage, location) => {
+                    loader._module.errors.push({
+                        file: configFilePath,
+                        module: loader._module,
+                        message: message,
+                        rawMessage: rawMessage,
+                        location: location
+                    })
+                });
+            return { error: {
+                file: configFilePath,
+                module: loader._module,
+                message: 'error while parsing tsconfig.json'.red,
+                rawMessage: 'error while parsing tsconfig.json'
+            }};
         }
         
         objectAssign(compilerOptions, configParseResult.options);
@@ -238,7 +262,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         cb()
     })
     
-    return instance;
+    return { instance };
 }
 
 function loader(contents) {
@@ -254,8 +278,14 @@ function loader(contents) {
         configFileName: 'tsconfig.json'
     }, options);
     
-    var instance = ensureTypeScriptInstance(options, this),
-        file = instance.files[filePath],
+    var { instance, error } = ensureTypeScriptInstance(options, this);
+    
+    if (error) {
+        callback(error)
+        return;
+    }
+    
+    var file = instance.files[filePath],
         langService = instance.languageService;
     
     // Update TypeScript with the new file contents
