@@ -130,7 +130,12 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         // TODO: when 1.5 stable comes out, this will never be undefined. Instead it will
         // have an 'error' property
         if (!configFile) {
-            throw new Error('tsconfig.json file found but not parsable');
+            return { error: {
+                file: configFilePath,
+                module: loader._module,
+                message: 'tsconfig.json file found but not parsable'.red,
+                rawMessage: 'tsconfig.json file found but not parsable'
+            }};
         }
         
         var configParseResult = compiler.parseConfigFile(configFile, path.dirname(configFilePath));
