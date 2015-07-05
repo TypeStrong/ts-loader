@@ -128,7 +128,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): TSInstance {
         
         var configParseResult = compiler.parseConfigFile(configFile, path.dirname(configFilePath));
         if (configParseResult.errors.length) {
-            handleErrors(languageService.getCompilerOptionsDiagnostics(), compiler, consoleError);
+            handleErrors(configParseResult.errors, compiler, consoleError);
             throw new Error('error while parsing tsconfig.json');
         }
         
