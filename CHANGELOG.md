@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.6
+
+- Improve error reporting related to tsconfig.json
+  - Fix bug that reported the wrong errors
+  - Errors are now reported as webpack errors instead of logged to console
+- Add support for latest TypeScript nightly (#24)
+
 ## v0.4.5
 
 - Add `silent` flag (#22)
