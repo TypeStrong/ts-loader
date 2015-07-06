@@ -1,19 +1,19 @@
 module.exports = {
     context: __dirname,
-    entry: './app.ts',
+    entry: './app.tsx',
     output: {
         path: __dirname,
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.js', '.ts']
+        extensions: ['', '.tsx', '.ts', '.js']
     },
     externals: {
         react: true,
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: '../../index.js?instance=jsx&compiler=jsx-typescript' }
+            { test: /\.ts(x?)$/, loader: '../../index.js?instance=jsx&compiler=ntypescript' }
         ]
     }
 }

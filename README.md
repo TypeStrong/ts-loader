@@ -90,6 +90,9 @@ will need to use ts-loader@0.3.x in order to use this as 0.4.x and above is not 
 
 You may also be interested in using [ts-jsx-loader](https://github.com/jbrantly/ts-jsx-loader).
 
+If you like living on the edge, the nightly version of TypeScript supports JSX natively. See
+the [JSX test](test/jsx) for an example.
+
 ## Building from source
 
 ```
