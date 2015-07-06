@@ -12,14 +12,6 @@ import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
 require('colors');
 
-interface Dependency {
-    original: string;
-    resolved: string;
-    pos: number;
-    end: number;
-    reference: boolean;
-}
-
 interface Options {
     silent: boolean;
     instance: string;
