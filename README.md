@@ -19,6 +19,10 @@ Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
 Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
 build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
 
+### Compatibility
+
+The current version is compatible with TypeScript 1.5 and with the nightly build using [ntypescript](https://github.com/basarat/ntypescript) (use the `compiler` option, see below). You may experience issues using the nightly build due to its nature. Please feel free to report any such issues so that they can be fixed promptly.
+
 ### Configuration
 
 1. Add `.ts` as a resolvable extension.
@@ -56,7 +60,8 @@ messages are emitted via webpack which is not affected by this flag.
 ##### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
-set to the NPM name of the compiler.
+set to the NPM name of the compiler. Especially useful for the [nightly
+build of TypeScript](https://github.com/basarat/ntypescript).
 
 ##### instance *(string)*
 
