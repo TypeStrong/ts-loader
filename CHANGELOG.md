@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.4.7
+
+- Update TypeScript dependency to 1.5 release (1.5.3)
+
 ## v0.4.6
 
 - Improve error reporting related to tsconfig.json
