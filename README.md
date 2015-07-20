@@ -2,6 +2,8 @@
 
 ## Usage
 
+A step by step tutorial is [available here](http://www.jbrantly.com/typescript-and-webpack/).
+
 ### Installation
 
 ```
@@ -25,6 +27,9 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 ```
 module.exports = {
     entry: './app.ts',
+    output: {
+        filename: 'bundle.js'
+    },
     resolve: {
         extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
     },
