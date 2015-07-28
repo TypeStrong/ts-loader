@@ -44,6 +44,7 @@ interface Diagnostic extends typescript.Diagnostic {
 }
 
 var instances = <TSInstances>{};
+var webpackInstances = [];
 
 // Take TypeScript errors, parse them and "pretty-print" to a passed-in function
 // The passed-in function can either console.log them or add them to webpack's
@@ -298,6 +299,13 @@ function loader(contents) {
         compiler: 'typescript',
         configFileName: 'tsconfig.json'
     }, options);
+    
+    // differentiate the TypeScript instance based on the webpack instance
+    var webpackIndex = webpackInstances.indexOf(this._compiler);
+    if (webpackIndex == -1) {
+        webpackIndex = webpackInstances.push(this._compiler)-1;
+    }
+    options.instance = webpackIndex + '_' + options.instance;
     
     var { instance, error } = ensureTypeScriptInstance(options, this);
     
