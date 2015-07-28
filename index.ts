@@ -292,13 +292,15 @@ function loader(contents) {
     var callback = this.async();
     var filePath = path.normalize(this.resourcePath);
     
-    var options = loaderUtils.parseQuery<Options>(this.query);
-    options = objectAssign<Options>({}, {
+    var queryOptions = loaderUtils.parseQuery<Options>(this.query);
+    var configFileOptions = this.options.ts || {};
+    
+    var options = objectAssign<Options>({}, {
         silent: false,
         instance: 'default',
         compiler: 'typescript',
         configFileName: 'tsconfig.json'
-    }, options);
+    }, configFileOptions, queryOptions);
     
     // differentiate the TypeScript instance based on the webpack instance
     var webpackIndex = webpackInstances.indexOf(this._compiler);
