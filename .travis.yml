@@ -1,4 +1,11 @@
 language: node_js
 node_js:
   - "0.12"
+  - "0.10"
 sudo: false
+install:
+  - npm install
+  - npm install $TYPESCRIPT
+env:
+  - TYPESCRIPT=typescript
+  - TYPESCRIPT=typescript@next
