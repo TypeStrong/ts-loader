@@ -98,10 +98,6 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             console.log.apply(console, messages);
         }
     }
-    
-    function consoleError(msg) {
-        setTimeout(() => log('ERROR'+os.EOL+msg), 0)
-    }
 
     var compiler = require(options.compiler);
     var files = <TSFiles>{};
@@ -246,10 +242,24 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         languageService: languageService
     };
     
-    handleErrors(languageService.getCompilerOptionsDiagnostics(), compiler, consoleError);
+    var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
     
-    // handle errors for all declaration files at the end of each compilation
     loader._compiler.plugin("done", stats => {
+        // handle compiler option errors after the first compile
+        handleErrors(
+            compilerOptionDiagnostics,
+            compiler, 
+            (message, rawMessage, location) => {
+                stats.compilation.errors.push({
+                    file: configFilePath || 'tsconfig.json',
+                    message: message,
+                    rawMessage: rawMessage
+                })
+            }
+        );
+        compilerOptionDiagnostics = [];
+        
+        // handle errors for all declaration files at the end of each compilation
         Object.keys(instance.files)
             .filter(filePath => !!filePath.match(/\.d\.ts$/))
             .forEach(filePath => {
