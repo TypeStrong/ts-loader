@@ -4,8 +4,8 @@ node_js:
   - "0.10"
 sudo: false
 install:
-  - npm install
   - npm install $TYPESCRIPT
+  - npm install
 env:
   - TYPESCRIPT=typescript
   - TYPESCRIPT=typescript@next
