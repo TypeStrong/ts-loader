@@ -107,7 +107,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     }
     
     var compilerOptions: typescript.CompilerOptions = {
-        module: typescript.ModuleKind.CommonJS
+        module: 1 /* CommonJS */
     };
     
     // Load any available tsconfig.json file
@@ -181,8 +181,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     var libFileName = 'lib.d.ts';
 
     // Special handling for ES6 targets
-    if (compilerOptions.target == typescript.ScriptTarget.ES6) {
-        compilerOptions.module = typescript.ModuleKind.None;
+    if (compilerOptions.target == 2 /* ES6 */) {
+        compilerOptions.module = 0 /* None */;
         libFileName = 'lib.es6.d.ts';
     }
     
