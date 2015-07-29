@@ -115,41 +115,25 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     if (configFilePath) {
         log('Using config file at '.green + configFilePath.blue);
         var configFile = compiler.readConfigFile(configFilePath);
-        // 1.5.0-beta only
-        if (!configFile) {
-            return { error: {
-                file: configFilePath,
-                module: loader._module,
-                message: 'tsconfig.json file found but not parsable'.red,
-                rawMessage: 'tsconfig.json file found but not parsable'
-            }};
-        }
         
-        // 1.5.3+
-        if (configFile.config || configFile.error) {
-            if (configFile.error) {
-                var configFileError;
-                (<Diagnostic>configFile.error).fileName = configFilePath;
-                handleErrors(
-                    [configFile.error], 
-                    compiler, 
-                    (message, rawMessage, location) => {
-                        configFileError = {
-                            file: configFilePath,
-                            module: loader._module,
-                            message: message,
-                            rawMessage: rawMessage,
-                            location: location
-                        }
-                    });
-                return { error: configFileError }
-            }
-            var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
+        if (configFile.error) {
+            var configFileError;
+            (<Diagnostic>configFile.error).fileName = configFilePath;
+            handleErrors(
+                [configFile.error], 
+                compiler, 
+                (message, rawMessage, location) => {
+                    configFileError = {
+                        file: configFilePath,
+                        module: loader._module,
+                        message: message,
+                        rawMessage: rawMessage,
+                        location: location
+                    }
+                });
+            return { error: configFileError }
         }
-        // 1.5.0-beta
-        else {
-            var configParseResult = compiler.parseConfigFile(configFile, path.dirname(configFilePath));
-        }
+        var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
         
         if (configParseResult.errors.length) {
             configParseResult.errors.forEach(error => error.fileName = configFilePath);
