@@ -349,7 +349,6 @@ function loader(contents) {
         instance.compiler, 
         (message, rawMessage, location) => {
             this._module.errors.push({
-                file: filePath,
                 module: this._module,
                 message: message,
                 rawMessage: rawMessage,
