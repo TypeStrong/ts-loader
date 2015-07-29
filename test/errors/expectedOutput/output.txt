@@ -3,7 +3,7 @@ ERROR in ./.test/errors/app.ts
   [34mapp.ts[39m ([36m1[39m,[36m7[39m): [31m'=' expected.[39m
 
 ERROR in ./.test/errors/app.ts
-Module parse failed: /home/jbrantly/ts-loader/index.js!app.ts Line 1: Unexpected token ==
+Module parse failed: index.js!app.ts Line 1: Unexpected token ==
 You may need an appropriate loader to handle this file type.
 | var a =  == 0;
 | 

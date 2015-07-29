@@ -12,7 +12,8 @@ console.log('Using webpack version ' + webpackVersion);
 console.log('Using typescript version ' + typescript.version);
 
 // set up new empty staging area
-var stagingPath = path.resolve(__dirname, '..', '.test');
+var rootPath = path.resolve(__dirname, '..');
+var stagingPath = path.resolve(rootPath, '.test');
 rimraf.sync(stagingPath);
 
 // loop through each test directory
@@ -59,13 +60,19 @@ fs.readdirSync(__dirname).forEach(function(file) {
                     if (err) {
                         fs.writeFileSync(
                             path.join(actualOutput, 'err.txt'), 
-                            err.toString().replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), ''));
+                            err.toString()
+                                .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
+                                .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
+                        );
                     }
                     
                     if (stats) {
                         fs.writeFileSync(
                             path.join(actualOutput, 'output.txt'), 
-                            stats.toString({timings: false, version: false, hash: false}).replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), ''));
+                            stats.toString({timings: false, version: false, hash: false})
+                                .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
+                                .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
+                        );
                     }
                     
                     fs.copySync(webpackOutput, actualOutput);
