@@ -7,6 +7,7 @@ var webpack = require('webpack');
 var webpackVersion = require('webpack/package.json').version;
 var regexEscape = require('escape-string-regexp');
 var typescript = require('typescript');
+var semver = require('semver')
 
 console.log('Using webpack version ' + webpackVersion);
 console.log('Using typescript version ' + typescript.version);
@@ -20,6 +21,8 @@ rimraf.sync(stagingPath);
 fs.readdirSync(__dirname).forEach(function(file) {
     var testPath = path.join(__dirname, file);
     if (fs.statSync(testPath).isDirectory()) {
+        
+        if (file == 'jsx' && semver.lt(typescript.version, '1.6.0-0')) return;
         
         describe(file, function() {
             it('should have the correct output', function(done) {
