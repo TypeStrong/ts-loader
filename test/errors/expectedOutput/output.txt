@@ -1,4 +1,3 @@
-Hash: 396f0bfb9d565b6f60f0
 
 ERROR in ./.test/errors/app.ts
   [34mapp.ts[39m ([36m1[39m,[36m7[39m): [31m'=' expected.[39m

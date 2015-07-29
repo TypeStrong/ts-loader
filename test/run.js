@@ -65,7 +65,7 @@ fs.readdirSync(__dirname).forEach(function(file) {
                     if (stats) {
                         fs.writeFileSync(
                             path.join(actualOutput, 'output.txt'), 
-                            stats.toString({timings: false, version: false}).replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), ''));
+                            stats.toString({timings: false, version: false, hash: false}).replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), ''));
                     }
                     
                     fs.copySync(webpackOutput, actualOutput);

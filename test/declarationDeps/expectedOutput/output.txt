@@ -1,4 +1,3 @@
-Hash: c3a6577e49044ec075aa
     Asset     Size  Chunks             Chunk Names
 bundle.js  1.43 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 41 bytes [rendered]
