@@ -4,7 +4,12 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
 var webpack = require('webpack');
+var webpackVersion = require('webpack/package.json').version;
 var regexEscape = require('escape-string-regexp');
+var typescript = require('typescript');
+
+console.log('Using webpack version ' + webpackVersion);
+console.log('Using typescript version ' + typescript.version);
 
 // set up new empty staging area
 var stagingPath = path.resolve(__dirname, '..', '.test');
