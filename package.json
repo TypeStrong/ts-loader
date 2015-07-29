@@ -29,8 +29,7 @@
   "dependencies": {
     "colors": "^1.0.3",
     "loader-utils": "^0.2.6",
-    "object-assign": "^2.0.0",
-    "typescript": "~1.5.3"
+    "object-assign": "^2.0.0"
   },
   "devDependencies": {
     "escape-string-regexp": "^1.0.3",

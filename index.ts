@@ -1,5 +1,4 @@
-///<reference path="node_modules/typescript/bin/typescript.d.ts" />
-///<reference path="node_modules/typescript/bin/typescriptServices.d.ts" />
+///<reference path="typings/typescript/typescript.d.ts" />
 ///<reference path="typings/node/node.d.ts" />
 ///<reference path="typings/loaderUtils/loaderUtils.d.ts" />
 ///<reference path="typings/objectAssign/objectAssign.d.ts" />
@@ -98,7 +97,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             console.log.apply(console, messages);
         }
     }
-
+    
     var compiler = require(options.compiler);
     var files = <TSFiles>{};
     
