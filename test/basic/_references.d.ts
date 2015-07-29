@@ -1,1 +1,0 @@
-///<reference path="lib/externalLib.d.ts" />

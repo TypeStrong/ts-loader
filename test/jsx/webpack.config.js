@@ -1,8 +1,6 @@
 module.exports = {
-    context: __dirname,
     entry: './app.tsx',
     output: {
-        path: __dirname,
         filename: 'bundle.js'
     },
     resolve: {
@@ -13,7 +11,7 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.ts(x?)$/, loader: '../../index.js?instance=jsx&compiler=ntypescript' }
+            { test: /\.ts(x?)$/, loader: '../../index.js?compiler=ntypescript' }
         ]
     }
 }

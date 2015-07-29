@@ -1,3 +1,3 @@
-declare module "hello" {
+declare module Hello {
     export function sayHello(name: string): string
 }

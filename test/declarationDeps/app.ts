@@ -1,2 +1,2 @@
-import hello = require('hello');
-hello.sayHello('Hi');
+Hello.sayHello('Hi');
+Hello.sayHi('Hi');

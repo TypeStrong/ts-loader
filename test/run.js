@@ -1,300 +1,105 @@
 var assert = require("assert")
-var fs = require('fs');
+var fs = require('fs-extra');
 var path = require('path');
-var newLine = require('os').EOL;
-var tsLoader = require('../index');
+var mkdirp = require('mkdirp');
+var rimraf = require('rimraf');
 var webpack = require('webpack');
-var colors = require('colors');
+var regexEscape = require('escape-string-regexp');
 
-function handleErrors(err, stats, done) {
-    if (err) { 
-        done(err)
-        return true;
+// set up new empty staging area
+var stagingPath = path.resolve(__dirname, '..', '.test');
+rimraf.sync(stagingPath);
+
+// loop through each test directory
+fs.readdirSync(__dirname).forEach(function(file) {
+    var testPath = path.join(__dirname, file);
+    if (fs.statSync(testPath).isDirectory()) {
+        
+        describe(file, function() {
+            it('should have the correct output', function(done) {
+                this.timeout(10000);
+                
+                // set up paths
+                var testStagingPath = path.join(stagingPath, file),
+                    actualOutput = path.join(testStagingPath, 'actualOutput'),
+                    expectedOutput = path.join(testStagingPath, 'expectedOutput'),
+                    webpackOutput = path.join(testStagingPath, '.output');
+                
+                // copy all input to a staging area
+                mkdirp.sync(testStagingPath);
+                fs.copySync(testPath, testStagingPath);
+                    
+                    
+                // ensure actualOutput directory
+                mkdirp.sync(actualOutput);
+                
+                // execute webpack
+                var config = require(path.join(testStagingPath, 'webpack.config'));
+                config.output.path = webpackOutput;
+                config.context = testStagingPath;
+                config.ts = { silent: true };
+                
+                var iteration = 0;
+                var watcher = webpack(config).watch({}, function(err, stats) {
+                    var patch = '';
+                    if (iteration > 0) {
+                        patch = 'patch'+(iteration-1);
+                        actualOutput = path.join(testStagingPath, 'actualOutput', patch);
+                        expectedOutput = path.join(testStagingPath, 'expectedOutput', patch);
+                        mkdirp.sync(actualOutput);
+                        mkdirp.sync(expectedOutput);
+                    }
+                    
+                    // output results to actualOutput
+                    if (err) {
+                        fs.writeFileSync(
+                            path.join(actualOutput, 'err.txt'), 
+                            err.toString().replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), ''));
+                    }
+                    
+                    if (stats) {
+                        fs.writeFileSync(
+                            path.join(actualOutput, 'output.txt'), 
+                            stats.toString({timings: false, version: false}).replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), ''));
+                    }
+                    
+                    fs.copySync(webpackOutput, actualOutput);
+                    rimraf.sync(webpackOutput);
+                
+                    // compare actual to expected
+                    var actualFiles = fs.readdirSync(actualOutput),
+                        expectedFiles = fs.readdirSync(expectedOutput).filter(function(file) { return !/^patch/.test(file); });
+                    
+                    assert.equal(
+                        actualFiles.length, 
+                        expectedFiles.length, 
+                        'number of files is different between actualOutput' + (patch?'/'+patch:patch) + ' and expectedOutput' + (patch?'/'+patch:patch));
+                    
+                    actualFiles.forEach(function(file) {
+                        var actual = fs.readFileSync(path.join(actualOutput, file)).toString();
+                        var expected = fs.readFileSync(path.join(expectedOutput, file)).toString();
+                        
+                        assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
+                    });
+                    
+                    // check for new files to copy in
+                    var patchPath = path.join(testStagingPath, 'patch'+iteration);
+                    if (fs.existsSync(patchPath)) {
+                        iteration++;
+                        
+                        // can't use copy lib here, doesn't seem to work well with webpack's watch
+                        // this way works consistently (but is more simplistic than full copy)
+                        fs.readdirSync(patchPath).forEach(function(file) {
+                           fs.writeFileSync(path.join(testStagingPath, file), fs.readFileSync(path.join(patchPath, file)));
+                        });
+                    }
+                    else {
+                        watcher.close(function() {
+                            done();
+                        });
+                    }
+                });
+            });
+        });
     }
-
-    if (stats.hasErrors()) {
-        done(new Error(stats.toString({errorDetails: true})))
-        return true;
-    }
-    return false;
-}
-
-function assertSourceContains(stats, moduleRegExp, content) {
-    var statsJson = stats.toJson();
-    var module = statsJson.modules.filter(function(m) { return m.name.match(moduleRegExp) })[0];
-    assert.ok(module, 'module not found matching ' + moduleRegExp)
-    assert.ok(module.source.indexOf(content) != -1, 'module doe not have matching content');
-}
-
-function assertModuleCount(stats, expectedNumberOfModules) {
-    var statsJson = stats.toJson();
-    assert.equal(statsJson.modules.length, expectedNumberOfModules, 'wrong number of modules found')
-}
-
-describe('files', function() {
-    it('should not error', function(done) {
-        webpack(require('./files/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done()
-            }
-        })
-    })
-})
-
-describe('basic', function() {
-    
-    it('should have the correct output', function(done) {
-        webpack(require('./basic/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                var statsJson = stats.toJson();
-                
-                var appModule = statsJson.modules.filter(function(m) { return m.name == './test/basic/app.ts' })[0];
-                var subModule = statsJson.modules.filter(function(m) { return m.name == './test/basic/submodule/submodule.ts' })[0];
-                var externalLib = statsJson.modules.filter(function(m) { return m.name == './test/basic/lib/externalLib.js' })[0];
-                
-                assert.equal(appModule.source, 
-                    '///<reference path="_references.d.ts" />' + newLine +
-                    "var submodule = require('./submodule/submodule');" + newLine +
-                    "var externalLib = require('externalLib');" + newLine +
-                    "externalLib.doSomething(submodule);" + newLine);
-
-                assert.equal(subModule.source, 
-                    'var message = "Hello from submodule";' + newLine +
-                    'module.exports = message;' + newLine);
-                
-                assert.ok(externalLib, 'External lib exists');
-                
-                done()
-            }
-        })
-    })
-})
-
-describe('declarationDeps', function() {
-    it('should not error', function(done) {
-        webpack(require('./declarationDeps/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done()
-            }
-        })
-    })
-})
-
-describe('externals', function() {
-    it('should not error', function(done) {
-        webpack(require('./externals/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done()
-            }
-        })
-    })
-})
-
-describe('errors', function() {
-    it('should report correct error information', function(done) {
-        webpack(require('./errors/webpack.config')).run(function(err, stats) {
-            if (err) return done(err)
-            
-            var errors = stats.toJson().errors;
-            
-            assert.equal(errors.length, 2, 'Exactly two errors should be reported');
-            assert.ok(colors.strip(errors[0]).indexOf(" (1,7): ") != -1, 'The error reported was in the wrong location');
-            
-            var firstError = stats.compilation.errors[0];
-            assert.ok(firstError.rawMessage == "'=' expected.", 'rawMessage property is not correct');
-            assert.ok(firstError.location.line == 1, 'line property is not correct');
-            assert.ok(firstError.location.character == 7, 'character property is not correct');
-            assert.ok(firstError.file != null, 'file property does not exist');
-            
-            done();
-        })
-    })
-})
-
-describe('instance', function() {
-    it('should error when incorrectly configured', function(done) {
-        webpack(require('./instance/bad.config')).run(function(err, stats) {
-            if (err) return done(err)
-            
-            var errors = stats.toJson().errors;
-            
-            assert.equal(errors.length, 1, 'Exactly one error should be reported');
-            assert.ok(errors[0].indexOf("Subsequent variable declarations must have the same type") != -1, 'The error reported was the wrong error');
-            
-            done();
-        })
-    })
-    
-    it('should not error when correctly configured', function(done) {
-        webpack(require('./instance/good.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done();   
-            }
-        })
-    })
-})
-// Disabling the jsx unit tests until jsx-typescript is updated to TS 1.5
-/*
-describe('jsx', function() {
-    it('should not error', function(done) {
-        webpack(require('./jsx/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done()
-            }
-        })
-    })
-})
-*/
-describe('node', function() {
-    it('should not error', function(done) {
-        webpack(require('./node/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done()
-            }
-        })
-    })
-})
-
-describe('noLib', function() {
-    it('should report error', function(done) {
-        webpack(require('./nolib/webpack.config')).run(function(err, stats) {
-            if (err) return done(err)
-            
-            var errors = stats.toJson().errors;
-            
-            assert.equal(errors.length, 1, 'Exactly one error should be reported');
-            assert.ok(errors[0].indexOf("Cannot find name 'parseInt'") != -1, 'The error reported was in the wrong location');
-            
-            done();
-        })
-    })
-})
-
-describe('replacement', function() {
-    it('should have the correct output', function(done) {
-        webpack(require('./replacement/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                
-                assertModuleCount(stats, 3);
-                assertSourceContains(stats, /a\.ts$/, "var dep = require('./dep')")
-                assertSourceContains(stats, /dep\.ts$/, "var dep = 'replacement'")
-                
-                done();     
-            }
-        })
-    })
-})
-
-// Disabling the source maps unit tests until a better way can be implemented to actually check for their presence
-/*
-describe('sourceMaps', function() {
-    it('should be present when turned on', function(done) {
-        webpack(require('./sourceMaps/on.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                var statsJson = stats.toJson();
-                
-                var module = statsJson.modules.filter(function(m) { return m.name == './test/sourceMaps/a.ts' })[0];
-                
-                assert.equal(module.source, "console.log('Hello world');" + newLine + "//# sourceMappingURL=a.js.map");
-                
-                done();   
-            }
-        })
-    })
-    
-    it('should not be present when turned off', function(done) {
-        webpack(require('./sourceMaps/off.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                var statsJson = stats.toJson();
-                
-                var module = statsJson.modules.filter(function(m) { return m.name == './test/sourceMaps/a.ts' })[0];
-                
-                assert.equal(module.source, "console.log('Hello world');" + newLine);
-                
-                done();   
-            }
-        })
-    })
-    
-})
-*/
-
-describe('targets', function() {
-    it('es3', function(done) {
-        webpack(require('./targets/es3.config')).run(function(err, stats) {
-            if (err) return done(err)
-            
-            var errors = stats.toJson().errors;
-            
-            assert.equal(errors.length, 1, 'Exactly one error should be reported');
-            assert.ok(errors[0].indexOf("Accessors are only available when targeting ECMAScript 5 and higher") != -1, 'The error reported was the wrong error');
-            
-            done();
-        })
-    })
-    
-    it('es5', function(done) {
-        webpack(require('./targets/es5.config')).run(function(err, stats) {
-            if (err) return done(err)
-            
-            var statsJson = stats.toJson(),
-                errors = statsJson.errors;
-            
-            assert.equal(errors.length, 1, 'Exactly one error should be reported');
-            assert.ok(errors[0].indexOf("Cannot find name 'Symbol'.") != -1, 'The error reported was the wrong error');
-            
-            done();
-        })
-    })
-    
-    it('es6', function(done) {
-        webpack(require('./targets/es6.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done();   
-            }
-        })
-    })
-    
-})
-
-describe('module', function() {
-    
-    it('commonjs', function(done) {
-        webpack(require('./module/commonjs.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                var statsJson = stats.toJson();
-                
-                var module = statsJson.modules.filter(function(m) { return m.name == './test/module/a.ts' })[0];
-                
-                assert.ok(!module.source.match(/^define/));
-                
-                done();   
-            }
-        })
-    })
-    
-    it('amd', function(done) {
-        webpack(require('./module/amd.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                var statsJson = stats.toJson();
-                
-                var module = statsJson.modules.filter(function(m) { return m.name == './test/module/a.ts' })[0];
-                
-                assert.ok(module.source.match(/^define/));
-                
-                done();   
-            }
-        })
-    })
-    
-})
-
-describe('tsconfigSearch', function() {
-    it('should not error', function(done) {
-        webpack(require('./tsconfigSearch/webpack.config')).run(function(err, stats) {
-            if (!handleErrors(err, stats, done)) {
-                done()
-            }
-        })
-    })
-})
+});

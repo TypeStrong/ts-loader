@@ -1,1 +1,1 @@
-/// <reference path="./hello.d.ts" />
+/// <reference path="hello.d.ts" />

@@ -1,0 +1,32 @@
+Hash: eccd78993e053047d789
+    Asset    Size  Chunks             Chunk Names
+bundle.js  1.4 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 16 bytes [rendered]
+    [0] ./.test/nolib/app.ts 16 bytes {0} [built] [1 error]
+
+ERROR in ./.test/nolib/app.ts
+  [34mapp.ts[39m ([36m1[39m,[36m1[39m): [31mCannot find name 'parseInt'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'Array'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'Boolean'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'Function'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'IArguments'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'Number'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'Object'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'RegExp'.[39m
+
+ERROR in tsconfig.json
+  [34munknown file[39m: [31mCannot find global type 'String'.[39m

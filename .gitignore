@@ -2,4 +2,6 @@
 /*.log
 *.js.map
 bundle.js
+.test/
+!/test/**/expectedOutput/**
 node_modules
