@@ -357,17 +357,22 @@ function loader(contents) {
     );
 
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
-    
-    var sourceMap: any;
-    if (output.outputFiles.length == 2) {
-        sourceMap = JSON.parse(output.outputFiles[0].text);
+
+    var result = output.outputFiles
+      .filter(file => !!file.name.match(/\.js$/))
+      .pop()
+      .text;
+
+    var sourceMap: any = output.outputFiles
+      .filter(file => !!file.name.match(/\.js\.map$/))
+      .pop();
+
+    if (sourceMap) {
+        sourceMap = JSON.parse(sourceMap.text);
         sourceMap.sources = [loaderUtils.getRemainingRequest(this)];
         sourceMap.file = loaderUtils.getCurrentRequest(this);
         sourceMap.sourcesContent = [contents];
-        contents = output.outputFiles[1].text.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, '');
-    }
-    else {
-        contents = output.outputFiles[0].text;
+        result = result.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, '');
     }
 
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
@@ -375,7 +380,7 @@ function loader(contents) {
     // treated as new
     this._module.meta['tsLoaderFileVersion'] = file.version;
 
-    callback(null, contents, sourceMap)
+    callback(null, result, sourceMap)
 }
 
 export = loader;
