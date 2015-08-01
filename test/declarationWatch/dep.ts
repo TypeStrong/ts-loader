@@ -1,0 +1,3 @@
+Thing.doSomething();
+
+export = 'dep';
