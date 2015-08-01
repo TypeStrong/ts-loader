@@ -11,6 +11,10 @@ import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
 require('colors');
 
+var pushArray = function(arr, toPush) {
+    Array.prototype.push.apply(arr, toPush);
+}
+
 interface Options {
     silent: boolean;
     instance: string;
@@ -38,34 +42,39 @@ interface TSInstances {
     [name: string]: TSInstance;
 }
 
-interface Diagnostic extends typescript.Diagnostic {
-    fileName?: string;
+interface WebpackError {
+    module?: any;
+    file?: string;
+    message: string;
+    rawMessage: string;
+    location?: {line: number, character: number};
 }
 
 var instances = <TSInstances>{};
 var webpackInstances = [];
 
-// Take TypeScript errors, parse them and "pretty-print" to a passed-in function
-// The passed-in function can either console.log them or add them to webpack's
-// list of errors
-function handleErrors(diagnostics: Diagnostic[], compiler: typeof typescript, outputFn: (prettyMessage: string, rawMessage: string, loc: {line: number, character: number}) => any) {
-    diagnostics.forEach(diagnostic => {
-        var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
-        if (diagnostic.file) {
-            var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-            outputFn(
-                `  ${diagnostic.file.fileName.blue} (${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`, 
-                messageText,
-                {line: lineChar.line+1, character: lineChar.character+1}
-            );
-        }
-        else if (diagnostic.fileName) {
-            outputFn(`  ${diagnostic.fileName.blue}: ${messageText.red}`, messageText, null)
-        }
-        else {
-            outputFn(`  ${"unknown file".blue}: ${messageText.red}`, messageText, null)
-        }
-    });
+// Take TypeScript errors, parse them and format to webpack errors
+// Optionally adds a file name
+function formatErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, merge?: any): WebpackError[] {
+    return diagnostics
+        .map<WebpackError>(diagnostic => {
+            var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
+            if (diagnostic.file) {
+                var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+                return {
+                    message: `${'('.white}${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`,
+                    rawMessage: messageText,
+                    location: {line: lineChar.line+1, character: lineChar.character+1}
+                };
+            }
+            else {
+                return {
+                    message:`${messageText.red}`,
+                    rawMessage: messageText 
+                };
+            }
+        })
+        .map(error => <WebpackError>objectAssign(error, merge));
 }
 
 // The tsconfig.json is found using the same method as `tsc`, starting in the current directory 
@@ -90,7 +99,7 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // along with definition files and options. This function either creates an instance
 // or returns the existing one. Multiple instances are possible by using the
 // `instance` property.
-function ensureTypeScriptInstance(options: Options, loader: any): { instance?: TSInstance, error?: any } {
+function ensureTypeScriptInstance(options: Options, loader: any): { instance?: TSInstance, error?: WebpackError } {
 
     function log(...messages: string[]): void {
         if (!options.silent) {
@@ -117,41 +126,18 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         var configFile = compiler.readConfigFile(configFilePath);
         
         if (configFile.error) {
-            var configFileError;
-            (<Diagnostic>configFile.error).fileName = configFilePath;
-            handleErrors(
-                [configFile.error], 
-                compiler, 
-                (message, rawMessage, location) => {
-                    configFileError = {
-                        file: configFilePath,
-                        module: loader._module,
-                        message: message,
-                        rawMessage: rawMessage,
-                        location: location
-                    }
-                });
+            var configFileError = formatErrors([configFile.error], compiler, {file: configFilePath })[0];
             return { error: configFileError }
         }
         var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
         
         if (configParseResult.errors.length) {
-            configParseResult.errors.forEach(error => error.fileName = configFilePath);
-            handleErrors(
-                configParseResult.errors, 
-                compiler, 
-                (message, rawMessage, location) => {
-                    loader._module.errors.push({
-                        file: configFilePath,
-                        module: loader._module,
-                        message: message,
-                        rawMessage: rawMessage,
-                        location: location
-                    })
-                });
+            pushArray(
+                loader._module.errors, 
+                formatErrors(configParseResult.errors, compiler, { file: configFilePath }));
+            
             return { error: {
                 file: configFilePath,
-                module: loader._module,
                 message: 'error while parsing tsconfig.json'.red,
                 rawMessage: 'error while parsing tsconfig.json'
             }};
@@ -229,35 +215,21 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     
     loader._compiler.plugin("done", stats => {
         // handle compiler option errors after the first compile
-        handleErrors(
-            compilerOptionDiagnostics,
-            compiler, 
-            (message, rawMessage, location) => {
-                stats.compilation.errors.push({
-                    file: configFilePath || 'tsconfig.json',
-                    message: message,
-                    rawMessage: rawMessage
-                })
-            }
-        );
+        pushArray(
+            stats.compilation.errors,
+            formatErrors(compilerOptionDiagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
         compilerOptionDiagnostics = [];
         
         // handle errors for all declaration files at the end of each compilation
         Object.keys(instance.files)
             .filter(filePath => !!filePath.match(/\.d\.ts$/))
             .forEach(filePath => {
-                handleErrors(
-                    languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)),
-                    compiler, 
-                    (message, rawMessage, location) => {
-                        stats.compilation.errors.push({
-                            file: filePath,
-                            message: message,
-                            rawMessage: rawMessage,
-                            location: location
-                        })
-                    }
-                );
+                pushArray(
+                    stats.compilation.errors,
+                    formatErrors(
+                        languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)),
+                        compiler,
+                        {file: filePath}));
             });
     });
     
@@ -327,18 +299,11 @@ function loader(contents) {
 
     // Emit Javascript
     var output = langService.getEmitOutput(filePath);
-    handleErrors(
-        langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)), 
-        instance.compiler, 
-        (message, rawMessage, location) => {
-            this._module.errors.push({
-                module: this._module,
-                message: message,
-                rawMessage: rawMessage,
-                location: location
-            });
-        }
-    );
+    pushArray(this._module.errors, formatErrors(
+        langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)),
+        instance.compiler,
+        {module: this._module}
+    ));
 
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
 
