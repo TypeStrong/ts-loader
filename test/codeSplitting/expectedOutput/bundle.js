@@ -100,7 +100,7 @@
 	console.log(a);
 	console.log(b);
 	__webpack_require__.e/* nsure */(1, function (require) {
-	    // These require calls are emitted (not these are NOT TypeScript
+	    // These require calls are emitted (note these are NOT TypeScript
 	    // `import ... require` statements). `require.ensure` is defined in
 	    // require.d.ts. Webpack sees this and automatically puts c and d
 	    // into a separate chunk. 

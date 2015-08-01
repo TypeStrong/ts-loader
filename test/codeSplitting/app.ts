@@ -15,7 +15,7 @@ require.ensure(['./c', './d'], function(require) {
 	// require.d.ts. Webpack sees this and automatically puts c and d
 	// into a separate chunk. 
 	var c:string = <typeof c>require('./c');
-    var d:string = <typeof d>require('./d');
+	var d:string = <typeof d>require('./d');
 	console.log(c);
 	console.log(d);
 });
