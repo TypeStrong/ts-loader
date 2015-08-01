@@ -25,32 +25,69 @@ The current version is compatible with TypeScript 1.5 and with the nightly build
 
 ### Configuration
 
-1. Add `.ts` as a resolvable extension.
-2. Configure all files with a `.ts` extension to be handled by `ts-loader`.
+1. Add `.ts` and `.tsx` as a resolvable extension.
+2. Configure all files with a `.ts` and `.tsx` extension to be handled by `ts-loader` in your `webpack.config.js`.
 
-```
+```javascript
 module.exports = {
     entry: './app.ts',
     output: {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.js']
+        extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
     },
     module: {
         loaders: [
-            { test: /\.ts$/, loader: 'ts-loader' }
+            { test: /\.ts(x?)$/, loader: 'ts-loader' }
         ]
     }
 }
 ```
+
+3. Add a `tsconfig.json` file.
+
+```javascript
+{
+	"compilerOptions": {
+        "target": "es5",
+        "sourceMap": true
+	},
+    "files": [
+        "path/to/declaration.d.ts"
+    ]
+}
+```
+
+Your [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) file controls
+TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the 
+same options. The `files` property should generally be specified even if its just an empty array.
+If the `files` property is not specified, then **all** TypeScript files in the directory and
+subdirectories will be included, possibly even ones that should not be.
 
 #### Options
 
 Most TypeScript-related options should be set using a 
 [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json)
 file. There are a few loader-specific options you can set although in general
-you should not need to.
+you should not need to. These can be set either using a query when specifying
+the loader or through the `ts` property in the webpack configuration.
+
+```javascript
+module.exports = {
+    ...
+    module: {
+        loaders: [
+            // specify option using query
+            { test: /\.ts$/, loader: 'ts-loader?compiler=ntypescript' }
+        ]
+    },
+    // specify option using `ts` property
+    ts: {
+        compiler: 'ntypescript'
+    }
+}
+```
 
 ##### silent *(boolean) (default=false)*
 
