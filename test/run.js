@@ -49,7 +49,7 @@ fs.readdirSync(__dirname).forEach(function(file) {
                 config.ts = { silent: true };
                 
                 var iteration = 0;
-                var watcher = webpack(config).watch({poll: 1000}, function(err, stats) {
+                var watcher = webpack(config).watch({}, function(err, stats) {
                     var patch = '';
                     if (iteration > 0) {
                         patch = 'patch'+(iteration-1);
@@ -102,11 +102,10 @@ fs.readdirSync(__dirname).forEach(function(file) {
                     if (fs.existsSync(patchPath)) {
                         iteration++;
                         
-                        // can't use copy lib here, doesn't seem to work well with webpack's watch
-                        // this way works consistently (but is more simplistic than full copy)
-                        fs.readdirSync(patchPath).forEach(function(file) {
-                           fs.writeFileSync(path.join(testStagingPath, file), fs.readFileSync(path.join(patchPath, file)));
-                        });
+                        // can get inconsistent results if copying right away
+                        setTimeout(function() {
+                            fs.copySync(patchPath, testStagingPath, {clobber: true});
+                        }, 300);
                     }
                     else {
                         watcher.close(function() {
