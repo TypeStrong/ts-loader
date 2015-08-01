@@ -49,7 +49,7 @@ fs.readdirSync(__dirname).forEach(function(file) {
                 config.ts = { silent: true };
                 
                 var iteration = 0;
-                var watcher = webpack(config).watch({}, function(err, stats) {
+                var watcher = webpack(config).watch({poll: 1000}, function(err, stats) {
                     var patch = '';
                     if (iteration > 0) {
                         patch = 'patch'+(iteration-1);
