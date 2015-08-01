@@ -92,6 +92,10 @@ Then you can simply require assets or chunks per the [webpack documentation](htt
 require('!style!css!./style.css');
 ```
 
+The same basic process is required for code splitting. In this case, you `import` modules you need but you
+don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point). 
+See [this example](test/codeSplitting) for more details. 
+
 ### React JSX
 
 This loader supports using [jsx-typescript](https://github.com/fdecampredon/jsx-typescript).
