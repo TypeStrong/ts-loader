@@ -1,0 +1,11 @@
+
+ERROR in tsconfig.json
+./.test/tsconfigInvalid/app.ts
+  [34mtsconfig.json[39m: [31mArgument for '--target' option must be 'ES3', 'ES5', or 'ES6'.[39m
+
+ERROR in tsconfig.json
+./.test/tsconfigInvalid/app.ts
+  [34mtsconfig.json[39m: [31mCompiler option 'sourceMap' requires a value of type boolean.[39m
+
+ERROR in ./.test/tsconfigInvalid/app.ts
+Module build failed: [31merror while parsing tsconfig.json[39m
