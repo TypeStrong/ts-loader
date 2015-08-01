@@ -28,36 +28,36 @@ The current version is compatible with TypeScript 1.5 and with the nightly build
 1. Add `.ts` and `.tsx` as a resolvable extension.
 2. Configure all files with a `.ts` and `.tsx` extension to be handled by `ts-loader` in your `webpack.config.js`.
 
-```javascript
-module.exports = {
-    entry: './app.ts',
-    output: {
+    ```javascript
+    module.exports = {
+      entry: './app.ts',
+      output: {
         filename: 'bundle.js'
-    },
-    resolve: {
+      },
+      resolve: {
         extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
-    },
-    module: {
+      },
+      module: {
         loaders: [
-            { test: /\.ts(x?)$/, loader: 'ts-loader' }
+          { test: /\.ts(x?)$/, loader: 'ts-loader' }
         ]
+      }
     }
-}
-```
+    ```
 
 3. Add a `tsconfig.json` file.
 
-```javascript
-{
-	"compilerOptions": {
+    ```javascript
+    {
+      "compilerOptions": {
         "target": "es5",
         "sourceMap": true
-	},
-    "files": [
+      },
+      "files": [
         "path/to/declaration.d.ts"
-    ]
-}
-```
+      ]
+    }
+    ```
 
 Your [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the 
@@ -75,17 +75,17 @@ the loader or through the `ts` property in the webpack configuration.
 
 ```javascript
 module.exports = {
-    ...
-    module: {
-        loaders: [
-            // specify option using query
-            { test: /\.ts$/, loader: 'ts-loader?compiler=ntypescript' }
-        ]
-    },
-    // specify option using `ts` property
-    ts: {
-        compiler: 'ntypescript'
-    }
+  ...
+  module: {
+    loaders: [
+      // specify option using query
+      { test: /\.ts$/, loader: 'ts-loader?compiler=ntypescript' }
+    ]
+  },
+  // specify option using `ts` property
+  ts: {
+    compiler: 'ntypescript'
+  }
 }
 ```
 
