@@ -98,12 +98,12 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         }
     }
     
-    var compiler = require(options.compiler);
-    var files = <TSFiles>{};
-    
     if (Object.prototype.hasOwnProperty.call(instances, options.instance)) {
         return { instance: instances[options.instance] };        
     }
+    
+    var compiler = require(options.compiler);
+    var files = <TSFiles>{};
     
     var compilerOptions: typescript.CompilerOptions = {
         module: 1 /* CommonJS */
