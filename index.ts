@@ -308,12 +308,12 @@ function loader(contents) {
     if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
 
     var result = output.outputFiles
-      .filter(file => !!file.name.match(/\.js$/))
+      .filter(file => !!file.name.match(/\.js(x?)$/))
       .pop()
       .text;
 
     var sourceMap: any = output.outputFiles
-      .filter(file => !!file.name.match(/\.js\.map$/))
+      .filter(file => !!file.name.match(/\.js(x?)\.map$/))
       .pop();
 
     if (sourceMap) {
