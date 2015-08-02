@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/jbrantly/ts-loader.svg?branch=master)](https://travis-ci.org/jbrantly/ts-loader)
+[![Downloads](http://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
+
 # TypeScript loader for webpack
 
 ## Usage
