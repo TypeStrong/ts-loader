@@ -13,6 +13,12 @@ A step by step tutorial is [available here](http://www.jbrantly.com/typescript-a
 npm install ts-loader
 ```
 
+You will also need to install TypeScript if you have not already.
+
+```
+npm install -g typescript
+```
+
 ### Upgrading
 
 Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
@@ -24,7 +30,10 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 ### Compatibility
 
-The current version is compatible with TypeScript 1.5 and with the nightly build using [ntypescript](https://github.com/basarat/ntypescript) (use the `compiler` option, see below). You may experience issues using the nightly build due to its nature. Please feel free to report any such issues so that they can be fixed promptly.
+The current version is compatible with TypeScript 1.5 and with the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx). 
+You may experience issues using the nightly build due to its nature, but a full test suite runs
+against the latest nightly every day to catch incompatibilites early. Please report any issues 
+you experience with the nightly so that they can be fixed promptly.
 
 ### Configuration
 
