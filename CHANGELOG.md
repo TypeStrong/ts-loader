@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.5.0
+
+- Add support for `transpileOnly` loader option. See README for more information.
+- TypeScript is no longer a dependency of the loader and must be installed separately
+- Loader options can now be set as a property in `webpack.config.js`
+- Improved error reporting
+  - Errors from all files in the TypeScript application are now reported in watch mode instead of 
+    from just those files that changed. This means that making a breaking change in a dependency
+    will now be correctly reported as an error in the dependent file.
+  - Errors with TypeScript options are now reported as webpack errors instead of logged to console
+  - Error output no longer contains the filename once from webpack and again in the error message.
+    Instead, the filename is only reported by webpack
+  - Fixed issue with latest version of webpack where filenames could be reported twice for the same
+    error in certain situations
+- Using the `declaration` TypeScript option no longer results in errors
+- Tests have been revamped to be full integration tests with nightly builds against the current stable
+  and nightly TypeScript. Many new tests have been added.
+
 ## v0.4.7
 
 - Update TypeScript dependency to 1.5 release (1.5.3)
