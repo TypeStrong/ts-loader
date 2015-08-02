@@ -37,8 +37,7 @@ you experience with the nightly so that they can be fixed promptly.
 
 ### Configuration
 
-1. Add `.ts` and `.tsx` as a resolvable extension.
-2. Configure all files with a `.ts` and `.tsx` extension to be handled by `ts-loader` in your `webpack.config.js`.
+1. Create or update `webpack.config.js` like so:
 
     ```javascript
     module.exports = {
@@ -47,17 +46,19 @@ you experience with the nightly so that they can be fixed promptly.
         filename: 'bundle.js'
       },
       resolve: {
+        // Add `.ts` and `.tsx` as a resolvable extension.
         extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
       },
       module: {
         loaders: [
+          // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
           { test: /\.ts(x?)$/, loader: 'ts-loader' }
         ]
       }
     }
     ```
 
-3. Add a `tsconfig.json` file.
+2. Add a `tsconfig.json` file. <a name="tsconfig"></a>
 
     ```javascript
     {
@@ -71,7 +72,7 @@ you experience with the nightly so that they can be fixed promptly.
     }
     ```
 
-Your [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) file controls
+The [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the 
 same options. The `files` property should generally be specified even if its just an empty array.
 If the `files` property is not specified, then **all** TypeScript files in the directory and
@@ -80,7 +81,7 @@ subdirectories will be included, possibly even ones that should not be.
 #### Options
 
 Most TypeScript-related options should be set using a 
-[tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json)
+[tsconfig.json](#tsconfig)
 file. There are a few loader-specific options you can set although in general
 you should not need to. These can be set either using a query when specifying
 the loader or through the `ts` property in the webpack configuration.
@@ -118,15 +119,15 @@ Allows use of TypeScript compilers other than the official one. Should be
 set to the NPM name of the compiler. Especially useful for the [nightly
 build of TypeScript](https://github.com/basarat/ntypescript).
 
+##### configFileName *(string) (default='tsconfig.json')*
+
+Allows you to specify a custom configuration file.
+
 ##### instance *(string)*
 
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
-
-##### configFileName *(string) (default='tsconfig.json')*
-
-Allows you to specify a custom configuration file.
 
 ### Loading other resources and code splitting
 
