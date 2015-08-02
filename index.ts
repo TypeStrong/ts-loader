@@ -37,6 +37,7 @@ interface TSInstance {
     compilerOptions: typescript.CompilerOptions;
     files: TSFiles;
     languageService?: typescript.LanguageService;
+    visitedModules?: { [filePath: string]: boolean };
 }
 
 interface TSInstances {
@@ -230,7 +231,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         compiler,
         compilerOptions,
         files,
-        languageService
+        languageService,
+        visitedModules: {}
     };
     
     var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
@@ -244,15 +246,13 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         
         // handle errors for all declaration files at the end of each compilation
         Object.keys(instance.files)
-            .filter(filePath => !!filePath.match(/\.d\.ts$/))
+            .filter(filePath => !Object.prototype.hasOwnProperty.call(instance.visitedModules, filePath))
             .forEach(filePath => {
-                pushArray(
-                    stats.compilation.errors,
-                    formatErrors(
-                        languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath)),
-                        compiler,
-                        {file: filePath}));
+                let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+                pushArray(stats.compilation.errors, formatErrors(errors, compiler, {file: filePath}));
             });
+            
+        instance.visitedModules = {};
     });
     
     // manually update changed declaration files
@@ -311,7 +311,7 @@ function loader(contents) {
     }
     file.version++;
     
-    var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[];
+    var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
     
     if (options.transpileOnly) {
         var fileName = path.basename(filePath);
@@ -325,7 +325,6 @@ function loader(contents) {
             
             ({ outputText, sourceMapText, diagnostics } = transpileResult);
         } else {
-            diagnostics = [];
             outputText = instance.compiler.transpile(
                 contents, 
                 instance.compilerOptions, 
@@ -333,7 +332,9 @@ function loader(contents) {
         }
     }
     else {
-        var langService = instance.languageService;
+        let langService = instance.languageService;
+        
+        instance.visitedModules[filePath] = true;
         
         // Update file contents
         file.text = contents;
@@ -347,7 +348,7 @@ function loader(contents) {
         var output = langService.getEmitOutput(filePath);
         
         diagnostics = langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath));
-
+                
         var outputFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)$/)).pop();
         if (outputFile) { outputText = outputFile.text }
     
@@ -356,7 +357,7 @@ function loader(contents) {
     }
     
     pushArray(this._module.errors, formatErrors(diagnostics, instance.compiler, {module: this._module}));
-    
+
     if (outputText == null) throw new Error(`Typescript emitted no output for ${filePath}`);
 
     if (sourceMapText) {
