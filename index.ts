@@ -156,7 +156,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     }
     
     if (!compilerOptions.noLib) {
-        filesToLoad.push(path.join(path.dirname(require.resolve('typescript')), libFileName));
+        filesToLoad.push(path.join(path.dirname(require.resolve(options.compiler)), libFileName));
     }
     
     // Load initial files (core lib files, any files specified in tsconfig.json)
