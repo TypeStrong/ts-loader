@@ -27,7 +27,7 @@ fs.readdirSync(__dirname).forEach(function(file) {
         
         describe(file, function() {
             it('should have the correct output', function(done) {
-                this.timeout(10000);
+                this.timeout(30000); // sometimes it just takes awhile
                 
                 // set up paths
                 var testStagingPath = path.join(stagingPath, file),
