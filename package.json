@@ -32,6 +32,8 @@
     "object-assign": "^2.0.0"
   },
   "devDependencies": {
+    "babel-core": "^5.8.20",
+    "babel-loader": "^5.3.2",
     "escape-string-regexp": "^1.0.3",
     "fs-extra": "^0.22.1",
     "mkdirp": "^0.5.1",

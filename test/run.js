@@ -23,6 +23,7 @@ fs.readdirSync(__dirname).forEach(function(file) {
     if (fs.statSync(testPath).isDirectory()) {
         
         if (file == 'jsx' && semver.lt(typescript.version, '1.6.0-0')) return;
+        if (file == 'jsxPreserve' && semver.lt(typescript.version, '1.6.0-0')) return;
         
         describe(file, function() {
             it('should have the correct output', function(done) {

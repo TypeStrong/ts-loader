@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"jsx": "preserve"
+	},
+	"files": [
+		"react.d.ts",
+		"react-jsx.d.ts"
+	]
+}
