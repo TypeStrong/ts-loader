@@ -20,6 +20,7 @@ interface Options {
     instance: string;
     compiler: string;
     configFileName: string;
+    transpileOnly: boolean;
 }
 
 interface TSFile {
@@ -35,7 +36,7 @@ interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
     files: TSFiles;
-    languageService: typescript.LanguageService;
+    languageService?: typescript.LanguageService;
 }
 
 interface TSInstances {
@@ -129,6 +130,13 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             var configFileError = formatErrors([configFile.error], compiler, {file: configFilePath })[0];
             return { error: configFileError }
         }
+        
+        // do any necessary config massaging
+        configFile.config.compilerOptions = configFile.config.compilerOptions || {}; 
+        if (options.transpileOnly) {
+            configFile.config.compilerOptions.isolatedModules = true;
+        }
+        
         var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
         
         if (configParseResult.errors.length) {
@@ -145,6 +153,20 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         
         objectAssign(compilerOptions, configParseResult.options);
         filesToLoad = configParseResult.fileNames;
+    }
+    
+    if (options.transpileOnly) {
+        // quick return for transpiling
+        // we do need to check for any issues with TS options though
+        var program = compiler.createProgram([], compilerOptions),
+            diagnostics = program.getOptionsDiagnostics 
+                ? program.getOptionsDiagnostics() 
+                : program.getCompilerOptionsDiagnostics();
+        pushArray(
+            loader._module.errors,
+            formatErrors(diagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
+        
+        return { instance: instances[options.instance] = { compiler, compilerOptions, files }};
     }
     
     var libFileName = 'lib.d.ts';
@@ -205,10 +227,10 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())
     
     var instance: TSInstance = instances[options.instance] = {
-        compiler: compiler,
-        compilerOptions: compilerOptions,
-        files: files,
-        languageService: languageService
+        compiler,
+        compilerOptions,
+        files,
+        languageService
     };
     
     var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
@@ -264,7 +286,8 @@ function loader(contents) {
         silent: false,
         instance: 'default',
         compiler: 'typescript',
-        configFileName: 'tsconfig.json'
+        configFileName: 'tsconfig.json',
+        transpileOnly: false
     }, configFileOptions, queryOptions);
     
     // differentiate the TypeScript instance based on the webpack instance
@@ -281,47 +304,67 @@ function loader(contents) {
         return;
     }
     
-    var file = instance.files[filePath],
-        langService = instance.languageService;
-    
-    // Update TypeScript with the new file contents
+    // Update file version
+    var file = instance.files[filePath]
     if (!file) {
         file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
-    
-    file.text = contents;
     file.version++;
     
-    // Make this file dependent on *all* definition files in the program
-    this.clearDependencies();
-    this.addDependency(filePath);
-    Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
+    var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[];
+    
+    if (options.transpileOnly) {
+        var fileName = path.basename(filePath);
+        // if transpileModule is available, use it (TS 1.6+)
+        if (instance.compiler.transpileModule) {
+            var transpileResult = instance.compiler.transpileModule(contents, {
+                compilerOptions: instance.compilerOptions,
+                reportDiagnostics: true,
+                fileName
+            });
+            
+            ({ outputText, sourceMapText, diagnostics } = transpileResult);
+        } else {
+            diagnostics = [];
+            outputText = instance.compiler.transpile(
+                contents, 
+                instance.compilerOptions, 
+                fileName, diagnostics);
+        }
+    }
+    else {
+        var langService = instance.languageService;
+        
+        // Update file contents
+        file.text = contents;
+        
+        // Make this file dependent on *all* definition files in the program
+        this.clearDependencies();
+        this.addDependency(filePath);
+        Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
+    
+        // Emit Javascript
+        var output = langService.getEmitOutput(filePath);
+        
+        diagnostics = langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath));
 
-    // Emit Javascript
-    var output = langService.getEmitOutput(filePath);
-    pushArray(this._module.errors, formatErrors(
-        langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath)),
-        instance.compiler,
-        {module: this._module}
-    ));
+        var outputFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)$/)).pop();
+        if (outputFile) { outputText = outputFile.text }
+    
+        var sourceMapFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)\.map$/)).pop();
+        if (sourceMapFile) { sourceMapText = sourceMapFile.text }
+    }
+    
+    pushArray(this._module.errors, formatErrors(diagnostics, instance.compiler, {module: this._module}));
+    
+    if (outputText == null) throw new Error(`Typescript emitted no output for ${filePath}`);
 
-    if (output.outputFiles.length == 0) throw new Error(`Typescript emitted no output for ${filePath}`);
-
-    var result = output.outputFiles
-      .filter(file => !!file.name.match(/\.js(x?)$/))
-      .pop()
-      .text;
-
-    var sourceMap: any = output.outputFiles
-      .filter(file => !!file.name.match(/\.js(x?)\.map$/))
-      .pop();
-
-    if (sourceMap) {
-        sourceMap = JSON.parse(sourceMap.text);
+    if (sourceMapText) {
+        var sourceMap = JSON.parse(sourceMapText);
         sourceMap.sources = [loaderUtils.getRemainingRequest(this)];
         sourceMap.file = loaderUtils.getCurrentRequest(this);
         sourceMap.sourcesContent = [contents];
-        result = result.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, '');
+        outputText = outputText.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, '');
     }
 
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
@@ -329,7 +372,7 @@ function loader(contents) {
     // treated as new
     this._module.meta['tsLoaderFileVersion'] = file.version;
 
-    callback(null, result, sourceMap)
+    callback(null, outputText, sourceMap)
 }
 
 export = loader;
