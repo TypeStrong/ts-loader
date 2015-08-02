@@ -101,6 +101,12 @@ module.exports = {
 }
 ```
 
+##### transpileOnly *(boolean) (default=false)*
+
+If you want to speed up compilation significantly you can set this flag.
+However, many of the benefits you get from static type checking between
+different dependencies in your application will be lost.
+
 ##### silent *(boolean) (default=false)*
 
 If true, no console.log messages will be emitted. Note that most error
