@@ -80,11 +80,9 @@ subdirectories will be included, possibly even ones that should not be.
 
 #### Options
 
-Most TypeScript-related options should be set using a 
-[tsconfig.json](#tsconfig)
-file. There are a few loader-specific options you can set although in general
-you should not need to. These can be set either using a query when specifying
-the loader or through the `ts` property in the webpack configuration.
+There are two types of options: TypeScript options (aka "compiler options") and loader options. 
+TypeScript options should be set using a tsconfig.json file. Loader options can be set either 
+using a query when specifying the loader or through the `ts` property in the webpack configuration.
 
 ```javascript
 module.exports = {
@@ -122,6 +120,11 @@ build of TypeScript](https://github.com/basarat/ntypescript).
 ##### configFileName *(string) (default='tsconfig.json')*
 
 Allows you to specify a custom configuration file.
+
+##### compilerOptions *(object) (default={})*
+
+Allows overriding TypeScript options. Should be specified in the same format
+as you would do for the `compilerOptions` property in tsconfig.json.
 
 ##### instance *(string)*
 
