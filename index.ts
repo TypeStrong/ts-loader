@@ -202,6 +202,11 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         }
     });
     
+    let newLine =
+        compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? '\r\n' :
+        compilerOptions.newLine === 1 /* LineFeed */ ? '\n' :
+        os.EOL;
+
     // Create the TypeScript language service
     var servicesHost = {
         getScriptFileNames: () => Object.keys(files),
@@ -232,7 +237,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         getCurrentDirectory: () => process.cwd(),
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: options => libFileName,
-        getNewLine: () => { return os.EOL },
+        getNewLine: () => newLine,
         log: log
     };
     
