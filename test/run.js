@@ -58,8 +58,15 @@ function createTest(test, testPath, options) {
         var config = require(path.join(testStagingPath, 'webpack.config'));
         config.output.path = webpackOutput;
         config.context = testStagingPath;
+        config.resolveLoader = config.resolveLoader || {};
+        config.resolveLoader.alias = config.resolveLoader.alias || {};
+        config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
+        config.module.loaders.push({ test: /\.js$/, loader: 'newLine' });
         config.ts = config.ts || {};
         config.ts.silent = true;
+        config.ts.compilerOptions = {
+            newLine: 'LF'
+        }
         
         if (options.transpile) config.ts.transpileOnly = true;
         
@@ -108,8 +115,8 @@ function createTest(test, testPath, options) {
             actualFiles.forEach(function(file) {
                 if (options.transpile && path.extname(file) == '.txt') { return; }
                 
-                var actual = fs.readFileSync(path.join(actualOutput, file)).toString();
-                var expected = fs.readFileSync(path.join(expectedOutput, file)).toString();
+                var actual = fs.readFileSync(path.join(actualOutput, file)).toString().replace(/\r\n/g, '\n');
+                var expected = fs.readFileSync(path.join(expectedOutput, file)).toString().replace(/\r\n/g, '\n');
                 
                 assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
             });
