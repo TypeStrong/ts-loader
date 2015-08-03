@@ -21,6 +21,7 @@ interface Options {
     compiler: string;
     configFileName: string;
     transpileOnly: boolean;
+    compilerOptions: typescript.CompilerOptions;
 }
 
 interface TSFile {
@@ -131,30 +132,40 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             var configFileError = formatErrors([configFile.error], compiler, {file: configFilePath })[0];
             return { error: configFileError }
         }
-        
-        // do any necessary config massaging
-        configFile.config.compilerOptions = configFile.config.compilerOptions || {}; 
-        if (options.transpileOnly) {
-            configFile.config.compilerOptions.isolatedModules = true;
-        }
-        
-        var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
-        
-        if (configParseResult.errors.length) {
-            pushArray(
-                loader._module.errors, 
-                formatErrors(configParseResult.errors, compiler, { file: configFilePath }));
-            
-            return { error: {
-                file: configFilePath,
-                message: 'error while parsing tsconfig.json'.red,
-                rawMessage: 'error while parsing tsconfig.json'
-            }};
-        }
-        
-        objectAssign(compilerOptions, configParseResult.options);
-        filesToLoad = configParseResult.fileNames;
     }
+    else {
+        var configFile:any = {
+            config: {
+                compilerOptions: {},
+                files: []
+            }
+        }
+    }
+    
+    configFile.config.compilerOptions = configFile.config.compilerOptions || {}; 
+    objectAssign(configFile.config.compilerOptions, options.compilerOptions);
+    
+    // do any necessary config massaging
+    if (options.transpileOnly) {
+        configFile.config.compilerOptions.isolatedModules = true;
+    }
+    
+    var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
+    
+    if (configParseResult.errors.length) {
+        pushArray(
+            loader._module.errors, 
+            formatErrors(configParseResult.errors, compiler, { file: configFilePath }));
+        
+        return { error: {
+            file: configFilePath,
+            message: 'error while parsing tsconfig.json'.red,
+            rawMessage: 'error while parsing tsconfig.json'
+        }};
+    }
+    
+    objectAssign(compilerOptions, configParseResult.options);
+    filesToLoad = configParseResult.fileNames;
     
     if (options.transpileOnly) {
         // quick return for transpiling
@@ -190,7 +201,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             version: 0
         }
     });
-
+    
     // Create the TypeScript language service
     var servicesHost = {
         getScriptFileNames: () => Object.keys(files),
@@ -224,7 +235,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         getNewLine: () => { return os.EOL },
         log: log
     };
-
+    
     var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())
     
     var instance: TSInstance = instances[options.instance] = {
@@ -287,7 +298,8 @@ function loader(contents) {
         instance: 'default',
         compiler: 'typescript',
         configFileName: 'tsconfig.json',
-        transpileOnly: false
+        transpileOnly: false,
+        compilerOptions: {}
     }, configFileOptions, queryOptions);
     
     // differentiate the TypeScript instance based on the webpack instance
