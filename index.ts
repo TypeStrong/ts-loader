@@ -142,8 +142,9 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         }
     }
     
-    configFile.config.compilerOptions = configFile.config.compilerOptions || {}; 
-    objectAssign(configFile.config.compilerOptions, options.compilerOptions);
+    configFile.config.compilerOptions = objectAssign({},
+        configFile.config.compilerOptions,
+        options.compilerOptions);
     
     // do any necessary config massaging
     if (options.transpileOnly) {
