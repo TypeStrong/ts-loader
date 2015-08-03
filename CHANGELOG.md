@@ -5,6 +5,7 @@
 - Add support for `transpileOnly` loader option. See README for more information.
 - TypeScript is no longer a dependency of the loader and must be installed separately
 - Loader options can now be set as a property in `webpack.config.js`
+- TypeScript options can be set through the loader option `compilerOptions`
 - Improved error reporting
   - Errors from all files in the TypeScript application are now reported in watch mode instead of 
     from just those files that changed. This means that making a breaking change in a dependency
@@ -15,6 +16,7 @@
   - Fixed issue with latest version of webpack where filenames could be reported twice for the same
     error in certain situations
 - Using the `declaration` TypeScript option no longer results in errors
+- Add support for the `newLine` TypeScript option
 - Tests have been revamped to be full integration tests with nightly builds against the current stable
   and nightly TypeScript. Many new tests have been added.
 
