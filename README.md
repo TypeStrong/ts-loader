@@ -114,8 +114,7 @@ messages are emitted via webpack which is not affected by this flag.
 ##### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
-set to the NPM name of the compiler. Especially useful for the [nightly
-build of TypeScript](https://github.com/basarat/ntypescript).
+set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basarat/ntypescript).
 
 ##### configFileName *(string) (default='tsconfig.json')*
 
