@@ -88,6 +88,7 @@ function createTest(test, testPath, options) {
                     err.toString()
                         .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
                         .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
+                        .replace(new RegExp(regexEscape(rootPath), 'g'), '')
                 );
             }
             
@@ -97,6 +98,7 @@ function createTest(test, testPath, options) {
                     stats.toString({timings: false, version: false, hash: false})
                         .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
                         .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
+                        .replace(new RegExp(regexEscape(rootPath), 'g'), '')
                 );
             }
             
