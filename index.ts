@@ -61,7 +61,10 @@ var webpackInstances = [];
 function formatErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, merge?: any): WebpackError[] {
     return diagnostics
         .map<WebpackError>(diagnostic => {
-            var messageText = compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
+            var errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
+            var errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
+        
+            var messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
             if (diagnostic.file) {
                 var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
                 return {
