@@ -104,7 +104,9 @@ module.exports = {
 
 If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between
-different dependencies in your application will be lost.
+different dependencies in your application will be lost. You should also
+set the `isolatedModules` TypeScript option if you plan to ever make use
+of this.
 
 ##### silent *(boolean) (default=false)*
 
