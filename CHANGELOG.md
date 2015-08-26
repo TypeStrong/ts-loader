@@ -1,12 +1,16 @@
 # Changelog
 
+## v0.5.2
+
+- Fix issue with TypeScript nightly and new node module resolution strategy (#34)
+
 ## v0.5.1
 
 - Tweaked error message output to include error code (#32)
 - Add helpful messages around the TypeScript dependency 
-   - Suggest how to install TypeScript if it hasn't been installed
-   - Show TypeScript version when compiling
-   - Warn if TypeScript version is incompatible
+  - Suggest how to install TypeScript if it hasn't been installed
+  - Show TypeScript version when compiling
+  - Warn if TypeScript version is incompatible
 
 ## v0.5.0
 
