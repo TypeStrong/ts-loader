@@ -9,6 +9,7 @@ import fs = require('fs');
 import os = require('os');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
+var semver = require('semver')
 require('colors');
 
 var pushArray = function(arr, toPush) {
@@ -129,6 +130,22 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             rawMessage: message
         } };
     }
+    
+    var motd = `ts-loader: Using ${options.compiler}@${compiler.version}`,
+        compilerCompatible = false;
+    if (options.compiler == 'typescript') {
+        if (compiler.version && semver.gte(compiler.version, '1.5.3-0')) {
+            // don't log yet in this case, if a tsconfig.json exists we want to combine the message
+            compilerCompatible = true;
+        }
+        else {
+            log(`${motd}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
+        }
+    }
+    else {
+        log(`${motd}. This version may or may not be compatible with ts-loader.`.yellow);
+    }
+    
     var files = <TSFiles>{};
     
     var compilerOptions: typescript.CompilerOptions = {
@@ -139,7 +156,9 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     var filesToLoad = [];
     var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), options.configFileName);
     if (configFilePath) {
-        log('Using config file at '.green + configFilePath.blue);
+        if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
+        else log(`ts-loader: Using config file at ${configFilePath}`.green)
+        
         var configFile = compiler.readConfigFile(configFilePath);
         
         if (configFile.error) {
@@ -148,6 +167,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         }
     }
     else {
+        if (compilerCompatible) log(motd.green)
+        
         var configFile:any = {
             config: {
                 compilerOptions: {},

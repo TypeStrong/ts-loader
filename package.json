@@ -29,7 +29,8 @@
   "dependencies": {
     "colors": "^1.0.3",
     "loader-utils": "^0.2.6",
-    "object-assign": "^2.0.0"
+    "object-assign": "^2.0.0",
+    "semver": "^5.0.1"
   },
   "devDependencies": {
     "babel-core": "^5.8.20",
@@ -39,7 +40,6 @@
     "mkdirp": "^0.5.1",
     "mocha": "^2.1.0",
     "rimraf": "^2.4.2",
-    "semver": "^5.0.1",
     "webpack": "^1.11.0"
   }
 }
