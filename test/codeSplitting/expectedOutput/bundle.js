@@ -104,10 +104,11 @@
 	    // `import ... require` statements). `require.ensure` is defined in
 	    // require.d.ts. Webpack sees this and automatically puts c and d
 	    // into a separate chunk. 
-	    var c = __webpack_require__(3);
-	    var d = __webpack_require__(4);
-	    console.log(c);
-	    console.log(d);
+	    var cModule = __webpack_require__(3);
+	    var dModule = __webpack_require__(4);
+	    // cModule and dModule will typed as strings
+	    console.log(cModule);
+	    console.log(dModule);
 	});
 
 
