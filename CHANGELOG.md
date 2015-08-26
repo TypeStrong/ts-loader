@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.5.1
+
+- Tweaked error message output to include error code (#32)
+- Add helpful messages around the TypeScript dependency 
+   - Suggest how to install TypeScript if it hasn't been installed
+   - Show TypeScript version when compiling
+   - Warn if TypeScript version is incompatible
+
 ## v0.5.0
 
 - Add support for `transpileOnly` loader option. See README for more information.
