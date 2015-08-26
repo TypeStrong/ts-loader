@@ -117,7 +117,18 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         return { instance: instances[options.instance] };        
     }
     
-    var compiler = require(options.compiler);
+    try {
+        var compiler = require(options.compiler);
+    }
+    catch (e) {
+        let message = options.compiler == 'typescript'
+            ? 'Could not load TypeScript. Try installing with `npm install -g typescript`'
+            : `Could not load TypeScript compiler with NPM package name \`${options.compiler}\`. Are you sure it is correctly installed?`
+        return { error: {
+            message: message.red,
+            rawMessage: message
+        } };
+    }
     var files = <TSFiles>{};
     
     var compilerOptions: typescript.CompilerOptions = {
