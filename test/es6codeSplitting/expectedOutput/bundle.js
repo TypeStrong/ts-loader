@@ -122,6 +122,7 @@
 /* 1 */
 /***/ function(module, exports) {
 
+	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = 'a';
 
 
@@ -129,6 +130,7 @@
 /* 2 */
 /***/ function(module, exports) {
 
+	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = 'b';
 
 
