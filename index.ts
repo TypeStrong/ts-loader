@@ -296,9 +296,10 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             formatErrors(compilerOptionDiagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
         compilerOptionDiagnostics = [];
         
-        // handle errors for all declaration files at the end of each compilation
+        // handle errors for all unvisited files at the end of each compilation
         Object.keys(instance.files)
             .filter(filePath => !Object.prototype.hasOwnProperty.call(instance.visitedModules, filePath))
+            .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
             .forEach(filePath => {
                 let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
                 pushArray(stats.compilation.errors, formatErrors(errors, compiler, {file: filePath}));

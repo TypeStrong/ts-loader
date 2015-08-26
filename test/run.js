@@ -25,6 +25,7 @@ fs.readdirSync(__dirname).forEach(function(test) {
         if (test == 'jsx' && semver.lt(typescript.version, '1.6.0-0')) return;
         if (test == 'jsxPreserve' && semver.lt(typescript.version, '1.6.0-0')) return;
         if (test == 'es6codeSplitting' && semver.lt(typescript.version, '1.6.0-0')) return;
+        if (test == 'nodeResolution' && semver.lt(typescript.version, '1.6.0-0')) return;
         
         describe(test, function() {
             it('should have the correct output', createTest(test, testPath, {}));
