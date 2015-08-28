@@ -203,6 +203,14 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     objectAssign(compilerOptions, configParseResult.options);
     filesToLoad = configParseResult.fileNames;
     
+    var libFileName = 'lib.d.ts';
+
+    // Special handling for ES6 targets
+    if (compilerOptions.target == 2 /* ES6 */) {
+        compilerOptions.module = 0 /* None */;
+        libFileName = 'lib.es6.d.ts';
+    }
+    
     if (options.transpileOnly) {
         // quick return for transpiling
         // we do need to check for any issues with TS options though
@@ -215,14 +223,6 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             formatErrors(diagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
         
         return { instance: instances[options.instance] = { compiler, compilerOptions, files }};
-    }
-    
-    var libFileName = 'lib.d.ts';
-
-    // Special handling for ES6 targets
-    if (compilerOptions.target == 2 /* ES6 */) {
-        compilerOptions.module = 0 /* None */;
-        libFileName = 'lib.es6.d.ts';
     }
     
     if (!compilerOptions.noLib) {
