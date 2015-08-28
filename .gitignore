@@ -6,3 +6,4 @@ npm-debug.log
 .test/
 !/test/**/expectedOutput/**
 /node_modules
+!build.js
