@@ -28,6 +28,7 @@
   "homepage": "https://github.com/jbrantly/ts-loader",
   "dependencies": {
     "colors": "^1.0.3",
+    "enhanced-resolve": "^0.9.0",
     "loader-utils": "^0.2.6",
     "object-assign": "^2.0.0",
     "semver": "^5.0.1"

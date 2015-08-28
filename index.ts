@@ -9,6 +9,7 @@ import fs = require('fs');
 import os = require('os');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
+import makeResolver = require('./resolver');
 var semver = require('semver')
 require('colors');
 
@@ -243,6 +244,17 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         compilerOptions.newLine === 1 /* LineFeed */ ? '\n' :
         os.EOL;
 
+    // make a (sync) resolver that follows webpack's rules
+    let resolver = makeResolver(loader.options);
+
+    var moduleResolutionHost = {
+        fileExists: (fileName: string) => { return servicesHost.getScriptSnapshot(fileName) !== undefined; },      
+        readFile: (fileName: string) => { 
+            let snapshot = servicesHost.getScriptSnapshot(fileName);
+            return snapshot && snapshot.getText(0, snapshot.getLength());
+        }
+    };
+
     // Create the TypeScript language service
     var servicesHost = {
         getScriptFileNames: () => Object.keys(files),
@@ -274,7 +286,27 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: options => libFileName,
         getNewLine: () => newLine,
-        log: log
+        log: log,
+        resolveModuleNames: (moduleNames: string[], containingFile: string) => {
+            let resolvedFileNames: string[] = [];
+                        
+            for (let moduleName of moduleNames) {
+                let resolvedFileName: string;
+                try {
+                    resolvedFileName = resolver.resolveSync(containingFile, moduleName)
+                    
+                    if (!resolvedFileName.match(/\.ts(x?)$/)) resolvedFileName = null;
+                }
+                catch (e) { resolvedFileName = null }
+                
+                if (!resolvedFileName) {
+                    resolvedFileName = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost).resolvedFileName
+                }
+
+                resolvedFileNames.push(resolvedFileName);
+            }
+            return resolvedFileNames;
+        }
     };
     
     var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())

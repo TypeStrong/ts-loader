@@ -22,6 +22,7 @@ fs.readdirSync(__dirname).forEach(function(test) {
     var testPath = path.join(__dirname, test);
     if (fs.statSync(testPath).isDirectory()) {
         
+        if (test == 'aliasResolution' && semver.lt(typescript.version, '1.6.0-0')) return;
         if (test == 'jsx' && semver.lt(typescript.version, '1.6.0-0')) return;
         if (test == 'jsxPreserve' && semver.lt(typescript.version, '1.6.0-0')) return;
         if (test == 'es6codeSplitting' && semver.lt(typescript.version, '1.6.0-0')) return;
