@@ -9,6 +9,10 @@ var regexEscape = require('escape-string-regexp');
 var typescript = require('typescript');
 var semver = require('semver')
 
+var saveOutputMode = process.argv.indexOf('--save-output') != -1;
+
+var savedOutputs = {};
+
 console.log('Using webpack version ' + webpackVersion);
 console.log('Using typescript version ' + typescript.version);
 
@@ -47,12 +51,21 @@ function createTest(test, testPath, options) {
         var testStagingPath = path.join(stagingPath, test+(options.transpile ? '.transpile' : '')),
             actualOutput = path.join(testStagingPath, 'actualOutput'),
             expectedOutput = path.join(testStagingPath, 'expectedOutput'),
-            webpackOutput = path.join(testStagingPath, '.output');
+            webpackOutput = path.join(testStagingPath, '.output'),
+            originalExpectedOutput = path.join(testPath, 'expectedOutput');
+        
+        if (saveOutputMode) {
+            savedOutputs[test] = savedOutputs[test] || {};
+            var regularSavedOutput = savedOutputs[test].regular = savedOutputs[test].regular || {};
+            var transpiledSavedOutput = savedOutputs[test].transpiled = savedOutputs[test].transpiled || {};
+            var currentSavedOutput = options.transpile ? transpiledSavedOutput : regularSavedOutput;
+            mkdirp.sync(originalExpectedOutput);
+        }
         
         // copy all input to a staging area
         mkdirp.sync(testStagingPath);
         fs.copySync(testPath, testStagingPath);
-            
+           
             
         // ensure actualOutput directory
         mkdirp.sync(actualOutput);
@@ -80,51 +93,104 @@ function createTest(test, testPath, options) {
                 patch = 'patch'+(iteration-1);
                 actualOutput = path.join(testStagingPath, 'actualOutput', patch);
                 expectedOutput = path.join(testStagingPath, 'expectedOutput', patch);
+                originalExpectedOutput = path.join(testPath, 'expectedOutput', patch)
                 mkdirp.sync(actualOutput);
                 mkdirp.sync(expectedOutput);
+                if (saveOutputMode) mkdirp.sync(originalExpectedOutput);
             }
             
             // output results to actualOutput
             if (err) {
-                fs.writeFileSync(
-                    path.join(actualOutput, 'err.txt'), 
-                    err.toString()
-                        .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
-                        .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
-                        .replace(new RegExp(regexEscape(rootPath), 'g'), '')
-                );
+                //var errFileName = 'err' + (options.transpile?'.transpiled':'') + '.txt';
+                var errFileName = 'err.txt';
+                
+                var errString = err.toString()
+                    .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
+                    .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
+                    .replace(new RegExp(regexEscape(rootPath), 'g'), '')
+                    .replace(/\.transpile/g, '');
+                
+                fs.writeFileSync(path.join(actualOutput, errFileName), errString);
+                if (saveOutputMode) {
+                    var patchedErrFileName = patch+'/'+errFileName;
+                    currentSavedOutput[patchedErrFileName] = errString;
+                    
+                    if (options.transpile) {
+                        if (regularSavedOutput[patchedErrFileName] !== transpiledSavedOutput[patchedErrFileName]) {
+                            fs.writeFileSync(path.join(originalExpectedOutput, 'err.transpiled.txt'), errString);
+                        }
+                    }
+                    else {
+                        fs.writeFileSync(path.join(originalExpectedOutput, errFileName), errString);
+                    }
+                }
             }
             
             if (stats) {
-                fs.writeFileSync(
-                    path.join(actualOutput, 'output.txt'), 
-                    stats.toString({timings: false, version: false, hash: false})
-                        .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
-                        .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
-                        .replace(new RegExp(regexEscape(rootPath), 'g'), '')
-                );
+                var statsFileName = 'output.txt';
+                
+                var statsString = stats.toString({timings: false, version: false, hash: false})
+                    .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
+                    .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
+                    .replace(new RegExp(regexEscape(rootPath), 'g'), '')
+                    .replace(/\.transpile/g, '');
+                
+                fs.writeFileSync(path.join(actualOutput, statsFileName), statsString);
+                if (saveOutputMode) {
+                    var patchedStatsFileName = patch+'/'+statsFileName;
+                    currentSavedOutput[patchedStatsFileName] = statsString;
+                    
+                    if (options.transpile) {
+                        if (regularSavedOutput[patchedStatsFileName] !== transpiledSavedOutput[patchedStatsFileName]) {
+                            fs.writeFileSync(path.join(originalExpectedOutput, 'output.transpiled.txt'), statsString);
+                        }
+                    }
+                    else {
+                        fs.writeFileSync(path.join(originalExpectedOutput, statsFileName), statsString);
+                    }
+                }
             }
             
             fs.copySync(webpackOutput, actualOutput);
+            if (saveOutputMode) {
+                fs.copySync(webpackOutput, originalExpectedOutput, { clobber: true });
+            }
             rimraf.sync(webpackOutput);
         
-            // compare actual to expected
-            var actualFiles = fs.readdirSync(actualOutput),
-                expectedFiles = fs.readdirSync(expectedOutput).filter(function(file) { return !/^patch/.test(file); });
-            
-            assert.equal(
-                actualFiles.length, 
-                expectedFiles.length, 
-                'number of files is different between actualOutput' + (patch?'/'+patch:patch) + ' and expectedOutput' + (patch?'/'+patch:patch));
-            
-            actualFiles.forEach(function(file) {
-                if (options.transpile && path.extname(file) == '.txt') { return; }
+            if (!saveOutputMode) {
+                // massage any .transpiled.txt files
+                fs.readdirSync(expectedOutput).forEach(function(file) {
+                    if (/\.transpiled\.txt$/.test(file)) {
+                        if (options.transpile) { // rename if we're in transpile mode
+                            fs.renameSync(
+                                path.join(expectedOutput, file), 
+                                path.join(expectedOutput, path.basename(file, '.transpiled.txt')+'.txt')
+                            );
+                        }
+                        else { // otherwise delete
+                            fs.unlinkSync(path.join(expectedOutput, file));
+                        }
+
+                    }
+                });
                 
-                var actual = fs.readFileSync(path.join(actualOutput, file)).toString().replace(/\r\n/g, '\n');
-                var expected = fs.readFileSync(path.join(expectedOutput, file)).toString().replace(/\r\n/g, '\n');
+                // compare actual to expected
+                var actualFiles = fs.readdirSync(actualOutput),
+                    expectedFiles = fs.readdirSync(expectedOutput)
+                        .filter(function(file) { return !/^patch/.test(file); });
                 
-                assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
-            });
+                assert.equal(
+                    actualFiles.length, 
+                    expectedFiles.length, 
+                    'number of files is different between actualOutput' + (patch?'/'+patch:patch) + ' and expectedOutput' + (patch?'/'+patch:patch));
+                
+                actualFiles.forEach(function(file) {
+                    var actual = fs.readFileSync(path.join(actualOutput, file)).toString().replace(/\r\n/g, '\n');
+                    var expected = fs.readFileSync(path.join(expectedOutput, file)).toString().replace(/\r\n/g, '\n');
+                    
+                    assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
+                });
+            }
             
             // check for new files to copy in
             var patchPath = path.join(testStagingPath, 'patch'+iteration);
