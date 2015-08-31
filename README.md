@@ -52,7 +52,7 @@ you experience with the nightly so that they can be fixed promptly.
       module: {
         loaders: [
           // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
-          { test: /\.ts(x?)$/, loader: 'ts-loader' }
+          { test: /\.tsx?$/, loader: 'ts-loader' }
         ]
       }
     }
@@ -90,7 +90,7 @@ module.exports = {
   module: {
     loaders: [
       // specify option using query
-      { test: /\.ts$/, loader: 'ts-loader?compiler=ntypescript' }
+      { test: /\.tsx?$/, loader: 'ts-loader?compiler=ntypescript' }
     ]
   },
   // specify option using `ts` property
