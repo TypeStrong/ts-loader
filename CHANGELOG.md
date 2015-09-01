@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.5.3
+
+- Utilize TypeScript's new custom module resolution logic to integrate with webpack. This essentially
+  means that TypeScript will resolve files exactly the same as webpack does (supporting aliases, etc).
+  See the [aliasResolution test](test/aliasResolution) for an example. Only supported in TS 1.6 and
+  above.
+- Rework error reporting to resolve certain edge cases with dependencies. In general errors should
+  be much more consistent now in watch mode.
+- Fix issue with targeting ES6 and transpile mode (#36)
+
 ## v0.5.2
 
 - Fix issue with TypeScript nightly and new node module resolution strategy (#34)
