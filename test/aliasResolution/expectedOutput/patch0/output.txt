@@ -6,6 +6,3 @@ chunk    {0} bundle.js (main) 110 bytes [rendered]
 
 ERROR in ./.test/aliasResolution/app.ts
 [37m([39m[36m2[39m,[36m31[39m): [31merror TS2307: Cannot find module 'components/myComponent2'.[39m
-
-ERROR in app.ts
-[37m([39m[36m2[39m,[36m31[39m): [31merror TS2307: Cannot find module 'components/myComponent2'.[39m

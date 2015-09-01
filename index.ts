@@ -14,7 +14,11 @@ var semver = require('semver')
 require('colors');
 
 var pushArray = function(arr, toPush) {
-    Array.prototype.push.apply(arr, toPush);
+    Array.prototype.splice.apply(arr, [0, 0].concat(toPush));
+}
+
+function hasOwnProperty(obj, property) {
+    return Object.prototype.hasOwnProperty.call(obj, property)
 }
 
 interface Options {
@@ -40,7 +44,6 @@ interface TSInstance {
     compilerOptions: typescript.CompilerOptions;
     files: TSFiles;
     languageService?: typescript.LanguageService;
-    visitedModules?: { [filePath: string]: boolean };
 }
 
 interface TSInstances {
@@ -53,6 +56,7 @@ interface WebpackError {
     message: string;
     rawMessage: string;
     location?: {line: number, character: number};
+    loaderSource: string;
 }
 
 var instances = <TSInstances>{};
@@ -72,13 +76,15 @@ function formatErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typ
                 return {
                     message: `${'('.white}${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`,
                     rawMessage: messageText,
-                    location: {line: lineChar.line+1, character: lineChar.character+1}
+                    location: {line: lineChar.line+1, character: lineChar.character+1},
+                    loaderSource: 'ts-loader'
                 };
             }
             else {
                 return {
                     message:`${messageText.red}`,
-                    rawMessage: messageText 
+                    rawMessage: messageText,
+                    loaderSource: 'ts-loader'
                 };
             }
         })
@@ -115,7 +121,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         }
     }
     
-    if (Object.prototype.hasOwnProperty.call(instances, options.instance)) {
+    if (hasOwnProperty(instances, options.instance)) {
         return { instance: instances[options.instance] };        
     }
     
@@ -128,7 +134,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             : `Could not load TypeScript compiler with NPM package name \`${options.compiler}\`. Are you sure it is correctly installed?`
         return { error: {
             message: message.red,
-            rawMessage: message
+            rawMessage: message,
+            loaderSource: 'ts-loader'
         } };
     }
     
@@ -197,7 +204,8 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         return { error: {
             file: configFilePath,
             message: 'error while parsing tsconfig.json'.red,
-            rawMessage: 'error while parsing tsconfig.json'
+            rawMessage: 'error while parsing tsconfig.json',
+            loaderSource: 'ts-loader'
         }};
     }
     
@@ -315,29 +323,80 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         compiler,
         compilerOptions,
         files,
-        languageService,
-        visitedModules: {}
+        languageService
     };
     
     var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
     
     loader._compiler.plugin("done", stats => {
+        // handle all other errors. The basic approach here to get accurate error
+        // reporting is to start with a "blank slate" each compilation and gather
+        // all errors from all files. Since webpack tracks errors in a module from
+        // compilation-to-compilation, and since not every module always runs through
+        // the loader, we need to detect and remove any pre-existing errors.
+        
+        function removeTSLoaderErrors(errors: WebpackError[]) {
+            let index = -1, length = errors.length; 
+            while (++index < length) {
+                if (errors[index].loaderSource == 'ts-loader') {
+                    errors.splice(index--, 1);
+                    length--;
+                }
+            }
+        }
+        
+        removeTSLoaderErrors(stats.compilation.errors);
+        
         // handle compiler option errors after the first compile
         pushArray(
             stats.compilation.errors,
             formatErrors(compilerOptionDiagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
         compilerOptionDiagnostics = [];
         
-        // handle errors for all unvisited files at the end of each compilation
+        // build map of all modules based on normalized filename
+        // this is used for quick-lookup when trying to find modules
+        // based on filepath
+        let modules = {};
+        stats.compilation.modules.forEach(module => {
+            if (module.resource) {
+                let modulePath = path.normalize(module.resource);
+                if (hasOwnProperty(modules, modulePath)) {
+                    let existingModules = modules[modulePath];
+                    if (existingModules.indexOf(module) == -1) {
+                        existingModules.push(module);
+                    }
+                }
+                else {
+                    modules[modulePath] = [module];
+                }
+            }
+        })
+        
+        // gather all errors from TypeScript and output them to webpack
         Object.keys(instance.files)
-            .filter(filePath => !Object.prototype.hasOwnProperty.call(instance.visitedModules, filePath))
             .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
             .forEach(filePath => {
                 let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
-                pushArray(stats.compilation.errors, formatErrors(errors, compiler, {file: filePath}));
+                
+                // if we have access to a webpack module, use that
+                if (hasOwnProperty(modules, filePath)) {
+                    let associatedModules = modules[filePath];
+                    
+                    associatedModules.forEach(module => {
+                        // remove any existing errors
+                        removeTSLoaderErrors(module.errors);
+                        
+                        // append errors
+                        let formattedErrors = formatErrors(errors, compiler, { module });
+                        pushArray(module.errors, formattedErrors);
+                        pushArray(stats.compilation.errors, formattedErrors);
+                    })
+                }
+                // otherwise it's a more generic error
+                else {
+                    pushArray(stats.compilation.errors, formatErrors(errors, compiler, {file: filePath}));
+                }
             });
-            
-        instance.visitedModules = {};
     });
     
     // manually update changed declaration files
@@ -416,11 +475,11 @@ function loader(contents) {
                 instance.compilerOptions, 
                 fileName, diagnostics);
         }
+        
+        pushArray(this._module.errors, formatErrors(diagnostics, instance.compiler, {module: this._module}));
     }
     else {
         let langService = instance.languageService;
-        
-        instance.visitedModules[filePath] = true;
         
         // Update file contents
         file.text = contents;
@@ -433,16 +492,12 @@ function loader(contents) {
         // Emit Javascript
         var output = langService.getEmitOutput(filePath);
         
-        diagnostics = langService.getSyntacticDiagnostics(filePath).concat(langService.getSemanticDiagnostics(filePath));
-                
         var outputFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)$/)).pop();
         if (outputFile) { outputText = outputFile.text }
     
         var sourceMapFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)\.map$/)).pop();
         if (sourceMapFile) { sourceMapText = sourceMapFile.text }
     }
-    
-    pushArray(this._module.errors, formatErrors(diagnostics, instance.compiler, {module: this._module}));
 
     if (outputText == null) throw new Error(`Typescript emitted no output for ${filePath}`);
 
