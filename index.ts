@@ -167,7 +167,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
         else log(`ts-loader: Using config file at ${configFilePath}`.green)
         
-        var configFile = compiler.readConfigFile(configFilePath);
+        var configFile = compiler.readConfigFile(configFilePath, (filePath) => fs.readFileSync(filePath, 'utf-8'));
         
         if (configFile.error) {
             var configFileError = formatErrors([configFile.error], compiler, {file: configFilePath })[0];
