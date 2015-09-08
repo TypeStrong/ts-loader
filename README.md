@@ -16,7 +16,7 @@ npm install ts-loader
 You will also need to install TypeScript if you have not already.
 
 ```
-npm install -g typescript
+npm install typescript
 ```
 
 ### Upgrading
