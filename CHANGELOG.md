@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.4
+
+- Fix issue with nightly (Microsoft/TypeScript#4497)
+
 ## v0.5.3
 
 - Utilize TypeScript's new custom module resolution logic to integrate with webpack. This essentially
