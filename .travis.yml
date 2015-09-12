@@ -7,4 +7,5 @@ install:
   - npm install
 env:
   - TYPESCRIPT=typescript
+  - TYPESCRIPT=typescript@1.6.0-beta
   - TYPESCRIPT=typescript@next
