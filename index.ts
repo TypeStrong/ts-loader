@@ -59,6 +59,12 @@ interface WebpackError {
     loaderSource: string;
 }
 
+interface ResolvedModule {
+    resolvedFileName?: string;
+    resolvedModule?: ResolvedModule;
+    isExternalLibraryImport?: boolean;
+}
+
 var instances = <TSInstances>{};
 var webpackInstances = [];
 
@@ -296,24 +302,39 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         getNewLine: () => newLine,
         log: log,
         resolveModuleNames: (moduleNames: string[], containingFile: string) => {
-            let resolvedFileNames: string[] = [];
+            let resolvedModules: any[] = [];
                         
             for (let moduleName of moduleNames) {
                 let resolvedFileName: string;
+                let resolutionResult: any;
+                
                 try {
                     resolvedFileName = resolver.resolveSync(containingFile, moduleName)
                     
-                    if (!resolvedFileName.match(/\.ts(x?)$/)) resolvedFileName = null;
+                    if (!resolvedFileName.match(/\.tsx?$/)) resolvedFileName = null;
+                    else resolutionResult = { resolvedFileName }; 
                 }
                 catch (e) { resolvedFileName = null }
                 
-                if (!resolvedFileName) {
-                    resolvedFileName = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost).resolvedFileName
+                let tsResolution: ResolvedModule = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
+                
+                if (tsResolution.resolvedModule) {
+                    if (resolvedFileName) {
+                        if (resolvedFileName == tsResolution.resolvedModule.resolvedFileName) {
+                            resolutionResult.isExternalLibraryImport = tsResolution.resolvedModule.isExternalLibraryImport;
+                        }
+                    }
+                    else resolutionResult = tsResolution.resolvedModule;
+                }
+                // this is for legacy compatibility purposes and can eventually be removed
+                else if (hasOwnProperty(tsResolution, 'resolvedFileName')) {
+                    if (resolvedFileName) resolutionResult = resolvedFileName;
+                    else resolutionResult = tsResolution.resolvedFileName;
                 }
 
-                resolvedFileNames.push(resolvedFileName);
+                resolvedModules.push(resolutionResult);
             }
-            return resolvedFileNames;
+            return resolvedModules;
         }
     };
     
