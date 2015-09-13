@@ -349,7 +349,9 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     
     var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
     
-    loader._compiler.plugin("done", stats => {
+    loader._compiler.plugin("after-compile", (compilation, callback) => {
+        let stats = compilation.stats;
+        
         // handle all other errors. The basic approach here to get accurate error
         // reporting is to start with a "blank slate" each compilation and gather
         // all errors from all files. Since webpack tracks errors in a module from
@@ -366,11 +368,11 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             }
         }
         
-        removeTSLoaderErrors(stats.compilation.errors);
+        removeTSLoaderErrors(compilation.errors);
         
         // handle compiler option errors after the first compile
         pushArray(
-            stats.compilation.errors,
+            compilation.errors,
             formatErrors(compilerOptionDiagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
         compilerOptionDiagnostics = [];
         
@@ -378,7 +380,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         // this is used for quick-lookup when trying to find modules
         // based on filepath
         let modules = {};
-        stats.compilation.modules.forEach(module => {
+        compilation.modules.forEach(module => {
             if (module.resource) {
                 let modulePath = path.normalize(module.resource);
                 if (hasOwnProperty(modules, modulePath)) {
@@ -410,14 +412,16 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
                         // append errors
                         let formattedErrors = formatErrors(errors, compiler, { module });
                         pushArray(module.errors, formattedErrors);
-                        pushArray(stats.compilation.errors, formattedErrors);
+                        pushArray(compilation.errors, formattedErrors);
                     })
                 }
                 // otherwise it's a more generic error
                 else {
-                    pushArray(stats.compilation.errors, formatErrors(errors, compiler, {file: filePath}));
+                    pushArray(compilation.errors, formatErrors(errors, compiler, {file: filePath}));
                 }
             });
+            
+        callback();
     });
     
     // manually update changed declaration files
