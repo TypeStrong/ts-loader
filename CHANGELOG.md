@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.5
+
+- Fix issue with nightly (Microsoft/TypeScript#4738)
+- Add support for the NoErrorsPlugin
+
 ## v0.5.4
 
 - Fix issue with nightly (Microsoft/TypeScript#4497)
