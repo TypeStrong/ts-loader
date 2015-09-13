@@ -164,7 +164,13 @@ The nightly version of TypeScript supports JSX natively. See the [JSX test](test
 
 ```
 npm install
-tsc index.ts --module commonjs
+node build
+```
+
+To run tests:
+
+```
+npm test
 ```
 
 ## License
