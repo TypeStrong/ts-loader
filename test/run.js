@@ -67,8 +67,9 @@ function createTest(test, testPath, options) {
         fs.copySync(testPath, testStagingPath);
            
             
-        // ensure actualOutput directory
+        // ensure output directories
         mkdirp.sync(actualOutput);
+        mkdirp.sync(webpackOutput);
         
         // execute webpack
         var config = require(path.join(testStagingPath, 'webpack.config'));
@@ -99,9 +100,30 @@ function createTest(test, testPath, options) {
                 if (saveOutputMode) mkdirp.sync(originalExpectedOutput);
             }
             
-            // output results to actualOutput
+            // output results
+            if (saveOutputMode) {
+                // loop through webpackOutput and rename to .transpiled if needed
+                fs.readdirSync(webpackOutput).forEach(function(file) {
+                    var patchedFileName = patch+'/'+file;
+                    currentSavedOutput[patchedFileName] = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
+                    
+                    if (options.transpile) {
+                        if (regularSavedOutput[patchedFileName] !== transpiledSavedOutput[patchedFileName]) {
+                            var extension = path.extname(file);
+                            fs.renameSync(
+                                path.join(webpackOutput, file), 
+                                path.join(webpackOutput, path.basename(file, extension)+'.transpiled'+extension)
+                            );
+                        }
+                    }
+                });
+                
+                fs.copySync(webpackOutput, originalExpectedOutput, { clobber: true });
+            }
+            fs.copySync(webpackOutput, actualOutput);
+            rimraf.sync(webpackOutput);
+            
             if (err) {
-                //var errFileName = 'err' + (options.transpile?'.transpiled':'') + '.txt';
                 var errFileName = 'err.txt';
                 
                 var errString = err.toString()
@@ -150,21 +172,16 @@ function createTest(test, testPath, options) {
                     }
                 }
             }
-            
-            fs.copySync(webpackOutput, actualOutput);
-            if (saveOutputMode) {
-                fs.copySync(webpackOutput, originalExpectedOutput, { clobber: true });
-            }
-            rimraf.sync(webpackOutput);
         
             if (!saveOutputMode) {
-                // massage any .transpiled.txt files
+                // massage any .transpiled. files
                 fs.readdirSync(expectedOutput).forEach(function(file) {
-                    if (/\.transpiled\.txt$/.test(file)) {
+                    if (/\.transpiled/.test(file)) {
                         if (options.transpile) { // rename if we're in transpile mode
+                            var extension = path.extname(file);
                             fs.renameSync(
                                 path.join(expectedOutput, file), 
-                                path.join(expectedOutput, path.basename(file, '.transpiled.txt')+'.txt')
+                                path.join(expectedOutput, path.basename(file, '.transpiled'+extension)+extension)
                             );
                         }
                         else { // otherwise delete
