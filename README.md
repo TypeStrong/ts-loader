@@ -30,7 +30,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 ### Compatibility
 
-The current version is compatible with TypeScript 1.5 and with the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx). 
+The current version is compatible with TypeScript 1.5, 1.6 and with the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx). 
 You may experience issues using the nightly build due to its nature, but a full test suite runs
 against the latest nightly every day to catch incompatibilites early. Please report any issues 
 you experience with the nightly so that they can be fixed promptly.
@@ -154,11 +154,7 @@ require('!style!css!./style.css');
 
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point). 
-See [this example](test/codeSplitting) for more details. 
-
-### React JSX
-
-The nightly version of TypeScript supports JSX natively. See the [JSX test](test/jsx) for an example.
+See [this example](test/codeSplitting) for more details.
 
 ## Building from source
 
