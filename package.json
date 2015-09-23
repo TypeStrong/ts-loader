@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jbrantly/ts-loader.git"
+    "url": "https://github.com/TypeStrong/ts-loader.git"
   },
   "keywords": [
     "ts-loader",
@@ -23,9 +23,9 @@
   "author": "James Brantly <james@jbrantly.com> (http://www.jbrantly.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jbrantly/ts-loader/issues"
+    "url": "https://github.com/TypeStrong/ts-loader/issues"
   },
-  "homepage": "https://github.com/jbrantly/ts-loader",
+  "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
     "colors": "^1.0.3",
     "enhanced-resolve": "^0.9.0",
