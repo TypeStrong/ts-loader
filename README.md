@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/jbrantly/ts-loader.svg?branch=master)](https://travis-ci.org/jbrantly/ts-loader)
+[![Build Status](https://travis-ci.org/TypeStrong/ts-loader.svg?branch=master)](https://travis-ci.org/TypeStrong/ts-loader)
 [![Downloads](http://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
 
 # TypeScript loader for webpack
@@ -30,9 +30,9 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 ### Compatibility
 
-The current version is compatible with TypeScript 1.5, 1.6 and with the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx). 
+The current version is compatible with TypeScript 1.5, 1.6 and with the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).
 You may experience issues using the nightly build due to its nature, but a full test suite runs
-against the latest nightly every day to catch incompatibilites early. Please report any issues 
+against the latest nightly every day to catch incompatibilites early. Please report any issues
 you experience with the nightly so that they can be fixed promptly.
 
 ### Configuration
@@ -73,15 +73,15 @@ you experience with the nightly so that they can be fixed promptly.
     ```
 
 The [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) file controls
-TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the 
+TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
 same options. The `files` property should generally be specified even if its just an empty array.
 If the `files` property is not specified, then **all** TypeScript files in the directory and
 subdirectories will be included, possibly even ones that should not be.
 
 #### Options
 
-There are two types of options: TypeScript options (aka "compiler options") and loader options. 
-TypeScript options should be set using a tsconfig.json file. Loader options can be set either 
+There are two types of options: TypeScript options (aka "compiler options") and loader options.
+TypeScript options should be set using a tsconfig.json file. Loader options can be set either
 using a query when specifying the loader or through the `ts` property in the webpack configuration.
 
 ```javascript
@@ -153,7 +153,7 @@ require('!style!css!./style.css');
 ```
 
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
-don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point). 
+don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/codeSplitting) for more details.
 
 ## Building from source
