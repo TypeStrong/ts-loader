@@ -1,0 +1,9 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  1.42 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 28 bytes [rendered]
+    [0] ./.test/importWatch/app.ts 28 bytes {0} [built] [1 error]
+
+ERROR in ./.test/importWatch/app.ts
+[37m([39m[36m3[39m,[36m5[39m): [31merror TS2322: Type '{ foo: string; }' is not assignable to type 'Something'.
+  Types of property 'foo' are incompatible.
+    Type 'string' is not assignable to type 'number'.[39m
