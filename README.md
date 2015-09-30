@@ -157,18 +157,9 @@ The same basic process is required for code splitting. In this case, you `import
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/codeSplitting) for more details.
 
-## Building from source
+## Contributing
 
-```
-npm install
-node build
-```
-
-To run tests:
-
-```
-npm test
-```
+Please see the [contributer's guide](CONTRIBUTING.md).
 
 ## License
 
