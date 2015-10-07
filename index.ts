@@ -3,12 +3,14 @@
 ///<reference path="typings/loaderUtils/loaderUtils.d.ts" />
 ///<reference path="typings/objectAssign/objectAssign.d.ts" />
 ///<reference path="typings/colors/colors.d.ts" />
+///<reference path="typings/arrify/arrify.d.ts" />
 import typescript = require('typescript')
 import path = require('path')
 import fs = require('fs');
 import os = require('os');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
+import arrify = require('arrify');
 import makeResolver = require('./resolver');
 var semver = require('semver')
 require('colors');
@@ -21,12 +23,13 @@ function hasOwnProperty(obj, property) {
     return Object.prototype.hasOwnProperty.call(obj, property)
 }
 
-interface Options {
+interface LoaderOptions {
     silent: boolean;
     instance: string;
     compiler: string;
     configFileName: string;
     transpileOnly: boolean;
+    ignoreDiagnostics: number[];
     compilerOptions: typescript.CompilerOptions;
 }
 
@@ -42,6 +45,7 @@ interface TSFiles {
 interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
+    loaderOptions: LoaderOptions;
     files: TSFiles;
     languageService?: typescript.LanguageService;
 }
@@ -70,13 +74,14 @@ var webpackInstances = [];
 
 // Take TypeScript errors, parse them and format to webpack errors
 // Optionally adds a file name
-function formatErrors(diagnostics: typescript.Diagnostic[], compiler: typeof typescript, merge?: any): WebpackError[] {
+function formatErrors(diagnostics: typescript.Diagnostic[], instance: TSInstance, merge?: any): WebpackError[] {
     return diagnostics
+        .filter(diagnostic => instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) == -1)
         .map<WebpackError>(diagnostic => {
-            var errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
+            var errorCategory = instance.compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
             var errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
         
-            var messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
+            var messageText = errorCategoryAndCode + instance.compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
             if (diagnostic.file) {
                 var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
                 return {
@@ -119,25 +124,25 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // along with definition files and options. This function either creates an instance
 // or returns the existing one. Multiple instances are possible by using the
 // `instance` property.
-function ensureTypeScriptInstance(options: Options, loader: any): { instance?: TSInstance, error?: WebpackError } {
+function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { instance?: TSInstance, error?: WebpackError } {
 
     function log(...messages: string[]): void {
-        if (!options.silent) {
+        if (!loaderOptions.silent) {
             console.log.apply(console, messages);
         }
     }
     
-    if (hasOwnProperty(instances, options.instance)) {
-        return { instance: instances[options.instance] };        
+    if (hasOwnProperty(instances, loaderOptions.instance)) {
+        return { instance: instances[loaderOptions.instance] };        
     }
     
     try {
-        var compiler = require(options.compiler);
+        var compiler = require(loaderOptions.compiler);
     }
     catch (e) {
-        let message = options.compiler == 'typescript'
+        let message = loaderOptions.compiler == 'typescript'
             ? 'Could not load TypeScript. Try installing with `npm install typescript`'
-            : `Could not load TypeScript compiler with NPM package name \`${options.compiler}\`. Are you sure it is correctly installed?`
+            : `Could not load TypeScript compiler with NPM package name \`${loaderOptions.compiler}\`. Are you sure it is correctly installed?`
         return { error: {
             message: message.red,
             rawMessage: message,
@@ -145,9 +150,9 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         } };
     }
     
-    var motd = `ts-loader: Using ${options.compiler}@${compiler.version}`,
+    var motd = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`,
         compilerCompatible = false;
-    if (options.compiler == 'typescript') {
+    if (loaderOptions.compiler == 'typescript') {
         if (compiler.version && semver.gte(compiler.version, '1.5.3-0')) {
             // don't log yet in this case, if a tsconfig.json exists we want to combine the message
             compilerCompatible = true;
@@ -161,6 +166,13 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     }
     
     var files = <TSFiles>{};
+    var instance: TSInstance = instances[loaderOptions.instance] = {
+        compiler,
+        compilerOptions: null,
+        loaderOptions,
+        files,
+        languageService: null
+    };
     
     var compilerOptions: typescript.CompilerOptions = {
         module: 1 /* CommonJS */
@@ -168,7 +180,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     
     // Load any available tsconfig.json file
     var filesToLoad = [];
-    var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), options.configFileName);
+    var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
     if (configFilePath) {
         if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
         else log(`ts-loader: Using config file at ${configFilePath}`.green)
@@ -176,7 +188,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         var configFile = compiler.readConfigFile(configFilePath, (filePath) => fs.readFileSync(filePath, 'utf-8'));
         
         if (configFile.error) {
-            var configFileError = formatErrors([configFile.error], compiler, {file: configFilePath })[0];
+            var configFileError = formatErrors([configFile.error], instance, {file: configFilePath })[0];
             return { error: configFileError }
         }
     }
@@ -193,10 +205,10 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     
     configFile.config.compilerOptions = objectAssign({},
         configFile.config.compilerOptions,
-        options.compilerOptions);
+        loaderOptions.compilerOptions);
     
     // do any necessary config massaging
-    if (options.transpileOnly) {
+    if (loaderOptions.transpileOnly) {
         configFile.config.compilerOptions.isolatedModules = true;
     }
     
@@ -205,7 +217,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     if (configParseResult.errors.length) {
         pushArray(
             loader._module.errors, 
-            formatErrors(configParseResult.errors, compiler, { file: configFilePath }));
+            formatErrors(configParseResult.errors, instance, { file: configFilePath }));
         
         return { error: {
             file: configFilePath,
@@ -215,7 +227,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         }};
     }
     
-    objectAssign(compilerOptions, configParseResult.options);
+    instance.compilerOptions = objectAssign<typescript.CompilerOptions>(compilerOptions, configParseResult.options);
     filesToLoad = configParseResult.fileNames;
     
     var libFileName = 'lib.d.ts';
@@ -226,7 +238,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         libFileName = 'lib.es6.d.ts';
     }
     
-    if (options.transpileOnly) {
+    if (loaderOptions.transpileOnly) {
         // quick return for transpiling
         // we do need to check for any issues with TS options though
         var program = compiler.createProgram([], compilerOptions),
@@ -235,13 +247,13 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
                 : program.getCompilerOptionsDiagnostics();
         pushArray(
             loader._module.errors,
-            formatErrors(diagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
+            formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
         
-        return { instance: instances[options.instance] = { compiler, compilerOptions, files }};
+        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files }};
     }
     
     if (!compilerOptions.noLib) {
-        filesToLoad.push(path.join(path.dirname(require.resolve(options.compiler)), libFileName));
+        filesToLoad.push(path.join(path.dirname(require.resolve(loaderOptions.compiler)), libFileName));
     }
     
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -338,14 +350,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         }
     };
     
-    var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())
-    
-    var instance: TSInstance = instances[options.instance] = {
-        compiler,
-        compilerOptions,
-        files,
-        languageService
-    };
+    var languageService = instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
     
     var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
     
@@ -373,7 +378,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         // handle compiler option errors after the first compile
         pushArray(
             compilation.errors,
-            formatErrors(compilerOptionDiagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
+            formatErrors(compilerOptionDiagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
         compilerOptionDiagnostics = [];
         
         // build map of all modules based on normalized filename
@@ -410,14 +415,14 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
                         removeTSLoaderErrors(module.errors);
                         
                         // append errors
-                        let formattedErrors = formatErrors(errors, compiler, { module });
+                        let formattedErrors = formatErrors(errors, instance, { module });
                         pushArray(module.errors, formattedErrors);
                         pushArray(compilation.errors, formattedErrors);
                     })
                 }
                 // otherwise it's a more generic error
                 else {
-                    pushArray(compilation.errors, formatErrors(errors, compiler, {file: filePath}));
+                    pushArray(compilation.errors, formatErrors(errors, instance, {file: filePath}));
                 }
             });
             
@@ -448,10 +453,10 @@ function loader(contents) {
     var callback = this.async();
     var filePath = path.normalize(this.resourcePath);
     
-    var queryOptions = loaderUtils.parseQuery<Options>(this.query);
+    var queryOptions = loaderUtils.parseQuery<LoaderOptions>(this.query);
     var configFileOptions = this.options.ts || {};
     
-    var options = objectAssign<Options>({}, {
+    var options = objectAssign<LoaderOptions>({}, {
         silent: false,
         instance: 'default',
         compiler: 'typescript',
@@ -459,6 +464,7 @@ function loader(contents) {
         transpileOnly: false,
         compilerOptions: {}
     }, configFileOptions, queryOptions);
+    options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     
     // differentiate the TypeScript instance based on the webpack instance
     var webpackIndex = webpackInstances.indexOf(this._compiler);
@@ -501,7 +507,7 @@ function loader(contents) {
                 fileName, diagnostics);
         }
         
-        pushArray(this._module.errors, formatErrors(diagnostics, instance.compiler, {module: this._module}));
+        pushArray(this._module.errors, formatErrors(diagnostics, instance, {module: this._module}));
     }
     else {
         let langService = instance.languageService;
