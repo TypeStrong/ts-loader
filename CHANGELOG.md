@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.6
+
+- Add ignoreDiagnostics feature
+- Fix issue with node resolution and `noEmitOnError` (#71)
+
 ## v0.5.5
 
 - Fix issue with nightly (Microsoft/TypeScript#4738)
