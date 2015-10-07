@@ -114,6 +114,11 @@ of this.
 If true, no console.log messages will be emitted. Note that most error
 messages are emitted via webpack which is not affected by this flag.
 
+##### ignoreDiagnostics *(number[]) (default=[])*
+
+You can squelch certain TypeScript errors by specifying an array of diagnostic
+codes to ignore. 
+
 ##### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
