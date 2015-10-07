@@ -21,7 +21,7 @@ function hasOwnProperty(obj, property) {
     return Object.prototype.hasOwnProperty.call(obj, property)
 }
 
-interface Options {
+interface LoaderOptions {
     silent: boolean;
     instance: string;
     compiler: string;
@@ -42,6 +42,7 @@ interface TSFiles {
 interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
+    loaderOptions: LoaderOptions;
     files: TSFiles;
     languageService?: typescript.LanguageService;
 }
@@ -119,25 +120,25 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // along with definition files and options. This function either creates an instance
 // or returns the existing one. Multiple instances are possible by using the
 // `instance` property.
-function ensureTypeScriptInstance(options: Options, loader: any): { instance?: TSInstance, error?: WebpackError } {
+function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { instance?: TSInstance, error?: WebpackError } {
 
     function log(...messages: string[]): void {
-        if (!options.silent) {
+        if (!loaderOptions.silent) {
             console.log.apply(console, messages);
         }
     }
     
-    if (hasOwnProperty(instances, options.instance)) {
-        return { instance: instances[options.instance] };        
+    if (hasOwnProperty(instances, loaderOptions.instance)) {
+        return { instance: instances[loaderOptions.instance] };        
     }
     
     try {
-        var compiler = require(options.compiler);
+        var compiler = require(loaderOptions.compiler);
     }
     catch (e) {
-        let message = options.compiler == 'typescript'
+        let message = loaderOptions.compiler == 'typescript'
             ? 'Could not load TypeScript. Try installing with `npm install typescript`'
-            : `Could not load TypeScript compiler with NPM package name \`${options.compiler}\`. Are you sure it is correctly installed?`
+            : `Could not load TypeScript compiler with NPM package name \`${loaderOptions.compiler}\`. Are you sure it is correctly installed?`
         return { error: {
             message: message.red,
             rawMessage: message,
@@ -145,9 +146,9 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         } };
     }
     
-    var motd = `ts-loader: Using ${options.compiler}@${compiler.version}`,
+    var motd = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`,
         compilerCompatible = false;
-    if (options.compiler == 'typescript') {
+    if (loaderOptions.compiler == 'typescript') {
         if (compiler.version && semver.gte(compiler.version, '1.5.3-0')) {
             // don't log yet in this case, if a tsconfig.json exists we want to combine the message
             compilerCompatible = true;
@@ -168,7 +169,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     
     // Load any available tsconfig.json file
     var filesToLoad = [];
-    var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), options.configFileName);
+    var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
     if (configFilePath) {
         if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
         else log(`ts-loader: Using config file at ${configFilePath}`.green)
@@ -193,10 +194,10 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     
     configFile.config.compilerOptions = objectAssign({},
         configFile.config.compilerOptions,
-        options.compilerOptions);
+        loaderOptions.compilerOptions);
     
     // do any necessary config massaging
-    if (options.transpileOnly) {
+    if (loaderOptions.transpileOnly) {
         configFile.config.compilerOptions.isolatedModules = true;
     }
     
@@ -226,7 +227,7 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
         libFileName = 'lib.es6.d.ts';
     }
     
-    if (options.transpileOnly) {
+    if (loaderOptions.transpileOnly) {
         // quick return for transpiling
         // we do need to check for any issues with TS options though
         var program = compiler.createProgram([], compilerOptions),
@@ -237,11 +238,11 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
             loader._module.errors,
             formatErrors(diagnostics, compiler, {file: configFilePath || 'tsconfig.json'}));
         
-        return { instance: instances[options.instance] = { compiler, compilerOptions, files }};
+        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files }};
     }
     
     if (!compilerOptions.noLib) {
-        filesToLoad.push(path.join(path.dirname(require.resolve(options.compiler)), libFileName));
+        filesToLoad.push(path.join(path.dirname(require.resolve(loaderOptions.compiler)), libFileName));
     }
     
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -340,9 +341,10 @@ function ensureTypeScriptInstance(options: Options, loader: any): { instance?: T
     
     var languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry())
     
-    var instance: TSInstance = instances[options.instance] = {
+    var instance: TSInstance = instances[loaderOptions.instance] = {
         compiler,
         compilerOptions,
+        loaderOptions,
         files,
         languageService
     };
@@ -448,10 +450,10 @@ function loader(contents) {
     var callback = this.async();
     var filePath = path.normalize(this.resourcePath);
     
-    var queryOptions = loaderUtils.parseQuery<Options>(this.query);
+    var queryOptions = loaderUtils.parseQuery<LoaderOptions>(this.query);
     var configFileOptions = this.options.ts || {};
     
-    var options = objectAssign<Options>({}, {
+    var options = objectAssign<LoaderOptions>({}, {
         silent: false,
         instance: 'default',
         compiler: 'typescript',
