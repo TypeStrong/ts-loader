@@ -71,6 +71,7 @@ interface ResolvedModule {
 
 var instances = <TSInstances>{};
 var webpackInstances = [];
+const scriptRegex = /\.tsx?$/i;
 
 // Take TypeScript errors, parse them and format to webpack errors
 // Optionally adds a file name
@@ -283,7 +284,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     // Create the TypeScript language service
     var servicesHost = {
-        getScriptFileNames: () => Object.keys(files),
+        getScriptFileNames: () => Object.keys(files).filter(filePath => scriptRegex.test(filePath)),
         getScriptVersion: fileName => {
             fileName = path.normalize(fileName);
             return files[fileName] && files[fileName].version.toString();
