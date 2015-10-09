@@ -68,6 +68,28 @@ interface ResolvedModule {
     isExternalLibraryImport?: boolean;
 }
 
+// TODO: figure out how to type individual versions of typescript without hardcoding
+// each d.ts file
+
+// typescript@next specific definitions
+declare namespace TSNext {
+    interface readConfigFile {
+        (fileName: string, readFile: (path: string) => string): {
+            config?: any;
+            error?: typescript.Diagnostic;
+        };
+    }
+}
+// typescript@latest specific definitions
+declare namespace TSLatest {
+    interface readConfigFile {
+        (fileName: string): {
+            config?: any;
+            error?: typescript.Diagnostic;
+        };
+    }
+}
+
 var instances = <TSInstances>{};
 var webpackInstances = [];
 const scriptRegex = /\.tsx?$/i;
@@ -189,7 +211,11 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
         else log(`ts-loader: Using config file at ${configFilePath}`.green)
 
-        configFile = compiler.readConfigFile(configFilePath);
+        if (semver.gte(compiler.version, '1.7.0-0')) {
+            configFile = (<TSNext.readConfigFile>compiler.readConfigFile)(configFilePath, compiler.sys.readFile);
+        } else {
+            configFile = (<TSLatest.readConfigFile>compiler.readConfigFile)(configFilePath);
+        }
 
         if (configFile.error) {
             var configFileError = formatErrors([configFile.error], instance, {file: configFilePath })[0];
