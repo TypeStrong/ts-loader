@@ -1,11 +1,10 @@
-///<reference path="typings/typescript/typescript.d.ts" />
 ///<reference path="typings/node/node.d.ts" />
 ///<reference path="typings/loaderUtils/loaderUtils.d.ts" />
 ///<reference path="typings/objectAssign/objectAssign.d.ts" />
 ///<reference path="typings/colors/colors.d.ts" />
 ///<reference path="typings/arrify/arrify.d.ts" />
-import typescript = require('typescript')
-import path = require('path')
+import typescript = require('typescript');
+import path = require('path');
 import fs = require('fs');
 import os = require('os');
 import loaderUtils = require('loader-utils');
@@ -81,7 +80,7 @@ function formatErrors(diagnostics: typescript.Diagnostic[], instance: TSInstance
         .map<WebpackError>(diagnostic => {
             var errorCategory = instance.compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
             var errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
-        
+
             var messageText = errorCategoryAndCode + instance.compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
             if (diagnostic.file) {
                 var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
@@ -103,7 +102,7 @@ function formatErrors(diagnostics: typescript.Diagnostic[], instance: TSInstance
         .map(error => <WebpackError>objectAssign(error, merge));
 }
 
-// The tsconfig.json is found using the same method as `tsc`, starting in the current directory 
+// The tsconfig.json is found using the same method as `tsc`, starting in the current directory
 // and continuing up the parent directory chain.
 function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string {
     while (true) {
@@ -120,7 +119,7 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
     return undefined;
 }
 
-// The loader is executed once for each file seen by webpack. However, we need to keep 
+// The loader is executed once for each file seen by webpack. However, we need to keep
 // a persistent instance of TypeScript that contains all of the files in the program
 // along with definition files and options. This function either creates an instance
 // or returns the existing one. Multiple instances are possible by using the
@@ -132,13 +131,13 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             console.log.apply(console, messages);
         }
     }
-    
+
     if (hasOwnProperty(instances, loaderOptions.instance)) {
-        return { instance: instances[loaderOptions.instance] };        
+        return { instance: instances[loaderOptions.instance] };
     }
-    
+
     try {
-        var compiler = require(loaderOptions.compiler);
+        var compiler: typeof typescript = require(loaderOptions.compiler);
     }
     catch (e) {
         let message = loaderOptions.compiler == 'typescript'
@@ -150,7 +149,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             loaderSource: 'ts-loader'
         } };
     }
-    
+
     var motd = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`,
         compilerCompatible = false;
     if (loaderOptions.compiler == 'typescript') {
@@ -165,7 +164,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     else {
         log(`${motd}. This version may or may not be compatible with ts-loader.`.yellow);
     }
-    
+
     var files = <TSFiles>{};
     var instance: TSInstance = instances[loaderOptions.instance] = {
         compiler,
@@ -174,20 +173,24 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         files,
         languageService: null
     };
-    
+
     var compilerOptions: typescript.CompilerOptions = {
         module: 1 /* CommonJS */
     };
-    
+
     // Load any available tsconfig.json file
     var filesToLoad = [];
     var configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
+    var configFile: {
+        config?: any;
+        error?: typescript.Diagnostic;
+    };
     if (configFilePath) {
         if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
         else log(`ts-loader: Using config file at ${configFilePath}`.green)
-        
-        var configFile = compiler.readConfigFile(configFilePath, (filePath) => fs.readFileSync(filePath, 'utf-8'));
-        
+
+        configFile = compiler.readConfigFile(configFilePath);
+
         if (configFile.error) {
             var configFileError = formatErrors([configFile.error], instance, {file: configFilePath })[0];
             return { error: configFileError }
@@ -195,31 +198,31 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     }
     else {
         if (compilerCompatible) log(motd.green)
-        
-        var configFile:any = {
+
+        configFile = {
             config: {
                 compilerOptions: {},
                 files: []
             }
         }
     }
-    
+
     configFile.config.compilerOptions = objectAssign({},
         configFile.config.compilerOptions,
         loaderOptions.compilerOptions);
-    
+
     // do any necessary config massaging
     if (loaderOptions.transpileOnly) {
         configFile.config.compilerOptions.isolatedModules = true;
     }
-    
+
     var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
-    
+
     if (configParseResult.errors.length) {
         pushArray(
-            loader._module.errors, 
+            loader._module.errors,
             formatErrors(configParseResult.errors, instance, { file: configFilePath }));
-        
+
         return { error: {
             file: configFilePath,
             message: 'error while parsing tsconfig.json'.red,
@@ -227,10 +230,10 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             loaderSource: 'ts-loader'
         }};
     }
-    
+
     instance.compilerOptions = objectAssign<typescript.CompilerOptions>(compilerOptions, configParseResult.options);
     filesToLoad = configParseResult.fileNames;
-    
+
     var libFileName = 'lib.d.ts';
 
     // Special handling for ES6 targets
@@ -238,25 +241,25 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         compilerOptions.module = 0 /* None */;
         libFileName = 'lib.es6.d.ts';
     }
-    
+
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
         // we do need to check for any issues with TS options though
         var program = compiler.createProgram([], compilerOptions),
-            diagnostics = program.getOptionsDiagnostics 
-                ? program.getOptionsDiagnostics() 
-                : program.getCompilerOptionsDiagnostics();
+            diagnostics = program.getOptionsDiagnostics
+                ? program.getOptionsDiagnostics()
+                : languageService.getCompilerOptionsDiagnostics();
         pushArray(
             loader._module.errors,
             formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
-        
+
         return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files }};
     }
-    
+
     if (!compilerOptions.noLib) {
         filesToLoad.push(path.join(path.dirname(require.resolve(loaderOptions.compiler)), libFileName));
     }
-    
+
     // Load initial files (core lib files, any files specified in tsconfig.json)
     filesToLoad.forEach(filePath => {
         filePath = path.normalize(filePath);
@@ -265,7 +268,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             version: 0
         }
     });
-    
+
     let newLine =
         compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? '\r\n' :
         compilerOptions.newLine === 1 /* LineFeed */ ? '\n' :
@@ -275,8 +278,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     let resolver = makeResolver(loader.options);
 
     var moduleResolutionHost = {
-        fileExists: (fileName: string) => { return servicesHost.getScriptSnapshot(fileName) !== undefined; },      
-        readFile: (fileName: string) => { 
+        fileExists: (fileName: string) => { return servicesHost.getScriptSnapshot(fileName) !== undefined; },
+        readFile: (fileName: string) => {
             let snapshot = servicesHost.getScriptSnapshot(fileName);
             return snapshot && snapshot.getText(0, snapshot.getLength());
         }
@@ -291,22 +294,22 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         },
         getScriptSnapshot: fileName => {
             // This is called any time TypeScript needs a file's text
-            // We either load from memory or from disk 
+            // We either load from memory or from disk
             fileName = path.normalize(fileName);
             var file = files[fileName];
-            
+
             if (!file) {
                 try {
                     file = files[fileName] = {
-                        version: 0, 
+                        version: 0,
                         text: fs.readFileSync(fileName, {encoding: 'utf8'})
                     }
                 }
                 catch (e) {
                     return;
                 }
-            } 
-            
+            }
+
             return compiler.ScriptSnapshot.fromString(file.text);
         },
         getCurrentDirectory: () => process.cwd(),
@@ -316,21 +319,21 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         log: log,
         resolveModuleNames: (moduleNames: string[], containingFile: string) => {
             let resolvedModules: any[] = [];
-                        
+
             for (let moduleName of moduleNames) {
                 let resolvedFileName: string;
                 let resolutionResult: any;
-                
+
                 try {
                     resolvedFileName = resolver.resolveSync(containingFile, moduleName)
-                    
+
                     if (!resolvedFileName.match(/\.tsx?$/)) resolvedFileName = null;
-                    else resolutionResult = { resolvedFileName }; 
+                    else resolutionResult = { resolvedFileName };
                 }
                 catch (e) { resolvedFileName = null }
-                
+
                 let tsResolution: ResolvedModule = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
-                
+
                 if (tsResolution.resolvedModule) {
                     if (resolvedFileName) {
                         if (resolvedFileName == tsResolution.resolvedModule.resolvedFileName) {
@@ -350,22 +353,22 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             return resolvedModules;
         }
     };
-    
+
     var languageService = instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
-    
+
     var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
-    
+
     loader._compiler.plugin("after-compile", (compilation, callback) => {
         let stats = compilation.stats;
-        
+
         // handle all other errors. The basic approach here to get accurate error
         // reporting is to start with a "blank slate" each compilation and gather
         // all errors from all files. Since webpack tracks errors in a module from
         // compilation-to-compilation, and since not every module always runs through
         // the loader, we need to detect and remove any pre-existing errors.
-        
+
         function removeTSLoaderErrors(errors: WebpackError[]) {
-            let index = -1, length = errors.length; 
+            let index = -1, length = errors.length;
             while (++index < length) {
                 if (errors[index].loaderSource == 'ts-loader') {
                     errors.splice(index--, 1);
@@ -373,15 +376,15 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 }
             }
         }
-        
+
         removeTSLoaderErrors(compilation.errors);
-        
+
         // handle compiler option errors after the first compile
         pushArray(
             compilation.errors,
             formatErrors(compilerOptionDiagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
         compilerOptionDiagnostics = [];
-        
+
         // build map of all modules based on normalized filename
         // this is used for quick-lookup when trying to find modules
         // based on filepath
@@ -400,21 +403,21 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 }
             }
         })
-        
+
         // gather all errors from TypeScript and output them to webpack
         Object.keys(instance.files)
             .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
             .forEach(filePath => {
                 let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
-                
+
                 // if we have access to a webpack module, use that
                 if (hasOwnProperty(modules, filePath)) {
                     let associatedModules = modules[filePath];
-                    
+
                     associatedModules.forEach(module => {
                         // remove any existing errors
                         removeTSLoaderErrors(module.errors);
-                        
+
                         // append errors
                         let formattedErrors = formatErrors(errors, instance, { module });
                         pushArray(module.errors, formattedErrors);
@@ -426,10 +429,10 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     pushArray(compilation.errors, formatErrors(errors, instance, {file: filePath}));
                 }
             });
-            
+
         callback();
     });
-    
+
     // manually update changed declaration files
     loader._compiler.plugin("watch-run", (watching, cb) => {
         var mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
@@ -445,7 +448,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             });
         cb()
     })
-    
+
     return { instance };
 }
 
@@ -453,10 +456,10 @@ function loader(contents) {
     this.cacheable && this.cacheable();
     var callback = this.async();
     var filePath = path.normalize(this.resourcePath);
-    
+
     var queryOptions = loaderUtils.parseQuery<LoaderOptions>(this.query);
     var configFileOptions = this.options.ts || {};
-    
+
     var options = objectAssign<LoaderOptions>({}, {
         silent: false,
         instance: 'default',
@@ -466,30 +469,30 @@ function loader(contents) {
         compilerOptions: {}
     }, configFileOptions, queryOptions);
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
-    
+
     // differentiate the TypeScript instance based on the webpack instance
     var webpackIndex = webpackInstances.indexOf(this._compiler);
     if (webpackIndex == -1) {
         webpackIndex = webpackInstances.push(this._compiler)-1;
     }
     options.instance = webpackIndex + '_' + options.instance;
-    
+
     var { instance, error } = ensureTypeScriptInstance(options, this);
-    
+
     if (error) {
         callback(error)
         return;
     }
-    
+
     // Update file version
     var file = instance.files[filePath]
     if (!file) {
         file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
     file.version++;
-    
+
     var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
-    
+
     if (options.transpileOnly) {
         var fileName = path.basename(filePath);
         // if transpileModule is available, use it (TS 1.6+)
@@ -499,34 +502,34 @@ function loader(contents) {
                 reportDiagnostics: true,
                 fileName
             });
-            
+
             ({ outputText, sourceMapText, diagnostics } = transpileResult);
         } else {
             outputText = instance.compiler.transpile(
-                contents, 
-                instance.compilerOptions, 
+                contents,
+                instance.compilerOptions,
                 fileName, diagnostics);
         }
-        
+
         pushArray(this._module.errors, formatErrors(diagnostics, instance, {module: this._module}));
     }
     else {
         let langService = instance.languageService;
-        
+
         // Update file contents
         file.text = contents;
-        
+
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
         Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
-    
+
         // Emit Javascript
         var output = langService.getEmitOutput(filePath);
-        
+
         var outputFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)$/)).pop();
         if (outputFile) { outputText = outputFile.text }
-    
+
         var sourceMapFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)\.map$/)).pop();
         if (sourceMapFile) { sourceMapText = sourceMapFile.text }
     }
