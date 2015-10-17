@@ -272,9 +272,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         // quick return for transpiling
         // we do need to check for any issues with TS options though
         var program = compiler.createProgram([], compilerOptions),
-            diagnostics = program.getOptionsDiagnostics
-                ? program.getOptionsDiagnostics()
-                : languageService.getCompilerOptionsDiagnostics();
+            diagnostics = program.getOptionsDiagnostics();
+
         pushArray(
             loader._module.errors,
             formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
