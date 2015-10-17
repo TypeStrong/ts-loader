@@ -4,7 +4,7 @@
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "scripts": {
-    "build": "tsc index.ts --module commonjs --moduleResolution classic",
+    "build": "tsc",
     "test": "mocha --reporter spec test/run.js",
     "prepublish": "npm run build"
   },
@@ -42,7 +42,7 @@
     "mkdirp": "^0.5.1",
     "mocha": "^2.1.0",
     "rimraf": "^2.4.2",
-    "webpack": "^1.11.0"
-    "typescript": "^1.6.2",
+    "webpack": "^1.11.0",
+    "typescript": "^1.6.2"
   }
 }
