@@ -4,9 +4,9 @@
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "scripts": {
-    "pretest": "node build",
-    "test": "node ./node_modules/mocha/bin/mocha --reporter spec test/run.js",
-    "prepublish": "node build"
+    "build": "tsc index.ts --module commonjs --moduleResolution classic",
+    "test": "mocha --reporter spec test/run.js",
+    "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -42,6 +42,7 @@
     "mkdirp": "^0.5.1",
     "mocha": "^2.1.0",
     "rimraf": "^2.4.2",
+    "typescript": "^1.6.2",
     "webpack": "^1.11.0"
   }
 }

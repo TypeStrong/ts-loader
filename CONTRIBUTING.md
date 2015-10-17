@@ -11,9 +11,10 @@ action to take before coding begins.
 
 ## Building
 
-To build from source you first need to `npm install`. You will also need a
-version of TypeScript available, either globally or install locally with
-`npm install typescript`. Then run `node build`.
+```shell
+npm install
+npm run build
+```
 
 ## Changing
 

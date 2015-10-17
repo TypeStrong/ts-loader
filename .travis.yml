@@ -3,8 +3,8 @@ node_js:
   - "0.12"
 sudo: false
 install:
-  - npm install $TYPESCRIPT
   - npm install
+  - npm install $TYPESCRIPT
 env:
   - TYPESCRIPT=typescript@1.5.3
   - TYPESCRIPT=typescript
