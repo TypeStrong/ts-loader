@@ -4,9 +4,8 @@
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "scripts": {
-    "build": "node scripts/build",
-    "pretest": "npm run build",
-    "test": "node ./node_modules/mocha/bin/mocha --reporter spec test/run.js",
+    "build": "tsc index.ts --module commonjs --moduleResolution classic",
+    "test": "mocha --reporter spec test/run.js",
     "prepublish": "npm run build"
   },
   "repository": {
