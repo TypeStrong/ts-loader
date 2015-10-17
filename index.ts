@@ -68,9 +68,6 @@ interface ResolvedModule {
     isExternalLibraryImport?: boolean;
 }
 
-// TODO: figure out how to type individual versions of typescript without hardcoding
-// each d.ts file
-
 // typescript@next specific definitions
 interface TSNextCompiler {
     readConfigFile(fileName: string, readFile: (path: string) => string): {
