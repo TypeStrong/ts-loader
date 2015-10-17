@@ -72,22 +72,20 @@ interface ResolvedModule {
 // each d.ts file
 
 // typescript@next specific definitions
-declare namespace TSNext {
-    interface readConfigFile {
-        (fileName: string, readFile: (path: string) => string): {
-            config?: any;
-            error?: typescript.Diagnostic;
-        };
-    }
+interface TSNextCompiler {
+    readConfigFile(fileName: string, readFile: (path: string) => string): {
+        config?: any;
+        error?: typescript.Diagnostic;
+    };
+    parseJsonConfigFileContent(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
 }
 // typescript@latest specific definitions
-declare namespace TSLatest {
-    interface readConfigFile {
-        (fileName: string): {
-            config?: any;
-            error?: typescript.Diagnostic;
-        };
-    }
+interface TSLatestCompiler {
+    readConfigFile(fileName: string): {
+        config?: any;
+        error?: typescript.Diagnostic;
+    };
+    parseConfigFile(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
 }
 
 var instances = <TSInstances>{};
@@ -212,9 +210,9 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         else log(`ts-loader: Using config file at ${configFilePath}`.green)
 
         if (semver.gte(compiler.version, '1.7.0-0')) {
-            configFile = (<TSNext.readConfigFile>compiler.readConfigFile)(configFilePath, compiler.sys.readFile);
+            configFile = (<TSNextCompiler><any>compiler).readConfigFile(configFilePath, compiler.sys.readFile);
         } else {
-            configFile = (<TSLatest.readConfigFile>compiler.readConfigFile)(configFilePath);
+            configFile = (<TSLatestCompiler><any>compiler).readConfigFile(configFilePath);
         }
 
         if (configFile.error) {
@@ -242,7 +240,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         configFile.config.compilerOptions.isolatedModules = true;
     }
 
-    var configParseResult = compiler.parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
+    var configParseResult;
+    if (semver.gte(compiler.version, '1.8.0-0')) {
+        configParseResult = (<TSNextCompiler><any>compiler).parseJsonConfigFileContent(configFile.config, compiler.sys, path.dirname(configFilePath));
+    } else {
+         configParseResult = (<TSLatestCompiler><any>compiler).parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
+    }
 
     if (configParseResult.errors.length) {
         pushArray(
