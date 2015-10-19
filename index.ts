@@ -68,21 +68,21 @@ interface ResolvedModule {
     isExternalLibraryImport?: boolean;
 }
 
-// typescript@next specific definitions
-interface TSNextCompiler {
+interface TSCompatibleCompiler {
+    // typescript@next 1.7+
     readConfigFile(fileName: string, readFile: (path: string) => string): {
         config?: any;
         error?: typescript.Diagnostic;
     };
-    parseJsonConfigFileContent(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
-}
-// typescript@latest specific definitions
-interface TSLatestCompiler {
+    // typescript@latest 1.6.2
     readConfigFile(fileName: string): {
         config?: any;
         error?: typescript.Diagnostic;
     };
-    parseConfigFile(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
+    // typescript@next 1.8+
+    parseJsonConfigFileContent?(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
+    // typescript@latest 1.6.2
+    parseConfigFile?(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
 }
 
 var instances = <TSInstances>{};
@@ -206,11 +206,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
         else log(`ts-loader: Using config file at ${configFilePath}`.green)
 
-        if (semver.gte(compiler.version, '1.7.0-0')) {
-            configFile = (<TSNextCompiler><any>compiler).readConfigFile(configFilePath, compiler.sys.readFile);
-        } else {
-            configFile = (<TSLatestCompiler><any>compiler).readConfigFile(configFilePath);
-        }
+        // HACK: relies on the fact that passing an extra argument won't break
+        // the old API that has a single parameter
+        configFile = (<TSCompatibleCompiler><any>compiler).readConfigFile(
+            configFilePath,
+            compiler.sys.readFile
+        );
 
         if (configFile.error) {
             var configFileError = formatErrors([configFile.error], instance, {file: configFilePath })[0];
@@ -238,10 +239,19 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     }
 
     var configParseResult;
-    if (semver.gte(compiler.version, '1.8.0-0')) {
-        configParseResult = (<TSNextCompiler><any>compiler).parseJsonConfigFileContent(configFile.config, compiler.sys, path.dirname(configFilePath));
+    if (typeof (<any>compiler).parseJsonConfigFileContent === 'function') {
+        // parseConfigFile was renamed in nightly 1.8
+        configParseResult = (<TSCompatibleCompiler><any>compiler).parseJsonConfigFileContent(
+            configFile.config,
+            compiler.sys,
+            path.dirname(configFilePath)
+        );
     } else {
-         configParseResult = (<TSLatestCompiler><any>compiler).parseConfigFile(configFile.config, compiler.sys, path.dirname(configFilePath));
+        configParseResult = (<TSCompatibleCompiler><any>compiler).parseConfigFile(
+            configFile.config,
+            compiler.sys,
+            path.dirname(configFilePath)
+        );
     }
 
     if (configParseResult.errors.length) {
