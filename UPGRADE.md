@@ -1,5 +1,11 @@
 # Upgrade Guide
 
+## v0.5.x to v0.6.x
+
+This release removed support for TypeScript 1.5 and adds preliminary
+support for TypeScript 1.7. Please upgrade to the stable release of 
+TypeScript 1.6 or above.
+
 ## v0.4.x to v0.5.x
 
 This release removed the dependency on TypeScript from the loader. This

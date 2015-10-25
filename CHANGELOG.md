@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.6.0
+
+- Remove support for 1.5 and 1.6-beta. TypeScript 1.6 (stable) is the now the lowest version
+  supported.
+- Fix issue when using source maps and Babel in certain situations (#81)
+- Fix issue with nightly (#83)
+
 ## v0.5.6
 
 - Add ignoreDiagnostics feature
