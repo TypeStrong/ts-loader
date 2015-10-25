@@ -170,7 +170,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     var motd = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`,
         compilerCompatible = false;
     if (loaderOptions.compiler == 'typescript') {
-        if (compiler.version && semver.gte(compiler.version, '1.5.3-0')) {
+        if (compiler.version && semver.gte(compiler.version, '1.6.2-0')) {
             // don't log yet in this case, if a tsconfig.json exists we want to combine the message
             compilerCompatible = true;
         }
@@ -240,7 +240,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     var configParseResult;
     if (typeof (<any>compiler).parseJsonConfigFileContent === 'function') {
-        // parseConfigFile was renamed in nightly 1.8
+        // parseConfigFile was renamed between 1.6.2 and 1.7
         configParseResult = (<TSCompatibleCompiler><any>compiler).parseJsonConfigFileContent(
             configFile.config,
             compiler.sys,
@@ -376,11 +376,6 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                         }
                     }
                     else resolutionResult = tsResolution.resolvedModule;
-                }
-                // this is for legacy compatibility purposes and can eventually be removed
-                else if (hasOwnProperty(tsResolution, 'resolvedFileName')) {
-                    if (resolvedFileName) resolutionResult = resolvedFileName;
-                    else resolutionResult = tsResolution.resolvedFileName;
                 }
 
                 resolvedModules.push(resolutionResult);
@@ -530,21 +525,13 @@ function loader(contents) {
 
     if (options.transpileOnly) {
         var fileName = path.basename(filePath);
-        // if transpileModule is available, use it (TS 1.6+)
-        if (instance.compiler.transpileModule) {
-            var transpileResult = instance.compiler.transpileModule(contents, {
-                compilerOptions: instance.compilerOptions,
-                reportDiagnostics: true,
-                fileName
-            });
+        var transpileResult = instance.compiler.transpileModule(contents, {
+            compilerOptions: instance.compilerOptions,
+            reportDiagnostics: true,
+            fileName
+        });
 
-            ({ outputText, sourceMapText, diagnostics } = transpileResult);
-        } else {
-            outputText = instance.compiler.transpile(
-                contents,
-                instance.compilerOptions,
-                fileName, diagnostics);
-        }
+        ({ outputText, sourceMapText, diagnostics } = transpileResult);
 
         pushArray(this._module.errors, formatErrors(diagnostics, instance, {module: this._module}));
     }

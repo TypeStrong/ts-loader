@@ -26,19 +26,14 @@ fs.readdirSync(__dirname).forEach(function(test) {
     var testPath = path.join(__dirname, test);
     if (fs.statSync(testPath).isDirectory()) {
         
-        if (test == 'aliasResolution' && semver.lt(typescript.version, '1.6.0-0')) return;
-        if (test == 'jsx' && semver.lt(typescript.version, '1.6.0-0')) return;
-        if (test == 'jsxPreserve' && semver.lt(typescript.version, '1.6.0-0')) return;
-        if (test == 'es6codeSplitting' && semver.lt(typescript.version, '1.6.0-0')) return;
-        if (test == 'nodeResolution' && semver.lt(typescript.version, '1.6.0-0')) return;
-        if (test == 'issue71' && semver.lt(typescript.version, '1.6.0-0')) return;
+        if (test == 'tsconfigInvalid' && semver.gte(typescript.version, '1.8.0-0')) return;
+        if (test == 'tsconfigInvalid-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
         
         describe(test, function() {
             it('should have the correct output', createTest(test, testPath, {}));
             
             if (test == 'declarationOutput') { return; }
             if (test == 'declarationWatch') { return; }
-            if (test == 'sourceMaps' && semver.lt(typescript.version, '1.6.0-0')) return;
             if (test == 'issue71') { return; }
             it('should work with transpile', createTest(test, testPath, {transpile: true}));
         });
