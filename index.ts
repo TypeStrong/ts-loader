@@ -192,7 +192,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     };
 
     var compilerOptions: typescript.CompilerOptions = {
-        module: 1 /* CommonJS */
+        module: typescript.ModuleKind.CommonJS /* CommonJS */
     };
 
     // Load any available tsconfig.json file
@@ -273,8 +273,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     var libFileName = 'lib.d.ts';
 
     // Special handling for ES6 targets
-    if (compilerOptions.target == 2 /* ES6 */) {
-        compilerOptions.module = 0 /* None */;
+    if (compilerOptions.target == typescript.ScriptTarget.ES6 /* ES6 */) {
+        compilerOptions.module = typescript.ModuleKind.None /* None */;
         libFileName = 'lib.es6.d.ts';
     }
 
@@ -305,8 +305,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     });
 
     let newLine =
-        compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? '\r\n' :
-        compilerOptions.newLine === 1 /* LineFeed */ ? '\n' :
+        compilerOptions.newLine === typescript.NewLineKind.CarriageReturnLineFeed /* CarriageReturnLineFeed */ ? '\r\n' :
+        compilerOptions.newLine === typescript.NewLineKind.LineFeed /* LineFeed */ ? '\n' :
         os.EOL;
 
     // make a (sync) resolver that follows webpack's rules
