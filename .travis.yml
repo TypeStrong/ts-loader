@@ -6,6 +6,5 @@ install:
   - npm install
   - npm install $TYPESCRIPT
 env:
-  - TYPESCRIPT=typescript@1.5.3
   - TYPESCRIPT=typescript
   - TYPESCRIPT=typescript@next
