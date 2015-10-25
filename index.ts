@@ -561,7 +561,7 @@ function loader(contents) {
     if (sourceMapText) {
         var sourceMap = JSON.parse(sourceMapText);
         sourceMap.sources = [loaderUtils.getRemainingRequest(this)];
-        sourceMap.file = loaderUtils.getCurrentRequest(this);
+        sourceMap.file = filePath;
         sourceMap.sourcesContent = [contents];
         outputText = outputText.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, '');
     }
