@@ -1,0 +1,6 @@
+{
+	// comment (these are allowed now!)
+	"compilerOptions": {
+		...
+	}
+}

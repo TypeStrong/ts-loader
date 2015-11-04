@@ -28,6 +28,8 @@ fs.readdirSync(__dirname).forEach(function(test) {
         
         if (test == 'tsconfigInvalid' && semver.gte(typescript.version, '1.8.0-0')) return;
         if (test == 'tsconfigInvalid-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
+        if (test == 'tsconfigNotReadable' && semver.gte(typescript.version, '1.8.0-0')) return;
+        if (test == 'tsconfigNotReadable-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
         if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
         
         describe(test, function() {
