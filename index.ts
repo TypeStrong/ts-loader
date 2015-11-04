@@ -277,6 +277,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         compilerOptions.module = 0 /* None */;
         libFileName = 'lib.es6.d.ts';
     }
+    libFileName = path.join(path.dirname(require.resolve(loaderOptions.compiler)), libFileName);
 
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
@@ -292,7 +293,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     }
 
     if (!compilerOptions.noLib) {
-        filesToLoad.push(path.join(path.dirname(require.resolve(loaderOptions.compiler)), libFileName));
+        filesToLoad.push(libFileName);
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
