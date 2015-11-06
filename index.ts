@@ -47,6 +47,7 @@ interface TSInstance {
     loaderOptions: LoaderOptions;
     files: TSFiles;
     languageService?: typescript.LanguageService;
+    version?: number;
 }
 
 interface TSInstances {
@@ -188,7 +189,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         compilerOptions: null,
         loaderOptions,
         files,
-        languageService: null
+        languageService: null,
+        version: 0
     };
 
     var compilerOptions: typescript.CompilerOptions = {
@@ -323,6 +325,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     // Create the TypeScript language service
     var servicesHost = {
+        getProjectVersion: () => instance.version+'',
         getScriptFileNames: () => Object.keys(files).filter(filePath => scriptRegex.test(filePath)),
         getScriptVersion: fileName => {
             fileName = path.normalize(fileName);
@@ -387,7 +390,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     var languageService = instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
-    var compilerOptionDiagnostics = languageService.getCompilerOptionsDiagnostics();
+    var getCompilerOptionDiagnostics = true;
 
     loader._compiler.plugin("after-compile", (compilation, callback) => {
         let stats = compilation.stats;
@@ -411,10 +414,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         removeTSLoaderErrors(compilation.errors);
 
         // handle compiler option errors after the first compile
-        pushArray(
-            compilation.errors,
-            formatErrors(compilerOptionDiagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
-        compilerOptionDiagnostics = [];
+        if (getCompilerOptionDiagnostics) {
+            getCompilerOptionDiagnostics = false;
+            pushArray(
+                compilation.errors,
+                formatErrors(languageService.getCompilerOptionsDiagnostics(), instance, {file: configFilePath || 'tsconfig.json'}));
+        }
 
         // build map of all modules based on normalized filename
         // this is used for quick-lookup when trying to find modules
@@ -460,7 +465,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     pushArray(compilation.errors, formatErrors(errors, instance, {file: filePath}));
                 }
             });
-
+        
         callback();
     });
 
@@ -475,6 +480,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 if (file) {
                     file.text = fs.readFileSync(filePath, {encoding: 'utf8'});
                     file.version++;
+                    instance.version++;
                 }
             });
         cb()
@@ -515,13 +521,18 @@ function loader(contents) {
         return;
     }
 
-    // Update file version
+    // Update file contents
     var file = instance.files[filePath]
     if (!file) {
         file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
-    file.version++;
-
+    
+    if (file.text !== contents) {
+        file.version++;
+        file.text = contents;
+        instance.version++;
+    }
+    
     var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
 
     if (options.transpileOnly) {
@@ -538,10 +549,7 @@ function loader(contents) {
     }
     else {
         let langService = instance.languageService;
-
-        // Update file contents
-        file.text = contents;
-
+        
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
