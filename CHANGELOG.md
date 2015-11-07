@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.6.1
+
+- Improve initial build performance significantly for larger projects (#100)
+- Fix issue with nightly (#96)
+
 ## v0.6.0
 
 - Remove support for 1.5 and 1.6-beta. TypeScript 1.6 (stable) is the now the lowest version
