@@ -367,7 +367,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 let resolutionResult: any;
 
                 try {
-                    resolvedFileName = resolver.resolveSync(path.dirname(containingFile), moduleName)
+                    resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName)
 
                     if (!resolvedFileName.match(/\.tsx?$/)) resolvedFileName = null;
                     else resolutionResult = { resolvedFileName };
