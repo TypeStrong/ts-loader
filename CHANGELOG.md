@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.1
+
+- Fix regression with Windows that was introduced in v0.7.0 (#92)
+
 ## v0.7.0
 
 - Fix bug with webpack resolution that could sometimes cause TypeScript to not find modules (#92, #102)
