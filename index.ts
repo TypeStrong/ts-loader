@@ -11,8 +11,11 @@ import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
 import arrify = require('arrify');
 import makeResolver = require('./resolver');
+var Console = require('console').Console;
 var semver = require('semver')
 require('colors');
+
+const console = new Console(process.stderr);
 
 var pushArray = function(arr, toPush) {
     Array.prototype.splice.apply(arr, [0, 0].concat(toPush));
