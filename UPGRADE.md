@@ -1,5 +1,12 @@
 # Upgrade Guide
 
+## v0.6.x to 0.7.x
+
+This release changed loader messages to print on stderr instead of
+stdout. While this shouldn't affect most, if for some reason you relied
+on messages going to stdout or on messages *not* going to stderr you
+may need to make a change.
+
 ## v0.5.x to v0.6.x
 
 This release removed support for TypeScript 1.5 and adds preliminary

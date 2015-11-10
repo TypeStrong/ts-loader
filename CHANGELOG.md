@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.7.0
+
+- Fix bug with webpack resolution that could sometimes cause TypeScript to not find modules (#92, #102)
+- Loader output is now written to stderr instead of stdout. (#95, #103)
+
 ## v0.6.1
 
 - Improve initial build performance significantly for larger projects (#100)
