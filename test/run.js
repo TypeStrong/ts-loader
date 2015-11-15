@@ -9,6 +9,9 @@ var regexEscape = require('escape-string-regexp');
 var typescript = require('typescript');
 var semver = require('semver')
 
+// force colors on for tests since expected output has colors
+require('colors').enabled = true;
+
 var saveOutputMode = process.argv.indexOf('--save-output') != -1;
 
 var savedOutputs = {};
@@ -18,6 +21,7 @@ console.log('Using typescript version ' + typescript.version);
 
 // set up new empty staging area
 var rootPath = path.resolve(__dirname, '..');
+var rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
 var stagingPath = path.resolve(rootPath, '.test');
 rimraf.sync(stagingPath);
 
@@ -30,6 +34,8 @@ fs.readdirSync(__dirname).forEach(function(test) {
         if (test == 'tsconfigInvalid-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
         if (test == 'tsconfigNotReadable' && semver.gte(typescript.version, '1.8.0-0')) return;
         if (test == 'tsconfigNotReadable-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
+        if (test == 'jsx' && semver.gte(typescript.version, '1.8.0-0')) return;
+        if (test == 'jsx-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
         if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
         
         describe(test, function() {
@@ -45,7 +51,7 @@ fs.readdirSync(__dirname).forEach(function(test) {
 
 function createTest(test, testPath, options) {
     return function(done) {
-        this.timeout(30000); // sometimes it just takes awhile
+        this.timeout(60000); // sometimes it just takes awhile
         
         // set up paths
         var testStagingPath = path.join(stagingPath, test+(options.transpile ? '.transpile' : '')),
@@ -88,7 +94,7 @@ function createTest(test, testPath, options) {
         if (options.transpile) config.ts.transpileOnly = true;
         
         var iteration = 0;
-        var watcher = webpack(config).watch({}, function(err, stats) {
+        var watcher = webpack(config).watch({aggregateTimeout: 1500}, function(err, stats) {
             var patch = '';
             if (iteration > 0) {
                 patch = 'patch'+(iteration-1);
@@ -155,6 +161,7 @@ function createTest(test, testPath, options) {
                     .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
                     .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
                     .replace(new RegExp(regexEscape(rootPath), 'g'), '')
+                    .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
                     .replace(/\.transpile/g, '');
                 
                 fs.writeFileSync(path.join(actualOutput, statsFileName), statsString);
@@ -194,16 +201,22 @@ function createTest(test, testPath, options) {
                 // compare actual to expected
                 var actualFiles = fs.readdirSync(actualOutput),
                     expectedFiles = fs.readdirSync(expectedOutput)
-                        .filter(function(file) { return !/^patch/.test(file); });
+                        .filter(function(file) { return !/^patch/.test(file); }),
+                    allFiles = {};
+                        
+                actualFiles.map(function(file) { allFiles[file] = true });
+                expectedFiles.map(function(file) { allFiles[file] = true });
                 
-                assert.equal(
-                    actualFiles.length, 
-                    expectedFiles.length, 
-                    'number of files is different between actualOutput' + (patch?'/'+patch:patch) + ' and expectedOutput' + (patch?'/'+patch:patch));
-                
-                actualFiles.forEach(function(file) {
-                    var actual = fs.readFileSync(path.join(actualOutput, file)).toString().replace(/\r\n/g, '\n');
-                    var expected = fs.readFileSync(path.join(expectedOutput, file)).toString().replace(/\r\n/g, '\n');
+                Object.keys(allFiles).forEach(function(file) {
+                    try {
+                        var actual = fs.readFileSync(path.join(actualOutput, file)).toString().replace(/\r\n/g, '\n');
+                    }
+                    catch (e) { actual = '!!!actual file doesnt exist!!!' }
+                    
+                    try {
+                        var expected = fs.readFileSync(path.join(expectedOutput, file)).toString().replace(/\r\n/g, '\n');
+                    }
+                    catch (e) { expected = '!!!expected file doesnt exist!!!' }
                     
                     assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
                 });
@@ -217,7 +230,7 @@ function createTest(test, testPath, options) {
                 // can get inconsistent results if copying right away
                 setTimeout(function() {
                     fs.copySync(patchPath, testStagingPath, {clobber: true});
-                }, 300);
+                }, 1000);
             }
             else {
                 watcher.close(function() {
