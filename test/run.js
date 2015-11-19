@@ -94,6 +94,7 @@ function createTest(test, testPath, options) {
         if (options.transpile) config.ts.transpileOnly = true;
         
         var iteration = 0;
+        var lastHash;
         var watcher = webpack(config).watch({aggregateTimeout: 1500}, function(err, stats) {
             var patch = '';
             if (iteration > 0) {
@@ -154,7 +155,9 @@ function createTest(test, testPath, options) {
                 }
             }
             
-            if (stats) {
+            if (stats && stats.hash != lastHash) {
+                lastHash = stats.hash;
+                
                 var statsFileName = 'output.txt';
                 
                 var statsString = stats.toString({timings: false, version: false, hash: false})
