@@ -556,7 +556,10 @@ function loader(contents) {
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
-        Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/)).forEach(this.addDependency.bind(this));
+        
+        let allDefinitionFiles = Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/));
+        allDefinitionFiles.forEach(this.addDependency.bind(this));
+        this._module.meta['definitionFileVersions'] = allDefinitionFiles.map(filePath => filePath+'@'+instance.files[filePath].version);
 
         // Emit Javascript
         var output = langService.getEmitOutput(filePath);
