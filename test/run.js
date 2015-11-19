@@ -107,6 +107,16 @@ function createTest(test, testPath, options) {
                 if (saveOutputMode) mkdirp.sync(originalExpectedOutput);
             }
             
+            // replace the hash if found in the output since it can change depending
+            // on environments and we're not super interested in it
+            if (stats) {
+                fs.readdirSync(webpackOutput).forEach(function(file) {
+                    var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
+                    content = content.split(stats.hash).join('[hash]');
+                    fs.writeFileSync(path.join(webpackOutput, file), content);
+                });
+            }
+            
             // output results
             if (saveOutputMode) {
                 // loop through webpackOutput and rename to .transpiled if needed
