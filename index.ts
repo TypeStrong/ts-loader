@@ -557,9 +557,9 @@ function loader(contents) {
         this.clearDependencies();
         this.addDependency(filePath);
         
-        let allDefinitionFiles = Object.keys(instance.files).filter(filePath => !!filePath.match(/\.d\.ts$/));
+        let allDefinitionFiles = Object.keys(instance.files).filter(filePath => /\.d\.ts$/.test(filePath));
         allDefinitionFiles.forEach(this.addDependency.bind(this));
-        this._module.meta['definitionFileVersions'] = allDefinitionFiles.map(filePath => filePath+'@'+instance.files[filePath].version);
+        this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles.map(filePath => filePath+'@'+instance.files[filePath].version);
 
         // Emit Javascript
         var output = langService.getEmitOutput(filePath);
@@ -584,7 +584,7 @@ function loader(contents) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
-    this._module.meta['tsLoaderFileVersion'] = file.version;
+    this._module.meta.tsLoaderFileVersion = file.version;
 
     callback(null, outputText, sourceMap)
 }
