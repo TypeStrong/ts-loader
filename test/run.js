@@ -94,6 +94,7 @@ function createTest(test, testPath, options) {
         if (options.transpile) config.ts.transpileOnly = true;
         
         var iteration = 0;
+        var lastHash;
         var watcher = webpack(config).watch({aggregateTimeout: 1500}, function(err, stats) {
             var patch = '';
             if (iteration > 0) {
@@ -104,6 +105,16 @@ function createTest(test, testPath, options) {
                 mkdirp.sync(actualOutput);
                 mkdirp.sync(expectedOutput);
                 if (saveOutputMode) mkdirp.sync(originalExpectedOutput);
+            }
+            
+            // replace the hash if found in the output since it can change depending
+            // on environments and we're not super interested in it
+            if (stats) {
+                fs.readdirSync(webpackOutput).forEach(function(file) {
+                    var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
+                    content = content.split(stats.hash).join('[hash]');
+                    fs.writeFileSync(path.join(webpackOutput, file), content);
+                });
             }
             
             // output results
@@ -154,7 +165,9 @@ function createTest(test, testPath, options) {
                 }
             }
             
-            if (stats) {
+            if (stats && stats.hash != lastHash) {
+                lastHash = stats.hash;
+                
                 var statsFileName = 'output.txt';
                 
                 var statsString = stats.toString({timings: false, version: false, hash: false})
