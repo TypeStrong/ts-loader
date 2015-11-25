@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.7.2
+
+- Fix regression with watching definition files (#109, #110)
+
 ## v0.7.1
 
 - Fix regression with Windows that was introduced in v0.7.0 (#92)
