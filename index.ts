@@ -89,6 +89,24 @@ interface TSCompatibleCompiler {
     parseConfigFile?(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
 }
 
+class WebPackError implements WebpackError, Error {
+    constructor(error: WebpackError) {
+        objectAssign(this, error)
+    }
+    
+    toString(): string {
+        return this.message
+    }
+    
+    module: any;
+    file: string;
+    message: string;
+    rawMessage: string;
+    location: {line: number, character: number};
+    loaderSource: string;
+    name: string = 'WebPackError'
+}
+
 var instances = <TSInstances>{};
 var webpackInstances = [];
 const scriptRegex = /\.tsx?$/i;
@@ -105,19 +123,19 @@ function formatErrors(diagnostics: typescript.Diagnostic[], instance: TSInstance
             var messageText = errorCategoryAndCode + instance.compiler.flattenDiagnosticMessageText(diagnostic.messageText, os.EOL);
             if (diagnostic.file) {
                 var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-                return {
+                return new WebPackError({
                     message: `${'('.white}${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`,
                     rawMessage: messageText,
                     location: {line: lineChar.line+1, character: lineChar.character+1},
                     loaderSource: 'ts-loader'
-                };
+                });
             }
             else {
-                return {
+                return new WebPackError({
                     message:`${messageText.red}`,
                     rawMessage: messageText,
                     loaderSource: 'ts-loader'
-                };
+                });
             }
         })
         .map(error => <WebpackError>objectAssign(error, merge));
