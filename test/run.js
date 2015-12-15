@@ -177,7 +177,7 @@ function createTest(test, testPath, options) {
                     .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
                     .replace(new RegExp(regexEscape(rootPath), 'g'), '')
                     .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
-                    .replace(/test\/usestrict\.loader\.js!/g, '')
+                    .replace(/[\/\\]?test[\/\\]usestrict\.loader\.js!/g, '')
                     .replace(/\.transpile/g, '');
                 
                 fs.writeFileSync(path.join(actualOutput, statsFileName), statsString);

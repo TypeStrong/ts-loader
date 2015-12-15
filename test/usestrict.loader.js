@@ -4,7 +4,7 @@ var RawSource = require("webpack-core/lib/RawSource");
 
 module.exports = function(contents, sourceMap) {
     this.cacheable();
-    var regex = /[^\S\r\n]*"use strict";\n?/g;
+    var regex = /[^\S\r\n]*"use strict";\r?\n?/g;
     
     if (!sourceMap) return contents.replace(regex, '');
     
