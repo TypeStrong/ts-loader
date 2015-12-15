@@ -84,7 +84,9 @@ function createTest(test, testPath, options) {
         config.resolveLoader = config.resolveLoader || {};
         config.resolveLoader.alias = config.resolveLoader.alias || {};
         config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
+        config.resolveLoader.alias.useStrict = path.join(__dirname, 'usestrict.loader.js');
         config.module.loaders.push({ test: /\.js$/, loader: 'newLine' });
+        config.module.loaders.unshift({ test: /\.tsx?$/, loader: 'useStrict' });
         config.ts = config.ts || {};
         config.ts.silent = true;
         config.ts.compilerOptions = {
@@ -106,7 +108,7 @@ function createTest(test, testPath, options) {
                 mkdirp.sync(expectedOutput);
                 if (saveOutputMode) mkdirp.sync(originalExpectedOutput);
             }
-            
+                
             // replace the hash if found in the output since it can change depending
             // on environments and we're not super interested in it
             if (stats) {
@@ -116,7 +118,7 @@ function createTest(test, testPath, options) {
                     fs.writeFileSync(path.join(webpackOutput, file), content);
                 });
             }
-            
+                                
             // output results
             if (saveOutputMode) {
                 // loop through webpackOutput and rename to .transpiled if needed
@@ -175,6 +177,7 @@ function createTest(test, testPath, options) {
                     .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
                     .replace(new RegExp(regexEscape(rootPath), 'g'), '')
                     .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
+                    .replace(/test\/usestrict\.loader\.js!/g, '')
                     .replace(/\.transpile/g, '');
                 
                 fs.writeFileSync(path.join(actualOutput, statsFileName), statsString);
