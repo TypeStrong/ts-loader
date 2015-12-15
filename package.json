@@ -42,7 +42,8 @@
     "mkdirp": "^0.5.1",
     "mocha": "^2.1.0",
     "rimraf": "^2.4.2",
+    "typescript": "^1.6.2",
     "webpack": "^1.11.0",
-    "typescript": "^1.6.2"
+    "webpack-core": "^0.6.8"
   }
 }
