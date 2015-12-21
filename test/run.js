@@ -19,6 +19,8 @@ var savedOutputs = {};
 console.log('Using webpack version ' + webpackVersion);
 console.log('Using typescript version ' + typescript.version);
 
+var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
+
 // set up new empty staging area
 var rootPath = path.resolve(__dirname, '..');
 var rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
@@ -56,9 +58,9 @@ function createTest(test, testPath, options) {
         // set up paths
         var testStagingPath = path.join(stagingPath, test+(options.transpile ? '.transpile' : '')),
             actualOutput = path.join(testStagingPath, 'actualOutput'),
-            expectedOutput = path.join(testStagingPath, 'expectedOutput'),
+            expectedOutput = path.join(testStagingPath, 'expectedOutput-'+typescriptVersion),
             webpackOutput = path.join(testStagingPath, '.output'),
-            originalExpectedOutput = path.join(testPath, 'expectedOutput');
+            originalExpectedOutput = path.join(testPath, 'expectedOutput-'+typescriptVersion);
         
         if (saveOutputMode) {
             savedOutputs[test] = savedOutputs[test] || {};
@@ -100,8 +102,8 @@ function createTest(test, testPath, options) {
             if (iteration > 0) {
                 patch = 'patch'+(iteration-1);
                 actualOutput = path.join(testStagingPath, 'actualOutput', patch);
-                expectedOutput = path.join(testStagingPath, 'expectedOutput', patch);
-                originalExpectedOutput = path.join(testPath, 'expectedOutput', patch)
+                expectedOutput = path.join(testStagingPath, 'expectedOutput-'+typescriptVersion, patch);
+                originalExpectedOutput = path.join(testPath, 'expectedOutput-'+typescriptVersion, patch)
                 mkdirp.sync(actualOutput);
                 mkdirp.sync(expectedOutput);
                 if (saveOutputMode) mkdirp.sync(originalExpectedOutput);
