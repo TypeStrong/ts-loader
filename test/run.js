@@ -32,12 +32,6 @@ fs.readdirSync(__dirname).forEach(function(test) {
     var testPath = path.join(__dirname, test);
     if (fs.statSync(testPath).isDirectory()) {
         
-        if (test == 'tsconfigInvalid' && semver.gte(typescript.version, '1.8.0-0')) return;
-        if (test == 'tsconfigInvalid-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
-        if (test == 'tsconfigNotReadable' && semver.gte(typescript.version, '1.8.0-0')) return;
-        if (test == 'tsconfigNotReadable-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
-        if (test == 'jsx' && semver.gte(typescript.version, '1.8.0-0')) return;
-        if (test == 'jsx-1.8' && semver.lt(typescript.version, '1.8.0-0')) return;
         if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
         
         describe(test, function() {
