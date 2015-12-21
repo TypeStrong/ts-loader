@@ -1,0 +1,7 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  1.43 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 41 bytes [rendered]
+    [0] ./.test/declarationDeps/app.ts 41 bytes {0} [built] [1 error]
+
+ERROR in ./.test/declarationDeps/app.ts
+[37m([39m[36m2[39m,[36m7[39m): [31merror TS2339: Property 'sayHi' does not exist on type 'typeof Hello'.[39m

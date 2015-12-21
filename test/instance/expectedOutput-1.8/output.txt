@@ -1,0 +1,6 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  1.39 kB    0, 1  [emitted]  a, b
+chunk    {0} bundle.js (a) 0 bytes [rendered]
+    [0] ./.test/instance/a.ts 0 bytes {0} [built]
+chunk    {1} bundle.js (b) 0 bytes [rendered]
+    [0] ./.test/instance/b.ts 0 bytes {1} [built]
