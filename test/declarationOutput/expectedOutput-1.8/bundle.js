@@ -44,13 +44,14 @@
 /* 0 */
 /***/ function(module, exports) {
 
+	"use strict";
 	var Test = (function () {
 	    function Test() {
 	    }
 	    Test.prototype.doSomething = function () {
 	    };
 	    return Test;
-	})();
+	}());
 	module.exports = Test;
 
 

@@ -13,6 +13,7 @@
     return __webpack_require__.m = modules, __webpack_require__.c = installedModules, 
     __webpack_require__.p = "", __webpack_require__(0);
 }([ function(module, exports, __webpack_require__) {
+    "use strict";
     console.log("do something");
     console.log("do something else");
 } ]);

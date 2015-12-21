@@ -44,6 +44,7 @@
 /* 0 */
 /***/ function(module, exports) {
 
+	"use strict";
 	var a = '1', b = 1;
 	b = a;
 

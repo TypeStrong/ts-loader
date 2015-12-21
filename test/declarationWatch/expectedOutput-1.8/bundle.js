@@ -44,6 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
 	var dep = __webpack_require__(1);
 	console.log(dep);
 	Thing.doSomething();
@@ -53,6 +54,7 @@
 /* 1 */
 /***/ function(module, exports) {
 
+	"use strict";
 	Thing.doSomething();
 	module.exports = 'dep';
 

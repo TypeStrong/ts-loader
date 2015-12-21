@@ -5,6 +5,7 @@ webpackJsonp([1],[
 /* 3 */
 /***/ function(module, exports) {
 
+	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = 'c';
 
@@ -13,6 +14,7 @@ webpackJsonp([1],[
 /* 4 */
 /***/ function(module, exports) {
 
+	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
 	exports.default = 'd';
 

@@ -44,6 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
 	var submodule = __webpack_require__(1);
 	var externalLib = __webpack_require__(2);
 	externalLib.doSomething2(submodule);
@@ -53,6 +54,7 @@
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
 	var externalLib = __webpack_require__(2);
 	externalLib.doSomething("");
 	var message = "Hello from submodule";

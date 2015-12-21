@@ -44,17 +44,18 @@
 /* 0 */
 /***/ function(module, exports) {
 
+	"use strict";
 	var Foo = (function () {
 	    function Foo() {
 	    }
 	    return Foo;
-	})();
+	}());
 	exports.Foo = Foo;
 	var Bar = (function () {
 	    function Bar() {
 	    }
 	    return Bar;
-	})();
+	}());
 	var a = 'b'; // this should error with 2322
 	module.exports = Bar;
 

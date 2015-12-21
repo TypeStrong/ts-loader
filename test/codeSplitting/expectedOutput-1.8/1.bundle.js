@@ -5,6 +5,7 @@ webpackJsonp([1],[
 /* 3 */
 /***/ function(module, exports) {
 
+	"use strict";
 	module.exports = 'c';
 
 
@@ -12,6 +13,7 @@ webpackJsonp([1],[
 /* 4 */
 /***/ function(module, exports) {
 
+	"use strict";
 	module.exports = 'd';
 
 

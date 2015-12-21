@@ -51,7 +51,7 @@
 	        return null;
 	    };
 	    return Foo;
-	})();
+	}());
 	var foo = new Foo();
 	var x = foo.getSomething();
 

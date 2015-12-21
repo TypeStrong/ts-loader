@@ -44,6 +44,7 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
 	var dep1 = __webpack_require__(1);
 	var dep2 = __webpack_require__(2);
 	dep1('');
@@ -54,6 +55,7 @@
 /* 1 */
 /***/ function(module, exports) {
 
+	"use strict";
 	function doSomething(input) {
 	}
 	module.exports = doSomething;
@@ -63,6 +65,7 @@
 /* 2 */
 /***/ function(module, exports) {
 
+	"use strict";
 	function doSomething(input) {
 	}
 	module.exports = doSomething;
