@@ -162,7 +162,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     }
     catch (e) {
         let message = loaderOptions.compiler == 'typescript'
-            ? 'Could not load TypeScript. Try installing with `npm install typescript`'
+            ? 'Could not load TypeScript. Try installing with `npm install typescript`. If TypeScript is installed globally, try using `npm link typescript`.'
             : `Could not load TypeScript compiler with NPM package name \`${loaderOptions.compiler}\`. Are you sure it is correctly installed?`
         return { error: {
             message: message.red,
