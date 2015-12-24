@@ -21,6 +21,13 @@ You will also need to install TypeScript if you have not already.
 npm install typescript
 ```
 
+or if you want to install TypeScript globally
+
+```
+npm install typescript -g
+npm link typescript
+```
+
 ### Upgrading
 
 Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
