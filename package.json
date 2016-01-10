@@ -39,10 +39,11 @@
     "babel-loader": "^5.3.2",
     "escape-string-regexp": "^1.0.3",
     "fs-extra": "^0.22.1",
+    "glob": "^6.0.3",
     "mkdirp": "^0.5.1",
     "mocha": "^2.1.0",
     "rimraf": "^2.4.2",
-    "webpack": "^1.11.0",
-    "typescript": "^1.6.2"
+    "typescript": "^1.6.2",
+    "webpack": "^1.11.0"
   }
 }

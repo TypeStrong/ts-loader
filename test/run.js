@@ -7,7 +7,8 @@ var webpack = require('webpack');
 var webpackVersion = require('webpack/package.json').version;
 var regexEscape = require('escape-string-regexp');
 var typescript = require('typescript');
-var semver = require('semver')
+var semver = require('semver');
+var glob = require('glob');
 
 // force colors on for tests since expected output has colors
 require('colors').enabled = true;
@@ -106,7 +107,7 @@ function createTest(test, testPath, options) {
             // replace the hash if found in the output since it can change depending
             // on environments and we're not super interested in it
             if (stats) {
-                fs.readdirSync(webpackOutput).forEach(function(file) {
+                glob.sync('**/*', {cwd: webpackOutput, nodir: true}).forEach(function(file) {
                     var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
                     content = content.split(stats.hash).join('[hash]');
                     fs.writeFileSync(path.join(webpackOutput, file), content);
@@ -116,7 +117,7 @@ function createTest(test, testPath, options) {
             // output results
             if (saveOutputMode) {
                 // loop through webpackOutput and rename to .transpiled if needed
-                fs.readdirSync(webpackOutput).forEach(function(file) {
+                glob.sync('**/*', {cwd: webpackOutput, nodir: true}).forEach(function(file) {
                     var patchedFileName = patch+'/'+file;
                     currentSavedOutput[patchedFileName] = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
                     
@@ -166,6 +167,13 @@ function createTest(test, testPath, options) {
                 
                 var statsFileName = 'output.txt';
                 
+                // do a little magic to normalize `\` to `/` for asset output
+                var newAssets = {};
+                Object.keys(stats.compilation.assets).forEach(function(asset) { 
+                    newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset]; 
+                });
+                stats.compilation.assets = newAssets;
+                
                 var statsString = stats.toString({timings: false, version: false, hash: false})
                     .replace(new RegExp(regexEscape(testStagingPath+path.sep), 'g'), '')
                     .replace(new RegExp(regexEscape(rootPath+path.sep), 'g'), '')
@@ -191,13 +199,13 @@ function createTest(test, testPath, options) {
         
             if (!saveOutputMode) {
                 // massage any .transpiled. files
-                fs.readdirSync(expectedOutput).forEach(function(file) {
+                glob.sync('**/*', {cwd: expectedOutput, nodir: true}).forEach(function(file) {
                     if (/\.transpiled/.test(file)) {
                         if (options.transpile) { // rename if we're in transpile mode
                             var extension = path.extname(file);
                             fs.renameSync(
                                 path.join(expectedOutput, file), 
-                                path.join(expectedOutput, path.basename(file, '.transpiled'+extension)+extension)
+                                path.join(expectedOutput, path.dirname(file), path.basename(file, '.transpiled'+extension)+extension)
                             );
                         }
                         else { // otherwise delete
@@ -208,8 +216,8 @@ function createTest(test, testPath, options) {
                 });
                 
                 // compare actual to expected
-                var actualFiles = fs.readdirSync(actualOutput),
-                    expectedFiles = fs.readdirSync(expectedOutput)
+                var actualFiles = glob.sync('**/*', {cwd: actualOutput, nodir: true}),
+                    expectedFiles = glob.sync('**/*', {cwd: expectedOutput, nodir: true})
                         .filter(function(file) { return !/^patch/.test(file); }),
                     allFiles = {};
                         
