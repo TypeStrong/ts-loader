@@ -5,9 +5,9 @@
 
 # TypeScript loader for webpack
 
-## Usage
+## Getting Started
 
-A step by step tutorial is [available here](http://www.jbrantly.com/typescript-and-webpack/).
+Tutorials and examples can be [found here](https://github.com/TypeStrong/ts-loader/wiki/Tutorials-&-Examples).
 
 ### Installation
 
