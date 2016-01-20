@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.8.0
+
+- Add support for emitting declaration files when `declaration: true` is set (#48, #128)
+- Fix bug with specifying `target: es6` and `module: commonjs` at the same time when using
+  TS 1.7+ (#111, #132, #140).
+- Fix bug with resolving dependencies which are linked using `npm link` (#134, #141) 
+
 ## v0.7.2
 
 - Fix regression with watching definition files (#109, #110)

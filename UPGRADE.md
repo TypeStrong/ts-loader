@@ -1,5 +1,15 @@
 # Upgrade Guide
 
+## v0.7.x to 0.8.x
+
+This release has two breaking changes:
+
+1. If you are using TypeScript 1.7+ and specify `target: es6` and
+`module: commonjs`, the output will now be CommonJS instead of ES6
+modules. This brings ts-loader into alignment with `tsc`.
+2. Declaration files are now emitted when `declaration: true` is 
+specified in the tsconfig.json.
+
 ## v0.6.x to 0.7.x
 
 This release changed loader messages to print on stderr instead of
