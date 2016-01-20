@@ -33,6 +33,8 @@ fs.readdirSync(__dirname).forEach(function(test) {
     var testPath = path.join(__dirname, test);
     if (fs.statSync(testPath).isDirectory()) {
         
+        if (test == 'testLib') return;
+        
         if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
         
         describe(test, function() {
