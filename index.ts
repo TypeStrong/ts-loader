@@ -313,12 +313,19 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     // make a (sync) resolver that follows webpack's rules
     let resolver = makeResolver(loader.options);
 
-    var moduleResolutionHost = {
-        fileExists: (fileName: string) => { return servicesHost.getScriptSnapshot(fileName) !== undefined; },
-        readFile: (fileName: string) => {
-            let snapshot = servicesHost.getScriptSnapshot(fileName);
-            return snapshot && snapshot.getText(0, snapshot.getLength());
+    var readFile = function(fileName) {
+        fileName = path.normalize(fileName);
+        try {
+            return fs.readFileSync(fileName, {encoding: 'utf8'})
         }
+        catch (e) {
+            return;
+        }
+    }
+
+    var moduleResolutionHost = {
+        fileExists: (fileName: string) => readFile(fileName) !== undefined,
+        readFile: (fileName: string) => readFile(fileName)
     };
 
     // Create the TypeScript language service
@@ -334,17 +341,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             // We either load from memory or from disk
             fileName = path.normalize(fileName);
             var file = files[fileName];
-
+            
             if (!file) {
-                try {
-                    file = files[fileName] = {
-                        version: 0,
-                        text: fs.readFileSync(fileName, {encoding: 'utf8'})
-                    }
-                }
-                catch (e) {
-                    return;
-                }
+                let text = readFile(fileName);
+                if (text == null) return;
+                
+                file = files[fileName] = { version: 0, text }
             }
 
             return compiler.ScriptSnapshot.fromString(file.text);
