@@ -341,11 +341,11 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             // We either load from memory or from disk
             fileName = path.normalize(fileName);
             var file = files[fileName];
-            
+
             if (!file) {
                 let text = readFile(fileName);
                 if (text == null) return;
-                
+
                 file = files[fileName] = { version: 0, text }
             }
 
@@ -465,7 +465,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     pushArray(compilation.errors, formatErrors(errors, instance, {file: filePath}));
                 }
             });
-        
+
         callback();
     });
 
@@ -526,13 +526,13 @@ function loader(contents) {
     if (!file) {
         file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
-    
+
     if (file.text !== contents) {
         file.version++;
         file.text = contents;
         instance.version++;
     }
-    
+
     var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
 
     if (options.transpileOnly) {
@@ -549,11 +549,11 @@ function loader(contents) {
     }
     else {
         let langService = instance.languageService;
-        
+
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
-        
+
         let allDefinitionFiles = Object.keys(instance.files).filter(filePath => /\.d\.ts$/.test(filePath));
         allDefinitionFiles.forEach(this.addDependency.bind(this));
         this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles.map(filePath => filePath+'@'+instance.files[filePath].version);
@@ -566,9 +566,15 @@ function loader(contents) {
 
         var sourceMapFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)\.map$/)).pop();
         if (sourceMapFile) { sourceMapText = sourceMapFile.text }
-        
+
         var declarationFile = output.outputFiles.filter(file => !!file.name.match(/\.d.ts$/)).pop();
         if (declarationFile) { this.emitFile(path.relative(this.options.context, declarationFile.name), declarationFile.text); }
+
+        // collect errors
+        diagnostics = diagnostics
+            .concat(langService.getSyntacticDiagnostics(filePath))
+            .concat(langService.getSemanticDiagnostics(filePath))
+            .concat(langService.getCompilerOptionsDiagnostics());
     }
 
     if (outputText == null) throw new Error(`Typescript emitted no output for ${filePath}`);
@@ -586,7 +592,15 @@ function loader(contents) {
     // treated as new
     this._module.meta.tsLoaderFileVersion = file.version;
 
-    callback(null, outputText, sourceMap)
+    var errorDiagnostics = diagnostics.filter(d => d.category == typescript.DiagnosticCategory.Error ),
+        err = errorDiagnostics.length > 0
+            ? errorDiagnostics.map(d => `ERROR in ${d.file.fileName}\n(${d.start}, ${d.length}): error TS${d.code}: ${d.messageText}`)
+            : null;
+    if (err && err.length > 0) {
+        console.error('ts-loader detected following errors:');
+        err.forEach((e, i) => console.error(`    ${i + 1})`, e.replace('\n', '\n       '), "\n"));
+    }
+    callback(err, outputText, sourceMap)
 }
 
 export = loader;
