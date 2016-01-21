@@ -48,6 +48,18 @@ fs.readdirSync(__dirname).forEach(function(test) {
     }
 });
 
+function getFileContents(outputLocation, file) {
+    var contents, fileLocation;
+    try {
+        fileLocation = path.join(outputLocation, file);
+        contents = fs.readFileSync(fileLocation, 'utf8')
+            .replace(/\\r\\n/g, '\\n') // Handle escaped windows end of lines
+            .replace(/\r\n/g, '\n');   // and un-escaped windows end of lines
+    }
+    catch (e) { contents = '!!!' + fileLocation + ' file doesnt exist!!!' }
+    return contents;
+}
+
 function createTest(test, testPath, options) {
     return function(done) {
         this.timeout(60000); // sometimes it just takes awhile
@@ -227,16 +239,8 @@ function createTest(test, testPath, options) {
                 expectedFiles.map(function(file) { allFiles[file] = true });
                 
                 Object.keys(allFiles).forEach(function(file) {
-                    try {
-                        var actual = fs.readFileSync(path.join(actualOutput, file)).toString().replace(/\r\n/g, '\n');
-                    }
-                    catch (e) { actual = '!!!actual file doesnt exist!!!' }
-                    
-                    try {
-                        var expected = fs.readFileSync(path.join(expectedOutput, file)).toString().replace(/\r\n/g, '\n');
-                    }
-                    catch (e) { expected = '!!!expected file doesnt exist!!!' }
-                    
+                    var actual = getFileContents(actualOutput, file);
+                    var expected = getFileContents(expectedOutput, file);              
                     assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
                 });
             }
