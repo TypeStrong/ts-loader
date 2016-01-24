@@ -297,13 +297,24 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
-    filesToLoad.forEach(filePath => {
-        filePath = path.normalize(filePath);
-        files[filePath] = {
-            text: fs.readFileSync(filePath, 'utf-8'),
-            version: 0
-        }
-    });
+    let filePath: string;
+    try {
+        filesToLoad.forEach(fp => {
+            filePath = path.normalize(fp);
+            files[filePath] = {
+                text: fs.readFileSync(filePath, 'utf-8'),
+                version: 0
+            };
+          });
+    }
+    catch (exc) {
+        let filePathError = `A file specified in tsconfig.json could not be found: ${ filePath }`;
+        return { error: {
+            message: filePathError.red,
+            rawMessage: filePathError,
+            loaderSource: 'ts-loader'
+        }};
+    }
 
     let newLine =
         compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? '\r\n' :
@@ -341,11 +352,11 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             // We either load from memory or from disk
             fileName = path.normalize(fileName);
             var file = files[fileName];
-            
+
             if (!file) {
                 let text = readFile(fileName);
                 if (text == null) return;
-                
+
                 file = files[fileName] = { version: 0, text }
             }
 
@@ -465,7 +476,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     pushArray(compilation.errors, formatErrors(errors, instance, {file: filePath}));
                 }
             });
-        
+
         callback();
     });
 
@@ -526,13 +537,13 @@ function loader(contents) {
     if (!file) {
         file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
-    
+
     if (file.text !== contents) {
         file.version++;
         file.text = contents;
         instance.version++;
     }
-    
+
     var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
 
     if (options.transpileOnly) {
@@ -549,11 +560,11 @@ function loader(contents) {
     }
     else {
         let langService = instance.languageService;
-        
+
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
-        
+
         let allDefinitionFiles = Object.keys(instance.files).filter(filePath => /\.d\.ts$/.test(filePath));
         allDefinitionFiles.forEach(this.addDependency.bind(this));
         this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles.map(filePath => filePath+'@'+instance.files[filePath].version);
@@ -566,7 +577,7 @@ function loader(contents) {
 
         var sourceMapFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)\.map$/)).pop();
         if (sourceMapFile) { sourceMapText = sourceMapFile.text }
-        
+
         var declarationFile = output.outputFiles.filter(file => !!file.name.match(/\.d.ts$/)).pop();
         if (declarationFile) { this.emitFile(path.relative(this.options.context, declarationFile.name), declarationFile.text); }
     }
