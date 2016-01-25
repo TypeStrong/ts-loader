@@ -1,4 +1,4 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.39 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 0 bytes [rendered]
-    [0] ./.test/tsconfigInvalidFile/app.ts 0 bytes {0} [built]
+    Asset    Size  Chunks             Chunk Names
+bundle.js  1.4 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 14 bytes [rendered]
+    [0] ./.test/tsconfigInvalidFile/app.ts 14 bytes {0} [built]
