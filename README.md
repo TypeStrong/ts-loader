@@ -39,7 +39,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 ### Compatibility
 
-The current version is compatible with TypeScript 1.6, 1.7 and the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).
+The current version is compatible with TypeScript 1.6 and above, including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).
 You may experience issues using the nightly build due to its nature, but a full test suite runs
 against the latest nightly every day to catch incompatibilites early. Please report any issues
 you experience with the nightly so that they can be fixed promptly.
