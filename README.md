@@ -75,17 +75,15 @@ you experience with the nightly so that they can be fixed promptly.
         "target": "es5",
         "sourceMap": true
       },
-      "files": [
-        "path/to/declaration.d.ts"
+      "exclude": [
+        "node_modules"
       ]
     }
     ```
 
 The [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
-same options. The `files` property should generally be specified even if its just an empty array.
-If the `files` property is not specified, then **all** TypeScript files in the directory and
-subdirectories will be included, possibly even ones that should not be.
+same options. TypeScript files from all subdirectories will get included except the ones matching `exclude`.
 
 #### Options
 
