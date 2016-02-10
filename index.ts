@@ -404,6 +404,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     var getCompilerOptionDiagnostics = true;
 
     loader._compiler.plugin("after-compile", (compilation, callback) => {
+        // Don't add errors for child compilations
+        if (compilation.compiler.isChild()) {
+            callback();
+            return;
+        }
+        
         let stats = compilation.stats;
 
         // handle all other errors. The basic approach here to get accurate error
