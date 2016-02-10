@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.1
+
+- Add better error messaging when a file in tsconfig.json can not be loaded (#117, #145)
+- Fix incompatibility with html-webpack-plugin (#152, #154)
+
 ## v0.8.0
 
 - Add support for emitting declaration files when `declaration: true` is set (#48, #128)
