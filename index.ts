@@ -520,7 +520,9 @@ function loader(contents) {
         compiler: 'typescript',
         configFileName: 'tsconfig.json',
         transpileOnly: false,
-        compilerOptions: {}
+        compilerOptions: {
+             noEmit: false
+        }
     }, configFileOptions, queryOptions);
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
 
