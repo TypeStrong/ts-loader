@@ -398,7 +398,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 resolvedModules.push(resolutionResult);
             }
             
-            instance.dependencyGraph[containingFile] = resolvedModules.map(m => m.resolvedFileName).filter(f => f != null);
+            instance.dependencyGraph[containingFile] = resolvedModules.filter(m => m != null).map(m => m.resolvedFileName);
             
             return resolvedModules;
         }
