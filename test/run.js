@@ -43,6 +43,7 @@ fs.readdirSync(__dirname).forEach(function(test) {
             if (test == 'declarationOutput') { return; }
             if (test == 'declarationWatch') { return; }
             if (test == 'issue71') { return; }
+            if (test == 'watchImports') return;
             it('should work with transpile', createTest(test, testPath, {transpile: true}));
         });
     }
