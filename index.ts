@@ -51,6 +51,7 @@ interface TSInstance {
     files: TSFiles;
     languageService?: typescript.LanguageService;
     version?: number;
+    dependencyGraph: any;
 }
 
 interface TSInstances {
@@ -193,7 +194,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         loaderOptions,
         files,
         languageService: null,
-        version: 0
+        version: 0,
+        dependencyGraph: {}
     };
 
     var compilerOptions: typescript.CompilerOptions = {
@@ -293,7 +295,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             loader._module.errors,
             formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
 
-        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files }};
+        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {} }};
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -395,6 +397,9 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
                 resolvedModules.push(resolutionResult);
             }
+            
+            instance.dependencyGraph[containingFile] = resolvedModules.map(m => m.resolvedFileName).filter(f => f != null);
+            
             return resolvedModules;
         }
     };
@@ -486,11 +491,11 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         callback();
     });
 
-    // manually update changed declaration files
+    // manually update changed files
     loader._compiler.plugin("watch-run", (watching, cb) => {
         var mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
         Object.keys(mtimes)
-            .filter(filePath => !!filePath.match(/\.d\.ts$/))
+            .filter(filePath => !!filePath.match(/\.tsx?$|\.jsx?$/))
             .forEach(filePath => {
                 filePath = path.normalize(filePath);
                 var file = instance.files[filePath];
@@ -567,16 +572,25 @@ function loader(contents) {
     else {
         let langService = instance.languageService;
 
+        // Emit Javascript
+        var output = langService.getEmitOutput(filePath);
+        
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
 
         let allDefinitionFiles = Object.keys(instance.files).filter(filePath => /\.d\.ts$/.test(filePath));
         allDefinitionFiles.forEach(this.addDependency.bind(this));
-        this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles.map(filePath => filePath+'@'+instance.files[filePath].version);
 
-        // Emit Javascript
-        var output = langService.getEmitOutput(filePath);
+        // Additionally make this file dependent on all imported files
+        let additionalDependencies = instance.dependencyGraph[filePath];
+        if (additionalDependencies) {
+            additionalDependencies.forEach(this.addDependency.bind(this))  
+        }
+        
+        this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
+            .concat(additionalDependencies)
+            .map(filePath => filePath+'@'+(instance.files[filePath] || {version: '?'}).version);
 
         var outputFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)$/)).pop();
         if (outputFile) { outputText = outputFile.text }
