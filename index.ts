@@ -586,6 +586,12 @@ function loader(contents) {
 
         var declarationFile = output.outputFiles.filter(file => !!file.name.match(/\.d.ts$/)).pop();
         if (declarationFile) { this.emitFile(path.relative(this.options.context, declarationFile.name), declarationFile.text); }
+
+        // collect errors
+        diagnostics = diagnostics
+            .concat(langService.getSyntacticDiagnostics(filePath))
+            .concat(langService.getSemanticDiagnostics(filePath))
+            .concat(langService.getCompilerOptionsDiagnostics());
     }
 
     if (outputText == null) throw new Error(`Typescript emitted no output for ${filePath}`);
@@ -603,7 +609,15 @@ function loader(contents) {
     // treated as new
     this._module.meta.tsLoaderFileVersion = file.version;
 
-    callback(null, outputText, sourceMap)
+    var errorDiagnostics = diagnostics.filter(d => d.category == typescript.DiagnosticCategory.Error ),
+        err = errorDiagnostics.length > 0
+            ? errorDiagnostics.map(d => `ERROR in ${d.file.fileName}\n(${d.start}, ${d.length}): error TS${d.code}: ${d.messageText}`)
+            : null;
+    if (err && err.length > 0) {
+        console.error('ts-loader detected following errors:');
+        err.forEach((e, i) => console.error(`    ${i + 1})`, e.replace('\n', '\n       '), "\n"));
+    }
+    callback(err, outputText, sourceMap)
 }
 
 export = loader;

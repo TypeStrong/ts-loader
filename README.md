@@ -123,7 +123,7 @@ messages are emitted via webpack which is not affected by this flag.
 ##### ignoreDiagnostics *(number[]) (default=[])*
 
 You can squelch certain TypeScript errors by specifying an array of diagnostic
-codes to ignore. 
+codes to ignore.
 
 ##### compiler *(string) (default='typescript')*
 
@@ -167,6 +167,23 @@ require('!style!css!./style.css');
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/codeSplitting) for more details.
+
+## Failing CI builds on errors
+
+`webpack` command should return non-zero exit code in order to fail build when errors occur. To achieve this add the following plugin (*addMe* function) to `plugins` field of webpack config object:
+```
+{
+    plugins: [
+        function addMe() {
+            this.plugin("done", function(stats) {
+                if (stats.compilation.errors && stats.compilation.errors.length && process.argv.indexOf('--watch') == -1) {
+                    process.exit(1);
+                }
+            });
+        }
+    ]
+}
+```
 
 ## Contributing
 
