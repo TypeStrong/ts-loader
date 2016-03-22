@@ -97,12 +97,12 @@ module.exports = {
   module: {
     loaders: [
       // specify option using query
-      { test: /\.tsx?$/, loader: 'ts-loader?compiler=ntypescript' }
+      { test: /\.tsx?$/, loader: 'ts-loader?compiler=typescript' }
     ]
   },
   // specify option using `ts` property
   ts: {
-    compiler: 'ntypescript'
+    compiler: 'typescript'
   }
 }
 ```
