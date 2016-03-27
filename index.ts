@@ -483,6 +483,21 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 }
             });
 
+
+        // gather all declaration files from TypeScript and output them to webpack
+        Object.keys(instance.files)
+            .filter(filePath => !!filePath.match(/\.ts(x?)$/))
+            .forEach(filePath => {
+                let output = languageService.getEmitOutput(filePath);
+                let declarationFile = output.outputFiles.filter(filePath => !!filePath.name.match(/\.d.ts$/)).pop();
+                if (declarationFile) {
+                    compilation.assets[declarationFile.name] = {
+                        source: () => declarationFile.text,
+                        size: () => declarationFile.text.length
+                    };
+                }
+            });
+
         callback();
     });
 
@@ -583,9 +598,6 @@ function loader(contents) {
 
         var sourceMapFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)\.map$/)).pop();
         if (sourceMapFile) { sourceMapText = sourceMapFile.text }
-
-        var declarationFile = output.outputFiles.filter(file => !!file.name.match(/\.d.ts$/)).pop();
-        if (declarationFile) { this.emitFile(path.relative(this.options.context, declarationFile.name), declarationFile.text); }
     }
 
     if (outputText == null) throw new Error(`Typescript emitted no output for ${filePath}`);
