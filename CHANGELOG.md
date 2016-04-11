@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.8.2
+
+- Elided imports are now watched (#156, #169)
+- Declaration files for `.d.ts` files are now emitted (thanks @rob-bateman) (#174, #175)
+
 ## v0.8.1
 
 - Add better error messaging when a file in tsconfig.json can not be loaded (#117, #145)
