@@ -156,7 +156,7 @@ of your code.
 Loading css and other resources is possible but you will need to make sure that
 you have defined the `require` function in a declaration file.
 
-```
+```typescript
 declare var require: {
     <T>(path: string): T;
     (paths: string[], callback: (...modules: any[]) => void): void;
@@ -166,7 +166,7 @@ declare var require: {
 
 Then you can simply require assets or chunks per the [webpack documentation](http://webpack.github.io/docs).
 
-```
+```js
 require('!style!css!./style.css');
 ```
 
