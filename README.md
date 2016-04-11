@@ -85,6 +85,12 @@ The [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) 
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
 same options. TypeScript files from all subdirectories will get included except the ones matching `exclude`.
 
+### Failing the build on TypeScript compilation error
+
+When the build fails (i.e. at least one typescript compile error occured), ts-loader does **not** propagate the build failure to webpack.  The upshot of this is you can fail to notice an erroring build. This is inconvenient; particularly in continuous integration scenarios.  If you want to ensure that the build failure is propogated it is advised that you make use of the [webpack-fail-plugin](https://www.npmjs.com/package/webpack-fail-plugin).  This plugin that will make the process return status code 1 when it finishes with errors in single-run mode. Et voilà! Build failure.
+
+For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
+
 #### Options
 
 There are two types of options: TypeScript options (aka "compiler options") and loader options.
