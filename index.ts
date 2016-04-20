@@ -509,9 +509,6 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     // manually update changed files
     loader._compiler.plugin("watch-run", (watching, cb) => {
         var mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
-        if (instance.modifiedFiles === null) {
-            instance.modifiedFiles = {}
-        }
         Object.keys(mtimes)
             .filter(filePath => !!filePath.match(/\.tsx?$|\.jsx?$/))
             .forEach(filePath => {
@@ -521,7 +518,6 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     file.text = fs.readFileSync(filePath, {encoding: 'utf8'});
                     file.version++;
                     instance.version++;
-                    instance.modifiedFiles[filePath] = file;
                 }
             });
         cb()
@@ -573,6 +569,12 @@ function loader(contents) {
         file.text = contents;
         instance.version++;
     }
+
+    // push this file to modified files hash.
+    if (instance.modifiedFiles === null) {
+        instance.modifiedFiles = {}
+    }
+    instance.modifiedFiles[filePath] = file;
 
     var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
 
