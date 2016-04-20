@@ -571,7 +571,7 @@ function loader(contents) {
     }
 
     // push this file to modified files hash.
-    if (instance.modifiedFiles === null) {
+    if (!instance.modifiedFiles) {
         instance.modifiedFiles = {}
     }
     instance.modifiedFiles[filePath] = file;
