@@ -52,7 +52,7 @@ interface TSInstance {
     languageService?: typescript.LanguageService;
     version?: number;
     dependencyGraph: any;
-    modifiedFiles: TSFiles;
+    modifiedFiles?: TSFiles;
 }
 
 interface TSInstances {
