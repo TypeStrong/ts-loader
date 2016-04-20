@@ -503,6 +503,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 }
             });
 
+        instance.modifiedFiles = null;
         callback();
     });
 
