@@ -463,10 +463,17 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         })
 
         // gather all errors from TypeScript and output them to webpack
+        let filesWithErrors: TSFiles = null
         Object.keys(instance.modifiedFiles || instance.files)
             .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
             .forEach(filePath => {
                 let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+                if (errors.length > 0) {
+                    if (null === filesWithErrors) {
+                        filesWithErrors = {}
+                    }
+                    filesWithErrors[filePath] = instance.files[filePath]
+                }
 
                 // if we have access to a webpack module, use that
                 if (hasOwnProperty(modules, filePath)) {
@@ -503,7 +510,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 }
             });
 
-        instance.modifiedFiles = null;
+        instance.modifiedFiles = filesWithErrors;
         callback();
     });
 
