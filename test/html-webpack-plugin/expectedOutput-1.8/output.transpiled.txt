@@ -1,6 +1,6 @@
      Asset       Size  Chunks             Chunk Names
  bundle.js    1.43 kB       0  [emitted]  main
-index.html  159 bytes          [emitted]  
+index.html  182 bytes          [emitted]  
 chunk    {0} bundle.js (main) 36 bytes [rendered]
     [0] ./.test/html-webpack-plugin/app.ts 36 bytes {0} [built]
 Child html-webpack-plugin for "index.html":
