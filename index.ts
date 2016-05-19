@@ -250,13 +250,13 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         configParseResult = (<TSCompatibleCompiler><any>compiler).parseJsonConfigFileContent(
             configFile.config,
             compiler.sys,
-            path.dirname(configFilePath)
+            path.dirname(configFilePath || '')
         );
     } else {
         configParseResult = (<TSCompatibleCompiler><any>compiler).parseConfigFile(
             configFile.config,
             compiler.sys,
-            path.dirname(configFilePath)
+            path.dirname(configFilePath || '')
         );
     }
 
