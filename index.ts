@@ -496,7 +496,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 let output = languageService.getEmitOutput(filePath);
                 let declarationFile = output.outputFiles.filter(filePath => !!filePath.name.match(/\.d.ts$/)).pop();
                 if (declarationFile) {
-                    compilation.assets[declarationFile.name] = {
+                    let assetPath = path.relative(process.cwd(), declarationFile.name);
+                    compilation.assets[assetPath] = {
                         source: () => declarationFile.text,
                         size: () => declarationFile.text.length
                     };
