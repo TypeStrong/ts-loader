@@ -420,6 +420,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     var languageService = instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
     var getCompilerOptionDiagnostics = true;
+    var checkAllFilesForErrors = true;
 
     loader._compiler.plugin("after-compile", (compilation, callback) => {
         // Don't add errors for child compilations
@@ -494,9 +495,10 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         let filesWithErrors: TSFiles = {}
         // calculate array of files to check
         let filesToCheckForErrors: TSFiles = null
-        if (!instance.modifiedFiles) {
+        if (checkAllFilesForErrors) {
             // check all files on initial run
             filesToCheckForErrors = instance.files
+            checkAllFilesForErrors = false
         } else {
             filesToCheckForErrors = {}
             // check all modified files, and all dependants
@@ -567,6 +569,10 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     // manually update changed files
     loader._compiler.plugin("watch-run", (watching, cb) => {
         var mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
+        if (null === instance.modifiedFiles) {
+            instance.modifiedFiles = {}
+        }
+
         Object.keys(mtimes)
             .filter(filePath => !!filePath.match(/\.tsx?$|\.jsx?$/))
             .forEach(filePath => {
@@ -576,6 +582,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     file.text = fs.readFileSync(filePath, {encoding: 'utf8'});
                     file.version++;
                     instance.version++;
+                    instance.modifiedFiles[filePath] = file;
                 }
             });
         cb()
