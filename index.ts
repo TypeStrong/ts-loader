@@ -508,7 +508,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     // manually update changed files
     loader._compiler.plugin("watch-run", (watching, cb) => {
-        var mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
+        var mtimes = watching.compiler.fileTimestamps ||
+                     watching.compiler.watchFileSystem.watcher.mtimes;
         Object.keys(mtimes)
             .filter(filePath => !!filePath.match(/\.tsx?$|\.jsx?$/))
             .forEach(filePath => {
