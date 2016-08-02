@@ -31,6 +31,7 @@ interface LoaderOptions {
     compiler: string;
     configFileName: string;
     transpileOnly: boolean;
+    excludeErrorCheck: RegExp | Array<RegExp>;
     ignoreDiagnostics: number[];
     compilerOptions: typescript.CompilerOptions;
 }
@@ -462,7 +463,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             }
         })
 
-        let tsRegex = new RegExp(/(\.d)?\.ts(x?)$/);
+        let tsRegex: RegExp = /(\.d)?\.ts(x?)$/;
         function filterFiles(filePath) {
           // Filters files we don't want to catch errors from TypeScript
           if (loaderOptions.excludeErrorCheck) {
@@ -471,7 +472,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
               if (!!filePath.match(loaderOptions.excludeErrorCheck)) { return false; }
             } else if (loaderOptions.excludeErrorCheck.constructor === Array) {
               // Filter if matches any of the regexps
-              for (let excludeRegExp of loaderOptions.excludeErrorCheck) {
+              for (let excludeRegexp of (loaderOptions.excludeErrorCheck as Array<RegExp>)) {
                 if (!!filePath.match(excludeRegexp)) { return false; }
               }
             }
