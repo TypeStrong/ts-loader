@@ -397,9 +397,9 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
                 resolvedModules.push(resolutionResult);
             }
-            
+
             instance.dependencyGraph[containingFile] = resolvedModules.filter(m => m != null).map(m => m.resolvedFileName);
-            
+
             return resolvedModules;
         }
     };
@@ -414,7 +414,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             callback();
             return;
         }
-        
+
         let stats = compilation.stats;
 
         // handle all other errors. The basic approach here to get accurate error
@@ -462,9 +462,27 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             }
         })
 
+        let tsRegex = new RegExp(/(\.d)?\.ts(x?)$/);
+        function filterFiles(filePath) {
+          // Filters files we don't want to catch errors from TypeScript
+          if (loaderOptions.excludeErrorCheck) {
+            if (loaderOptions.excludeErrorCheck.constructor === RegExp) {
+              // Filter if matches regexp
+              if (!!filePath.match(loaderOptions.excludeErrorCheck)) { return false; }
+            } else if (loaderOptions.excludeErrorCheck.constructor === Array) {
+              // Filter if matches any of the regexps
+              for (var i = 0; i < loaderOptions.excludeErrorCheck.length; i++) {
+                var excludeRegexp = loaderOptions.excludeErrorCheck[i];
+                if (!!filePath.match(excludeRegexp)) { return false; }
+              }
+            }
+          }
+          return !!filePath.match(tsRegex);
+        }
+
         // gather all errors from TypeScript and output them to webpack
         Object.keys(instance.files)
-            .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
+            .filter(filterFiles)
             .forEach(filePath => {
                 let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
 
@@ -590,7 +608,7 @@ function loader(contents) {
 
         // Emit Javascript
         var output = langService.getEmitOutput(filePath);
-        
+
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
@@ -601,9 +619,9 @@ function loader(contents) {
         // Additionally make this file dependent on all imported files
         let additionalDependencies = instance.dependencyGraph[filePath];
         if (additionalDependencies) {
-            additionalDependencies.forEach(this.addDependency.bind(this))  
+            additionalDependencies.forEach(this.addDependency.bind(this))
         }
-        
+
         this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
             .concat(additionalDependencies)
             .map(filePath => filePath+'@'+(instance.files[filePath] || {version: '?'}).version);
