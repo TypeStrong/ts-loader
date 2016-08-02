@@ -471,8 +471,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
               if (!!filePath.match(loaderOptions.excludeErrorCheck)) { return false; }
             } else if (loaderOptions.excludeErrorCheck.constructor === Array) {
               // Filter if matches any of the regexps
-              for (var i = 0; i < loaderOptions.excludeErrorCheck.length; i++) {
-                var excludeRegexp = loaderOptions.excludeErrorCheck[i];
+              for (let excludeRegExp of loaderOptions.excludeErrorCheck) {
                 if (!!filePath.match(excludeRegexp)) { return false; }
               }
             }
