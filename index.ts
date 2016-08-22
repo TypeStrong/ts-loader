@@ -27,7 +27,10 @@ function hasOwnProperty(obj, property) {
 
 interface LoaderOptions {
     silent: boolean;
+    /** instance name that is unique for this typescript and webpack instance */
     instance: string;
+    /** The name of the typescript instance, not unique per webpack instance */
+    instanceName: string;
     compiler: string;
     configFileName: string;
     transpileOnly: boolean;
@@ -52,6 +55,7 @@ interface TSInstance {
     languageService?: typescript.LanguageService;
     version?: number;
     dependencyGraph: any;
+    name: string;
 }
 
 interface TSInstances {
@@ -110,14 +114,14 @@ function formatErrors(diagnostics: typescript.Diagnostic[], instance: TSInstance
                     message: `${'('.white}${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`,
                     rawMessage: messageText,
                     location: {line: lineChar.line+1, character: lineChar.character+1},
-                    loaderSource: 'ts-loader'
+                    loaderSource: `ts-loader@${instance.name}`
                 };
             }
             else {
                 return {
                     message:`${messageText.red}`,
                     rawMessage: messageText,
-                    loaderSource: 'ts-loader'
+                    loaderSource: `ts-loader@${instance.name}`
                 };
             }
         })
@@ -195,7 +199,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         files,
         languageService: null,
         version: 0,
-        dependencyGraph: {}
+        dependencyGraph: {},
+        name: loaderOptions.instanceName
     };
 
     var compilerOptions: typescript.CompilerOptions = {
@@ -295,7 +300,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             loader._module.errors,
             formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
 
-        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {} }};
+        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, name: loaderOptions.instanceName }};
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -426,7 +431,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         function removeTSLoaderErrors(errors: WebpackError[]) {
             let index = -1, length = errors.length;
             while (++index < length) {
-                if (errors[index].loaderSource == 'ts-loader') {
+                if (errors[index].loaderSource == `ts-loader@${instance.name}`) {
                     errors.splice(index--, 1);
                     length--;
                 }
@@ -550,6 +555,8 @@ function loader(contents) {
     if (webpackIndex == -1) {
         webpackIndex = webpackInstances.push(this._compiler)-1;
     }
+
+    options.instanceName = options.instance;
     options.instance = webpackIndex + '_' + options.instance;
 
     var { instance, error } = ensureTypeScriptInstance(options, this);
