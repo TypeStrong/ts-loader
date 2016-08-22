@@ -415,11 +415,6 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     loader._compiler.plugin("after-compile", (compilation, callback) => {
         // Don't add errors for child compilations
-        if (compilation.compiler.isChild()) {
-            callback();
-            return;
-        }
-        
         let stats = compilation.stats;
 
         // handle all other errors. The basic approach here to get accurate error
@@ -438,13 +433,14 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             }
         }
 
-        removeTSLoaderErrors(compilation.errors);
+        const compilationErrors = compilation.compiler.isChild() ? compilation.compiler.parentCompilation.errors : compilation.errors;
+        removeTSLoaderErrors(compilationErrors);
 
         // handle compiler option errors after the first compile
         if (getCompilerOptionDiagnostics) {
             getCompilerOptionDiagnostics = false;
             pushArray(
-                compilation.errors,
+                compilationErrors,
                 formatErrors(languageService.getCompilerOptionsDiagnostics(), instance, {file: configFilePath || 'tsconfig.json'}));
         }
 
@@ -484,12 +480,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                         // append errors
                         let formattedErrors = formatErrors(errors, instance, { module });
                         pushArray(module.errors, formattedErrors);
-                        pushArray(compilation.errors, formattedErrors);
+                        pushArray(compilationErrors, formattedErrors);
                     })
                 }
                 // otherwise it's a more generic error
                 else {
-                    pushArray(compilation.errors, formatErrors(errors, instance, {file: filePath}));
+                    pushArray(compilationErrors, formatErrors(errors, instance, {file: filePath}));
                 }
             });
 
