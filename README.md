@@ -154,7 +154,7 @@ of your code.
 ### Loading other resources and code splitting
 
 Loading css and other resources is possible but you will need to make sure that
-you have defined the `require` function in a declaration file.
+you have defined the `require` function in a [declaration file](https://www.typescriptlang.org/docs/handbook/writing-declaration-files.html).
 
 ```typescript
 declare var require: {
