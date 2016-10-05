@@ -69,7 +69,7 @@ function createTest(test, testPath, options) {
             webpackOutput = path.join(testStagingPath, '.output'),
             originalExpectedOutput = path.join(testPath, 'expectedOutput-'+typescriptVersion);
         
-        assert.ok(fileExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find this file: ' + originalExpectedOutput)
+        assert.ok(fileExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
 
         if (saveOutputMode) {
             savedOutputs[test] = savedOutputs[test] || {};
