@@ -48,6 +48,16 @@ fs.readdirSync(__dirname).forEach(function(test) {
     }
 });
 
+function fileExists(path) {
+    var fileExists = true;
+    try {
+        fs.accessSync(path, fs.F_OK);
+    } catch (e) {
+        fileExists = false;
+    }
+    return fileExists;
+}
+
 function createTest(test, testPath, options) {
     return function(done) {
         this.timeout(60000); // sometimes it just takes awhile
@@ -59,6 +69,9 @@ function createTest(test, testPath, options) {
             webpackOutput = path.join(testStagingPath, '.output'),
             originalExpectedOutput = path.join(testPath, 'expectedOutput-'+typescriptVersion);
         
+        assert.ok(fileExists(expectedOutput), 'The expectedOutput does not exist; there is nothing to compare against!\nCould not find this file: ' + expectedOutput)
+        assert.ok(fileExists(originalExpectedOutput), 'The originalExpectedOutput does not exist; there is nothing to compare against!\nCould not find this file: ' + expectedOutput)
+
         if (saveOutputMode) {
             savedOutputs[test] = savedOutputs[test] || {};
             var regularSavedOutput = savedOutputs[test].regular = savedOutputs[test].regular || {};
