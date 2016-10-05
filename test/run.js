@@ -69,14 +69,14 @@ function createTest(test, testPath, options) {
             webpackOutput = path.join(testStagingPath, '.output'),
             originalExpectedOutput = path.join(testPath, 'expectedOutput-'+typescriptVersion);
         
-        assert.ok(fileExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
-
         if (saveOutputMode) {
             savedOutputs[test] = savedOutputs[test] || {};
             var regularSavedOutput = savedOutputs[test].regular = savedOutputs[test].regular || {};
             var transpiledSavedOutput = savedOutputs[test].transpiled = savedOutputs[test].transpiled || {};
             var currentSavedOutput = options.transpile ? transpiledSavedOutput : regularSavedOutput;
             mkdirp.sync(originalExpectedOutput);
+        } else {
+            assert.ok(fileExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
         }
         
         // copy all input to a staging area
