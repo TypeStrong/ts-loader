@@ -10,4 +10,3 @@ env:
   - TYPESCRIPT=typescript@1.7.5
   - TYPESCRIPT=typescript@1.8.0
   - TYPESCRIPT=typescript@2.0.3
-  - TYPESCRIPT=typescript@next

@@ -1,8 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.59 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 138 bytes [rendered]
-    [0] ./.test/aliasResolution/app.ts 93 bytes {0} [built] [1 error]
-    [1] ./.test/aliasResolution/common/components/myComponent.ts 45 bytes {0} [built]
-
-ERROR in ./.test/aliasResolution/app.ts
-[37m([39m[36m2[39m,[36m31[39m): [31merror TS2307: Cannot find module 'components/myComponent2'.[39m
