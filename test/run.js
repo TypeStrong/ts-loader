@@ -13,7 +13,10 @@ var glob = require('glob');
 // force colors on for tests since expected output has colors
 require('colors').enabled = true;
 
-var saveOutputMode = process.argv.indexOf('--save-output') != -1;
+var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
+
+var indexOfSingleTest = process.argv.indexOf('--single-test');
+var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
 
 var savedOutputs = {};
 
@@ -37,6 +40,8 @@ fs.readdirSync(__dirname).forEach(function(test) {
         
         if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
         
+        if (singleTestToRun && singleTestToRun !== test) return;
+
         describe(test, function() {
             it('should have the correct output', createTest(test, testPath, {}));
             
