@@ -53,14 +53,14 @@ fs.readdirSync(__dirname).forEach(function(test) {
     }
 });
 
-function fileExists(path) {
-    var fileExists = true;
+function pathExists(path) {
+    var pathExists = true;
     try {
         fs.accessSync(path, fs.F_OK);
     } catch (e) {
-        fileExists = false;
+        pathExists = false;
     }
-    return fileExists;
+    return pathExists;
 }
 
 function createTest(test, testPath, options) {
@@ -81,7 +81,7 @@ function createTest(test, testPath, options) {
             var currentSavedOutput = options.transpile ? transpiledSavedOutput : regularSavedOutput;
             mkdirp.sync(originalExpectedOutput);
         } else {
-            assert.ok(fileExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
+            assert.ok(pathExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
         }
         
         // copy all input to a staging area
