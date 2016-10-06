@@ -13,7 +13,10 @@ var glob = require('glob');
 // force colors on for tests since expected output has colors
 require('colors').enabled = true;
 
-var saveOutputMode = process.argv.indexOf('--save-output') != -1;
+var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
+
+var indexOfSingleTest = process.argv.indexOf('--single-test');
+var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
 
 var savedOutputs = {};
 
@@ -37,6 +40,8 @@ fs.readdirSync(__dirname).forEach(function(test) {
         
         if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
         
+        if (singleTestToRun && singleTestToRun !== test) return;
+
         describe(test, function() {
             it('should have the correct output', createTest(test, testPath, {}));
             
@@ -48,14 +53,14 @@ fs.readdirSync(__dirname).forEach(function(test) {
     }
 });
 
-function fileExists(path) {
-    var fileExists = true;
+function pathExists(path) {
+    var pathExists = true;
     try {
         fs.accessSync(path, fs.F_OK);
     } catch (e) {
-        fileExists = false;
+        pathExists = false;
     }
-    return fileExists;
+    return pathExists;
 }
 
 function createTest(test, testPath, options) {
@@ -69,14 +74,14 @@ function createTest(test, testPath, options) {
             webpackOutput = path.join(testStagingPath, '.output'),
             originalExpectedOutput = path.join(testPath, 'expectedOutput-'+typescriptVersion);
         
-        assert.ok(fileExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
-
         if (saveOutputMode) {
             savedOutputs[test] = savedOutputs[test] || {};
             var regularSavedOutput = savedOutputs[test].regular = savedOutputs[test].regular || {};
             var transpiledSavedOutput = savedOutputs[test].transpiled = savedOutputs[test].transpiled || {};
             var currentSavedOutput = options.transpile ? transpiledSavedOutput : regularSavedOutput;
             mkdirp.sync(originalExpectedOutput);
+        } else {
+            assert.ok(pathExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
         }
         
         // copy all input to a staging area
