@@ -65,12 +65,26 @@ filesystem output (typically `bundle.js` and possibly `bundle.js.map`) and any
 console output. stdout should go in `output.txt` and stderr should go in
 `err.txt`.
 
+If you would like to run just a single test then supply the name of it like so:
+
+`npm test -- --single-test declarationOutput`
+
+### Regenerating test data
+
 As a convenience it is possible to regenerate the expected output from the 
 actual output. This is useful when creating new tests and also when making a
-change that affects multiple existing tests. To run use 
-`npm test -- --save-output`. Note that all tests will automatically pass when
+change that affects multiple existing tests. To run use:
+
+`npm test -- --save-output`. 
+
+Note that all tests will automatically pass when
 using this feature. You should double check the generated files to make sure
 the output is indeed correct.
+
+If you would like to regenerate a single test then combine `--save-output` with 
+`--single-test` like so:
+
+`npm test -- --save-output --single-test declarationOutput`
 
 The test harness additionally supports watch mode since that is such an
 integral part of webpack. The initial state is as described above. After the
