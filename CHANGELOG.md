@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.0
+
+- [Made ts-loader compatible with node v6](https://github.com/TypeStrong/ts-loader/commit/a4f835345e495f45b40365f025afce72d1817996)
+- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/commit/3bb0fec73a2fab47953b51d256f0f5378f236ad1) (#214)
+- [Declarations update independent of compiler.watchFileSystem](https://github.com/TypeStrong/ts-loader/pull/167/commits/ae824b2676b226bdd0c860a787754a4ae28e339c) (#155)
+
+Now built using TypeScript v2.0
+
 ## v0.8.2
 
 - Elided imports are now watched (#156, #169)
