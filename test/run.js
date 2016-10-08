@@ -14,14 +14,21 @@ var glob = require('glob');
 require('colors').enabled = true;
 
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
+var excludeVersions = process.argv.indexOf('--exclude-versions') !== -1;
 
 var indexOfSingleTest = process.argv.indexOf('--single-test');
 var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
 
 var savedOutputs = {};
 
-console.log('Using webpack version ' + webpackVersion);
-console.log('Using typescript version ' + typescript.version);
+if (!excludeVersions) {
+    console.log('Using webpack version ' + webpackVersion);
+    console.log('Using typescript version ' + typescript.version);
+}
+
+if (saveOutputMode) {
+    console.log('Will save output as --save-output was supplied...');
+}
 
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 
@@ -254,7 +261,22 @@ function createTest(test, testPath, options) {
                     }
                     catch (e) { expected = '!!!expected file doesnt exist!!!' }
                     
-                    assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
+                    // If a test is marked as flaky then don't fail the build if it doesn't pass
+                    // Report the differences and carry on
+                    if (test.indexOf("_FLAKY_") === 0) {
+                        try {
+                            assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
+                        }
+                        catch (e) {
+                            console.log("Flaky test error!\n");
+                            console.log("MESSAGE:\n" + e.message, '\n');
+                            console.log('EXPECTED:\n', e.expected, '\n');
+                            console.log("ACTUAL:\n", e.actual, '\n');
+                        }
+                    }
+                    else {
+                        assert.equal(actual.toString(), expected.toString(), (patch?patch+'/':patch) + file + ' is different between actual and expected');
+                    }
                 });
             }
             
