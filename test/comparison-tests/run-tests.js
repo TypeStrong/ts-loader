@@ -1,5 +1,6 @@
 var fs = require('fs-extra');
 var path = require('path');
+var rimraf = require('rimraf');
 var execSync = require('child_process').execSync;
 
 // Parse command line arguments
@@ -10,18 +11,24 @@ var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest
 var passingTests = [];
 var failingTests = [];
 
+// set up new empty staging area
+var stagingPath = path.resolve(__dirname, '../../.test');
+rimraf.sync(stagingPath);
+
 var start = new Date().getTime();
 console.log('Starting to run test suites...\n');
 var versionsHaveBeenReported = false;
+
+var testDir = __dirname;
 
 if (singleTestToRun) {
     runTestAsChildProcess(singleTestToRun);
 }
 else {
     // loop through each test directory triggering a test run as child process
-    fs.readdirSync(__dirname)
+    fs.readdirSync(testDir)
         .filter(function (testName) {
-            var testPath = path.join(__dirname, testName);
+            var testPath = path.join(testDir, testName);
             return fs.statSync(testPath).isDirectory();
         })
         .forEach(runTestAsChildProcess);
@@ -30,11 +37,12 @@ else {
 function runTestAsChildProcess(testName) {
     // console.log('Running ' + testName + ' as a child_process')
     try {
-        // var testOutput = execSync('npm test -- --single-test ' + testName, { stdio: 'inherit' });
         var excludeVersions = versionsHaveBeenReported ? ' --exclude-versions' : '';
         var saveOutput = saveOutputMode ? ' --save-output' : '';
         versionsHaveBeenReported = true;
-        var testOutput = execSync('mocha --reporter spec test/run.js --single-test ' + testName + excludeVersions + saveOutput, { stdio: 'inherit' });
+
+        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js ' + excludeVersions + saveOutput + ' ' + testName, { stdio: 'inherit' });
+
         passingTests.push(testName);
     }
     catch (err) {

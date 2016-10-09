@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "comparison-tests": "npm link ./test/testLib && mocha --reporter spec test/run.js",
-    "test": "npm link ./test/testLib && node test/run-tests-as-child.js ",
+    "test": "npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js ",
     "prepublish": "npm run build"
   },
   "repository": {
