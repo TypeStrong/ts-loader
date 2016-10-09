@@ -34,7 +34,7 @@ function runTestAsChildProcess(testName) {
         var excludeVersions = versionsHaveBeenReported ? ' --exclude-versions' : '';
         var saveOutput = saveOutputMode ? ' --save-output' : '';
         versionsHaveBeenReported = true;
-        var testOutput = execSync('mocha --reporter spec test/run.js --single-test ' + testName + excludeVersions, { stdio: 'inherit' });
+        var testOutput = execSync('mocha --reporter spec test/run.js --single-test ' + testName + excludeVersions + saveOutput, { stdio: 'inherit' });
         passingTests.push(testName);
     }
     catch (err) {

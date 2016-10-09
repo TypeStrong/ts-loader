@@ -9,7 +9,7 @@ module.exports = {
     devtool: 'source-map',
     module: {
         loaders: [
-            { test: /\.ts$/, loader: 'babel-loader!ts-loader' }
+            { test: /\.ts$/, loader: 'babel-loader?presets[]=es2015!ts-loader' }
         ]
     }
 }
