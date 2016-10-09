@@ -285,7 +285,7 @@ function getNormalisedFileContent(file, location) {
 
         // Strip ' [built]' references from output*.txt files; seems to be used unpredictably 
         // and doesn't appear to be relevant so safe to ignore
-        if (file.indexOf('output') === 0) {
+        if (file.indexOf('output.') === 0) {
             fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
         }
     }
@@ -300,18 +300,18 @@ function getNormalisedFileContent(file, location) {
  * Instead, report the differences and carry on
  */
 function compareActualAndExpected(test, actual, expected, patch, file) {
-    if (test.indexOf("_FLAKY_") === 0) {
-        try {
-            assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
-        }
-        catch (e) {
-            console.log("Flaky test error!\n");
-            console.log("MESSAGE:\n" + e.message, '\n');
-            console.log('EXPECTED:\n', e.expected, '\n');
-            console.log("ACTUAL:\n", e.actual, '\n');
-        }
-    }
-    else {
+    // if (test.indexOf("_FLAKY_") === 0) {
+    //     try {
+    //         assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
+    //     }
+    //     catch (e) {
+    //         console.log("Flaky test error!\n");
+    //         console.log("MESSAGE:\n" + e.message, '\n');
+    //         console.log('EXPECTED:\n', e.expected, '\n');
+    //         console.log("ACTUAL:\n", e.actual, '\n');
+    //     }
+    // }
+    // else {
         assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
-    }
+    // }
 }
