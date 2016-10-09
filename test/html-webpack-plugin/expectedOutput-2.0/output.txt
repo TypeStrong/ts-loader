@@ -7,6 +7,6 @@ Child html-webpack-plugin for "index.html":
          Asset    Size  Chunks       Chunk Names
     index.html  553 kB       0       
     chunk    {0} index.html 536 kB [rendered]
-        [0] ./~/html-webpack-plugin/lib/loader.js!./~/html-webpack-plugin/default_index.ejs 550 bytes {0} [built]
-        [1] ./~/html-webpack-plugin/~/lodash/lodash.js 535 kB {0} [built]
+        [0] ./~/html-webpack-plugin/lib/loader.js!./~/html-webpack-plugin/default_index.ejs 540 bytes {0} [built]
+        [1] ./~/lodash/lodash.js 535 kB {0} [built]
         [2] (webpack)/buildin/module.js 241 bytes {0} [built]
