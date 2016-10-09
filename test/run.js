@@ -289,6 +289,12 @@ function getNormalisedFileContent(file, location, test) {
         if (file.indexOf('output.') === 0) {
             fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
 
+            // Convert '/' to '\' and back to '/' so slashes are treated the same
+            // whether running / generated on windows or *nix
+            fileContent = fileContent
+                .replace(new RegExp(regexEscape('/'), 'g'), '\\')
+                .replace(new RegExp(regexEscape('\\'), 'g'), '/');
+
             // ignore flaky in the output.txt paths
             if (testIsFlaky(test)) {
                 fileContent = fileContent.replace(new RegExp(regexEscape(FLAKY), 'g'), '');
