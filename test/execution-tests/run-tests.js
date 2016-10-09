@@ -1,19 +1,17 @@
+'use strict';
+
+var Server = require('karma').Server;
 var fs = require('fs-extra');
 var path = require('path');
 var rimraf = require('rimraf');
 var execSync = require('child_process').execSync;
 
 // Parse command line arguments
-var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 var indexOfSingleTest = process.argv.indexOf('--single-test');
 var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
 
 var passingTests = [];
 var failingTests = [];
-
-// set up new empty staging area
-var stagingPath = path.resolve(__dirname, '../../.test');
-rimraf.sync(stagingPath);
 
 var start = new Date().getTime();
 console.log('Starting to run test suites...\n');
@@ -22,7 +20,7 @@ var versionsHaveBeenReported = false;
 var testDir = __dirname;
 
 if (singleTestToRun) {
-    runTestAsChildProcess(singleTestToRun);
+    runTests(singleTestToRun);
 }
 else {
     // loop through each test directory triggering a test run as child process
@@ -31,7 +29,7 @@ else {
             var testPath = path.join(testDir, testName);
             return fs.statSync(testPath).isDirectory();
         })
-        .forEach(runTestAsChildProcess);
+        .forEach(runTests);
 }
 
 var end = new Date().getTime();
@@ -51,18 +49,44 @@ else {
 
 // --------------------------------------------------------------
 
-function runTestAsChildProcess(testName) {
-    // console.log('Running ' + testName + ' as a child_process')
-    try {
-        var excludeVersions = versionsHaveBeenReported ? ' --exclude-versions' : '';
-        var saveOutput = saveOutputMode ? ' --save-output' : '';
-        versionsHaveBeenReported = true;
+function runTests(testName) {
+    console.log('RUNNING: ' + testName);
 
-        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js ' + excludeVersions + saveOutput + ' ' + testName, { stdio: 'inherit' });
+    var testPath = path.join(testDir, testName);
+    var karmaConfPath = path.join(testPath, 'karma.conf.js');
+
+    console.log('Installing typings into ' + testPath);
+    execSync('typings install', { cwd: testPath, stdio: 'inherit' });
+
+    try {
+        // console.log('Kicking off karma at ' + karmaConfPath);
+        execSync('karma start --reporters mocha --single-run --browsers PhantomJS', { cwd: testPath, stdio: 'inherit' });
 
         passingTests.push(testName);
     }
     catch (err) {
         failingTests.push(testName);
     }
+    // var karmaConfig = {
+    //     configFile: karmaConfPath,
+    //     singleRun: true,
+
+    //     plugins: ['karma-webpack', 'karma-jasmine', 'karma-mocha-reporter', 'karma-sourcemap-loader', 'karma-phantomjs-launcher'],
+    //     reporters: ['mocha']
+    // };
+
+    // new Server(karmaConfig, function (exitCode) {
+    //     karmaCompleted(exitCode, testName);
+    // }).start();
 }
+
+// function karmaCompleted(exitCode, testName) {
+//     if (exitCode !== 0) {
+//         failingTests.push(testName);
+//         console.log('Karma: tests failed with code ' + exitCode);
+//         process.exit(exitCode);
+//     } else {
+//         passingTests.push(testName);
+//         console.log('Karma completed!');
+//     }
+// }
