@@ -31,6 +31,7 @@ if (saveOutputMode) {
 }
 
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
+var FLAKY = '_FLAKY_';
 
 // set up new empty staging area
 var rootPath = path.resolve(__dirname, '..');
@@ -241,8 +242,8 @@ function createTest(test, testPath, options) {
                 expectedFiles.map(function (file) { allFiles[file] = true });
 
                 Object.keys(allFiles).forEach(function (file) {
-                    var actual = getNormalisedFileContent(file, actualOutput);
-                    var expected = getNormalisedFileContent(file, expectedOutput);
+                    var actual = getNormalisedFileContent(file, actualOutput, test);
+                    var expected = getNormalisedFileContent(file, expectedOutput, test);
 
                     compareActualAndExpected(test, actual, expected, patch, file);
                 });
@@ -277,7 +278,7 @@ function pathExists(path) {
     return pathExists;
 }
 
-function getNormalisedFileContent(file, location) {
+function getNormalisedFileContent(file, location, test) {
     var fileContent;
     var filePath = path.join(location, file);
     try {
@@ -287,6 +288,11 @@ function getNormalisedFileContent(file, location) {
         // and doesn't appear to be relevant so safe to ignore
         if (file.indexOf('output.') === 0) {
             fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
+
+            // ignore flaky in the output.txt paths
+            if (testIsFlaky(test)) {
+                fileContent = fileContent.replace(new RegExp(regexEscape(FLAKY), 'g'), '');
+            }
         }
     }
     catch (e) {
@@ -300,7 +306,7 @@ function getNormalisedFileContent(file, location) {
  * Instead, report the differences and carry on
  */
 function compareActualAndExpected(test, actual, expected, patch, file) {
-    // if (test.indexOf("_FLAKY_") === 0) {
+    // if (testIsFlaky(test)) {
     //     try {
     //         assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
     //     }
@@ -312,6 +318,10 @@ function compareActualAndExpected(test, actual, expected, patch, file) {
     //     }
     // }
     // else {
-        assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
+    assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
     // }
+}
+
+function testIsFlaky(testName) {
+    return testName.indexOf(FLAKY) === 0;
 }
