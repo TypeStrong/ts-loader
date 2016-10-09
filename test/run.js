@@ -312,20 +312,20 @@ function getNormalisedFileContent(file, location, test) {
  * Instead, report the differences and carry on
  */
 function compareActualAndExpected(test, actual, expected, patch, file) {
-    // if (testIsFlaky(test)) {
-    //     try {
-    //         assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
-    //     }
-    //     catch (e) {
-    //         console.log("Flaky test error!\n");
-    //         console.log("MESSAGE:\n" + e.message, '\n');
-    //         console.log('EXPECTED:\n', e.expected, '\n');
-    //         console.log("ACTUAL:\n", e.actual, '\n');
-    //     }
-    // }
-    // else {
-    assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
-    // }
+    if (testIsFlaky(test)) {
+        try {
+            assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
+        }
+        catch (e) {
+            console.log("Flaky test error!\n");
+            console.log("MESSAGE:\n" + e.message, '\n');
+            console.log('EXPECTED:\n', e.expected, '\n');
+            console.log("ACTUAL:\n", e.actual, '\n');
+        }
+    }
+    else {
+        assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
+    }
 }
 
 function testIsFlaky(testName) {
