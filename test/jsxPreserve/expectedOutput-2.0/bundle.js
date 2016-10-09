@@ -45,7 +45,8 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
-	var __extends = undefined && undefined.__extends || function (d, b) {
+
+	var __extends = this && this.__extends || function (d, b) {
 	    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
 	    function __() {
 	        this.constructor = d;
@@ -53,7 +54,7 @@
 	    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 	};
 	var React = __webpack_require__(1);
-	var MyComponent = (function (_super) {
+	var MyComponent = function (_super) {
 	    __extends(MyComponent, _super);
 	    function MyComponent() {
 	        _super.apply(this, arguments);
@@ -66,7 +67,7 @@
 	        );
 	    };
 	    return MyComponent;
-	})(React.Component);
+	}(React.Component);
 	React.render(React.createElement(MyComponent, { content: "Hello World" }), document.body);
 
 /***/ },

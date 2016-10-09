@@ -1,7 +1,6 @@
 This test demonstrates the new JSX functionality of TypeScript.
 
-Note that the nightly build of TypeScript is required for this functionality to work.
-Install `typescript@next` to use. Also note that React is not actually bundled here.
+Note that React is not actually bundled here.
 
 This particular test demonstrates the "preserve" capability of TypeScript. In order to be
 used with React it needs to be further transformed with Babel (as seen in this example).

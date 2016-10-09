@@ -46,18 +46,17 @@
 
 	'use strict';
 
-	Object.defineProperty(exports, '__esModule', {
+	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
 
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+	var _submodule = __webpack_require__(1);
 
-	var _submoduleSubmodule = __webpack_require__(1);
+	var _submodule2 = _interopRequireDefault(_submodule);
 
-	var _submoduleSubmodule2 = _interopRequireDefault(_submoduleSubmodule);
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	exports['default'] = _submoduleSubmodule2['default'];
-	module.exports = exports['default'];
+	exports.default = _submodule2.default;
 
 /***/ },
 /* 1 */
@@ -68,8 +67,7 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	exports["default"] = "Hello from submodule";
-	module.exports = exports["default"];
+	exports.default = "Hello from submodule";
 
 /***/ }
 /******/ ]);
