@@ -40,26 +40,23 @@ var stagingPath = path.resolve(rootPath, '.test');
 rimraf.sync(stagingPath);
 
 // loop through each test directory
-fs.readdirSync(__dirname).forEach(function (test) {
-    var testPath = path.join(__dirname, test);
-    if (fs.statSync(testPath).isDirectory()) {
+var test = singleTestToRun;
+var testPath = path.join(__dirname, test);
+if (fs.statSync(testPath).isDirectory()) {
 
-        if (test == 'testLib') return;
+    if (test == 'testLib') return;
 
-        if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
+    if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
 
-        if (singleTestToRun && singleTestToRun !== test) return;
+    describe(test, function () {
+        it('should have the correct output', createTest(test, testPath, {}));
 
-        describe(test, function () {
-            it('should have the correct output', createTest(test, testPath, {}));
-
-            if (test == 'declarationOutput') { return; }
-            if (test == 'declarationWatch') { return; }
-            if (test == 'issue71') { return; }
-            it('should work with transpile', createTest(test, testPath, { transpile: true }));
-        });
-    }
-});
+        if (test == 'declarationOutput') { return; }
+        if (test == 'declarationWatch') { return; }
+        if (test == 'issue71') { return; }
+        it('should work with transpile', createTest(test, testPath, { transpile: true }));
+    });
+}
 
 function createTest(test, testPath, options) {
     return function (done) {
