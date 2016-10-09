@@ -1,9 +1,8 @@
 'use strict';
 
-var Server = require('karma').Server;
+// var Server = require('karma').Server;
 var fs = require('fs-extra');
 var path = require('path');
-var rimraf = require('rimraf');
 var execSync = require('child_process').execSync;
 
 // Parse command line arguments
