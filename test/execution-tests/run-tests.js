@@ -7,8 +7,6 @@ var execSync = require('child_process').execSync;
 var typescript = require('typescript');
 var semver = require('semver');
 
-var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
-
 // Parse command line arguments
 var indexOfSingleTest = process.argv.indexOf('--single-test');
 var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
