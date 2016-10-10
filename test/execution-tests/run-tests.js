@@ -4,6 +4,10 @@
 var fs = require('fs-extra');
 var path = require('path');
 var execSync = require('child_process').execSync;
+var typescript = require('typescript');
+var semver = require('semver');
+
+var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 
 // Parse command line arguments
 var indexOfSingleTest = process.argv.indexOf('--single-test');
@@ -24,10 +28,8 @@ if (singleTestToRun) {
 else {
     // loop through each test directory triggering a test run as child process
     fs.readdirSync(testDir)
-        .filter(function (testName) {
-            var testPath = path.join(testDir, testName);
-            return fs.statSync(testPath).isDirectory();
-        })
+        .filter(isTestDirectory)
+        .filter(isHighEnoughTypeScriptVersion)
         .forEach(runTests);
 }
 
@@ -47,6 +49,23 @@ else {
 }
 
 // --------------------------------------------------------------
+
+function isTestDirectory (testName) {
+    var testPath = path.join(testDir, testName);
+    return fs.statSync(testPath).isDirectory();
+}
+
+function isHighEnoughTypeScriptVersion (testName) {
+    var minTsVersionAndTestName = testName.split('_');
+    if (minTsVersionAndTestName.length === 2) {
+        var minTsVersion = minTsVersionAndTestName[0];
+        if (semver.lt(typescript.version, minTsVersion)) {
+            console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
+            return false;
+        }
+    }
+    return true;
+}
 
 function runTests(testName) {
     console.log('RUNNING: ' + testName);
