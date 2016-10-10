@@ -1,7 +1,13 @@
 var fs = require('fs-extra');
 var path = require('path');
 var rimraf = require('rimraf');
+var typescript = require('typescript');
+var semver = require('semver');
 var execSync = require('child_process').execSync;
+
+// Don't run the tests if using a version of typescript lower than 2.0
+var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
+if (semver.lt(typescript.version, '2.0.0')) return;
 
 // Parse command line arguments
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
@@ -58,7 +64,7 @@ function runTestAsChildProcess(testName) {
         var saveOutput = saveOutputMode ? ' --save-output' : '';
         versionsHaveBeenReported = true;
 
-        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js ' + excludeVersions + saveOutput + ' ' + testName, { stdio: 'inherit' });
+        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + excludeVersions + saveOutput, { stdio: 'inherit' });
 
         passingTests.push(testName);
     }

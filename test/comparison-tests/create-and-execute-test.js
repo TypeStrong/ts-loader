@@ -16,7 +16,8 @@ require('colors').enabled = true;
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 var excludeVersions = process.argv.indexOf('--exclude-versions') !== -1;
 
-var testToRun = process.argv[process.argv.length - 1];
+var indexOfTestToRun = process.argv.indexOf('--test-to-run');
+var testToRun = process.argv[indexOfTestToRun + 1];
 
 var savedOutputs = {};
 
@@ -37,7 +38,6 @@ var rootPath = path.resolve(__dirname, '../../');
 var rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
 var stagingPath = path.resolve(rootPath, '.test');
 
-// loop through each test directory
 var testPath = path.join(__dirname, testToRun);
 if (fs.statSync(testPath).isDirectory()) {
 
