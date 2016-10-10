@@ -1,14 +1,10 @@
 {
-  "compileOnSave": false,
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "module": "es2015",
-    "moduleResolution": "node",
     "noEmitOnError": false,
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "removeComments": false,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es2015"
+    "target": "es6"
   }
 }
