@@ -10,6 +10,7 @@ var semver = require('semver');
 // Parse command line arguments
 var indexOfSingleTest = process.argv.indexOf('--single-test');
 var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
+var watch = process.argv.indexOf('--watch') && !!singleTestToRun;
 
 var passingTests = [];
 var failingTests = [];
@@ -75,34 +76,12 @@ function runTests(testName) {
     execSync('typings install', { cwd: testPath, stdio: 'inherit' });
 
     try {
-        // console.log('Kicking off karma at ' + karmaConfPath);
-        execSync('karma start --reporters mocha --single-run --browsers PhantomJS', { cwd: testPath, stdio: 'inherit' });
+        var singleRunOrWatch = watch ? '' : ' --single-run';
+        execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers PhantomJS', { cwd: testPath, stdio: 'inherit' });
 
         passingTests.push(testName);
     }
     catch (err) {
         failingTests.push(testName);
     }
-    // var karmaConfig = {
-    //     configFile: karmaConfPath,
-    //     singleRun: true,
-
-    //     plugins: ['karma-webpack', 'karma-jasmine', 'karma-mocha-reporter', 'karma-sourcemap-loader', 'karma-phantomjs-launcher'],
-    //     reporters: ['mocha']
-    // };
-
-    // new Server(karmaConfig, function (exitCode) {
-    //     karmaCompleted(exitCode, testName);
-    // }).start();
 }
-
-// function karmaCompleted(exitCode, testName) {
-//     if (exitCode !== 0) {
-//         failingTests.push(testName);
-//         console.log('Karma: tests failed with code ' + exitCode);
-//         process.exit(exitCode);
-//     } else {
-//         passingTests.push(testName);
-//         console.log('Karma completed!');
-//     }
-// }
