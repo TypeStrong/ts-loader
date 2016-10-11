@@ -138,7 +138,7 @@ and [`.travis.yml`](.travis.yml) for details.)
 
 #### Structure
 
-The comparison test pack can be found under `/test/execution-tests`.
+The execution test pack can be found under `/test/execution-tests`.
 Like the comparison test pack, the execution test pack uses certain conventions.
 All tests have their own directory under `/test/execution-tests`, eg `/test/execution-tests/someFeature`. 
 Each test is expected to have a `karma.conf.js` file and a `webpack.config.js` file.
@@ -148,7 +148,7 @@ prefixed with the minimum TypeScript version.  For example, the `2.0.3_es2016` t
 a minimum TypeScript version of 2.0.3; if the installed version is lower than the test
 needs then the test will be skipped.
 
-** IMPORTANT **
+**IMPORTANT**
 
 In order that the local version of ts-loader is resolved for tests a `webpack.config.js` file will need
 to include this line:
@@ -156,6 +156,7 @@ to include this line:
 ```
 // for test harness purposes only, you would not need this in a normal project
 module.exports.resolveLoader = { alias: { 'ts-loader': path.join(__dirname, "../../../index.js") } }
+// note that there are 3 ../ here as compared with only 2 for the comparison tests
 ```
 
 And likewise the `karma.conf.js` will need to reuse this like so:
@@ -174,8 +175,7 @@ And likewise the `karma.conf.js` will need to reuse this like so:
     },
 ```
 
-Without this the test won't be able to resolve ts-loader and won't find your TypeScript
-tests.
+Without this, the test won't be able to resolve ts-loader and webpack won't find your TypeScript tests.
 
 #### What sort of tests can be included?
 
