@@ -1,9 +1,8 @@
 'use strict';
 
-var webpack = require('webpack');
+var webpackVersion = require('webpack/package.json').version;
 var typescript = require('typescript');
 var execSync = require('child_process').execSync;
-
 
 console.log('Using webpack version ' + webpackVersion);
 console.log('Using typescript version ' + typescript.version);
