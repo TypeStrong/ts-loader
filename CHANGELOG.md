@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.1
+
+- [Normalize dependency graph paths - Fix broken dependencies on Windows ](https://github.com/TypeStrong/ts-loader/pull/286)
+- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/pull/307) (#214 part deux)
+
 ## v0.9.0
 
 - [Made ts-loader compatible with node v6](https://github.com/TypeStrong/ts-loader/commit/a4f835345e495f45b40365f025afce72d1817996)
