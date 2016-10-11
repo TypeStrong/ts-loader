@@ -1,16 +1,26 @@
-import { adder } from "../src/simple";
+import exportedValue, { adder } from "../src/simple";
 
 describe("simple", () => {
-  it("adder can add 2 numbers", () => {
+  it("import destructuring works as expected", () => {
     expect(adder(1, 4)).toBe(5);
   });
 
-  // it("Array.prototype.includes works", () => {
-  //   const result = [1, 2, 3].includes(2);
-  //   expect(result).toBe(true);
-  // });
+  it("import default works as expected", () => {
+    expect(exportedValue).toBe("Edmund");
+  });
 
-  // it("Exponentiation operator works", () => {
-  //   expect(1 ** 2 === Math.pow(1, 2)).toBe(true);
-  // });
+  it("Promise works", done => {
+    new Promise<number>((resolve, reject) => {
+      resolve(5);
+    }).then(result => {
+      expect(result).toBe(5);
+      done();
+    });
+  });
+
+  it("Destructuring works", () => {
+    const [ first, ...others ] = ["john", "benjamin", "james", "lisette"];
+    expect(first).toBe("john")
+    expect(others).toEqual(["benjamin", "james", "lisette"])
+  });
 });
