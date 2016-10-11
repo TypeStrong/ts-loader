@@ -58,6 +58,7 @@ if (fs.statSync(testPath).isDirectory()) {
 function createTest(test, testPath, options) {
     return function (done) {
         this.timeout(60000); // sometimes it just takes awhile
+        var doneHasBeenCalled = false;
 
         // set up paths
         var testStagingPath = path.join(stagingPath, test + (options.transpile ? '.transpile' : '')),
@@ -255,7 +256,12 @@ function createTest(test, testPath, options) {
             }
             else {
                 watcher.close(function () {
-                    done();
+                    // done is occasionally called twice for no known reason
+                    // when this happens the build fails with "Error: done() called multiple times" - not a meaningful failure
+                    if (!doneHasBeenCalled) {
+                        doneHasBeenCalled = true;
+                        done();
+                    }
                 });
             }
         });
@@ -306,9 +312,11 @@ function getNormalisedFileContent(file, location, test) {
  * Instead, report the differences and carry on
  */
 function compareActualAndExpected(test, actual, expected, patch, file) {
+    const actualString = actual.toString();
+    const expectedString = expected.toString();
     if (testIsFlaky(test)) {
         try {
-            assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
+            assert.equal(actualString, expectedString, (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
         }
         catch (e) {
             console.log("Flaky test error!\n");
@@ -318,7 +326,7 @@ function compareActualAndExpected(test, actual, expected, patch, file) {
         }
     }
     else {
-        assert.equal(actual.toString(), expected.toString(), (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
+        assert.equal(actualString, expectedString, (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
     }
 }
 
