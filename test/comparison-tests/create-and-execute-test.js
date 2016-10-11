@@ -16,8 +16,8 @@ require('colors').enabled = true;
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 var excludeVersions = process.argv.indexOf('--exclude-versions') !== -1;
 
-var indexOfSingleTest = process.argv.indexOf('--single-test');
-var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
+var indexOfTestToRun = process.argv.indexOf('--test-to-run');
+var testToRun = process.argv[indexOfTestToRun + 1];
 
 var savedOutputs = {};
 
@@ -33,28 +33,25 @@ if (saveOutputMode) {
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 var FLAKY = '_FLAKY_';
 
-// set up new empty staging area
-var rootPath = path.resolve(__dirname, '..');
+// set up new paths
+var rootPath = path.resolve(__dirname, '../../');
 var rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
 var stagingPath = path.resolve(rootPath, '.test');
-rimraf.sync(stagingPath);
 
-// loop through each test directory
-var test = singleTestToRun;
-var testPath = path.join(__dirname, test);
+var testPath = path.join(__dirname, testToRun);
 if (fs.statSync(testPath).isDirectory()) {
 
-    if (test == 'testLib') return;
+    if (testToRun == 'testLib') return;
 
-    if (test == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
+    if (testToRun == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
 
-    describe(test, function () {
-        it('should have the correct output', createTest(test, testPath, {}));
+    describe(testToRun, function () {
+        it('should have the correct output', createTest(testToRun, testPath, {}));
 
-        if (test == 'declarationOutput') { return; }
-        if (test == 'declarationWatch') { return; }
-        if (test == 'issue71') { return; }
-        it('should work with transpile', createTest(test, testPath, { transpile: true }));
+        if (testToRun == 'declarationOutput') { return; }
+        if (testToRun == 'declarationWatch') { return; }
+        if (testToRun == 'issue71') { return; }
+        it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
     });
 }
 

@@ -6,5 +6,6 @@ bundle.js
 npm-debug.log
 .test/
 !/test/**/expectedOutput-*/**
+!/test/**/typings/**
 /node_modules
 !build.js
