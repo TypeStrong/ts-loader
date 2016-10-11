@@ -136,16 +136,59 @@ These tests are executed more widely that the comparison tests; we aim to run th
 version of TypeScript defined in our CI build matrices. (Take a look at [`appveyor.yml`](appveyor.yml)
 and [`.travis.yml`](.travis.yml) for details.)
 
+#### Structure
+
 The comparison test pack can be found under `/test/execution-tests`.
 Like the comparison test pack, the execution test pack uses certain conventions.
 All tests have their own directory under `/test/execution-tests`, eg `/test/execution-tests/someFeature`. 
 Each test is expected to have a `karma.conf.js` file and a `webpack.config.js` file.
 
-It's pretty much your choice what goes in testwise.  At present there are only Jasmine tests in place;
+If a test requires a minimum version of TypeScript then the test directory should be
+prefixed with the minimum TypeScript version.  For example, the `2.0.3_es2016` test requires
+a minimum TypeScript version of 2.0.3; if the installed version is lower than the test
+needs then the test will be skipped.
+
+** IMPORTANT **
+
+In order that the local version of ts-loader is resolved for tests a `webpack.config.js` file will need
+to include this line:
+
+```
+// for test harness purposes only, you would not need this in a normal project
+module.exports.resolveLoader = { alias: { 'ts-loader': path.join(__dirname, "../../../index.js") } }
+```
+
+And likewise the `karma.conf.js` will need to reuse this like so:
+
+```
+    webpack: {
+      devtool: 'inline-source-map',
+      debug: true,
+      module: {
+          loaders: webpackConfig.module.loaders
+      },
+      resolve: webpackConfig.resolve,
+
+      // for test harness purposes only, you would not need this in a normal project
+      resolveLoader: webpackConfig.resolveLoader
+    },
+```
+
+Without this the test won't be able to resolve ts-loader and won't find your TypeScript
+tests.
+
+#### What sort of tests can be included?
+
+It's pretty much your choice what goes in testwise.  
+At present there are only Jasmine tests in place;
 it should be possible to put any test in place that Karma is compatible with. The test pack also expects
 a `typings.json` file and calls `typings install` in each. **Be warned, type definitions are not installed
-until the test framework has been run.**  It's possible / probably that this may changed in the future; 
+until the test framework has been run.**  So if you're wanting to refactor a test you'll need to 
+`typings install` if the requisite typings have not yet been installed. It's possible / probably 
+that this may changed in the future; 
 particularly to cater for situations where types should be acquired via npm etc.
+
+#### Running / debugging the tests
 
 To run all the tests use:
 
