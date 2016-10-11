@@ -60,13 +60,11 @@ else {
 // --------------------------------------------------------------
 
 function runTestAsChildProcess(testName) {
-    // console.log('Running ' + testName + ' as a child_process')
     try {
-        var excludeVersions = versionsHaveBeenReported ? ' --exclude-versions' : '';
         var saveOutput = saveOutputMode ? ' --save-output' : '';
         versionsHaveBeenReported = true;
 
-        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + excludeVersions + saveOutput, { stdio: 'inherit' });
+        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + saveOutput, { stdio: 'inherit' });
 
         passingTests.push(testName);
     }
