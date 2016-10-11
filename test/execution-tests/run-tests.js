@@ -10,7 +10,7 @@ var semver = require('semver');
 // Parse command line arguments
 var indexOfSingleTest = process.argv.indexOf('--single-test');
 var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
-var watch = process.argv.indexOf('--watch') && !!singleTestToRun;
+var watch = process.argv.indexOf('--watch') !== -1 && !!singleTestToRun;
 
 var passingTests = [];
 var failingTests = [];
