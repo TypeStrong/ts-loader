@@ -1,0 +1,8 @@
+{
+	"compilerOptions": {
+		
+	},
+	"files": [
+		"require.d.ts"
+	]
+}
