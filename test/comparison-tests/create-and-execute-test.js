@@ -14,17 +14,11 @@ var glob = require('glob');
 require('colors').enabled = true;
 
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
-var excludeVersions = process.argv.indexOf('--exclude-versions') !== -1;
 
 var indexOfTestToRun = process.argv.indexOf('--test-to-run');
 var testToRun = process.argv[indexOfTestToRun + 1];
 
 var savedOutputs = {};
-
-if (!excludeVersions) {
-    console.log('Using webpack version ' + webpackVersion);
-    console.log('Using typescript version ' + typescript.version);
-}
 
 if (saveOutputMode) {
     console.log('Will save output as --save-output was supplied...');
