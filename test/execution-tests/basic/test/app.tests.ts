@@ -1,6 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-/// <reference path="../lib/externalLib.d.ts" />
-
 import submodule = require('../src/submodule/submodule');
 import externalLib = require('externalLib');
 

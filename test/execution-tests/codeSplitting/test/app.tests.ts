@@ -1,6 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-/// <reference path="../require.d.ts" />
-
 // This test has been ported from the comparison test pack
 // ... perhaps it belongs better there though. Will keep for now.
 
