@@ -16,6 +16,7 @@ var semver = require('semver')
 require('colors');
 
 const console = new Console(process.stderr);
+const infoConsole = new Console(process.stdout);
 
 var pushArray = function(arr, toPush) {
     Array.prototype.splice.apply(arr, [0, 0].concat(toPush));
@@ -154,6 +155,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         }
     }
 
+    function logInfo(...messages: string[]): void {
+        if (!loaderOptions.silent) {
+            infoConsole.log.apply(console, messages);
+        }
+    }
+
     if (hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }
@@ -209,8 +216,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         error?: typescript.Diagnostic;
     };
     if (configFilePath) {
-        if (compilerCompatible) log(`${motd} and ${configFilePath}`.green)
-        else log(`ts-loader: Using config file at ${configFilePath}`.green)
+        if (compilerCompatible) logInfo(`${motd} and ${configFilePath}`.green)
+        else logInfo(`ts-loader: Using config file at ${configFilePath}`.green)
 
         // HACK: relies on the fact that passing an extra argument won't break
         // the old API that has a single parameter
@@ -225,7 +232,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         }
     }
     else {
-        if (compilerCompatible) log(motd.green)
+        if (compilerCompatible) logInfo(motd.green)
 
         configFile = {
             config: {
