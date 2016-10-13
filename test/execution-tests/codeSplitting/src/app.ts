@@ -1,5 +1,3 @@
-/// <reference path="../require.d.ts" />
-
 import a = require('./a');
 import b = require('./b');
 // modules c and d won't actually be emitted as "require" calls here
