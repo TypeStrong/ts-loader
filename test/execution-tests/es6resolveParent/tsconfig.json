@@ -2,7 +2,6 @@
 	"compilerOptions": {
 		"target": "es6",
         "moduleResolution": "node",
-	    "module": "es6",
         "jsx": "react"
 	}
 }
