@@ -156,27 +156,31 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // `instance` property.
 function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { instance?: TSInstance, error?: WebpackError } {
 
-    function log(console:any, messages: string[]): void {
+    function log(...messages: string[]): void {
+        logToConsole(stdoutConsole, messages);
+    }
+
+    function logToConsole(logConsole:any, messages: string[]): void {
         if (!loaderOptions.silent) {
-            console.log.apply(console, messages);
+            console.log.apply(logConsole, messages);
         }
     }
 
     function logInfo(...messages: string[]): void {
         if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.INFO) {
-            log(stdoutConsole, messages);
+            logToConsole(stdoutConsole, messages);
         }
     }
 
     function logError(...messages: string[]): void {
         if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.ERROR) {
-            log(stderrConsole, messages);
+            logToConsole(stderrConsole, messages);
         }
     }
 
     function logWarning(...messages: string[]): void {
         if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.WARN) {
-            log(stderrConsole, messages);
+            logToConsole(stderrConsole, messages);
         }
     }
 
