@@ -121,6 +121,11 @@ different dependencies in your application will be lost. You should also
 set the `isolatedModules` TypeScript option if you plan to ever make use
 of this.
 
+##### logLevel *(string) (default=info)*
+
+Can be `info`, `warn` or `error` which limits the log output to the specified log level.
+Beware of the fact that errors are written to stderr and everything else is written to stdout.
+
 ##### silent *(boolean) (default=false)*
 
 If true, no console.log messages will be emitted. Note that most error

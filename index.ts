@@ -15,8 +15,8 @@ var Console = require('console').Console;
 var semver = require('semver')
 require('colors');
 
-const console = new Console(process.stderr);
-const infoConsole = new Console(process.stdout);
+const stderrConsole = new Console(process.stderr);
+const stdoutConsole = new Console(process.stdout);
 
 var pushArray = function(arr, toPush) {
     Array.prototype.splice.apply(arr, [0, 0].concat(toPush));
@@ -26,8 +26,15 @@ function hasOwnProperty(obj, property) {
     return Object.prototype.hasOwnProperty.call(obj, property)
 }
 
+enum LogLevel {
+    INFO = 1,
+    WARN = 2,
+    ERROR = 3
+}
+
 interface LoaderOptions {
     silent: boolean;
+    logLevel: string;
     instance: string;
     compiler: string;
     configFileName: string;
@@ -149,15 +156,27 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // `instance` property.
 function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { instance?: TSInstance, error?: WebpackError } {
 
-    function log(...messages: string[]): void {
+    function log(console:any, messages: string[]): void {
         if (!loaderOptions.silent) {
             console.log.apply(console, messages);
         }
     }
 
     function logInfo(...messages: string[]): void {
-        if (!loaderOptions.silent) {
-            infoConsole.log.apply(console, messages);
+        if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.INFO) {
+            log(stdoutConsole, messages);
+        }
+    }
+
+    function logError(...messages: string[]): void {
+        if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.ERROR) {
+            log(stderrConsole, messages);
+        }
+    }
+
+    function logWarning(...messages: string[]): void {
+        if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.WARN) {
+            log(stderrConsole, messages);
         }
     }
 
@@ -187,11 +206,11 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             compilerCompatible = true;
         }
         else {
-            log(`${motd}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
+            logError(`${motd}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
         }
     }
     else {
-        log(`${motd}. This version may or may not be compatible with ts-loader.`.yellow);
+        logWarning(`${motd}. This version may or may not be compatible with ts-loader.`.yellow);
     }
 
     var files = <TSFiles>{};
@@ -545,6 +564,7 @@ function loader(contents) {
 
     var options = objectAssign<LoaderOptions>({}, {
         silent: false,
+        logLevel: 'info',
         instance: 'default',
         compiler: 'typescript',
         configFileName: 'tsconfig.json',
