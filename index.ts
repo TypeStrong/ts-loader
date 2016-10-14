@@ -35,6 +35,7 @@ enum LogLevel {
 interface LoaderOptions {
     silent: boolean;
     logLevel: string;
+    logInfoToStdOut: boolean;
     instance: string;
     compiler: string;
     configFileName: string;
@@ -168,7 +169,11 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     function logInfo(...messages: string[]): void {
         if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.INFO) {
-            logToConsole(stdoutConsole, messages);
+            if(loaderOptions.logInfoToStdOut) {
+                logToConsole(stdoutConsole, messages);
+            } else {
+                logToConsole(stderrConsole, messages);
+            }
         }
     }
 
@@ -569,6 +574,7 @@ function loader(contents) {
     var options = objectAssign<LoaderOptions>({}, {
         silent: false,
         logLevel: 'info',
+        logInfoToStdOut: false,
         instance: 'default',
         compiler: 'typescript',
         configFileName: 'tsconfig.json',
