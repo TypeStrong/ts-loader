@@ -73,11 +73,6 @@ interface ResolvedModule {
     isExternalLibraryImport?: boolean;
 }
 
-interface TSSystemSubSet {
-    directoryExists(path: string): boolean;
-    getDirectories(path: string): string[];
-}
-
 interface TSCompatibleCompiler {
     // typescript@next 1.7+
     readConfigFile(fileName: string, readFile: (path: string) => string): {
@@ -373,12 +368,12 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
          * getDirectories is also required for full import and type reference completions.
          * Without it defined, certain completions will not be provided
          */
-        getDirectories: typescript.sys ? (<TSSystemSubSet>typescript.sys).getDirectories : undefined,
+        getDirectories: typescript.sys ? (<any>typescript.sys).getDirectories : undefined,
 
         /**
          * For @types expansion, these two functions are needed.
          */
-        directoryExists: typescript.sys ? (<TSSystemSubSet>typescript.sys).directoryExists : undefined,
+        directoryExists: typescript.sys ? (<any>typescript.sys).directoryExists : undefined,
         getCurrentDirectory: () => process.cwd(),
 
         getCompilationSettings: () => compilerOptions,
