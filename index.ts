@@ -200,7 +200,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     var compilerOptions: typescript.CompilerOptions = {
         skipDefaultLibCheck: true,
-        suppressOutputPathCheck: true
+        suppressOutputPathCheck: true // This is why: https://github.com/Microsoft/TypeScript/issues/7363
     };
 
     // Load any available tsconfig.json file
