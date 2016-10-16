@@ -364,7 +364,18 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
             return compiler.ScriptSnapshot.fromString(file.text);
         },
+        /**
+         * getDirectories is also required for full import and type reference completions.
+         * Without it defined, certain completions will not be provided
+         */
+        getDirectories: typescript.sys ? typescript.sys.getDirectories : undefined,
+
+        /**
+         * For @types expansion, these two functions are needed.
+         */
+        directoryExists: typescript.sys ? typescript.sys.directoryExists : undefined,
         getCurrentDirectory: () => process.cwd(),
+
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
