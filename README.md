@@ -139,15 +139,15 @@ different dependencies in your application will be lost. You should also
 set the `isolatedModules` TypeScript option if you plan to ever make use
 of this.
 
-##### logLevel *(string) (default=info)*
-
-Can be `info`, `warn` or `error` which limits the log output to the specified log level.
-Beware of the fact that errors are written to stderr and everything else is written to stdout.
-
 ##### logInfoToStdOut *(boolean) (default=false)*
 
 This is important if you read from stdout or stderr and for proper error handling.
 The default value ensures that you can read from stdout e.g. via pipes or you use webpack -j to generate json output.
+
+##### logLevel *(string) (default=info)*
+
+Can be `info`, `warn` or `error` which limits the log output to the specified log level.
+Beware of the fact that errors are written to stderr and everything else is written to stderr (or stdout if logInfoToStdOut is true).
 
 ##### silent *(boolean) (default=false)*
 
