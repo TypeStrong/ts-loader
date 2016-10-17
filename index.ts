@@ -156,9 +156,8 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // or returns the existing one. Multiple instances are possible by using the
 // `instance` property.
 function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { instance?: TSInstance, error?: WebpackError } {
-
     function log(...messages: string[]): void {
-        logToConsole(stdoutConsole, messages);
+        logToConsole(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages);
     }
 
     function logToConsole(logConsole:any, messages: string[]): void {
@@ -169,11 +168,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
     function logInfo(...messages: string[]): void {
         if (LogLevel[loaderOptions.logLevel] <= LogLevel.INFO) {
-            if(loaderOptions.logInfoToStdOut) {
-                logToConsole(stdoutConsole, messages);
-            } else {
-                logToConsole(stderrConsole, messages);
-            }
+            logToConsole(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages);
         }
     }
 

@@ -1,9 +1,9 @@
 # Changelog
 
-## v0.9.x - not released yet
+## v0.9.4
 
-- [Make logging to stderr or stdout configurable; introduce logging levels](https://github.com/TypeStrong/ts-loader/pull/313) [#214]
-- [Fix regression that broke hot module replacement](https://github.com/TypeStrong/ts-loader/pull/322) [#321]
+- [Make logging to stderr or stdout configurable; introduce logging levels](https://github.com/TypeStrong/ts-loader/pull/313) [#214] - thanks @ThYpHo0n
+- [Fix regression that broke hot module replacement](https://github.com/TypeStrong/ts-loader/pull/322) [#321] - thanks @dopare
 
 ## v0.9.3
 
