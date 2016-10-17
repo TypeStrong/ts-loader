@@ -168,7 +168,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     }
 
     function logInfo(...messages: string[]): void {
-        if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.INFO) {
+        if (LogLevel[loaderOptions.logLevel] <= LogLevel.INFO) {
             if(loaderOptions.logInfoToStdOut) {
                 logToConsole(stdoutConsole, messages);
             } else {
@@ -178,13 +178,13 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     }
 
     function logError(...messages: string[]): void {
-        if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.ERROR) {
+        if (LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR) {
             logToConsole(stderrConsole, messages);
         }
     }
 
     function logWarning(...messages: string[]): void {
-        if (LogLevel[loaderOptions.logLevel.toUpperCase()] <= LogLevel.WARN) {
+        if (LogLevel[loaderOptions.logLevel] <= LogLevel.WARN) {
             logToConsole(stderrConsole, messages);
         }
     }
@@ -591,7 +591,7 @@ function loader(contents) {
 
     var options = objectAssign<LoaderOptions>({}, {
         silent: false,
-        logLevel: 'info',
+        logLevel: LogLevel.INFO,
         logInfoToStdOut: false,
         instance: 'default',
         compiler: 'typescript',
@@ -600,6 +600,7 @@ function loader(contents) {
         compilerOptions: {}
     }, configFileOptions, queryOptions);
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
+    options.logLevel = options.logLevel.toUpperCase();
 
     // differentiate the TypeScript instance based on the webpack instance
     var webpackIndex = webpackInstances.indexOf(this._compiler);
