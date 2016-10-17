@@ -1,0 +1,40 @@
+{
+    "authors": "Boris Yankov <https://github.com/borisyankov/>, Theodore Brown <https://github.com/theodorejb>, David Pärsson <https://github.com/davidparsson/>",
+    "definitionFilename": "index.d.ts",
+    "libraryDependencies": [],
+    "moduleDependencies": [],
+    "libraryMajorVersion": "2",
+    "libraryMinorVersion": "5",
+    "libraryName": "Jasmine 2.5",
+    "typingsPackageName": "jasmine",
+    "projectName": "http://jasmine.github.io/",
+    "sourceRepoURL": "https://www.github.com/DefinitelyTyped/DefinitelyTyped",
+    "sourceBranch": "types-2.0",
+    "kind": "Global",
+    "globals": [
+        "afterAll",
+        "afterEach",
+        "beforeAll",
+        "beforeEach",
+        "describe",
+        "expect",
+        "fail",
+        "fdescribe",
+        "fit",
+        "it",
+        "jasmine",
+        "pending",
+        "runs",
+        "spyOn",
+        "waits",
+        "waitsFor",
+        "xdescribe",
+        "xit"
+    ],
+    "declaredModules": [],
+    "files": [
+        "index.d.ts"
+    ],
+    "hasPackageJson": false,
+    "contentHash": "342ad787ae1d9085f9cb2f352460449c601a7fbda833a19bb87aa2787dbc9ec3"
+}

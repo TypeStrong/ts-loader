@@ -67,7 +67,8 @@ function isHighEnoughTypeScriptVersion (testName) {
 }
 
 function runTests(testName) {
-    console.log('RUNNING: ' + testName);
+    console.log('\n-------------------------------------------------------------------------\n');
+    console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
 
     var testPath = path.join(testDir, testName);
     var karmaConfPath = path.join(testPath, 'karma.conf.js');

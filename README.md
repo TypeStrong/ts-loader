@@ -5,9 +5,34 @@
 
 # TypeScript loader for webpack
 
+This is the typescript loader for webpack.
+
 ## Getting Started
 
 Tutorials and examples can be [found here](https://github.com/TypeStrong/ts-loader/wiki/Tutorials-&-Examples).
+
+### Compatibility
+
+ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
+
+A full test suite runs against the following versions of TypeScript each night (and on each pull request):
+- TypeScript 2.0
+- TypeScript 1.8
+- TypeScript 1.7
+- TypeScript 1.6
+
+and also: 
+- TypeScript@next (because we want to use it as much as you do)
+
+If you become aware of issues not caught by the test suite then please let us know.
+
+### Babel
+
+ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples).
+
+### Contributing
+
+This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributer's guide](CONTRIBUTING.md) to get started.
 
 ### Installation
 
@@ -28,21 +53,10 @@ npm install typescript -g
 npm link typescript
 ```
 
-### Upgrading
-
-Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
-
 ### Running
 
 Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
 build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
-
-### Compatibility
-
-The current version is compatible with TypeScript 1.6 and above, including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).
-You may experience issues using the nightly build due to its nature, but a full test suite runs
-against the latest nightly every day to catch incompatibilites early. Please report any issues
-you experience with the nightly so that they can be fixed promptly.
 
 ### Configuration
 
@@ -90,6 +104,10 @@ same options. TypeScript files from all subdirectories will get included except 
 When the build fails (i.e. at least one typescript compile error occured), ts-loader does **not** propagate the build failure to webpack.  The upshot of this is you can fail to notice an erroring build. This is inconvenient; particularly in continuous integration scenarios.  If you want to ensure that the build failure is propogated it is advised that you make use of the [webpack-fail-plugin](https://www.npmjs.com/package/webpack-fail-plugin).  This plugin that will make the process return status code 1 when it finishes with errors in single-run mode. Et voilà! Build failure.
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
+
+### Upgrading
+
+Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
 
 #### Options
 
@@ -183,10 +201,6 @@ require('!style!css!./style.css');
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/codeSplitting) for more details.
-
-## Contributing
-
-Please see the [contributer's guide](CONTRIBUTING.md).
 
 ## License
 

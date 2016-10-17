@@ -9,7 +9,7 @@ module.exports = function(config) {
     browsers: [ 'PhantomJS' ],
 
     files: [
-      // This ensures we have the es6 shims in place from babel and then loads all the tests
+      // This loads all the tests
       'main.js'
     ],
 

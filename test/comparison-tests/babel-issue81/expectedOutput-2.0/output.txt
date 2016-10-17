@@ -2,4 +2,4 @@
     bundle.js  2.76 kB       0  [emitted]  main
 bundle.js.map  1.66 kB       0  [emitted]  main
 chunk    {0} bundle.js, bundle.js.map (main) 1.23 kB [rendered]
-    [0] ./.test/issue81/a.ts 1.23 kB {0} [built]
+    [0] ./.test/babel-issue81/a.ts 1.23 kB {0} [built]

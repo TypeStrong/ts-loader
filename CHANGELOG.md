@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.3
+
+- [Added support for allowJs](https://github.com/TypeStrong/ts-loader/pull/320) (#316)
+
+## v0.9.2
+
+- [Added support for @types](https://github.com/TypeStrong/ts-loader/pull/318) (#247)
+
 ## v0.9.1
 
 - [Normalize dependency graph paths - Fix broken dependencies on Windows ](https://github.com/TypeStrong/ts-loader/pull/286)

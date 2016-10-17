@@ -101,7 +101,7 @@ interface TSCompatibleCompiler {
 
 var instances = <TSInstances>{};
 var webpackInstances = [];
-const scriptRegex = /\.tsx?$/i;
+let scriptRegex = /\.tsx?$/i;
 
 // Take TypeScript errors, parse them and format to webpack errors
 // Optionally adds a file name
@@ -234,6 +234,8 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     };
 
     var compilerOptions: typescript.CompilerOptions = {
+        skipDefaultLibCheck: true,
+        suppressOutputPathCheck: true // This is why: https://github.com/Microsoft/TypeScript/issues/7363
     };
 
     // Load any available tsconfig.json file
@@ -277,6 +279,11 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     // do any necessary config massaging
     if (loaderOptions.transpileOnly) {
         configFile.config.compilerOptions.isolatedModules = true;
+    }
+
+    // if allowJs is set then we should accept js(x) files
+    if (configFile.config.compilerOptions.allowJs) {
+        scriptRegex = /\.tsx?$|\.jsx?$/i;
     }
 
     var configParseResult;
@@ -399,7 +406,18 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
             return compiler.ScriptSnapshot.fromString(file.text);
         },
+        /**
+         * getDirectories is also required for full import and type reference completions.
+         * Without it defined, certain completions will not be provided
+         */
+        getDirectories: typescript.sys ? (<any>typescript.sys).getDirectories : undefined,
+
+        /**
+         * For @types expansion, these two functions are needed.
+         */
+        directoryExists: typescript.sys ? (<any>typescript.sys).directoryExists : undefined,
         getCurrentDirectory: () => process.cwd(),
+
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
@@ -414,7 +432,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 try {
                     resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName)
 
-                    if (!resolvedFileName.match(/\.tsx?$/)) resolvedFileName = null;
+                    if (!resolvedFileName.match(scriptRegex)) resolvedFileName = null;
                     else resolutionResult = { resolvedFileName };
                 }
                 catch (e) { resolvedFileName = null }
