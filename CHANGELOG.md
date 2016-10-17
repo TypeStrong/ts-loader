@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.9.x - not released yet
+
+- [Make logging to stderr or stdout configurable; introduce logging levels](https://github.com/TypeStrong/ts-loader/pull/313) [#214]
+- [Fix regression that broke hot module replacement](https://github.com/TypeStrong/ts-loader/pull/322) [#321]
+
 ## v0.9.3
 
 - [Added support for allowJs](https://github.com/TypeStrong/ts-loader/pull/320) (#316)
