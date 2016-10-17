@@ -591,7 +591,7 @@ function loader(contents) {
 
     var options = objectAssign<LoaderOptions>({}, {
         silent: false,
-        logLevel: LogLevel.INFO,
+        logLevel: 'INFO',
         logInfoToStdOut: false,
         instance: 'default',
         compiler: 'typescript',
