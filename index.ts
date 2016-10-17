@@ -157,7 +157,7 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // `instance` property.
 function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { instance?: TSInstance, error?: WebpackError } {
     function log(...messages: string[]): void {
-        logToConsole(stdoutConsole, messages);
+        logToConsole(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages);
     }
 
     function logToConsole(logConsole:any, messages: string[]): void {
