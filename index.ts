@@ -156,6 +156,10 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
 // or returns the existing one. Multiple instances are possible by using the
 // `instance` property.
 function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { instance?: TSInstance, error?: WebpackError } {
+    function log(...messages: string[]): void {
+        logToConsole(stdoutConsole, messages);
+    }
+
     function logToConsole(logConsole:any, messages: string[]): void {
         if (!loaderOptions.silent) {
             console.log.apply(logConsole, messages);
