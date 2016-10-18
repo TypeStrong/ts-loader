@@ -1,5 +1,9 @@
 # Upgrade Guide
 
+## v0.8.x to 0.9.x
+
+No breaking changes known of; if there are then let us know!
+
 ## v0.7.x to 0.8.x
 
 This release has two breaking changes:

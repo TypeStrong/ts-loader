@@ -1,5 +1,31 @@
 # Changelog
 
+## v0.9.4
+
+- [Make logging to stderr or stdout configurable; introduce logging levels](https://github.com/TypeStrong/ts-loader/pull/313) [#214] - thanks @ThYpHo0n
+- [Fix regression that broke hot module replacement](https://github.com/TypeStrong/ts-loader/pull/322) [#321] - thanks @dopare
+
+## v0.9.3
+
+- [Added support for allowJs](https://github.com/TypeStrong/ts-loader/pull/320) (#316)
+
+## v0.9.2
+
+- [Added support for @types](https://github.com/TypeStrong/ts-loader/pull/318) (#247)
+
+## v0.9.1
+
+- [Normalize dependency graph paths - Fix broken dependencies on Windows ](https://github.com/TypeStrong/ts-loader/pull/286)
+- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/pull/307) (#214 part deux)
+
+## v0.9.0
+
+- [Made ts-loader compatible with node v6](https://github.com/TypeStrong/ts-loader/commit/a4f835345e495f45b40365f025afce72d1817996)
+- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/commit/3bb0fec73a2fab47953b51d256f0f5378f236ad1) (#214)
+- [Declarations update independent of compiler.watchFileSystem](https://github.com/TypeStrong/ts-loader/pull/167/commits/ae824b2676b226bdd0c860a787754a4ae28e339c) (#155)
+
+Now built using TypeScript v2.0
+
 ## v0.8.2
 
 - Elided imports are now watched (#156, #169)

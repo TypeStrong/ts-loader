@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "noEmitOnError": false,
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
+    "removeComments": false,
+    "suppressImplicitAnyIndexErrors": true,
+    "target": "es6"
+  }
+}

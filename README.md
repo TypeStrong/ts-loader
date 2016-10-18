@@ -5,9 +5,34 @@
 
 # TypeScript loader for webpack
 
+This is the typescript loader for webpack.
+
 ## Getting Started
 
 Tutorials and examples can be [found here](https://github.com/TypeStrong/ts-loader/wiki/Tutorials-&-Examples).
+
+### Compatibility
+
+ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
+
+A full test suite runs each night (and on each pull request). It runs both on Linux ([Travis](https://travis-ci.org/)) and Windows ([AppVeyor](https://www.appveyor.com/)), testing ts-loader against the following versions of TypeScript:
+- TypeScript 2.0
+- TypeScript 1.8
+- TypeScript 1.7
+- TypeScript 1.6
+
+and also: 
+- TypeScript@next (because we want to use it as much as you do)
+
+If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
+
+### Babel
+
+ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples).
+
+### Contributing
+
+This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributer's guide](CONTRIBUTING.md) to get started.
 
 ### Installation
 
@@ -28,21 +53,10 @@ npm install typescript -g
 npm link typescript
 ```
 
-### Upgrading
-
-Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
-
 ### Running
 
 Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
 build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
-
-### Compatibility
-
-The current version is compatible with TypeScript 1.6 and above, including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).
-You may experience issues using the nightly build due to its nature, but a full test suite runs
-against the latest nightly every day to catch incompatibilites early. Please report any issues
-you experience with the nightly so that they can be fixed promptly.
 
 ### Configuration
 
@@ -91,6 +105,10 @@ When the build fails (i.e. at least one typescript compile error occured), ts-lo
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
 
+### Upgrading
+
+Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
+
 #### Options
 
 There are two types of options: TypeScript options (aka "compiler options") and loader options.
@@ -120,6 +138,16 @@ However, many of the benefits you get from static type checking between
 different dependencies in your application will be lost. You should also
 set the `isolatedModules` TypeScript option if you plan to ever make use
 of this.
+
+##### logInfoToStdOut *(boolean) (default=false)*
+
+This is important if you read from stdout or stderr and for proper error handling.
+The default value ensures that you can read from stdout e.g. via pipes or you use webpack -j to generate json output.
+
+##### logLevel *(string) (default=info)*
+
+Can be `info`, `warn` or `error` which limits the log output to the specified log level.
+Beware of the fact that errors are written to stderr and everything else is written to stderr (or stdout if logInfoToStdOut is true).
 
 ##### silent *(boolean) (default=false)*
 
@@ -154,7 +182,7 @@ of your code.
 ### Loading other resources and code splitting
 
 Loading css and other resources is possible but you will need to make sure that
-you have defined the `require` function in a declaration file.
+you have defined the `require` function in a [declaration file](https://www.typescriptlang.org/docs/handbook/writing-declaration-files.html).
 
 ```typescript
 declare var require: {
@@ -174,10 +202,7 @@ The same basic process is required for code splitting. In this case, you `import
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/codeSplitting) for more details.
 
-## Contributing
-
-Please see the [contributer's guide](CONTRIBUTING.md).
-
 ## License
 
 MIT License
+
