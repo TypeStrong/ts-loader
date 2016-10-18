@@ -61,6 +61,9 @@ interface TSInstance {
     languageService?: typescript.LanguageService;
     version?: number;
     dependencyGraph: any;
+    reverseDependencyGraph: any;
+    modifiedFiles?: TSFiles;
+    filesWithErrors?: TSFiles;
 }
 
 interface TSInstances {
@@ -225,7 +228,9 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         files,
         languageService: null,
         version: 0,
-        dependencyGraph: {}
+        dependencyGraph: {},
+        reverseDependencyGraph: {},
+        modifiedFiles: null
     };
 
     var compilerOptions: typescript.CompilerOptions = {
@@ -332,7 +337,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             loader._module.errors,
             formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
 
-        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {} }};
+        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {} }};
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -445,9 +450,17 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
                 resolvedModules.push(resolutionResult);
             }
-            
-            instance.dependencyGraph[path.normalize(containingFile)] = resolvedModules.filter(m => m != null).map(m => m.resolvedFileName);
-            
+
+            let importedFiles = resolvedModules.filter(m => m != null).map(m => m.resolvedFileName);
+            instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
+            importedFiles.forEach(importedFileName => {
+                if (!instance.reverseDependencyGraph[importedFileName]) {
+                    instance.reverseDependencyGraph[importedFileName] = {}
+                }
+                instance.reverseDependencyGraph[importedFileName][path.normalize(containingFile)] = true
+            })
+
+
             return resolvedModules;
         }
     };
@@ -455,6 +468,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
     var languageService = instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
     var getCompilerOptionDiagnostics = true;
+    var checkAllFilesForErrors = true;
 
     loader._compiler.plugin("after-compile", (compilation, callback) => {
         // Don't add errors for child compilations
@@ -462,8 +476,6 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
             callback();
             return;
         }
-        
-        let stats = compilation.stats;
 
         // handle all other errors. The basic approach here to get accurate error
         // reporting is to start with a "blank slate" each compilation and gather
@@ -479,6 +491,23 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     length--;
                 }
             }
+        }
+
+        /**
+         * Recursive collect all possible dependats of passed file
+         */
+        function collectAllDependants(fileName: string, collected: any = {}): string[] {
+            let result = {}
+            result[fileName] = true
+            collected[fileName] = true
+            if (instance.reverseDependencyGraph[fileName]) {
+                Object.keys(instance.reverseDependencyGraph[fileName]).forEach(dependantFileName => {
+                    if (!collected[dependantFileName]) {
+                        collectAllDependants(dependantFileName, collected).forEach(fName => result[fName] = true)
+                    }
+                })
+            }
+            return Object.keys(result)
         }
 
         removeTSLoaderErrors(compilation.errors);
@@ -511,10 +540,39 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         })
 
         // gather all errors from TypeScript and output them to webpack
-        Object.keys(instance.files)
+        let filesWithErrors: TSFiles = {}
+        // calculate array of files to check
+        let filesToCheckForErrors: TSFiles = null
+        if (checkAllFilesForErrors) {
+            // check all files on initial run
+            filesToCheckForErrors = instance.files
+            checkAllFilesForErrors = false
+        } else {
+            filesToCheckForErrors = {}
+            // check all modified files, and all dependants
+            Object.keys(instance.modifiedFiles).forEach(modifiedFileName => {
+                collectAllDependants(modifiedFileName).forEach(fName => {
+                    filesToCheckForErrors[fName] = instance.files[fName]
+                })
+            })
+        }
+        // re-check files with errors from previous build
+        if (instance.filesWithErrors) {
+            Object.keys(instance.filesWithErrors).forEach(fileWithErrorName =>
+                filesToCheckForErrors[fileWithErrorName] = instance.filesWithErrors[fileWithErrorName]
+            )
+        }
+
+        Object.keys(filesToCheckForErrors)
             .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
             .forEach(filePath => {
                 let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+                if (errors.length > 0) {
+                    if (null === filesWithErrors) {
+                        filesWithErrors = {}
+                    }
+                    filesWithErrors[filePath] = instance.files[filePath]
+                }
 
                 // if we have access to a webpack module, use that
                 if (hasOwnProperty(modules, filePath)) {
@@ -538,7 +596,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
 
 
         // gather all declaration files from TypeScript and output them to webpack
-        Object.keys(instance.files)
+        Object.keys(filesToCheckForErrors)
             .filter(filePath => !!filePath.match(/\.ts(x?)$/))
             .forEach(filePath => {
                 let output = languageService.getEmitOutput(filePath);
@@ -552,12 +610,18 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 }
             });
 
+        instance.filesWithErrors = filesWithErrors;
+        instance.modifiedFiles = null;
         callback();
     });
 
     // manually update changed files
     loader._compiler.plugin("watch-run", (watching, cb) => {
         var mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
+        if (null === instance.modifiedFiles) {
+            instance.modifiedFiles = {}
+        }
+
         Object.keys(mtimes)
             .filter(filePath => !!filePath.match(/\.tsx?$|\.jsx?$/))
             .forEach(filePath => {
@@ -567,6 +631,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                     file.text = fs.readFileSync(filePath, {encoding: 'utf8'});
                     file.version++;
                     instance.version++;
+                    instance.modifiedFiles[filePath] = file;
                 }
             });
         cb()
@@ -622,6 +687,12 @@ function loader(contents) {
         instance.version++;
     }
 
+    // push this file to modified files hash.
+    if (!instance.modifiedFiles) {
+        instance.modifiedFiles = {}
+    }
+    instance.modifiedFiles[filePath] = file;
+
     var outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
 
     if (options.transpileOnly) {
@@ -641,7 +712,7 @@ function loader(contents) {
 
         // Emit Javascript
         var output = langService.getEmitOutput(filePath);
-        
+
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
@@ -652,9 +723,9 @@ function loader(contents) {
         // Additionally make this file dependent on all imported files
         let additionalDependencies = instance.dependencyGraph[filePath];
         if (additionalDependencies) {
-            additionalDependencies.forEach(this.addDependency.bind(this))  
+            additionalDependencies.forEach(this.addDependency.bind(this))
         }
-        
+
         this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
             .concat(additionalDependencies)
             .map(filePath => filePath+'@'+(instance.files[filePath] || {version: '?'}).version);
