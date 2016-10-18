@@ -6,6 +6,7 @@ var path = require('path');
 var execSync = require('child_process').execSync;
 var typescript = require('typescript');
 var semver = require('semver');
+var pathExists = require('../pathExists');
 
 // Parse command line arguments
 var indexOfSingleTest = process.argv.indexOf('--single-test');
@@ -71,10 +72,19 @@ function runTests(testName) {
     console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
 
     var testPath = path.join(testDir, testName);
+
+    if (!pathExists(testPath)) {
+        console.log('TEST DOES NOT EXIST AT THIS LOCATION: ' + testPath);
+        failingTests.push(testName);
+        return;
+    }
+
     var karmaConfPath = path.join(testPath, 'karma.conf.js');
 
-    console.log('Installing typings into ' + testPath);
-    execSync('typings install', { cwd: testPath, stdio: 'inherit' });
+    if (pathExists(path.join(testPath, 'typings.json'))) {
+        console.log('Installing typings into ' + testPath);
+        execSync('typings install', { cwd: testPath, stdio: 'inherit' });
+    }
 
     try {
         var singleRunOrWatch = watch ? '' : ' --single-run';

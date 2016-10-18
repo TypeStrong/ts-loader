@@ -9,6 +9,7 @@ var regexEscape = require('escape-string-regexp');
 var typescript = require('typescript');
 var semver = require('semver');
 var glob = require('glob');
+var pathExists = require('../pathExists');
 
 // force colors on for tests since expected output has colors
 require('colors').enabled = true;
@@ -260,16 +261,6 @@ function createTest(test, testPath, options) {
             }
         });
     };
-}
-
-function pathExists(path) {
-    var pathExists = true;
-    try {
-        fs.accessSync(path, fs.F_OK);
-    } catch (e) {
-        pathExists = false;
-    }
-    return pathExists;
 }
 
 function getNormalisedFileContent(file, location, test) {
