@@ -88,6 +88,8 @@ If you would like to regenerate a single test then combine `--save-output` with
 
 `npm run comparison-tests -- --save-output --single-test nameOfTest`
 
+#### Watch Specific Tests
+
 The test harness additionally supports watch mode since that is such an integral part of webpack. The initial state is as described above. After the initial state is compiled, a series of "patches" can be applied and tested. The patches use the convention of `/patchN` starting with 0. For example:
 
 Initial state:
