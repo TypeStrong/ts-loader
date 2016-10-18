@@ -95,7 +95,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
     }
     ```
 
-The [tsconfig.json](https://github.com/Microsoft/TypeScript/wiki/tsconfig.json) file controls
+The [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
 same options. TypeScript files from all subdirectories will get included except the ones matching `exclude`.
 
