@@ -72,6 +72,13 @@ function runTests(testName) {
     console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
 
     var testPath = path.join(testDir, testName);
+
+    if (!pathExists(testPath)) {
+        console.log('TEST DOES NOT EXIST AT THIS LOCATION: ' + testPath);
+        failingTests.push(testName);
+        return;
+    }
+
     var karmaConfPath = path.join(testPath, 'karma.conf.js');
 
     if (pathExists(path.join(testPath, 'typings.json'))) {

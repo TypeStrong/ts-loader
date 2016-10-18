@@ -1,4 +1,3 @@
-declare function require(path:string): any; 
 var dep = require('../src/dep');
 
 describe("app", function() {
