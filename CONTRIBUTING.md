@@ -90,14 +90,18 @@ If you would like to regenerate a single test then combine `--save-output` with
 
 #### Watch Specific Tests
 
-The test harness additionally supports watch mode since that is such an integral part of webpack. The initial state is as described above. After the initial state is compiled, a series of "patches" can be applied and tested. The patches use the convention of `/patchN` starting with 0. For example:
+The test harness additionally supports tests which exercise watch mode, since that is such an integral part of webpack. Watch mode tests are just the as standard comparison tests.  However, after the initial compilation and comparison, a series of "patches" are applied and tested. 
+
+The patches live in folders following the naming convention of `/patchN` starting with 0. After the initial compilation and comparison, the patches are iterated through and the files in place are replaced with any modified files in the `/patchN` directory.  After each patch application the compilation / comparison is performed once more.
+
+For example:
 
 Initial state:
 - test/someFeature/app.ts
 - test/someFeature/expectedOutput/bundle.js
 - test/someFeature/expectedOutput/output.txt
 
-Patch 0
+patch0 is applied:
 - test/someFeature/patch0/app.ts - *modified file*
 - test/someFeature/expectedOutput/patch0/bundle.js - *bundle after applying patch*
 - test/someFeature/expectedOutput/patch0/output.txt - *output after applying patch*
