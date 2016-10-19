@@ -44,7 +44,7 @@ if (fs.statSync(testPath).isDirectory()) {
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
         if (testToRun == 'declarationOutput') { return; }
-        if (testToRun == 'declarationWatch') { return; }
+        if (testToRun == '_FLAKY_declarationWatch') { return; }
         if (testToRun == 'issue71') { return; }
         it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
     });
