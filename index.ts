@@ -53,6 +53,16 @@ interface TSFiles {
     [fileName: string]: TSFile;
 }
 
+interface DependencyGraph { 
+    [index: string]: string[] 
+}
+
+interface ReverseDependencyGraph { 
+    [index: string]: { 
+        [index: string]: boolean 
+    } 
+}
+
 interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
@@ -60,8 +70,8 @@ interface TSInstance {
     files: TSFiles;
     languageService?: typescript.LanguageService;
     version?: number;
-    dependencyGraph: any;
-    reverseDependencyGraph: any;
+    dependencyGraph: DependencyGraph;
+    reverseDependencyGraph: ReverseDependencyGraph;
     modifiedFiles?: TSFiles;
     filesWithErrors?: TSFiles;
 }
@@ -80,7 +90,7 @@ interface WebpackError {
 }
 
 interface ResolvedModule {
-    resolvedFileName?: string;
+    resolvedFileName: string;
     resolvedModule?: ResolvedModule;
     isExternalLibraryImport?: boolean;
 }
@@ -423,7 +433,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
         getNewLine: () => newLine,
         log: log,
         resolveModuleNames: (moduleNames: string[], containingFile: string) => {
-            let resolvedModules: any[] = [];
+            let resolvedModules: ResolvedModule[] = [];
 
             for (let moduleName of moduleNames) {
                 let resolvedFileName: string;
@@ -437,7 +447,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 }
                 catch (e) { resolvedFileName = null }
 
-                let tsResolution: ResolvedModule = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
+                let tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
                 if (tsResolution.resolvedModule) {
                     if (resolvedFileName) {
