@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.x - NOT RELEASED YET
+
+- [Improve performance for watch mode / `after-compile` plugin](https://github.com/TypeStrong/ts-loader/pull/187) - thanks @Strate
+
 ## v0.9.4
 
 - [Make logging to stderr or stdout configurable; introduce logging levels](https://github.com/TypeStrong/ts-loader/pull/313) [#214] - thanks @ThYpHo0n
