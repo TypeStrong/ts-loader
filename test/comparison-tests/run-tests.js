@@ -25,12 +25,11 @@ rimraf.sync(stagingPath);
 
 var start = new Date().getTime();
 console.log('Starting to run test suites...\n');
-var versionsHaveBeenReported = false;
 
 var testDir = __dirname;
 
 if (singleTestToRun) {
-    runTestAsChildProcess(singleTestToRun);
+    runTests(singleTestToRun);
 }
 else {
     // loop through each test directory triggering a test run as child process
@@ -39,7 +38,7 @@ else {
             var testPath = path.join(testDir, testName);
             return fs.statSync(testPath).isDirectory();
         })
-        .forEach(runTestAsChildProcess);
+        .forEach(runTests);
 }
 
 var end = new Date().getTime();
@@ -59,12 +58,25 @@ else {
 
 // --------------------------------------------------------------
 
-function runTestAsChildProcess(testName) {
+function runTests(testName) {
+    if (testName === 'testLib') { return; }
+    if (testName === 'issue81' && semver.lt(typescript.version, '1.7.0-0')) { return; }
+
+    runTestAsChildProcess(testName, '');
+
+    if (testName === 'declarationOutput') { return; }
+    if (testName === 'declarationWatch') { return; }
+    if (testName === 'issue71') { return; }
+
+    runTestAsChildProcess(testName, ' --transpile');
+}
+
+function runTestAsChildProcess(testName, transpile) {
     try {
         var saveOutput = saveOutputMode ? ' --save-output' : '';
-        versionsHaveBeenReported = true;
 
-        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + saveOutput, { stdio: 'inherit' });
+        var command = 'mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + saveOutput + transpile;
+        var testOutput = execSync(command, { stdio: 'inherit' });
 
         passingTests.push(testName);
     }
