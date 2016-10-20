@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.9.x - NOT RELEASED YET
+## v0.9.5
 
 - [Improve performance for watch mode / `after-compile` plugin](https://github.com/TypeStrong/ts-loader/pull/187) - thanks @Strate
 
