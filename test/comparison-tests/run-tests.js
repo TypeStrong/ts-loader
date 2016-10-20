@@ -18,14 +18,15 @@ var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest
 
 var passingTests = [];
 var failingTests = [];
+var ignoredTests = [];
 
 // set up new empty staging area
 var stagingPath = path.resolve(__dirname, '../../.test');
 rimraf.sync(stagingPath);
 
 var start = new Date().getTime();
+console.log('\n-------------------------------------------------------------------------\n');
 console.log('Starting to run test suites...\n');
-var versionsHaveBeenReported = false;
 
 var testDir = __dirname;
 
@@ -49,6 +50,10 @@ if (passingTests.length > 0) {
     console.log(passingTests.length + ' test suite(s) passed.\n\n - ' + passingTests.join('\n - ') + '\n');
 }
 
+if (ignoredTests.length > 0) {
+    console.log(ignoredTests.length + ' test suite(s) ignored.\n\n - ' + ignoredTests.join('\n - ') + '\n');
+}
+
 if (failingTests.length > 0) {
     console.log(failingTests.length + ' test suite(s) failed.\n\n - ' + failingTests.join('\n - ') + '\n');
     process.exit(1);
@@ -62,7 +67,6 @@ else {
 function runTestAsChildProcess(testName) {
     try {
         var saveOutput = saveOutputMode ? ' --save-output' : '';
-        versionsHaveBeenReported = true;
 
         var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + saveOutput, { stdio: 'inherit' });
 
