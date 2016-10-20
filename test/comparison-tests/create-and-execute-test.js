@@ -267,7 +267,7 @@ function getNormalisedFileContent(file, location, test) {
         // Strip ' [built]' references from output*.txt files; seems to be used unpredictably 
         // and doesn't appear to be relevant so safe to ignore
         if (file.indexOf('output.') === 0) {
-            fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
+            // fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
 
             // Convert '/' to '\' and back to '/' so slashes are treated the same
             // whether running / generated on windows or *nix
