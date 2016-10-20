@@ -34,6 +34,7 @@ var rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
 var stagingPath = path.resolve(rootPath, '.test');
 
 var testPath = path.join(__dirname, testToRun);
+var testIsFlaky =  pathExists(path.join(testPath, FLAKY));
 if (fs.statSync(testPath).isDirectory()) {
 
     if (testToRun == 'testLib') return;
@@ -44,7 +45,7 @@ if (fs.statSync(testPath).isDirectory()) {
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
         if (testToRun == 'declarationOutput') { return; }
-        if (testToRun == '_FLAKY_declarationWatch') { return; }
+        if (testToRun == 'declarationWatch') { return; }
         if (testToRun == 'issue71') { return; }
         it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
     });
@@ -279,11 +280,6 @@ function getNormalisedFileContent(file, location, test) {
             fileContent = fileContent
                 .replace(new RegExp(regexEscape('/'), 'g'), '\\')
                 .replace(new RegExp(regexEscape('\\'), 'g'), '/');
-
-            // ignore flaky in the output.txt paths
-            if (testIsFlaky(test)) {
-                fileContent = fileContent.replace(new RegExp(regexEscape(FLAKY), 'g'), '');
-            }
         }
     }
     catch (e) {
@@ -299,7 +295,7 @@ function getNormalisedFileContent(file, location, test) {
 function compareActualAndExpected(test, actual, expected, patch, file) {
     const actualString = actual.toString();
     const expectedString = expected.toString();
-    if (testIsFlaky(test)) {
+    if (testIsFlaky) {
         try {
             assert.equal(actualString, expectedString, (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
         }
@@ -313,8 +309,4 @@ function compareActualAndExpected(test, actual, expected, patch, file) {
     else {
         assert.equal(actualString, expectedString, (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
     }
-}
-
-function testIsFlaky(testName) {
-    return testName.indexOf(FLAKY) === 0;
 }
