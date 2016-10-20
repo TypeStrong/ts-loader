@@ -15,6 +15,7 @@ var pathExists = require('../pathExists');
 require('colors').enabled = true;
 
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
+var transpile = process.argv.indexOf('--transpile') !== -1;
 
 var indexOfTestToRun = process.argv.indexOf('--test-to-run');
 var testToRun = process.argv[indexOfTestToRun + 1];
@@ -36,18 +37,11 @@ var stagingPath = path.resolve(rootPath, '.test');
 var testPath = path.join(__dirname, testToRun);
 var testIsFlaky =  pathExists(path.join(testPath, FLAKY));
 if (fs.statSync(testPath).isDirectory()) {
+    var testDescription = testToRun + (transpile ? ' - transpile' : '');
 
-    if (testToRun == 'testLib') return;
-
-    if (testToRun == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
-
-    describe(testToRun, function () {
-        it('should have the correct output', createTest(testToRun, testPath, {}));
-
-        if (testToRun == 'declarationOutput') { return; }
-        if (testToRun == 'declarationWatch') { return; }
-        if (testToRun == 'issue71') { return; }
-        it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
+    describe(testDescription, function () {
+        it( transpile ? 'should work with transpile' : 'should have the correct output', 
+            createTest(testToRun, testPath, { transpile: transpile }));
     });
 }
 
