@@ -18,7 +18,6 @@ var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest
 
 var passingTests = [];
 var failingTests = [];
-var ignoredTests = [];
 
 // set up new empty staging area
 var stagingPath = path.resolve(__dirname, '../../.test');
@@ -48,10 +47,6 @@ console.log('\n-----------------------------------------------------------------
 console.log((passingTests.length + failingTests.length) + ' test suites took ' + ((end - start) / 1000) + ' seconds to run.\n');
 if (passingTests.length > 0) {
     console.log(passingTests.length + ' test suite(s) passed.\n\n - ' + passingTests.join('\n - ') + '\n');
-}
-
-if (ignoredTests.length > 0) {
-    console.log(ignoredTests.length + ' test suite(s) ignored.\n\n - ' + ignoredTests.join('\n - ') + '\n');
 }
 
 if (failingTests.length > 0) {
