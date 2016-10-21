@@ -34,12 +34,9 @@ var rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
 var stagingPath = path.resolve(rootPath, '.test');
 
 var testPath = path.join(__dirname, testToRun);
-var testIsFlaky =  pathExists(path.join(testPath, FLAKY));
-if (fs.statSync(testPath).isDirectory()) {
-
-    if (testToRun == 'testLib') return;
-
-    if (testToRun == 'issue81' && semver.lt(typescript.version, '1.7.0-0')) return;
+var testIsFlaky = pathExists(path.join(testPath, FLAKY));
+if (fs.statSync(testPath).isDirectory() &&
+    testToRun !== 'testLib') {
 
     describe(testToRun, function () {
         it('should have the correct output', createTest(testToRun, testPath, {}));
@@ -54,213 +51,284 @@ if (fs.statSync(testPath).isDirectory()) {
 function createTest(test, testPath, options) {
     return function (done) {
         this.timeout(60000); // sometimes it just takes awhile
-        var doneHasBeenCalled = false;
 
-        // set up paths
-        var testStagingPath = path.join(stagingPath, test + (options.transpile ? '.transpile' : '')),
-            actualOutput = path.join(testStagingPath, 'actualOutput'),
-            expectedOutput = path.join(testStagingPath, 'expectedOutput-' + typescriptVersion),
-            webpackOutput = path.join(testStagingPath, '.output'),
-            originalExpectedOutput = path.join(testPath, 'expectedOutput-' + typescriptVersion);
+        var testState = createTestState();
+        var paths = createPaths(stagingPath, test, options);
+        var outputs = createOutputs();
 
-        if (saveOutputMode) {
-            savedOutputs[test] = savedOutputs[test] || {};
-            var regularSavedOutput = savedOutputs[test].regular = savedOutputs[test].regular || {};
-            var transpiledSavedOutput = savedOutputs[test].transpiled = savedOutputs[test].transpiled || {};
-            var currentSavedOutput = options.transpile ? transpiledSavedOutput : regularSavedOutput;
-            mkdirp.sync(originalExpectedOutput);
-        } else {
-            assert.ok(pathExists(originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + originalExpectedOutput)
-        }
+        storeSavedOutputs(saveOutputMode, outputs, test, options, paths);
 
         // copy all input to a staging area
-        mkdirp.sync(testStagingPath);
-        fs.copySync(testPath, testStagingPath);
-
+        mkdirp.sync(paths.testStagingPath);
+        fs.copySync(testPath, paths.testStagingPath);
 
         // ensure output directories
-        mkdirp.sync(actualOutput);
-        mkdirp.sync(webpackOutput);
+        mkdirp.sync(paths.actualOutput);
+        mkdirp.sync(paths.webpackOutput);
 
         // execute webpack
-        var config = require(path.join(testStagingPath, 'webpack.config'));
-        config.output.path = webpackOutput;
-        config.context = testStagingPath;
-        config.resolveLoader = config.resolveLoader || {};
-        config.resolveLoader.alias = config.resolveLoader.alias || {};
-        config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
-        config.module.loaders.push({ test: /\.js$/, loader: 'newLine' });
-        config.ts = config.ts || {};
-        config.ts.silent = true;
-        config.ts.compilerOptions = {
-            newLine: 'LF'
-        }
+        testState.watcher = webpack(
+            createWebpackConfig(paths, options.transpile)
+        ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, outputs, options, test));
+    };
+}
 
-        if (options.transpile) config.ts.transpileOnly = true;
+function createTestState() {
+    return {
+        doneHasBeenCalled: false,
+        iteration: 0,
+        lastHash: undefined,
+        watcher: undefined
+    };
+}
 
-        var iteration = 0;
-        var lastHash;
-        var watcher = webpack(config).watch({ aggregateTimeout: 1500 }, function (err, stats) {
-            var patch = '';
-            if (iteration > 0) {
-                patch = 'patch' + (iteration - 1);
-                actualOutput = path.join(testStagingPath, 'actualOutput', patch);
-                expectedOutput = path.join(testStagingPath, 'expectedOutput-' + typescriptVersion, patch);
-                originalExpectedOutput = path.join(testPath, 'expectedOutput-' + typescriptVersion, patch)
-                mkdirp.sync(actualOutput);
-                mkdirp.sync(expectedOutput);
-                if (saveOutputMode) mkdirp.sync(originalExpectedOutput);
-            }
+function createPaths(stagingPath, test, options) {
+    var testStagingPath = path.join(stagingPath, test + (options.transpile ? '.transpile' : ''));
+    return {
+        testStagingPath: testStagingPath,
+        actualOutput: path.join(testStagingPath, 'actualOutput'),
+        expectedOutput: path.join(testStagingPath, 'expectedOutput-' + typescriptVersion),
+        webpackOutput: path.join(testStagingPath, '.output'),
+        originalExpectedOutput: path.join(testPath, 'expectedOutput-' + typescriptVersion)
+    };
+}
 
-            // replace the hash if found in the output since it can change depending
-            // on environments and we're not super interested in it
-            if (stats) {
-                glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
-                    var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
-                    content = content.split(stats.hash).join('[hash]');
-                    fs.writeFileSync(path.join(webpackOutput, file), content);
-                });
-            }
+function createOutputs() {
+    return {
+        regularSavedOutput: undefined,
+        transpiledSavedOutput: undefined,
+        currentSavedOutput: undefined
+    };
+}
 
-            // output results
-            if (saveOutputMode) {
-                // loop through webpackOutput and rename to .transpiled if needed
-                glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
-                    var patchedFileName = patch + '/' + file;
-                    currentSavedOutput[patchedFileName] = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
+function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
+    if (saveOutputMode) {
+        savedOutputs[test] = savedOutputs[test] || {};
 
-                    if (options.transpile) {
-                        if (regularSavedOutput[patchedFileName] !== transpiledSavedOutput[patchedFileName]) {
-                            var extension = path.extname(file);
-                            fs.renameSync(
-                                path.join(webpackOutput, file),
-                                path.join(webpackOutput, path.basename(file, extension) + '.transpiled' + extension)
-                            );
-                        }
-                    }
-                });
+        outputs.regularSavedOutput = savedOutputs[test].regular = savedOutputs[test].regular || {};
+        outputs.transpiledSavedOutput = savedOutputs[test].transpiled = savedOutputs[test].transpiled || {};
+        outputs.currentSavedOutput = options.transpile ? outputs.transpiledSavedOutput : outputs.regularSavedOutput;
 
-                fs.copySync(webpackOutput, originalExpectedOutput, { clobber: true });
-            }
-            fs.copySync(webpackOutput, actualOutput);
-            rimraf.sync(webpackOutput);
+        mkdirp.sync(paths.originalExpectedOutput);
+    } else {
+        assert.ok(pathExists(paths.originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + paths.originalExpectedOutput)
+    }
+}
 
-            if (err) {
-                var errFileName = 'err.txt';
+function createWebpackConfig(paths, transpile) {
+    var config = require(path.join(paths.testStagingPath, 'webpack.config'));
+    config.output.path = paths.webpackOutput;
+    config.context = paths.testStagingPath;
+    config.resolveLoader = config.resolveLoader || {};
+    config.resolveLoader.alias = config.resolveLoader.alias || {};
+    config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
+    config.module.loaders.push({ test: /\.js$/, loader: 'newLine' });
+    config.ts = config.ts || {};
+    config.ts.silent = true;
+    config.ts.compilerOptions = {
+        newLine: 'LF'
+    }
 
-                var errString = err.toString()
-                    .replace(new RegExp(regexEscape(testStagingPath + path.sep), 'g'), '')
-                    .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
-                    .replace(new RegExp(regexEscape(rootPath), 'g'), '')
-                    .replace(/\.transpile/g, '');
+    if (transpile) { config.ts.transpileOnly = true; }
 
-                fs.writeFileSync(path.join(actualOutput, errFileName), errString);
-                if (saveOutputMode) {
-                    var patchedErrFileName = patch + '/' + errFileName;
-                    currentSavedOutput[patchedErrFileName] = errString;
+    return config;
+}
 
-                    if (options.transpile) {
-                        if (regularSavedOutput[patchedErrFileName] !== transpiledSavedOutput[patchedErrFileName]) {
-                            fs.writeFileSync(path.join(originalExpectedOutput, 'err.transpiled.txt'), errString);
-                        }
-                    }
-                    else {
-                        fs.writeFileSync(path.join(originalExpectedOutput, errFileName), errString);
-                    }
+function createWebpackWatchHandler(done, paths, testState, outputs, options, test) {
+    return function (err, stats) {
+        var patch = setPathsAndGetPatch(paths, testState);
+
+        cleanHashFromOutput(stats, paths.webpackOutput);
+
+        saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch);
+
+        fs.copySync(paths.webpackOutput, paths.actualOutput);
+        rimraf.sync(paths.webpackOutput);
+
+        handleErrors(err, paths, outputs, patch, options);
+
+        storeStats(stats, testState, paths, outputs, patch, options);
+
+        compareFiles(paths, options, test, patch);
+
+        copyPatchOrEndTest(paths.testStagingPath, testState.watcher, testState, done);
+    }
+}
+
+function setPathsAndGetPatch(paths, testState) {
+    var patch = '';
+    if (testState.iteration > 0) {
+        patch = 'patch' + (testState.iteration - 1);
+        paths.actualOutput = path.join(paths.testStagingPath, 'actualOutput', patch);
+        paths.expectedOutput = path.join(paths.testStagingPath, 'expectedOutput-' + typescriptVersion, patch);
+        paths.originalExpectedOutput = path.join(testPath, 'expectedOutput-' + typescriptVersion, patch)
+        mkdirp.sync(paths.actualOutput);
+        mkdirp.sync(paths.expectedOutput);
+        if (saveOutputMode) mkdirp.sync(paths.originalExpectedOutput);
+    }
+    return patch;
+}
+
+/**
+ * replace the hash if found in the output since it can change depending
+ * on environments and we're not super interested in it and normalize
+ * line endings
+ **/
+function cleanHashFromOutput(stats, webpackOutput) {
+    if (stats) {
+        glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
+            var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
+            content = content.split(stats.hash).join('[hash]');
+            content = content.replace(/\r\n/g, '\n');
+            fs.writeFileSync(path.join(webpackOutput, file), content);
+        });
+    }
+}
+
+function saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch) {
+    // output results
+    if (saveOutputMode) {
+        // loop through webpackOutput and rename to .transpiled if needed
+        glob.sync('**/*', { cwd: paths.webpackOutput, nodir: true }).forEach(function (file) {
+            var patchedFileName = patch + '/' + file;
+            outputs.currentSavedOutput[patchedFileName] = fs.readFileSync(path.join(paths.webpackOutput, file), 'utf-8');
+
+            if (options.transpile) {
+                if (outputs.regularSavedOutput[patchedFileName] !== outputs.transpiledSavedOutput[patchedFileName]) {
+                    var extension = path.extname(file);
+                    fs.renameSync(
+                        path.join(paths.webpackOutput, file),
+                        path.join(paths.webpackOutput, path.basename(file, extension) + '.transpiled' + extension)
+                    );
                 }
-            }
-
-            if (stats && stats.hash != lastHash) {
-                lastHash = stats.hash;
-
-                var statsFileName = 'output.txt';
-
-                // do a little magic to normalize `\` to `/` for asset output
-                var newAssets = {};
-                Object.keys(stats.compilation.assets).forEach(function (asset) {
-                    newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset];
-                });
-                stats.compilation.assets = newAssets;
-
-                var statsString = stats.toString({ timings: false, version: false, hash: false })
-                    .replace(new RegExp(regexEscape(testStagingPath + path.sep), 'g'), '')
-                    .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
-                    .replace(new RegExp(regexEscape(rootPath), 'g'), '')
-                    .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
-                    .replace(/\.transpile/g, '');
-
-                fs.writeFileSync(path.join(actualOutput, statsFileName), statsString);
-                if (saveOutputMode) {
-                    var patchedStatsFileName = patch + '/' + statsFileName;
-                    currentSavedOutput[patchedStatsFileName] = statsString;
-
-                    if (options.transpile) {
-                        if (regularSavedOutput[patchedStatsFileName] !== transpiledSavedOutput[patchedStatsFileName]) {
-                            fs.writeFileSync(path.join(originalExpectedOutput, 'output.transpiled.txt'), statsString);
-                        }
-                    }
-                    else {
-                        fs.writeFileSync(path.join(originalExpectedOutput, statsFileName), statsString);
-                    }
-                }
-            }
-
-            if (!saveOutputMode) {
-                // massage any .transpiled. files
-                glob.sync('**/*', { cwd: expectedOutput, nodir: true }).forEach(function (file) {
-                    if (/\.transpiled/.test(file)) {
-                        if (options.transpile) { // rename if we're in transpile mode
-                            var extension = path.extname(file);
-                            fs.renameSync(
-                                path.join(expectedOutput, file),
-                                path.join(expectedOutput, path.dirname(file), path.basename(file, '.transpiled' + extension) + extension)
-                            );
-                        }
-                        else { // otherwise delete
-                            fs.unlinkSync(path.join(expectedOutput, file));
-                        }
-                    }
-                });
-
-                // compare actual to expected
-                var actualFiles = glob.sync('**/*', { cwd: actualOutput, nodir: true }),
-                    expectedFiles = glob.sync('**/*', { cwd: expectedOutput, nodir: true })
-                        .filter(function (file) { return !/^patch/.test(file); }),
-                    allFiles = {};
-
-                actualFiles.map(function (file) { allFiles[file] = true });
-                expectedFiles.map(function (file) { allFiles[file] = true });
-
-                Object.keys(allFiles).forEach(function (file) {
-                    var actual = getNormalisedFileContent(file, actualOutput, test);
-                    var expected = getNormalisedFileContent(file, expectedOutput, test);
-
-                    compareActualAndExpected(test, actual, expected, patch, file);
-                });
-            }
-
-            // check for new files to copy in
-            var patchPath = path.join(testStagingPath, 'patch' + iteration);
-            if (fs.existsSync(patchPath)) {
-                iteration++;
-
-                // can get inconsistent results if copying right away
-                setTimeout(function () {
-                    fs.copySync(patchPath, testStagingPath, { clobber: true });
-                }, 1000);
-            }
-            else {
-                watcher.close(function () {
-                    // done is occasionally called twice for no known reason
-                    // when this happens the build fails with "Error: done() called multiple times" - not a meaningful failure
-                    if (!doneHasBeenCalled) {
-                        doneHasBeenCalled = true;
-                        done();
-                    }
-                });
             }
         });
-    };
+
+        fs.copySync(paths.webpackOutput, paths.originalExpectedOutput, { clobber: true });
+    }
+}
+
+function handleErrors(err, paths, outputs, patch, options) {
+    if (err) {
+        var errFileName = 'err.txt';
+
+        var errString = err.toString()
+            .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
+            .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
+            .replace(new RegExp(regexEscape(rootPath), 'g'), '')
+            .replace(/\.transpile/g, '');
+
+        fs.writeFileSync(path.join(paths.actualOutput, errFileName), errString);
+        if (saveOutputMode) {
+            var patchedErrFileName = patch + '/' + errFileName;
+            outputs.currentSavedOutput[patchedErrFileName] = errString;
+
+            if (options.transpile) {
+                if (outputs.regularSavedOutput[patchedErrFileName] !== outputs.transpiledSavedOutput[patchedErrFileName]) {
+                    fs.writeFileSync(path.join(paths.originalExpectedOutput, 'err.transpiled.txt'), errString);
+                }
+            }
+            else {
+                fs.writeFileSync(path.join(paths.originalExpectedOutput, errFileName), errString);
+            }
+        }
+    }
+}
+
+function storeStats(stats, testState, paths, outputs, patch, options) {
+    if (stats && stats.hash !== testState.lastHash) {
+        testState.lastHash = stats.hash;
+
+        var statsFileName = 'output.txt';
+
+        // do a little magic to normalize `\` to `/` for asset output
+        var newAssets = {};
+        Object.keys(stats.compilation.assets).forEach(function (asset) {
+            newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset];
+        });
+        stats.compilation.assets = newAssets;
+
+        var statsString = stats.toString({ timings: false, version: false, hash: false })
+            .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
+            .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
+            .replace(new RegExp(regexEscape(rootPath), 'g'), '')
+            .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
+            .replace(/\.transpile/g, '');
+
+        fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
+        if (saveOutputMode) {
+            var patchedStatsFileName = patch + '/' + statsFileName;
+            outputs.currentSavedOutput[patchedStatsFileName] = statsString;
+
+            if (options.transpile) {
+                if (outputs.regularSavedOutput[patchedStatsFileName] !== outputs.transpiledSavedOutput[patchedStatsFileName]) {
+                    fs.writeFileSync(path.join(paths.originalExpectedOutput, 'output.transpiled.txt'), statsString);
+                }
+            }
+            else {
+                fs.writeFileSync(path.join(paths.originalExpectedOutput, statsFileName), statsString);
+            }
+        }
+    }
+}
+
+function compareFiles(paths, options, test, patch) {
+    if (!saveOutputMode) {
+        // massage any .transpiled. files
+        glob.sync('**/*', { cwd: paths.expectedOutput, nodir: true }).forEach(function (file) {
+            if (/\.transpiled/.test(file)) {
+                if (options.transpile) { // rename if we're in transpile mode
+                    var extension = path.extname(file);
+                    fs.renameSync(
+                        path.join(paths.expectedOutput, file),
+                        path.join(paths.expectedOutput, path.dirname(file), path.basename(file, '.transpiled' + extension) + extension)
+                    );
+                }
+                else { // otherwise delete
+                    fs.unlinkSync(path.join(paths.expectedOutput, file));
+                }
+            }
+        });
+
+        // compare actual to expected
+        var actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true }),
+            expectedFiles = glob.sync('**/*', { cwd: paths.expectedOutput, nodir: true })
+                .filter(function (file) { return !/^patch/.test(file); }),
+            allFiles = {};
+
+        actualFiles.map(function (file) { allFiles[file] = true });
+        expectedFiles.map(function (file) { allFiles[file] = true });
+
+        Object.keys(allFiles).forEach(function (file) {
+            var actual = getNormalisedFileContent(file, paths.actualOutput, test);
+            var expected = getNormalisedFileContent(file, paths.expectedOutput, test);
+
+            compareActualAndExpected(test, actual, expected, patch, file);
+        });
+    }
+}
+
+function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
+    // check for new files to copy in
+    var patchPath = path.join(testStagingPath, 'patch' + testState.iteration);
+    if (fs.existsSync(patchPath)) {
+        testState.iteration++;
+
+        // can get inconsistent results if copying right away
+        setTimeout(function () {
+            fs.copySync(patchPath, testStagingPath, { clobber: true });
+        }, 1000);
+    }
+    else {
+        watcher.close(function () {
+            // done is occasionally called twice for no known reason
+            // when this happens the build fails with "Error: done() called multiple times" - not a meaningful failure
+            if (!testState.doneHasBeenCalled) {
+                testState.doneHasBeenCalled = true;
+                done();
+            }
+        });
+    }
 }
 
 function getNormalisedFileContent(file, location, test) {
@@ -309,3 +377,4 @@ function compareActualAndExpected(test, actual, expected, patch, file) {
         assert.equal(actualString, expectedString, (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
     }
 }
+
