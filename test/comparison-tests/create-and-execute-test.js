@@ -44,9 +44,9 @@ if (fs.statSync(testPath).isDirectory()) {
     describe(testToRun, function () {
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
-        if (testToRun == 'declarationOutput') { return; }
-        if (testToRun == 'declarationWatch') { return; }
-        if (testToRun == 'issue71') { return; }
+        if (testToRun === 'declarationOutput') { return; }
+        if (testToRun === 'declarationWatch') { return; }
+        if (testToRun === 'issue71') { return; }
         it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
     });
 }
@@ -219,7 +219,6 @@ function createTest(test, testPath, options) {
                         else { // otherwise delete
                             fs.unlinkSync(path.join(expectedOutput, file));
                         }
-
                     }
                 });
 
@@ -270,10 +269,10 @@ function getNormalisedFileContent(file, location, test) {
     try {
         fileContent = fs.readFileSync(filePath).toString().replace(/\r\n/g, '\n');
 
-        // Strip ' [built]' references from output*.txt files; seems to be used unpredictably 
-        // and doesn't appear to be relevant so safe to ignore
         if (file.indexOf('output.') === 0) {
-            fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
+            // Strip ' [built]' references from output*.txt files; seems to be used unpredictably 
+            // and doesn't appear to be relevant so safe to ignore
+            // fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
 
             // Convert '/' to '\' and back to '/' so slashes are treated the same
             // whether running / generated on windows or *nix
@@ -300,7 +299,7 @@ function compareActualAndExpected(test, actual, expected, patch, file) {
             assert.equal(actualString, expectedString, (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
         }
         catch (e) {
-            console.log("Flaky test error!\n");
+            console.log("\nFlaky test error!\n");
             console.log("MESSAGE:\n" + e.message, '\n');
             console.log('EXPECTED:\n', e.expected, '\n');
             console.log("ACTUAL:\n", e.actual, '\n');

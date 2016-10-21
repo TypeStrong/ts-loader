@@ -18,7 +18,6 @@ var failingTests = [];
 
 var start = new Date().getTime();
 console.log('Starting to run test suites...\n');
-var versionsHaveBeenReported = false;
 
 var testDir = __dirname;
 
