@@ -177,9 +177,9 @@ function setPathsAndGetPatch(paths, testState) {
 function cleanHashFromOutput(stats, webpackOutput) {
     if (stats) {
         glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
-            var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8');
-            content = content.split(stats.hash).join('[hash]');
-            content = content.replace(/\r\n/g, '\n');
+            var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
+                .split(stats.hash).join('[hash]')
+                .split('\r\n').join('\n');
             fs.writeFileSync(path.join(webpackOutput, file), content);
         });
     }
