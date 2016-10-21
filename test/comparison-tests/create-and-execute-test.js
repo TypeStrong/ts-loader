@@ -377,4 +377,3 @@ function compareActualAndExpected(test, actual, expected, patch, file) {
         assert.equal(actualString, expectedString, (patch ? patch + '/' : patch) + file + ' is different between actual and expected');
     }
 }
-
