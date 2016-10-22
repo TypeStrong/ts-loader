@@ -41,9 +41,11 @@ if (fs.statSync(testPath).isDirectory() &&
     describe(testToRun, function () {
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
-        if (testToRun === 'declarationOutput') { return; }
-        if (testToRun === 'declarationWatch') { return; }
-        if (testToRun === 'issue71') { return; }
+        if (testToRun === 'declarationOutput' || 
+            testToRun === 'importsWatch' ||
+            testToRun === 'declarationWatch' ||
+            testToRun === 'issue71') { return; }
+
         it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
     });
 }
