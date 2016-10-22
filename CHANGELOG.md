@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.9.x - NOT RELEASED YET
+
+- [Make the loader resilient to watched declaration files being removed.](https://github.com/TypeStrong/ts-loader/pull/281) - thanks @opichals
+
 ## v0.9.5
 
 - [Improve performance for watch mode / `after-compile` plugin](https://github.com/TypeStrong/ts-loader/pull/187) - thanks @Strate
