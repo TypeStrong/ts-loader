@@ -638,7 +638,7 @@ function ensureTypeScriptInstance(loaderOptions: LoaderOptions, loader: any): { 
                 filePath = path.normalize(filePath);
                 var file = instance.files[filePath];
                 if (file) {
-                    file.text = fs.readFileSync(filePath, {encoding: 'utf8'});
+                    file.text = readFile(filePath) || '';
                     file.version++;
                     instance.version++;
                     instance.modifiedFiles[filePath] = file;
