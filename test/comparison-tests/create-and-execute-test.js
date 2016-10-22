@@ -298,8 +298,8 @@ function compareFiles(paths, options, test, patch) {
                 .filter(function (file) { return !/^patch/.test(file); }),
             allFiles = {};
 
-        actualFiles.map(function (file) { allFiles[file] = true });
-        expectedFiles.map(function (file) { allFiles[file] = true });
+        actualFiles.forEach(function (file) { allFiles[file] = true });
+        expectedFiles.forEach(function (file) { allFiles[file] = true });
 
         Object.keys(allFiles).forEach(function (file) {
             var actual = getNormalisedFileContent(file, paths.actualOutput, test);
