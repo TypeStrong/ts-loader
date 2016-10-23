@@ -1,4 +1,6 @@
 /*.js
+!index.js
+/src/*.js
 /*.d.ts
 /*.log
 *.js.map

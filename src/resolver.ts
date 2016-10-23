@@ -1,8 +1,7 @@
 // This file serves as a hacky workaround for the lack of "resolveSync" support in webpack.
 // We make our own resolver using a sync file system but using the same plugins & options
 // that webpack does.
-
-///<reference path="typings/node/node.d.ts" />
+import interfaces = require('./interfaces');
 
 var Resolver = require("enhanced-resolve/lib/Resolver");
 var SyncNodeJsInputFileSystem = require("enhanced-resolve/lib/SyncNodeJsInputFileSystem");
@@ -19,7 +18,7 @@ var DirectoryDescriptionFileFieldAliasPlugin = require("enhanced-resolve/lib/Dir
 var FileAppendPlugin = require("enhanced-resolve/lib/FileAppendPlugin");
 var ResultSymlinkPlugin = require("enhanced-resolve/lib/ResultSymlinkPlugin");
 
-function makeRootPlugin(name, root) {
+function makeRootPlugin(name: string, root: string | string[]) {
 	if(typeof root === "string")
 		return new ModulesInRootPlugin(name, root);
 	else if(Array.isArray(root)) {
@@ -32,7 +31,7 @@ function makeRootPlugin(name, root) {
 	return function() {};
 }
 
-function makeResolver(options) {
+function makeResolver(options: { resolve: interfaces.Resolve }) {
 	let fileSystem = new CachedInputFileSystem(new SyncNodeJsInputFileSystem(), 60000);
 
     let resolver = new Resolver(fileSystem);
