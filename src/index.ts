@@ -8,25 +8,18 @@ import makeResolver = require('./resolver');
 import interfaces = require('./interfaces');
 import constants = require('./constants');
 import utils = require('./utils');
-var Console = require('console').Console;
+import getLogger = require('./logger');
 var semver = require('semver')
 require('colors');
-
-const stderrConsole = new Console(process.stderr);
-const stdoutConsole = new Console(process.stdout);
-
-enum LogLevel {
-    INFO = 1,
-    WARN = 2,
-    ERROR = 3
-}
 
 var instances = <interfaces.TSInstances>{};
 var webpackInstances: any = [];
 let scriptRegex = /\.tsx?$/i;
 
-// The tsconfig.json is found using the same method as `tsc`, starting in the current directory
-// and continuing up the parent directory chain.
+/**
+ * The tsconfig.json is found using the same method as `tsc`, starting in the current directory
+ * and continuing up the parent directory chain.
+ */
 function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string {
     while (true) {
         var fileName = path.join(searchPath, configFileName);
@@ -42,40 +35,14 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
     return undefined;
 }
 
-// The loader is executed once for each file seen by webpack. However, we need to keep
-// a persistent instance of TypeScript that contains all of the files in the program
-// along with definition files and options. This function either creates an instance
-// or returns the existing one. Multiple instances are possible by using the
-// `instance` property.
+/**
+ * The loader is executed once for each file seen by webpack. However, we need to keep
+ * a persistent instance of TypeScript that contains all of the files in the program
+ * along with definition files and options. This function either creates an instance
+ * or returns the existing one. Multiple instances are possible by using the
+ * `instance` property.
+ */
 function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loader: any): { instance?: interfaces.TSInstance, error?: interfaces.WebpackError } {
-    function log(...messages: string[]): void {
-        logToConsole(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages);
-    }
-
-    function logToConsole(logConsole:any, messages: string[]): void {
-        if (!loaderOptions.silent) {
-            console.log.apply(logConsole, messages);
-        }
-    }
-
-    function logInfo(...messages: string[]): void {
-        if (LogLevel[loaderOptions.logLevel] <= LogLevel.INFO) {
-            logToConsole(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages);
-        }
-    }
-
-    function logError(...messages: string[]): void {
-        if (LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR) {
-            logToConsole(stderrConsole, messages);
-        }
-    }
-
-    function logWarning(...messages: string[]): void {
-        if (LogLevel[loaderOptions.logLevel] <= LogLevel.WARN) {
-            logToConsole(stderrConsole, messages);
-        }
-    }
-
     if (utils.hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }
@@ -94,6 +61,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         } };
     }
 
+    const log = getLogger(loaderOptions);
     var motd = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`,
         compilerCompatible = false;
     if (loaderOptions.compiler == 'typescript') {
@@ -102,11 +70,11 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
             compilerCompatible = true;
         }
         else {
-            logError(`${motd}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
+            log.logError(`${motd}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
         }
     }
     else {
-        logWarning(`${motd}. This version may or may not be compatible with ts-loader.`.yellow);
+        log.logWarning(`${motd}. This version may or may not be compatible with ts-loader.`.yellow);
     }
 
     var files: interfaces.TSFiles = {};
@@ -135,8 +103,8 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         error?: typescript.Diagnostic;
     };
     if (configFilePath) {
-        if (compilerCompatible) logInfo(`${motd} and ${configFilePath}`.green)
-        else logInfo(`ts-loader: Using config file at ${configFilePath}`.green)
+        if (compilerCompatible) log.logInfo(`${motd} and ${configFilePath}`.green)
+        else log.logInfo(`ts-loader: Using config file at ${configFilePath}`.green)
 
         // HACK: relies on the fact that passing an extra argument won't break
         // the old API that has a single parameter
@@ -151,7 +119,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         }
     }
     else {
-        if (compilerCompatible) logInfo(motd.green)
+        if (compilerCompatible) log.logInfo(motd.green)
 
         configFile = {
             config: {
@@ -310,7 +278,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
-        log: log,
+        log: log.log,
         resolveModuleNames: (moduleNames: string[], containingFile: string) => {
             let resolvedModules: interfaces.ResolvedModule[] = [];
 
