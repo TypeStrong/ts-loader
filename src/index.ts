@@ -216,8 +216,8 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     }
 
     let newLine =
-        compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? '\r\n' :
-        compilerOptions.newLine === 1 /* LineFeed */ ? '\n' :
+        compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? constants.CarriageReturnLineFeed :
+        compilerOptions.newLine === 1 /* LineFeed */ ? constants.LineFeed :
         constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
@@ -230,7 +230,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
 
     // Create the TypeScript language service
     const servicesHost = {
-        getProjectVersion: () => instance.version + '',
+        getProjectVersion: () => `${instance.version}`,
         getScriptFileNames: () => Object.keys(files).filter(filePath => scriptRegex.test(filePath)),
         getScriptVersion: (fileName: string) => {
             fileName = path.normalize(fileName);
@@ -296,7 +296,9 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
                 resolvedModules.push(resolutionResult);
             }
 
-            let importedFiles = resolvedModules.filter(m => m).map(m => m.resolvedFileName);
+            let importedFiles = resolvedModules
+                .filter(m => m !== null && m !== undefined)
+                .map(m => m.resolvedFileName);
             instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
             importedFiles.forEach(importedFileName => {
                 if (!instance.reverseDependencyGraph[importedFileName]) {
