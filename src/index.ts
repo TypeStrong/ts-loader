@@ -296,7 +296,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
                 resolvedModules.push(resolutionResult);
             }
 
-            let importedFiles = resolvedModules
+            const importedFiles = resolvedModules
                 .filter(m => m !== null && m !== undefined)
                 .map(m => m.resolvedFileName);
             instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
@@ -306,7 +306,6 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
                 }
                 instance.reverseDependencyGraph[importedFileName][path.normalize(containingFile)] = true;
             });
-
 
             return resolvedModules;
         },
