@@ -176,7 +176,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     filesToLoad = configParseResult.fileNames;
 
     // if `module` is not specified and not using ES6 target, default to CJS module output
-    if (compilerOptions.module == null && compilerOptions.target !== 2 /* ES6 */) {
+    if ((!compilerOptions.module) && compilerOptions.target !== 2 /* ES6 */) {
         compilerOptions.module = 1; /* CommonJS */
     } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === 2 /* ES6 */) {
        // special handling for TS 1.6 and target: es6
@@ -244,7 +244,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
 
             if (!file) {
                 let text = utils.readFile(fileName);
-                if (text == null) return;
+                if (!text) { return; }
 
                 file = files[fileName] = { version: 0, text };
             }
@@ -296,7 +296,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
                 resolvedModules.push(resolutionResult);
             }
 
-            let importedFiles = resolvedModules.filter(m => m != null).map(m => m.resolvedFileName);
+            let importedFiles = resolvedModules.filter(m => m).map(m => m.resolvedFileName);
             instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
             importedFiles.forEach(importedFileName => {
                 if (!instance.reverseDependencyGraph[importedFileName]) {
@@ -582,7 +582,9 @@ function loader(contents: string) {
         if (sourceMapFile) { sourceMapText = sourceMapFile.text; }
     }
 
-    if (outputText == null) throw new Error(`Typescript emitted no output for ${filePath}`);
+    if (outputText === null || outputText === undefined) {
+        throw new Error(`Typescript emitted no output for ${filePath}`);
+    }
 
     let sourceMap: { sources: any[], file: string; sourcesContent: string[] };
     if (sourceMapText) {
