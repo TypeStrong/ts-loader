@@ -59,6 +59,7 @@
     "mocha": "^3.1.0",
     "phantomjs-prebuilt": "^2.1.2",
     "rimraf": "^2.4.2",
+    "tslint": "^3.15.1",
     "typescript": "^2.0.3",
     "typings": "^1.4.0",
     "webpack": "^1.11.0"

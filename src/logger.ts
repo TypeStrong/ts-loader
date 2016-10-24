@@ -14,6 +14,8 @@ interface Logger {
     (whereToLog: any, messages: string[]): void
 }
 
+const doNothingLogger = (...messages: string[]) => {};
+
 function makeLogger(loaderOptions: interfaces.LoaderOptions) {
     return loaderOptions.silent 
         ? (whereToLog: any, messages: string[]) => {}
@@ -28,19 +30,19 @@ function makeExternalLogger(loaderOptions: interfaces.LoaderOptions, logger: Log
 function makeLogInfo(loaderOptions: interfaces.LoaderOptions, logger: Logger) {
     return LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
         ? (...messages: string[]) => logger(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages)
-        : (...messages: string[]) => {}
+        : doNothingLogger
 }
 
 function makeLogError(loaderOptions: interfaces.LoaderOptions, logger: Logger) {
     return LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
         ? (...messages: string[]) => logger(stderrConsole, messages)
-        : (...messages: string[]) => {}
+        : doNothingLogger
 }
 
 function makeLogWarning(loaderOptions: interfaces.LoaderOptions, logger: Logger) {
     return LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
         ? (...messages: string[]) => logger(stderrConsole, messages)
-        : (...messages: string[]) => {}
+        : doNothingLogger
 }
 
 function getLogger(loaderOptions: interfaces.LoaderOptions) {

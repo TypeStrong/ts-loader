@@ -1,4 +1,6 @@
 import typescript = require('typescript');
+import path = require('path');
+import fs = require('fs');
 import objectAssign = require('object-assign');
 import constants = require('./constants');
 import interfaces = require('./interfaces');
@@ -8,7 +10,7 @@ export function pushArray<T>(arr: T[], toPush: any) {
 }
 
 export function hasOwnProperty<T extends {}>(obj: T, property: string) {
-    return Object.prototype.hasOwnProperty.call(obj, property)
+    return Object.prototype.hasOwnProperty.call(obj, property);
 }
 
 /**
@@ -17,33 +19,43 @@ export function hasOwnProperty<T extends {}>(obj: T, property: string) {
  */
 export function formatErrors(
     diagnostics: typescript.Diagnostic[],
-    instance: interfaces.TSInstance, 
+    instance: interfaces.TSInstance,
     merge?: any): interfaces.WebpackError[] {
 
     return diagnostics
-        .filter(diagnostic => instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) == -1)
+        .filter(diagnostic => instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
         .map<interfaces.WebpackError>(diagnostic => {
-            var errorCategory = instance.compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
-            var errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
+            const errorCategory = instance.compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
+            const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
 
-            var messageText = errorCategoryAndCode + instance.compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
+            const messageText = errorCategoryAndCode + instance.compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
             if (diagnostic.file) {
-                var lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+                const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
                 return {
-                    message: `${'('.white}${(lineChar.line+1).toString().cyan},${(lineChar.character+1).toString().cyan}): ${messageText.red}`,
+                    message: `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`,
                     rawMessage: messageText,
-                    location: {line: lineChar.line+1, character: lineChar.character+1},
+                    location: {line: lineChar.line + 1, character: lineChar.character + 1},
                     loaderSource: 'ts-loader'
                 };
             }
             else {
                 return {
-                    message:`${messageText.red}`,
+                    message: `${messageText.red}`,
                     rawMessage: messageText,
                     loaderSource: 'ts-loader'
                 };
             }
         })
-        .map(error => <interfaces.WebpackError>objectAssign(error, merge));
+        .map(error => <interfaces.WebpackError> objectAssign(error, merge));
 }
+
+export function readFile(fileName: string) {
+    fileName = path.normalize(fileName);
+    try {
+        return fs.readFileSync(fileName, {encoding: 'utf8'});
+    } catch (e) {
+        return;
+    }
+}
+
 

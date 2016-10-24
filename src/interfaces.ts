@@ -9,6 +9,9 @@ export interface WebpackError {
     loaderSource: string;
 }
 
+/**
+ * webpack/lib/Compilation.js
+ */
 export interface WebpackCompilation {
     compiler: WebpackCompiler;
     errors: WebpackError[];
@@ -21,6 +24,9 @@ export interface WebpackCompilation {
     };
 }
 
+/**
+ * webpack/lib/Compiler.js
+ */
 export interface WebpackCompiler {
     isChild(): boolean;
     context: string; // a guess
