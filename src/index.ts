@@ -8,6 +8,7 @@ const semver = require('semver');
 require('colors');
 
 import afterCompile = require('./after-compile');
+import getConfigFile = require('./config');
 import interfaces = require('./interfaces');
 import constants = require('./constants');
 import utils = require('./utils');
@@ -18,25 +19,6 @@ import watchRun = require('./watch-run');
 let instances = <interfaces.TSInstances> {};
 let webpackInstances: any = [];
 let scriptRegex = /\.tsx?$/i;
-
-/**
- * The tsconfig.json is found using the same method as `tsc`, starting in the current directory
- * and continuing up the parent directory chain.
- */
-function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string {
-    while (true) {
-        const fileName = path.join(searchPath, configFileName);
-        if (compiler.sys.fileExists(fileName)) {
-            return fileName;
-        }
-        const parentPath = path.dirname(searchPath);
-        if (parentPath === searchPath) {
-            break;
-        }
-        searchPath = parentPath;
-    }
-    return undefined;
-}
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -65,17 +47,17 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     }
 
     const log = logger.makeLogger(loaderOptions);
-    const motd = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`;
+    const compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`;
     let compilerCompatible = false;
     if (loaderOptions.compiler === 'typescript') {
         if (compiler.version && semver.gte(compiler.version, '1.6.2-0')) {
             // don't log yet in this case, if a tsconfig.json exists we want to combine the message
             compilerCompatible = true;
         } else {
-            log.logError(`${motd}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
+            log.logError(`${compilerDetailsLogMessage}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
         }
     } else {
-        log.logWarning(`${motd}. This version may or may not be compatible with ts-loader.`.yellow);
+        log.logWarning(`${compilerDetailsLogMessage}. This version may or may not be compatible with ts-loader.`.yellow);
     }
 
     const files: interfaces.TSFiles = {};
@@ -98,47 +80,15 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
 
     // Load any available tsconfig.json file
     let filesToLoad: string[] = [];
-    const configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
-    let configFile: {
-        config?: any;
-        error?: typescript.Diagnostic;
-    };
-    if (configFilePath) {
-        if (compilerCompatible) {
-            log.logInfo(`${motd} and ${configFilePath}`.green);
-        } else {
-            log.logInfo(`ts-loader: Using config file at ${configFilePath}`.green);
-        }
 
-        // HACK: relies on the fact that passing an extra argument won't break
-        // the old API that has a single parameter
-        configFile = (<interfaces.TSCompatibleCompiler> <any> compiler).readConfigFile(
-            configFilePath,
-            compiler.sys.readFile
-        );
-
-        if (configFile.error) {
-            const configFileError = utils.formatErrors([configFile.error], instance, {file: configFilePath })[0];
-            return { error: configFileError };
-        }
-    } else {
-        if (compilerCompatible) { log.logInfo(motd.green); }
-
-        configFile = {
-            config: {
-                compilerOptions: {},
-                files: [],
-            },
-        };
-    }
-
-    configFile.config.compilerOptions = objectAssign({},
-        configFile.config.compilerOptions,
-        loaderOptions.compilerOptions);
-
-    // do any necessary config massaging
-    if (loaderOptions.transpileOnly) {
-        configFile.config.compilerOptions.isolatedModules = true;
+    const {
+        configFilePath,
+        configFile,
+        configFileError
+    } = getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage, instance);
+    
+    if (configFileError) {
+        return { error: configFileError };
     }
 
     // if allowJs is set then we should accept js(x) files
