@@ -10,4 +10,5 @@ npm-debug.log
 /test/execution-tests/**/typings
 !/test/**/expectedOutput-*/**
 /node_modules
+/dist
 !build.js

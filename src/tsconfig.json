@@ -3,6 +3,7 @@
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
         "module": "commonjs",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "outDir": "../dist"
     }
 }

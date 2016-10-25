@@ -1,3 +1,3 @@
-var loader = require('./src');
+var loader = require('./dist');
 
 module.exports = loader;
