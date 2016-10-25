@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
         "noLib": true
-    },
-    "files": []
+    }
 }
