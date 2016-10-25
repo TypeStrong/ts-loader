@@ -10,43 +10,54 @@ enum LogLevel {
     ERROR = 3
 }
 
-interface Logger {
+interface InternalLoggerFunc {
     (whereToLog: any, messages: string[]): void
 }
 
 const doNothingLogger = (...messages: string[]) => {};
 
-function makeLogger(loaderOptions: interfaces.LoaderOptions) {
+function makeLoggerFunc(loaderOptions: interfaces.LoaderOptions) {
     return loaderOptions.silent 
         ? (whereToLog: any, messages: string[]) => {}
         : (whereToLog: any, messages: string[]) => console.log.apply(whereToLog, messages);
 }
 
-function makeExternalLogger(loaderOptions: interfaces.LoaderOptions, logger: Logger) {
+function makeExternalLogger(loaderOptions: interfaces.LoaderOptions, logger: InternalLoggerFunc) {
     const output = loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole;
     return (...messages: string[]) => logger(output, messages);
 }
 
-function makeLogInfo(loaderOptions: interfaces.LoaderOptions, logger: Logger) {
+function makeLogInfo(loaderOptions: interfaces.LoaderOptions, logger: InternalLoggerFunc) {
     return LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
         ? (...messages: string[]) => logger(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages)
         : doNothingLogger
 }
 
-function makeLogError(loaderOptions: interfaces.LoaderOptions, logger: Logger) {
+function makeLogError(loaderOptions: interfaces.LoaderOptions, logger: InternalLoggerFunc) {
     return LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
         ? (...messages: string[]) => logger(stderrConsole, messages)
         : doNothingLogger
 }
 
-function makeLogWarning(loaderOptions: interfaces.LoaderOptions, logger: Logger) {
+function makeLogWarning(loaderOptions: interfaces.LoaderOptions, logger: InternalLoggerFunc) {
     return LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
         ? (...messages: string[]) => logger(stderrConsole, messages)
         : doNothingLogger
 }
 
-function getLogger(loaderOptions: interfaces.LoaderOptions) {
-    const logger = makeLogger(loaderOptions);
+interface LoggerFunc {
+    (...messages: string[]): void
+}
+
+export interface Logger {
+    log: LoggerFunc;
+    logInfo: LoggerFunc;
+    logWarning: LoggerFunc;
+    logError: LoggerFunc;
+}
+
+export function makeLogger(loaderOptions: interfaces.LoaderOptions): Logger {
+    const logger = makeLoggerFunc(loaderOptions);
     return {
         log: makeExternalLogger(loaderOptions, logger),
         logInfo: makeLogInfo(loaderOptions, logger),
@@ -54,5 +65,3 @@ function getLogger(loaderOptions: interfaces.LoaderOptions) {
         logError: makeLogError(loaderOptions, logger)
     }
 }
-
-export = getLogger;

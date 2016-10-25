@@ -4,13 +4,16 @@ import fs = require('fs');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
 import arrify = require('arrify');
-import makeResolver = require('./resolver');
+const semver = require('semver');
+require('colors');
+
+import afterCompile = require('./after-compile');
 import interfaces = require('./interfaces');
 import constants = require('./constants');
 import utils = require('./utils');
-import getLogger = require('./logger');
-const semver = require('semver');
-require('colors');
+import logger = require('./logger');
+import makeServicesHost = require('./servicesHost');
+import watchRun = require('./watch-run');
 
 let instances = <interfaces.TSInstances> {};
 let webpackInstances: any = [];
@@ -61,7 +64,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         } };
     }
 
-    const log = getLogger(loaderOptions);
+    const log = logger.makeLogger(loaderOptions);
     const motd = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`;
     let compilerCompatible = false;
     if (loaderOptions.compiler === 'typescript') {
@@ -215,273 +218,10 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         }};
     }
 
-    let newLine =
-        compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? constants.CarriageReturnLineFeed :
-        compilerOptions.newLine === 1 /* LineFeed */ ? constants.LineFeed :
-        constants.EOL;
+    const servicesHost = makeServicesHost(files, scriptRegex, log, loader, compilerOptions, instance, compiler, configFilePath);
 
-    // make a (sync) resolver that follows webpack's rules
-    let resolver = makeResolver(loader.options);
-
-    const moduleResolutionHost = {
-        fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
-        readFile: (fileName: string) => utils.readFile(fileName),
-    };
-
-    // Create the TypeScript language service
-    const servicesHost = {
-        getProjectVersion: () => `${instance.version}`,
-        getScriptFileNames: () => Object.keys(files).filter(filePath => scriptRegex.test(filePath)),
-        getScriptVersion: (fileName: string) => {
-            fileName = path.normalize(fileName);
-            return files[fileName] && files[fileName].version.toString();
-        },
-        getScriptSnapshot: (fileName: string) => {
-            // This is called any time TypeScript needs a file's text
-            // We either load from memory or from disk
-            fileName = path.normalize(fileName);
-            let file = files[fileName];
-
-            if (!file) {
-                let text = utils.readFile(fileName);
-                if (!text) { return; }
-
-                file = files[fileName] = { version: 0, text };
-            }
-
-            return compiler.ScriptSnapshot.fromString(file.text);
-        },
-        /**
-         * getDirectories is also required for full import and type reference completions.
-         * Without it defined, certain completions will not be provided
-         */
-        getDirectories: typescript.sys ? (<any> typescript.sys).getDirectories : undefined,
-
-        /**
-         * For @types expansion, these two functions are needed.
-         */
-        directoryExists: typescript.sys ? (<any> typescript.sys).directoryExists : undefined,
-        getCurrentDirectory: () => process.cwd(),
-
-        getCompilationSettings: () => compilerOptions,
-        getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
-        getNewLine: () => newLine,
-        log: log.log,
-        resolveModuleNames: (moduleNames: string[], containingFile: string) => {
-            let resolvedModules: interfaces.ResolvedModule[] = [];
-
-            for (let moduleName of moduleNames) {
-                let resolvedFileName: string;
-                let resolutionResult: any;
-
-                try {
-                    resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
-
-                    if (!resolvedFileName.match(scriptRegex)) resolvedFileName = null;
-                    else resolutionResult = { resolvedFileName };
-                }
-                catch (e) { resolvedFileName = null; }
-
-                let tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
-
-                if (tsResolution.resolvedModule) {
-                    if (resolvedFileName) {
-                        if (resolvedFileName === tsResolution.resolvedModule.resolvedFileName) {
-                            resolutionResult.isExternalLibraryImport = tsResolution.resolvedModule.isExternalLibraryImport;
-                        }
-                    }
-                    else resolutionResult = tsResolution.resolvedModule;
-                }
-
-                resolvedModules.push(resolutionResult);
-            }
-
-            const importedFiles = resolvedModules
-                .filter(m => m !== null && m !== undefined)
-                .map(m => m.resolvedFileName);
-            instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
-            importedFiles.forEach(importedFileName => {
-                if (!instance.reverseDependencyGraph[importedFileName]) {
-                    instance.reverseDependencyGraph[importedFileName] = {};
-                }
-                instance.reverseDependencyGraph[importedFileName][path.normalize(containingFile)] = true;
-            });
-
-            return resolvedModules;
-        },
-    };
-
-    const languageService = instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
-
-    let getCompilerOptionDiagnostics = true;
-    let checkAllFilesForErrors = true;
-
-    loader._compiler.plugin("after-compile", (compilation: interfaces.WebpackCompilation, callback: () => void) => {
-        // Don't add errors for child compilations
-        if (compilation.compiler.isChild()) {
-            callback();
-            return;
-        }
-
-        // handle all other errors. The basic approach here to get accurate error
-        // reporting is to start with a "blank slate" each compilation and gather
-        // all errors from all files. Since webpack tracks errors in a module from
-        // compilation-to-compilation, and since not every module always runs through
-        // the loader, we need to detect and remove any pre-existing errors.
-
-        function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
-            let index = -1, length = errors.length;
-            while (++index < length) {
-                if (errors[index].loaderSource === 'ts-loader') {
-                    errors.splice(index--, 1);
-                    length--;
-                }
-            }
-        }
-
-        /**
-         * Recursive collect all possible dependats of passed file
-         */
-        function collectAllDependants(fileName: string, collected: any = {}): string[] {
-            let result = {};
-            result[fileName] = true;
-            collected[fileName] = true;
-            if (instance.reverseDependencyGraph[fileName]) {
-                Object.keys(instance.reverseDependencyGraph[fileName]).forEach(dependantFileName => {
-                    if (!collected[dependantFileName]) {
-                        collectAllDependants(dependantFileName, collected).forEach(fName => result[fName] = true);
-                    }
-                });
-            }
-            return Object.keys(result);
-        }
-
-        removeTSLoaderErrors(compilation.errors);
-
-        // handle compiler option errors after the first compile
-        if (getCompilerOptionDiagnostics) {
-            getCompilerOptionDiagnostics = false;
-            utils.pushArray(
-                compilation.errors,
-                utils.formatErrors(languageService.getCompilerOptionsDiagnostics(), instance, {file: configFilePath || 'tsconfig.json'}));
-        }
-
-        // build map of all modules based on normalized filename
-        // this is used for quick-lookup when trying to find modules
-        // based on filepath
-        let modules: { [modulePath: string]: interfaces.WebpackModule[]} = {};
-        compilation.modules.forEach(module => {
-            if (module.resource) {
-                let modulePath = path.normalize(module.resource);
-                if (utils.hasOwnProperty(modules, modulePath)) {
-                    let existingModules = modules[modulePath];
-                    if (existingModules.indexOf(module) === -1) {
-                        existingModules.push(module);
-                    }
-                }
-                else {
-                    modules[modulePath] = [module];
-                }
-            }
-        });
-
-        // gather all errors from TypeScript and output them to webpack
-        let filesWithErrors: interfaces.TSFiles = {};
-        // calculate array of files to check
-        let filesToCheckForErrors: interfaces.TSFiles = null;
-        if (checkAllFilesForErrors) {
-            // check all files on initial run
-            filesToCheckForErrors = instance.files;
-            checkAllFilesForErrors = false;
-        } else {
-            filesToCheckForErrors = {};
-            // check all modified files, and all dependants
-            Object.keys(instance.modifiedFiles).forEach(modifiedFileName => {
-                collectAllDependants(modifiedFileName).forEach(fName => {
-                    filesToCheckForErrors[fName] = instance.files[fName];
-                });
-            });
-        }
-        // re-check files with errors from previous build
-        if (instance.filesWithErrors) {
-            Object.keys(instance.filesWithErrors).forEach(fileWithErrorName =>
-                filesToCheckForErrors[fileWithErrorName] = instance.filesWithErrors[fileWithErrorName]
-            );
-        }
-
-        Object.keys(filesToCheckForErrors)
-            .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
-            .forEach(filePath => {
-                let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
-                if (errors.length > 0) {
-                    if (null === filesWithErrors) {
-                        filesWithErrors = {};
-                    }
-                    filesWithErrors[filePath] = instance.files[filePath];
-                }
-
-                // if we have access to a webpack module, use that
-                if (utils.hasOwnProperty(modules, filePath)) {
-                    let associatedModules = modules[filePath];
-
-                    associatedModules.forEach(module => {
-                        // remove any existing errors
-                        removeTSLoaderErrors(module.errors);
-
-                        // append errors
-                        let formattedErrors = utils.formatErrors(errors, instance, { module });
-                        utils.pushArray(module.errors, formattedErrors);
-                        utils.pushArray(compilation.errors, formattedErrors);
-                    });
-                }
-                // otherwise it's a more generic error
-                else {
-                    utils.pushArray(compilation.errors, utils.formatErrors(errors, instance, {file: filePath}));
-                }
-            });
-
-
-        // gather all declaration files from TypeScript and output them to webpack
-        Object.keys(filesToCheckForErrors)
-            .filter(filePath => !!filePath.match(/\.ts(x?)$/))
-            .forEach(filePath => {
-                let output = languageService.getEmitOutput(filePath);
-                let declarationFile = output.outputFiles.filter(filePath => !!filePath.name.match(/\.d.ts$/)).pop();
-                if (declarationFile) {
-                    let assetPath = path.relative(compilation.compiler.context, declarationFile.name);
-                    compilation.assets[assetPath] = {
-                        source: () => declarationFile.text,
-                        size: () => declarationFile.text.length,
-                    };
-                }
-            });
-
-        instance.filesWithErrors = filesWithErrors;
-        instance.modifiedFiles = null;
-        callback();
-    });
-
-    // manually update changed files
-    loader._compiler.plugin("watch-run", (watching: interfaces.WebpackWatching, cb: () => void) => {
-        const mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
-        if (null === instance.modifiedFiles) {
-            instance.modifiedFiles = {};
-        }
-
-        Object.keys(mtimes)
-            .filter(filePath => !!filePath.match(/\.tsx?$|\.jsx?$/))
-            .forEach(filePath => {
-                filePath = path.normalize(filePath);
-                const file = instance.files[filePath];
-                if (file) {
-                    file.text = utils.readFile(filePath) || '';
-                    file.version++;
-                    instance.version++;
-                    instance.modifiedFiles[filePath] = file;
-                }
-            });
-        cb();
-    });
+    loader._compiler.plugin("after-compile", afterCompile(instance, compiler, servicesHost, configFilePath));
+    loader._compiler.plugin("watch-run", watchRun(instance));
 
     return { instance };
 }
