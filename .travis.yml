@@ -5,6 +5,7 @@ node_js:
   - "6.0"
 sudo: false
 install:
+  - npm install npm -g
   - npm install
   - npm run build
   - npm install $TYPESCRIPT
