@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
 		"sourceMap": true
-	},
-    "files": []
+	}
 }

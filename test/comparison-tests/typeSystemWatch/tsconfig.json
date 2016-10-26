@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
 	},
-    "files": []
+	"files": [
+		"app.ts"
+	]
 }

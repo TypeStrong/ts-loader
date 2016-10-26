@@ -1,4 +1,6 @@
 /*.js
+!index.js
+/src/*.js
 /*.d.ts
 /*.log
 *.js.map
@@ -8,4 +10,5 @@ npm-debug.log
 /test/execution-tests/**/typings
 !/test/**/expectedOutput-*/**
 /node_modules
+/dist
 !build.js

@@ -4,11 +4,10 @@
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --version && tsc --project \"./src\"",
     "comparison-tests": "npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "execution-tests": "node test/execution-tests/run-tests.js",
-    "test": "node test/run-tests.js",
-    "prepublish": "npm run build"
+    "test": "node test/run-tests.js"
   },
   "repository": {
     "type": "git",

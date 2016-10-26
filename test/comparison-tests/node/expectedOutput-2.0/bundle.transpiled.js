@@ -44,7 +44,7 @@
 /* 0 */
 /***/ function(module, exports) {
 
-	"use strict";/// <reference path="../../typings/node/node.d.ts" /> 
+	"use strict";/// <reference path="../../src/typings/node/node.d.ts" /> 
 
 
 /***/ }
