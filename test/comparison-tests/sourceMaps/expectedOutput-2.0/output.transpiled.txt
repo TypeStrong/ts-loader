@@ -1,5 +1,5 @@
         Asset     Size  Chunks             Chunk Names
     bundle.js  1.55 kB       0  [emitted]  main
-bundle.js.map  1.57 kB       0  [emitted]  main
+bundle.js.map  1.55 kB       0  [emitted]  main
 chunk    {0} bundle.js, bundle.js.map (main) 42 bytes [rendered]
     [0] ./.test/sourceMaps/a.ts 42 bytes {0} [built]
