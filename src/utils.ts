@@ -31,31 +31,41 @@ export function formatErrors(
             const messageText = errorCategoryAndCode + instance.compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
             if (diagnostic.file) {
                 const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-                return {
+                return makeError({
                     message: `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`,
                     rawMessage: messageText,
-                    location: {line: lineChar.line + 1, character: lineChar.character + 1},
-                    loaderSource: 'ts-loader'
-                };
+                    location: { line: lineChar.line + 1, character: lineChar.character + 1 }
+                });
             }
             else {
-                return {
-                    message: `${messageText.red}`,
-                    rawMessage: messageText,
-                    loaderSource: 'ts-loader'
-                };
+                return makeError({ rawMessage: messageText });
             }
         })
-        .map(error => <interfaces.WebpackError> objectAssign(error, merge));
+        .map(error => <interfaces.WebpackError>objectAssign(error, merge));
 }
 
 export function readFile(fileName: string) {
     fileName = path.normalize(fileName);
     try {
-        return fs.readFileSync(fileName, {encoding: 'utf8'});
+        return fs.readFileSync(fileName, { encoding: 'utf8' });
     } catch (e) {
         return;
     }
 }
 
+interface MakeError {
+    rawMessage: string;
+    message?: string;
+    location?: { line: number, character: number };
+    file?: string;
+}
 
+export function makeError({ rawMessage, message, location, file }: MakeError): interfaces.WebpackError {
+    const error = {
+        rawMessage,
+        message: message || `${rawMessage.red}`,
+        loaderSource: 'ts-loader'
+    };
+
+    return <interfaces.WebpackError>objectAssign(error, { location, file });
+}

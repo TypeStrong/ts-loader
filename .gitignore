@@ -6,7 +6,8 @@
 *.js.map
 bundle.js
 npm-debug.log
-.test/
+/.test/
+/.vscode/
 /test/execution-tests/**/typings
 !/test/**/expectedOutput-*/**
 /node_modules

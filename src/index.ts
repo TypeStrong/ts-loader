@@ -9,6 +9,7 @@ require('colors');
 
 import afterCompile = require('./after-compile');
 import getConfigFile = require('./config');
+import compilerSetup = require('./compilerSetup');
 import interfaces = require('./interfaces');
 import constants = require('./constants');
 import utils = require('./utils');
@@ -31,33 +32,13 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     if (utils.hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }
-
-    let compiler: typeof typescript;
-    try {
-        compiler = require(loaderOptions.compiler);
-    } catch (e) {
-        let message = loaderOptions.compiler === 'typescript'
-            ? 'Could not load TypeScript. Try installing with `npm install typescript`. If TypeScript is installed globally, try using `npm link typescript`.'
-            : `Could not load TypeScript compiler with NPM package name \`${loaderOptions.compiler}\`. Are you sure it is correctly installed?`;
-        return { error: {
-            message: message.red,
-            rawMessage: message,
-            loaderSource: 'ts-loader',
-        } };
-    }
-
+ 
     const log = logger.makeLogger(loaderOptions);
-    const compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`;
-    let compilerCompatible = false;
-    if (loaderOptions.compiler === 'typescript') {
-        if (compiler.version && semver.gte(compiler.version, '1.6.2-0')) {
-            // don't log yet in this case, if a tsconfig.json exists we want to combine the message
-            compilerCompatible = true;
-        } else {
-            log.logError(`${compilerDetailsLogMessage}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`.red);
-        }
-    } else {
-        log.logWarning(`${compilerDetailsLogMessage}. This version may or may not be compatible with ts-loader.`.yellow);
+
+    const { compiler, compilerCompatible, compilerDetailsLogMessage, errorMessage } = compilerSetup.getCompiler(loaderOptions, log);
+
+    if (errorMessage) {
+        return { error: utils.makeError({ rawMessage: errorMessage }) };
     }
 
     const files: interfaces.TSFiles = {};
@@ -117,12 +98,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
             loader._module.errors,
             utils.formatErrors(configParseResult.errors, instance, { file: configFilePath }));
 
-        return { error: {
-            file: configFilePath,
-            message: 'error while parsing tsconfig.json'.red,
-            rawMessage: 'error while parsing tsconfig.json',
-            loaderSource: 'ts-loader',
-        }};
+        return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
     }
 
     instance.compilerOptions = objectAssign<typescript.CompilerOptions>(compilerOptions, configParseResult.options);
@@ -160,12 +136,9 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
             };
           });
     } catch (exc) {
-        let filePathError = `A file specified in tsconfig.json could not be found: ${ filePath }`;
-        return { error: {
-            message: filePathError.red,
-            rawMessage: filePathError,
-            loaderSource: 'ts-loader',
-        }};
+        return { error: utils.makeError({ 
+            rawMessage: `A file specified in tsconfig.json could not be found: ${ filePath }` 
+        }) };
     }
 
     const servicesHost = makeServicesHost(files, scriptRegex, log, loader, compilerOptions, instance, compiler, configFilePath);
