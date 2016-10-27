@@ -8,7 +8,7 @@ const semver = require('semver');
 require('colors');
 
 import afterCompile = require('./after-compile');
-import getConfigFile = require('./config');
+import config = require('./config');
 import compilerSetup = require('./compilerSetup');
 import interfaces = require('./interfaces');
 import constants = require('./constants');
@@ -19,7 +19,6 @@ import watchRun = require('./watch-run');
 
 let instances = <interfaces.TSInstances> {};
 let webpackInstances: any = [];
-let scriptRegex = /\.tsx?$/i;
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -59,39 +58,17 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         suppressOutputPathCheck: true, // This is why: https://github.com/Microsoft/TypeScript/issues/7363
     };
 
-    // Load any available tsconfig.json file
-    let filesToLoad: string[] = [];
-
     const {
         configFilePath,
         configFile,
         configFileError
-    } = getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage, instance);
+    } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage, instance);
     
     if (configFileError) {
         return { error: configFileError };
     }
 
-    // if allowJs is set then we should accept js(x) files
-    if (configFile.config.compilerOptions.allowJs) {
-        scriptRegex = /\.tsx?$|\.jsx?$/i;
-    }
-
-    let configParseResult: typescript.ParsedCommandLine;
-    if (typeof (<any> compiler).parseJsonConfigFileContent === 'function') {
-        // parseConfigFile was renamed between 1.6.2 and 1.7
-        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseJsonConfigFileContent(
-            configFile.config,
-            compiler.sys,
-            path.dirname(configFilePath || '')
-        );
-    } else {
-        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseConfigFile(
-            configFile.config,
-            compiler.sys,
-            path.dirname(configFilePath || '')
-        );
-    }
+    const configParseResult = config.getConfigParseResult(compiler, configFile, configFilePath);
 
     if (configParseResult.errors.length) {
         utils.pushArray(
@@ -102,7 +79,9 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     }
 
     instance.compilerOptions = objectAssign<typescript.CompilerOptions>(compilerOptions, configParseResult.options);
-    filesToLoad = configParseResult.fileNames;
+
+    // Load any available tsconfig.json file
+    let filesToLoad = configParseResult.fileNames;
 
     // if `module` is not specified and not using ES6 target, default to CJS module output
     if ((!compilerOptions.module) && compilerOptions.target !== 2 /* ES6 */) {
@@ -140,6 +119,11 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
             rawMessage: `A file specified in tsconfig.json could not be found: ${ filePath }` 
         }) };
     }
+
+    // if allowJs is set then we should accept js(x) files
+    const scriptRegex = configFile.config.compilerOptions.allowJs
+        ? /\.tsx?$|\.jsx?$/i 
+        : /\.tsx?$/i;
 
     const servicesHost = makeServicesHost(files, scriptRegex, log, loader, compilerOptions, instance, compiler, configFilePath);
 

@@ -11,7 +11,7 @@ interface ConfigFile {
     error?: typescript.Diagnostic;
 }
 
-function getConfigFile(
+export function getConfigFile(
     compiler: typeof typescript,
     loader: any,
     loaderOptions: interfaces.LoaderOptions,
@@ -89,4 +89,26 @@ function findConfigFile(compiler: typeof typescript, searchPath: string, configF
     return undefined;
 }
 
-export = getConfigFile;
+export function getConfigParseResult(
+    compiler: typeof typescript,
+    configFile: ConfigFile,
+    configFilePath: string
+) {
+    let configParseResult: typescript.ParsedCommandLine;
+    if (typeof (<any> compiler).parseJsonConfigFileContent === 'function') {
+        // parseConfigFile was renamed between 1.6.2 and 1.7
+        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseJsonConfigFileContent(
+            configFile.config,
+            compiler.sys,
+            path.dirname(configFilePath || '')
+        );
+    } else {
+        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseConfigFile(
+            configFile.config,
+            compiler.sys,
+            path.dirname(configFilePath || '')
+        );
+    }
+
+    return configParseResult;
+}
