@@ -33,7 +33,6 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     }
 
     const log = logger.makeLogger(loaderOptions);
-
     const { compiler, compilerCompatible, compilerDetailsLogMessage, errorMessage } = compilerSetup.getCompiler(loaderOptions, log);
 
     if (errorMessage) {
@@ -51,11 +50,6 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         dependencyGraph: {},
         reverseDependencyGraph: {},
         modifiedFiles: null,
-    };
-
-    const compilerOptions: typescript.CompilerOptions = {
-        skipDefaultLibCheck: true,
-        suppressOutputPathCheck: true, // This is why: https://github.com/Microsoft/TypeScript/issues/7363
     };
 
     const {
@@ -78,18 +72,8 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
     }
 
-    instance.compilerOptions = objectAssign<typescript.CompilerOptions>(compilerOptions, configParseResult.options);
-
-    // Load any available tsconfig.json file
-    let filesToLoad = configParseResult.fileNames;
-
-    // if `module` is not specified and not using ES6 target, default to CJS module output
-    if ((!compilerOptions.module) && compilerOptions.target !== 2 /* ES6 */) {
-        compilerOptions.module = 1; /* CommonJS */
-    } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === 2 /* ES6 */) {
-       // special handling for TS 1.6 and target: es6
-        compilerOptions.module = 0 /* None */;
-    }
+    const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler, configParseResult);
+    instance.compilerOptions = compilerOptions;
 
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
@@ -107,11 +91,12 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     // Load initial files (core lib files, any files specified in tsconfig.json)
     let filePath: string;
     try {
+        const filesToLoad = configParseResult.fileNames;
         filesToLoad.forEach(fp => {
             filePath = path.normalize(fp);
             files[filePath] = {
                 text: fs.readFileSync(filePath, 'utf-8'),
-                version: 0,
+                version: 0
             };
           });
     } catch (exc) {

@@ -1,4 +1,5 @@
 import typescript = require('typescript');
+import objectAssign = require('object-assign');
 const semver = require('semver');
 
 import interfaces = require('./interfaces');
@@ -37,4 +38,25 @@ export function getCompiler(
     }
 
     return { compiler, compilerCompatible, compilerDetailsLogMessage, errorMessage };
+}
+
+export function getCompilerOptions(
+    compilerCompatible: boolean,
+    compiler: typeof typescript,
+    configParseResult: typescript.ParsedCommandLine
+) {
+    const compilerOptions = objectAssign<typescript.CompilerOptions>({}, configParseResult.options, {
+        skipDefaultLibCheck: true,
+        suppressOutputPathCheck: true, // This is why: https://github.com/Microsoft/TypeScript/issues/7363
+    });
+
+    // if `module` is not specified and not using ES6 target, default to CJS module output
+    if ((!compilerOptions.module) && compilerOptions.target !== 2 /* ES6 */) {
+        compilerOptions.module = 1; /* CommonJS */
+    } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === 2 /* ES6 */) {
+       // special handling for TS 1.6 and target: es6
+        compilerOptions.module = 0 /* None */;
+    }
+
+    return compilerOptions;
 }
