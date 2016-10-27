@@ -1,5 +1,4 @@
 *.ts
+.test
 test
-.*
 src
-typings
