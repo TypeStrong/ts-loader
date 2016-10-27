@@ -26,7 +26,7 @@ function makeAfterCompile(
         // handle compiler option errors after the first compile
         if (getCompilerOptionDiagnostics) {
             getCompilerOptionDiagnostics = false;
-            utils.pushArray(
+            utils.registerWebpackErrors(
                 compilation.errors,
                 utils.formatErrors(languageService.getCompilerOptionsDiagnostics(), instance, { file: configFilePath || 'tsconfig.json' }));
         }
@@ -94,12 +94,12 @@ function makeAfterCompile(
 
                         // append errors
                         let formattedErrors = utils.formatErrors(errors, instance, { module });
-                        utils.pushArray(module.errors, formattedErrors);
-                        utils.pushArray(compilation.errors, formattedErrors);
+                        utils.registerWebpackErrors(module.errors, formattedErrors);
+                        utils.registerWebpackErrors(compilation.errors, formattedErrors);
                     });
                 } else {
                     // otherwise it's a more generic error
-                    utils.pushArray(compilation.errors, utils.formatErrors(errors, instance, { file: filePath }));
+                    utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, instance, { file: filePath }));
                 }
             });
 

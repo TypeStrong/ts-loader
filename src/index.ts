@@ -63,7 +63,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     const configParseResult = config.getConfigParseResult(compiler, configFile, configFilePath);
 
     if (configParseResult.errors.length) {
-        utils.pushArray(
+        utils.registerWebpackErrors(
             loader._module.errors,
             utils.formatErrors(configParseResult.errors, instance, { file: configFilePath }));
 
@@ -79,7 +79,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         const program = compiler.createProgram([], compilerOptions);
         const diagnostics = program.getOptionsDiagnostics();
 
-        utils.pushArray(
+        utils.registerWebpackErrors(
             loader._module.errors,
             utils.formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
 
@@ -183,7 +183,7 @@ function loader(contents: string) {
 
         ({ outputText, sourceMapText, diagnostics } = transpileResult);
 
-        utils.pushArray(this._module.errors, utils.formatErrors(diagnostics, instance, {module: this._module}));
+        utils.registerWebpackErrors(this._module.errors, utils.formatErrors(diagnostics, instance, {module: this._module}));
     } else {
         let langService = instance.languageService;
 

@@ -5,8 +5,8 @@ import objectAssign = require('object-assign');
 import constants = require('./constants');
 import interfaces = require('./interfaces');
 
-export function pushArray<T>(arr: T[], toPush: any) {
-    Array.prototype.splice.apply(arr, [0, 0].concat(toPush));
+export function registerWebpackErrors(existingErrors: interfaces.WebpackError[], errorsToPush: interfaces.WebpackError[]) {
+    Array.prototype.splice.apply(existingErrors, (<(number | interfaces.WebpackError)[]> [0, 0]).concat(errorsToPush));
 }
 
 export function hasOwnProperty<T extends {}>(obj: T, property: string) {

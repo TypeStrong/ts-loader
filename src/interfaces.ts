@@ -41,7 +41,7 @@ export interface WebpackModule {
 export interface WebpackNodeWatchFileSystem {
     watcher: {
         mtimes: number; // a guess
-    }
+    };
 }
 
 export interface WebpackWatching {
@@ -54,7 +54,8 @@ export interface Resolve {
     /**
      * The directory (absolute path) that contains your modules.
      * May also be an array of directories.
-     * This setting should be used to add individual directories to the search path. */
+     * This setting should be used to add individual directories to the search path. 
+     */
     root?: string | string[];
     /**
      * An array of directory names to be resolved to the current directory as well as its ancestors, and searched for modules.
@@ -102,7 +103,7 @@ export interface TSInstances {
 }
 
 interface DependencyGraph {
-    [index: string]: string[]
+    [index: string]: string[];
 }
 
 interface ReverseDependencyGraph {
