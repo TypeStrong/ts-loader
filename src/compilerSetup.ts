@@ -35,6 +35,6 @@ export function getCompiler(
             log.logWarning(`${compilerDetailsLogMessage}. This version may or may not be compatible with ts-loader.`.yellow);
         }
     }
-    
+
     return { compiler, compilerCompatible, compilerDetailsLogMessage, errorMessage };
 }

@@ -33,7 +33,7 @@ export function getConfigFile(
 
         // HACK: relies on the fact that passing an extra argument won't break
         // the old API that has a single parameter
-        configFile = (<interfaces.TSCompatibleCompiler><any>compiler).readConfigFile(
+        configFile = (<interfaces.TSCompatibleCompiler> <any> compiler).readConfigFile(
             configFilePath,
             compiler.sys.readFile
         );

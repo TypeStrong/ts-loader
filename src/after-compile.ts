@@ -43,8 +43,7 @@ function makeAfterCompile(
                     if (existingModules.indexOf(module) === -1) {
                         existingModules.push(module);
                     }
-                }
-                else {
+                } else {
                     modules[modulePath] = [module];
                 }
             }
@@ -98,9 +97,8 @@ function makeAfterCompile(
                         utils.pushArray(module.errors, formattedErrors);
                         utils.pushArray(compilation.errors, formattedErrors);
                     });
-                }
-                // otherwise it's a more generic error
-                else {
+                } else {
+                    // otherwise it's a more generic error
                     utils.pushArray(compilation.errors, utils.formatErrors(errors, instance, { file: filePath }));
                 }
             });
@@ -111,7 +109,7 @@ function makeAfterCompile(
             .filter(filePath => !!filePath.match(/\.ts(x?)$/))
             .forEach(filePath => {
                 let output = languageService.getEmitOutput(filePath);
-                let declarationFile = output.outputFiles.filter(filePath => !!filePath.name.match(/\.d.ts$/)).pop();
+                let declarationFile = output.outputFiles.filter(fp => !!fp.name.match(/\.d.ts$/)).pop();
                 if (declarationFile) {
                     let assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                     compilation.assets[assetPath] = {
@@ -124,7 +122,7 @@ function makeAfterCompile(
         instance.filesWithErrors = filesWithErrors;
         instance.modifiedFiles = null;
         callback();
-    }
+    };
 }
 
 /**
@@ -135,7 +133,8 @@ function makeAfterCompile(
  * the loader, we need to detect and remove any pre-existing errors.
  */
 function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
-    let index = -1, length = errors.length;
+    let index = -1;
+    let length = errors.length;
     while (++index < length) {
         if (errors[index].loaderSource === 'ts-loader') {
             errors.splice(index--, 1);

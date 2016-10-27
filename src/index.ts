@@ -31,7 +31,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
     if (utils.hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }
- 
+
     const log = logger.makeLogger(loaderOptions);
 
     const { compiler, compilerCompatible, compilerDetailsLogMessage, errorMessage } = compilerSetup.getCompiler(loaderOptions, log);
@@ -63,7 +63,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         configFile,
         configFileError
     } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage, instance);
-    
+
     if (configFileError) {
         return { error: configFileError };
     }
@@ -115,14 +115,14 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
             };
           });
     } catch (exc) {
-        return { error: utils.makeError({ 
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ filePath }` 
+        return { error: utils.makeError({
+            rawMessage: `A file specified in tsconfig.json could not be found: ${ filePath }`
         }) };
     }
 
     // if allowJs is set then we should accept js(x) files
     const scriptRegex = configFile.config.compilerOptions.allowJs
-        ? /\.tsx?$|\.jsx?$/i 
+        ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
     const servicesHost = makeServicesHost(files, scriptRegex, log, loader, compilerOptions, instance, compiler, configFilePath);
@@ -186,7 +186,9 @@ function loader(contents: string) {
     }
     instance.modifiedFiles[filePath] = file;
 
-    let outputText: string, sourceMapText: string, diagnostics: typescript.Diagnostic[] = [];
+    let outputText: string;
+    let sourceMapText: string;
+    let diagnostics: typescript.Diagnostic[] = [];
 
     if (options.transpileOnly) {
         const fileName = path.basename(filePath);
@@ -199,8 +201,7 @@ function loader(contents: string) {
         ({ outputText, sourceMapText, diagnostics } = transpileResult);
 
         utils.pushArray(this._module.errors, utils.formatErrors(diagnostics, instance, {module: this._module}));
-    }
-    else {
+    } else {
         let langService = instance.languageService;
 
         // Emit Javascript
@@ -210,7 +211,7 @@ function loader(contents: string) {
         this.clearDependencies();
         this.addDependency(filePath);
 
-        let allDefinitionFiles = Object.keys(instance.files).filter(filePath => /\.d\.ts$/.test(filePath));
+        let allDefinitionFiles = Object.keys(instance.files).filter(fp => /\.d\.ts$/.test(fp));
         allDefinitionFiles.forEach(this.addDependency.bind(this));
 
         // Additionally make this file dependent on all imported files
@@ -221,12 +222,12 @@ function loader(contents: string) {
 
         this._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
             .concat(additionalDependencies)
-            .map(filePath => filePath + '@' + (instance.files[filePath] || {version: '?'}).version);
+            .map(fp => fp + '@' + (instance.files[fp] || {version: '?'}).version);
 
-        const outputFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)$/)).pop();
+        const outputFile = output.outputFiles.filter(f => !!f.name.match(/\.js(x?)$/)).pop();
         if (outputFile) { outputText = outputFile.text; }
 
-        const sourceMapFile = output.outputFiles.filter(file => !!file.name.match(/\.js(x?)\.map$/)).pop();
+        const sourceMapFile = output.outputFiles.filter(f => !!f.name.match(/\.js(x?)\.map$/)).pop();
         if (sourceMapFile) { sourceMapText = sourceMapFile.text; }
     }
 

@@ -36,12 +36,11 @@ export function formatErrors(
                     rawMessage: messageText,
                     location: { line: lineChar.line + 1, character: lineChar.character + 1 }
                 });
-            }
-            else {
+            } else {
                 return makeError({ rawMessage: messageText });
             }
         })
-        .map(error => <interfaces.WebpackError>objectAssign(error, merge));
+        .map(error => <interfaces.WebpackError> objectAssign(error, merge));
 }
 
 export function readFile(fileName: string) {
@@ -67,5 +66,5 @@ export function makeError({ rawMessage, message, location, file }: MakeError): i
         loaderSource: 'ts-loader'
     };
 
-    return <interfaces.WebpackError>objectAssign(error, { location, file });
+    return <interfaces.WebpackError> objectAssign(error, { location, file });
 }
