@@ -9,7 +9,7 @@
       "static-before-instance",
       "variables-before-functions"
     ],
-    "no-unused-variable": false,
+    "no-unused-variable": true,
     "no-var-requires": false,
     "quotemark": [
       "single"
