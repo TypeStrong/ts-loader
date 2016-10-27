@@ -48,7 +48,7 @@ export function readFile(fileName: string) {
     try {
         return fs.readFileSync(fileName, { encoding: 'utf8' });
     } catch (e) {
-        return;
+        return undefined;
     }
 }
 

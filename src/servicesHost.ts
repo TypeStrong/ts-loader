@@ -16,8 +16,7 @@ function makeServicesHost(
     loader: any, //TODO: not any
     compilerOptions: typescript.CompilerOptions,
     instance: interfaces.TSInstance,
-    compiler: typeof typescript,
-    configFilePath: string
+    compiler: typeof typescript
 ) {
     const newLine =
         compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? constants.CarriageReturnLineFeed :
@@ -47,7 +46,7 @@ function makeServicesHost(
 
             if (!file) {
                 let text = utils.readFile(fileName);
-                if (!text) { return; }
+                if (!text) { return undefined; }
 
                 file = files[fileName] = { version: 0, text };
             }

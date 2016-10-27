@@ -4,14 +4,12 @@ import fs = require('fs');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
 import arrify = require('arrify');
-const semver = require('semver');
 require('colors');
 
 import afterCompile = require('./after-compile');
 import config = require('./config');
 import compilerSetup = require('./compilerSetup');
 import interfaces = require('./interfaces');
-import constants = require('./constants');
 import utils = require('./utils');
 import logger = require('./logger');
 import makeServicesHost = require('./servicesHost');
@@ -110,7 +108,7 @@ function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loade
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
-    const servicesHost = makeServicesHost(files, scriptRegex, log, loader, compilerOptions, instance, compiler, configFilePath);
+    const servicesHost = makeServicesHost(files, scriptRegex, log, loader, compilerOptions, instance, compiler);
 
     loader._compiler.plugin("after-compile", afterCompile(instance, compiler, servicesHost, configFilePath));
     loader._compiler.plugin("watch-run", watchRun(instance));
