@@ -78,7 +78,7 @@ function loader(contents: string) {
 
         ({ outputText, sourceMapText, diagnostics } = transpileResult);
 
-        utils.registerWebpackErrors(this._module.errors, utils.formatErrors(diagnostics, instance, {module: this._module}));
+        utils.registerWebpackErrors(this._module.errors, utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, {module: this._module}));
     } else {
         let langService = instance.languageService;
 

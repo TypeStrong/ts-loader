@@ -28,7 +28,10 @@ function makeAfterCompile(
             getCompilerOptionDiagnostics = false;
             utils.registerWebpackErrors(
                 compilation.errors,
-                utils.formatErrors(languageService.getCompilerOptionsDiagnostics(), instance, { file: configFilePath || 'tsconfig.json' }));
+                utils.formatErrors(languageService.getCompilerOptionsDiagnostics(),
+                    instance.loaderOptions,
+                    compiler,
+                    { file: configFilePath || 'tsconfig.json' }));
         }
 
         // build map of all modules based on normalized filename
@@ -93,13 +96,13 @@ function makeAfterCompile(
                         removeTSLoaderErrors(module.errors);
 
                         // append errors
-                        let formattedErrors = utils.formatErrors(errors, instance, { module });
+                        let formattedErrors = utils.formatErrors(errors, instance.loaderOptions, compiler, { module });
                         utils.registerWebpackErrors(module.errors, formattedErrors);
                         utils.registerWebpackErrors(compilation.errors, formattedErrors);
                     });
                 } else {
                     // otherwise it's a more generic error
-                    utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, instance, { file: filePath }));
+                    utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, instance.loaderOptions, compiler, { file: filePath }));
                 }
             });
 

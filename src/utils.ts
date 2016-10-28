@@ -19,16 +19,17 @@ export function hasOwnProperty<T extends {}>(obj: T, property: string) {
  */
 export function formatErrors(
     diagnostics: typescript.Diagnostic[],
-    instance: interfaces.TSInstance,
+    loaderOptions: interfaces.LoaderOptions,
+    compiler: typeof typescript,
     merge?: any): interfaces.WebpackError[] {
 
     return diagnostics
-        .filter(diagnostic => instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
+        .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
         .map<interfaces.WebpackError>(diagnostic => {
-            const errorCategory = instance.compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
+            const errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
             const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
 
-            const messageText = errorCategoryAndCode + instance.compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
+            const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
             if (diagnostic.file) {
                 const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
                 return makeError({

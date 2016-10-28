@@ -17,8 +17,7 @@ export function getConfigFile(
     loaderOptions: interfaces.LoaderOptions,
     compilerCompatible: boolean,
     log: logger.Logger,
-    compilerDetailsLogMessage: string,
-    instance: interfaces.TSInstance
+    compilerDetailsLogMessage: string
 ) {
     const configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
     let configFileError: interfaces.WebpackError;
@@ -39,7 +38,7 @@ export function getConfigFile(
         );
 
         if (configFile.error) {
-            configFileError = utils.formatErrors([configFile.error], instance, { file: configFilePath })[0];
+            configFileError = utils.formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
         }
     } else {
         if (compilerCompatible) { log.logInfo(compilerDetailsLogMessage.green); }

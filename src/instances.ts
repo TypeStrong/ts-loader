@@ -49,7 +49,7 @@ export function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions
         configFilePath,
         configFile,
         configFileError
-    } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage, instance);
+    } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage);
 
     if (configFileError) {
         return { error: configFileError };
@@ -60,7 +60,7 @@ export function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions
     if (configParseResult.errors.length) {
         utils.registerWebpackErrors(
             loader._module.errors,
-            utils.formatErrors(configParseResult.errors, instance, { file: configFilePath }));
+            utils.formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
 
         return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
     }
@@ -76,7 +76,7 @@ export function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions
 
         utils.registerWebpackErrors(
             loader._module.errors,
-            utils.formatErrors(diagnostics, instance, {file: configFilePath || 'tsconfig.json'}));
+            utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
 
         return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {} }};
     }
