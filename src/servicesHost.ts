@@ -10,14 +10,13 @@ import utils = require('./utils');
  * Create the TypeScript language service
  */
 function makeServicesHost(
-    files: interfaces.TSFiles,
     scriptRegex: RegExp,
     log: logger.Logger,
-    loader: any, //TODO: not any
-    compilerOptions: typescript.CompilerOptions,
-    instance: interfaces.TSInstance,
-    compiler: typeof typescript
+    loader: any, // TODO: not any
+    instance: interfaces.TSInstance
 ) {
+    const { compiler, compilerOptions, files } = instance;
+
     const newLine =
         compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? constants.CarriageReturnLineFeed :
         compilerOptions.newLine === 1 /* LineFeed */ ? constants.LineFeed :
@@ -57,12 +56,12 @@ function makeServicesHost(
          * getDirectories is also required for full import and type reference completions.
          * Without it defined, certain completions will not be provided
          */
-        getDirectories: typescript.sys ? (<any>typescript.sys).getDirectories : undefined,
+        getDirectories: typescript.sys ? (<any> typescript.sys).getDirectories : undefined,
 
         /**
          * For @types expansion, these two functions are needed.
          */
-        directoryExists: typescript.sys ? (<any>typescript.sys).directoryExists : undefined,
+        directoryExists: typescript.sys ? (<any> typescript.sys).directoryExists : undefined,
         getCurrentDirectory: () => process.cwd(),
 
         getCompilationSettings: () => compilerOptions,
@@ -79,10 +78,12 @@ function makeServicesHost(
                 try {
                     resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
 
-                    if (!resolvedFileName.match(scriptRegex)) resolvedFileName = null;
-                    else resolutionResult = { resolvedFileName };
-                }
-                catch (e) { resolvedFileName = null; }
+                    if (!resolvedFileName.match(scriptRegex)) {
+                        resolvedFileName = null;
+                    } else {
+                        resolutionResult = { resolvedFileName };
+                    }
+                } catch (e) { resolvedFileName = null; }
 
                 let tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
@@ -91,8 +92,9 @@ function makeServicesHost(
                         if (resolvedFileName === tsResolution.resolvedModule.resolvedFileName) {
                             resolutionResult.isExternalLibraryImport = tsResolution.resolvedModule.isExternalLibraryImport;
                         }
+                    } else {
+                        resolutionResult = tsResolution.resolvedModule;
                     }
-                    else resolutionResult = tsResolution.resolvedModule;
                 }
 
                 resolvedModules.push(resolutionResult);

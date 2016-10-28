@@ -32,19 +32,6 @@ export function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions
         return { error: utils.makeError({ rawMessage: errorMessage }) };
     }
 
-    const files: interfaces.TSFiles = {};
-    const instance: interfaces.TSInstance = instances[loaderOptions.instance] = {
-        compiler,
-        compilerOptions: null,
-        loaderOptions,
-        files,
-        languageService: null,
-        version: 0,
-        dependencyGraph: {},
-        reverseDependencyGraph: {},
-        modifiedFiles: null,
-    };
-
     const {
         configFilePath,
         configFile,
@@ -66,7 +53,7 @@ export function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions
     }
 
     const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler, configParseResult);
-    instance.compilerOptions = compilerOptions;
+    const files: interfaces.TSFiles = {};
 
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
@@ -103,11 +90,23 @@ export function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
-    const servicesHost = makeServicesHost(files, scriptRegex, log, loader, compilerOptions, instance, compiler);
+    const instance: interfaces.TSInstance = instances[loaderOptions.instance] = {
+        compiler,
+        compilerOptions,
+        loaderOptions,
+        files,
+        languageService: null,
+        version: 0,
+        dependencyGraph: {},
+        reverseDependencyGraph: {},
+        modifiedFiles: null,
+    };
 
-    loader._compiler.plugin("after-compile", afterCompile(instance, compiler, servicesHost, configFilePath));
+    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
+    instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
+
+    loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));
     loader._compiler.plugin("watch-run", watchRun(instance));
 
     return { instance };
 }
-

@@ -1,15 +1,12 @@
-import typescript = require('typescript');
 import interfaces = require('./interfaces');
 import path = require('path');
 import utils = require('./utils');
 
 function makeAfterCompile(
     instance: interfaces.TSInstance,
-    compiler: typeof typescript,
-    servicesHost: typescript.LanguageServiceHost,
     configFilePath: string
 ) {
-    const languageService = instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
+    const { compiler, languageService } = instance;
 
     let getCompilerOptionDiagnostics = true;
     let checkAllFilesForErrors = true;
@@ -105,7 +102,6 @@ function makeAfterCompile(
                     utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, instance.loaderOptions, compiler, { file: filePath }));
                 }
             });
-
 
         // gather all declaration files from TypeScript and output them to webpack
         Object.keys(filesToCheckForErrors)

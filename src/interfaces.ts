@@ -109,7 +109,7 @@ interface DependencyGraph {
 interface ReverseDependencyGraph {
     [index: string]: {
         [index: string]: boolean
-    }
+    };
 }
 
 export interface LoaderOptions {
