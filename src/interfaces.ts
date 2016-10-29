@@ -1,5 +1,11 @@
 import typescript = require('typescript');
 
+export interface SourceMap {
+    sources: any[];
+    file: string;
+    sourcesContent: string[];
+}
+
 export interface WebpackError {
     module?: any;
     file?: string;
