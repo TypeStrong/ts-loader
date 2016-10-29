@@ -34,7 +34,7 @@ function makeAfterCompile(
         // build map of all modules based on normalized filename
         // this is used for quick-lookup when trying to find modules
         // based on filepath
-        let modules: { [modulePath: string]: interfaces.WebpackModule[] } = {};
+        const modules: { [modulePath: string]: interfaces.WebpackModule[] } = {};
         compilation.modules.forEach(module => {
             if (module.resource) {
                 let modulePath = path.normalize(module.resource);
@@ -86,14 +86,14 @@ function makeAfterCompile(
 
                 // if we have access to a webpack module, use that
                 if (utils.hasOwnProperty(modules, filePath)) {
-                    let associatedModules = modules[filePath];
+                    const associatedModules = modules[filePath];
 
                     associatedModules.forEach(module => {
                         // remove any existing errors
                         removeTSLoaderErrors(module.errors);
 
                         // append errors
-                        let formattedErrors = utils.formatErrors(errors, instance.loaderOptions, compiler, { module });
+                        const formattedErrors = utils.formatErrors(errors, instance.loaderOptions, compiler, { module });
                         utils.registerWebpackErrors(module.errors, formattedErrors);
                         utils.registerWebpackErrors(compilation.errors, formattedErrors);
                     });
@@ -107,10 +107,10 @@ function makeAfterCompile(
         Object.keys(filesToCheckForErrors)
             .filter(filePath => !!filePath.match(/\.ts(x?)$/))
             .forEach(filePath => {
-                let output = languageService.getEmitOutput(filePath);
-                let declarationFile = output.outputFiles.filter(fp => !!fp.name.match(/\.d.ts$/)).pop();
+                const output = languageService.getEmitOutput(filePath);
+                const declarationFile = output.outputFiles.filter(fp => !!fp.name.match(/\.d.ts$/)).pop();
                 if (declarationFile) {
-                    let assetPath = path.relative(compilation.compiler.context, declarationFile.name);
+                    const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                     compilation.assets[assetPath] = {
                         source: () => declarationFile.text,
                         size: () => declarationFile.text.length,

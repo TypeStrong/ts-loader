@@ -10,6 +10,7 @@ import interfaces = require('./interfaces');
 import utils = require('./utils');
 
 let webpackInstances: any = [];
+const definitionFileRegex = /\.d\.ts$/;
 
 function loader(contents: string) {
     this.cacheable && this.cacheable();
@@ -80,16 +81,14 @@ function loader(contents: string) {
 
         utils.registerWebpackErrors(this._module.errors, utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, {module: this._module}));
     } else {
-        let langService = instance.languageService;
-
         // Emit Javascript
-        const output = langService.getEmitOutput(filePath);
+        const output = instance.languageService.getEmitOutput(filePath);
 
         // Make this file dependent on *all* definition files in the program
         this.clearDependencies();
         this.addDependency(filePath);
 
-        let allDefinitionFiles = Object.keys(instance.files).filter(fp => /\.d\.ts$/.test(fp));
+        let allDefinitionFiles = Object.keys(instance.files).filter(fp => definitionFileRegex.test(fp));
         allDefinitionFiles.forEach(this.addDependency.bind(this));
 
         // Additionally make this file dependent on all imported files
