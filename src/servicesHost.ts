@@ -12,7 +12,7 @@ import utils = require('./utils');
 function makeServicesHost(
     scriptRegex: RegExp,
     log: logger.Logger,
-    loader: any, // TODO: not any
+    loader: interfaces.Webpack,
     instance: interfaces.TSInstance
 ) {
     const { compiler, compilerOptions, files } = instance;

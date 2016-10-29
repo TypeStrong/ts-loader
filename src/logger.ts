@@ -11,7 +11,7 @@ enum LogLevel {
 }
 
 interface InternalLoggerFunc {
-    (whereToLog: any, messages: string[]): void
+    (whereToLog: any, messages: string[]): void;
 }
 
 const doNothingLogger = (...messages: string[]) => {};
@@ -46,7 +46,7 @@ function makeLogWarning(loaderOptions: interfaces.LoaderOptions, logger: Interna
 }
 
 interface LoggerFunc {
-    (...messages: string[]): void
+    (...messages: string[]): void;
 }
 
 export interface Logger {

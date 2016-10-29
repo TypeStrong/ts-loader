@@ -11,7 +11,7 @@ import utils = require('./utils');
 let webpackInstances: any = [];
 const definitionFileRegex = /\.d\.ts$/;
 
-function loader(contents: string) {
+function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
     const filePath = path.normalize(this.resourcePath);
@@ -45,7 +45,7 @@ function loader(contents: string) {
     callback(null, output, sourceMap);
 }
 
-function makeOptions(loader: any) {
+function makeOptions(loader: interfaces.Webpack) {
     const queryOptions = loaderUtils.parseQuery<interfaces.LoaderOptions>(loader.query);
     const configFileOptions = loader.options.ts || {};
 
@@ -93,7 +93,11 @@ function updateFileInCache(filePath: string, contents: string, instance: interfa
     return file;
 }
 
-function getEmit(filePath: string, instance: interfaces.TSInstance, loader: any) {
+function getEmit(
+    filePath: string,
+    instance: interfaces.TSInstance,
+    loader: interfaces.Webpack
+) {
     // Emit Javascript
     const output = instance.languageService.getEmitOutput(filePath);
 
@@ -123,7 +127,12 @@ function getEmit(filePath: string, instance: interfaces.TSInstance, loader: any)
     return { outputText, sourceMapText };
 }
 
-function getTranspilationEmit(filePath: string, contents: string, instance: interfaces.TSInstance, loader: any) {
+function getTranspilationEmit(
+    filePath: string,
+    contents: string,
+    instance: interfaces.TSInstance,
+    loader: interfaces.Webpack
+) {
     const fileName = path.basename(filePath);
     const transpileResult = instance.compiler.transpileModule(contents, {
         compilerOptions: instance.compilerOptions,
@@ -138,7 +147,13 @@ function getTranspilationEmit(filePath: string, contents: string, instance: inte
     return { outputText, sourceMapText };
 }
 
-function makeSourceMap(sourceMapText: string, outputText: string, filePath: string, contents: string, loader: any) {
+function makeSourceMap(
+    sourceMapText: string,
+    outputText: string,
+    filePath: string,
+    contents: string,
+    loader: interfaces.Webpack
+) {
     if (!sourceMapText) {
         return { output: outputText, sourceMap: undefined as interfaces.SourceMap };
     }

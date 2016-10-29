@@ -6,6 +6,33 @@ export interface SourceMap {
     sourcesContent: string[];
 }
 
+export interface Webpack {
+    _compiler: Compiler;
+    _module: {
+        meta: {
+            tsLoaderFileVersion: number;
+            tsLoaderDefinitionFileVersions: string[];
+        },
+        errors: WebpackError[];
+    };
+    cacheable: () => void;
+    query: string;
+    async: () => (err: Error | WebpackError, source?: string, map?: string) => void;
+    resourcePath: string;
+    resolve: () => void; // unused yet...
+    addDependency: (dep: string) => void;
+    clearDependencies: () => void;
+    emitFile: (fileName: string, text: string) => void; // unused
+    options: {
+        ts: {},
+        resolve: Resolve;
+    };
+}
+
+interface Compiler {
+    plugin: (name: string, callback: Function) => void;
+}
+
 export interface WebpackError {
     module?: any;
     file?: string;

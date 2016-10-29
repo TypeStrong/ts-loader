@@ -20,7 +20,10 @@ const instances = <interfaces.TSInstances> {};
  * or returns the existing one. Multiple instances are possible by using the
  * `instance` property.
  */
-export function ensureTypeScriptInstance(loaderOptions: interfaces.LoaderOptions, loader: any): { instance?: interfaces.TSInstance, error?: interfaces.WebpackError } {
+export function ensureTypeScriptInstance(
+    loaderOptions: interfaces.LoaderOptions,
+    loader: interfaces.Webpack
+): { instance?: interfaces.TSInstance, error?: interfaces.WebpackError } {
     if (utils.hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }

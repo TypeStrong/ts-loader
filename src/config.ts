@@ -13,7 +13,7 @@ interface ConfigFile {
 
 export function getConfigFile(
     compiler: typeof typescript,
-    loader: any,
+    loader: interfaces.Webpack,
     loaderOptions: interfaces.LoaderOptions,
     compilerCompatible: boolean,
     log: logger.Logger,

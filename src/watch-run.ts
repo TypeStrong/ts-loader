@@ -8,7 +8,6 @@ import interfaces = require('./interfaces');
 function makeWatchRun(
     instance: interfaces.TSInstance
 ) {
-
     return (watching: interfaces.WebpackWatching, cb: () => void) => {
         const mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
         if (null === instance.modifiedFiles) {
