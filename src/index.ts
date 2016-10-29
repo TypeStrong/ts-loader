@@ -47,23 +47,7 @@ function loader(contents: string) {
         return;
     }
 
-    // Update file contents
-    let file = instance.files[filePath];
-    if (!file) {
-        file = instance.files[filePath] = <interfaces.TSFile> { version: 0 };
-    }
-
-    if (file.text !== contents) {
-        file.version++;
-        file.text = contents;
-        instance.version++;
-    }
-
-    // push this file to modified files hash.
-    if (!instance.modifiedFiles) {
-        instance.modifiedFiles = {};
-    }
-    instance.modifiedFiles[filePath] = file;
+    const file = updateFileInCache(filePath, contents, instance);
 
     let outputText: string;
     let sourceMapText: string;
@@ -127,6 +111,27 @@ function loader(contents: string) {
     this._module.meta.tsLoaderFileVersion = file.version;
 
     callback(null, outputText, sourceMap);
+}
+
+function updateFileInCache(filePath: string, contents: string, instance: interfaces.TSInstance) {
+    // Update file contents
+    let file = instance.files[filePath];
+    if (!file) {
+        file = instance.files[filePath] = <interfaces.TSFile> { version: 0 };
+    }
+
+    if (file.text !== contents) {
+        file.version++;
+        file.text = contents;
+        instance.version++;
+    }
+
+    // push this file to modified files hash.
+    if (!instance.modifiedFiles) {
+        instance.modifiedFiles = {};
+    }
+    instance.modifiedFiles[filePath] = file;
+    return file;
 }
 
 export = loader;
