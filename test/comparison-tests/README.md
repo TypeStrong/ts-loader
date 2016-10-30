@@ -54,6 +54,8 @@ If you would like to regenerate a single test then combine `--save-output` with
 
 `npm run comparison-tests -- --save-output --single-test nameOfTest`
 
+**When doing this, do make sure you get the casing of the name of the test right.  If you get it wrong you'll spend a long time wondering why tests are failing...**
+
 ## Watch Specific Tests
 
 The test harness additionally supports tests which exercise watch mode, since that is such an integral part of webpack. Watch mode tests are just the as standard comparison tests.  However, after the initial compilation and comparison, a series of "patches" are applied and tested. 
