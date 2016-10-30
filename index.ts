@@ -37,6 +37,7 @@ interface LoaderOptions {
     logLevel: string;
     logInfoToStdOut: boolean;
     instance: string;
+    instancePerProject: boolean;
     compiler: string;
     configFileName: string;
     transpileOnly: boolean;
@@ -670,6 +671,12 @@ function loader(contents) {
     }, configFileOptions, queryOptions);
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
+
+    // if instancePerProject is set, and instance has not been set, find the
+    // path of the tsconfig.json file and use it as the instance
+    if (options.instancePerProject && options.instance === 'default') {
+        options.instance = findConfigFile(require(options.compiler), path.dirname(filePath), options.configFileName);
+    }
 
     // differentiate the TypeScript instance based on the webpack instance
     var webpackIndex = webpackInstances.indexOf(this._compiler);
