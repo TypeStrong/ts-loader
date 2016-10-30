@@ -123,11 +123,11 @@ export interface TSInstance {
     compilerOptions: typescript.CompilerOptions;
     loaderOptions: LoaderOptions;
     files: TSFiles;
+    modifiedFiles?: TSFiles;
     languageService?: typescript.LanguageService;
     version?: number;
     dependencyGraph: DependencyGraph;
     reverseDependencyGraph: ReverseDependencyGraph;
-    modifiedFiles?: TSFiles;
     filesWithErrors?: TSFiles;
 }
 
