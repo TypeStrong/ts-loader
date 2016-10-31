@@ -8,13 +8,7 @@ export interface SourceMap {
 
 export interface Webpack {
     _compiler: Compiler;
-    _module: {
-        meta: {
-            tsLoaderFileVersion: number;
-            tsLoaderDefinitionFileVersions: string[];
-        },
-        errors: WebpackError[];
-    };
+    _module: WebpackModule;
     cacheable: () => void;
     query: string;
     async: () => (err: Error | WebpackError, source?: string, map?: string) => void;
@@ -69,6 +63,10 @@ export interface WebpackCompiler {
 export interface WebpackModule {
     resource: string;
     errors: WebpackError[];
+    meta: {
+        tsLoaderFileVersion: number;
+        tsLoaderDefinitionFileVersions: string[];
+    };
 }
 
 export interface WebpackNodeWatchFileSystem {

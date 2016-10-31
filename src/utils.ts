@@ -21,7 +21,8 @@ export function formatErrors(
     diagnostics: typescript.Diagnostic[],
     loaderOptions: interfaces.LoaderOptions,
     compiler: typeof typescript,
-    merge?: any): interfaces.WebpackError[] {
+    merge?: { file?: string; module?: interfaces.WebpackModule }
+): interfaces.WebpackError[] {
 
     return diagnostics
         .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
@@ -30,18 +31,19 @@ export function formatErrors(
             const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
 
             const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
+            let error: interfaces.WebpackError;
             if (diagnostic.file) {
                 const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-                return makeError({
+                error = makeError({
                     message: `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`,
                     rawMessage: messageText,
                     location: { line: lineChar.line + 1, character: lineChar.character + 1 }
                 });
             } else {
-                return makeError({ rawMessage: messageText });
+                error = makeError({ rawMessage: messageText });
             }
-        })
-        .map(error => <interfaces.WebpackError> objectAssign(error, merge));
+            return <interfaces.WebpackError> objectAssign(error, merge);
+        });
 }
 
 export function readFile(fileName: string) {
