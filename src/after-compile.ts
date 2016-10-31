@@ -37,9 +37,9 @@ function makeAfterCompile(
         const modules: { [modulePath: string]: interfaces.WebpackModule[] } = {};
         compilation.modules.forEach(module => {
             if (module.resource) {
-                let modulePath = path.normalize(module.resource);
+                const modulePath = path.normalize(module.resource);
                 if (utils.hasOwnProperty(modules, modulePath)) {
-                    let existingModules = modules[modulePath];
+                    const existingModules = modules[modulePath];
                     if (existingModules.indexOf(module) === -1) {
                         existingModules.push(module);
                     }
@@ -76,7 +76,7 @@ function makeAfterCompile(
         Object.keys(filesToCheckForErrors)
             .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
             .forEach(filePath => {
-                let errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+                const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
                 if (errors.length > 0) {
                     if (null === filesWithErrors) {
                         filesWithErrors = {};

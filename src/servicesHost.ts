@@ -85,7 +85,7 @@ function makeServicesHost(
                     }
                 } catch (e) { resolvedFileName = null; }
 
-                let tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
+                const tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
                 if (tsResolution.resolvedModule) {
                     if (resolvedFileName) {
