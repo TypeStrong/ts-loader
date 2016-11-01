@@ -1,4 +1,5 @@
 *.ts
+.vscode
+.test
 test
-.*
-typings
+src

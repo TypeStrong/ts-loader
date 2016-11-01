@@ -1,7 +1,8 @@
 # Changelog
 
-## v0.9.x - NOT RELEASED YET
+## v1.0.0
 
+- [General refactor of ts-loader; some performance improvements](https://github.com/TypeStrong/ts-loader/pull/343) [#335] - thanks @johnnyreilly
 - [Make the loader resilient to watched declaration files being removed.](https://github.com/TypeStrong/ts-loader/pull/281) - thanks @opichals
 
 ## v0.9.5
@@ -15,22 +16,22 @@
 
 ## v0.9.3
 
-- [Added support for allowJs](https://github.com/TypeStrong/ts-loader/pull/320) (#316)
+- [Added support for allowJs](https://github.com/TypeStrong/ts-loader/pull/320) (#316) - thanks @dschnare
 
 ## v0.9.2
 
-- [Added support for @types](https://github.com/TypeStrong/ts-loader/pull/318) (#247)
+- [Added support for @types](https://github.com/TypeStrong/ts-loader/pull/318) (#247) -thanks @basarat for the ideas
 
 ## v0.9.1
 
-- [Normalize dependency graph paths - Fix broken dependencies on Windows ](https://github.com/TypeStrong/ts-loader/pull/286)
-- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/pull/307) (#214 part deux)
+- [Normalize dependency graph paths - Fix broken dependencies on Windows ](https://github.com/TypeStrong/ts-loader/pull/286) - thanks @pzavolinsky
+- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/pull/307) (#214 part deux) - thanks @dizel3d
 
 ## v0.9.0
 
-- [Made ts-loader compatible with node v6](https://github.com/TypeStrong/ts-loader/commit/a4f835345e495f45b40365f025afce72d1817996)
-- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/commit/3bb0fec73a2fab47953b51d256f0f5378f236ad1) (#214)
-- [Declarations update independent of compiler.watchFileSystem](https://github.com/TypeStrong/ts-loader/pull/167/commits/ae824b2676b226bdd0c860a787754a4ae28e339c) (#155)
+- [Made ts-loader compatible with node v6](https://github.com/TypeStrong/ts-loader/commit/a4f835345e495f45b40365f025afce72d1817996) - thanks @Blechhirn
+- [Fixed the declaration issue](https://github.com/TypeStrong/ts-loader/commit/3bb0fec73a2fab47953b51d256f0f5378f236ad1) (#214) - thanks @17cupsofcoffee
+- [Declarations update independent of compiler.watchFileSystem](https://github.com/TypeStrong/ts-loader/pull/167/commits/ae824b2676b226bdd0c860a787754a4ae28e339c) (#155) - thanks @opichals
 
 Now built using TypeScript v2.0
 

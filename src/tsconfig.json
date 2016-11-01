@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": false,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "suppressImplicitAnyIndexErrors": true,
+        "strictNullChecks": false,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "outDir": "../dist"
+    }
+}
