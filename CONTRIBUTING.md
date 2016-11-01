@@ -47,7 +47,7 @@ Before you can actually publish make sure the following statements are true:
 
 OK - you're actually ready.  We're going to publish.  Here we need tread carefully. Follow these steps: 
 
-- clone ts-loader from the main repo with this command: `https://github.com/TypeStrong/ts-loader.git`
+- clone ts-loader from the main repo with this command: `git clone https://github.com/TypeStrong/ts-loader.git`
 - [Login to npm](https://docs.npmjs.com/cli/adduser) if you need to: `npm login`
 - install ts-loaders packages with `npm install`
 - build ts-loader with `npm run build`
