@@ -85,7 +85,7 @@ export interface Resolve {
     /**
      * The directory (absolute path) that contains your modules.
      * May also be an array of directories.
-     * This setting should be used to add individual directories to the search path. 
+     * This setting should be used to add individual directories to the search path.
      */
     root?: string | string[];
     /**
@@ -153,6 +153,7 @@ export interface LoaderOptions {
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
     compilerOptions: typescript.CompilerOptions;
+    appendTsSuffixTo: RegExp[];
 }
 
 export interface TSFile {

@@ -71,3 +71,12 @@ export function makeError({ rawMessage, message, location, file }: MakeError): i
 
     return <interfaces.WebpackError> objectAssign(error, { location, file });
 }
+
+export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string {
+    for (let regexp of patterns) {
+      if (regexp.test(path)) {
+        return path + '.ts';
+      }
+    }
+    return path;
+}
