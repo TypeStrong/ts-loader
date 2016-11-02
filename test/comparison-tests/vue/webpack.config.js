@@ -8,13 +8,17 @@ module.exports = {
     },
     module: {
         loaders: [
-            { test: /\.vue$/, loader: 'vue' }
+            { test: /\.vue$/, loader: 'vue' },
+            { test: /\.ts$/, loader: 'ts-loader' }
         ]
     },
     vue: {
       loaders: {
         js: 'ts-loader'
       }
+    },
+    ts: {
+      appendTsSuffixTo: [/\.vue$/]
     }
 }
 
