@@ -35,7 +35,7 @@ export function formatErrors(
             if (diagnostic.file) {
                 const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
                 error = makeError({
-                    message: `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`,
+                    message: `${path.normalize(diagnostic.file.fileName).red}${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`,
                     rawMessage: messageText,
                     location: { line: lineChar.line + 1, character: lineChar.character + 1 }
                 });
