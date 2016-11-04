@@ -14,9 +14,9 @@ const definitionFileRegex = /\.d\.ts$/;
 function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
-    const filePath = path.normalize(this.resourcePath);
-
     const options = makeOptions(this);
+    const rawFilePath = path.normalize(this.resourcePath);
+    const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
 
     const { instance, error } = instances.ensureTypeScriptInstance(options, this);
 
@@ -58,6 +58,7 @@ function makeOptions(loader: interfaces.Webpack) {
         configFileName: 'tsconfig.json',
         transpileOnly: false,
         compilerOptions: {},
+        appendTsSuffixTo: [],
     }, configFileOptions, queryOptions);
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();

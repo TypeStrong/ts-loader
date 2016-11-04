@@ -105,7 +105,7 @@ export function ensureTypeScriptInstance(
         modifiedFiles: null,
     };
 
-    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
+    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
     loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));

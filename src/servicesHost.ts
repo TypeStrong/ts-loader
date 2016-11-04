@@ -13,7 +13,8 @@ function makeServicesHost(
     scriptRegex: RegExp,
     log: logger.Logger,
     loader: interfaces.Webpack,
-    instance: interfaces.TSInstance
+    instance: interfaces.TSInstance,
+    appendTsSuffixTo: RegExp[]
 ) {
     const { compiler, compilerOptions, files } = instance;
 
@@ -77,6 +78,7 @@ function makeServicesHost(
 
                 try {
                     resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
+                    resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
 
                     if (!resolvedFileName.match(scriptRegex)) {
                         resolvedFileName = null;
