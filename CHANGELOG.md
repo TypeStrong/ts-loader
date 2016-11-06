@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.0 - NOT RELEASED YET
+
+- [Added support for vuejs via `appendTsSuffixTo` option](https://github.com/TypeStrong/ts-loader/pull/354) [#270] - thanks @HerringtonDarkholme
+
+Still to do:
+- document usage of `appendTsSuffixTo` in the README
+
 ## v1.0.0
 
 - [General refactor of ts-loader; some performance improvements](https://github.com/TypeStrong/ts-loader/pull/343) [#335] - thanks @johnnyreilly
