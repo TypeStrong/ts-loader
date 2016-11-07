@@ -140,6 +140,10 @@ function createWebpackWatchHandler(done, paths, testState, outputs, options, tes
     return function (err, stats) {
         var patch = setPathsAndGetPatch(paths, testState);
 
+            console.log('stats.hash', stats.hash)
+            //  data-v-0e55f8eb
+            //  data-v-6043e8f4
+            // data-v-[\da-f]+
         cleanHashFromOutput(stats, paths.webpackOutput);
 
         saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch);
@@ -256,7 +260,7 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
             .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
             .replace(/\.transpile/g, '');
-
+console.log('statsFileName', statsFileName) // data-v-[\da-f]+
         fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
         if (saveOutputMode) {
             var patchedStatsFileName = patch + '/' + statsFileName;
@@ -340,15 +344,16 @@ function getNormalisedFileContent(file, location, test) {
         fileContent = fs.readFileSync(filePath).toString().replace(/\r\n/g, '\n');
 
         if (file.indexOf('output.') === 0) {
-            // Strip ' [built]' references from output*.txt files; seems to be used unpredictably 
-            // and doesn't appear to be relevant so safe to ignore
-            // fileContent = fileContent.replace(new RegExp(regexEscape(' [built]'), 'g'), '');
-
             // Convert '/' to '\' and back to '/' so slashes are treated the same
             // whether running / generated on windows or *nix
             fileContent = fileContent
                 .replace(new RegExp(regexEscape('/'), 'g'), '\\')
                 .replace(new RegExp(regexEscape('\\'), 'g'), '/');
+        } else {
+            fileContent = fileContent
+                .replace(new RegExp(regexEscape('/'), 'g'), '\\')
+                .replace(new RegExp(regexEscape('\\'), 'g'), '/')
+                .replace(/data-v-[\da-f]+/g, '[hot-module-hash]');
         }
     }
     catch (e) {
