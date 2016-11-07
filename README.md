@@ -21,7 +21,7 @@ A full test suite runs each night (and on each pull request). It runs both on Li
 - TypeScript 1.7
 - TypeScript 1.6
 
-and also: 
+and also:
 - TypeScript@next (because we want to use it as much as you do)
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
@@ -157,7 +157,7 @@ messages are emitted via webpack which is not affected by this flag.
 ##### ignoreDiagnostics *(number[]) (default=[])*
 
 You can squelch certain TypeScript errors by specifying an array of diagnostic
-codes to ignore. 
+codes to ignore.
 
 ##### compiler *(string) (default='typescript')*
 
@@ -178,6 +178,51 @@ as you would do for the `compilerOptions` property in tsconfig.json.
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
+
+
+#### appendTsSuffixTo *(RegExp[]) (default=[])*
+A list of regular expression to be matched against filename. If filename matches one of the regular expressions, a `.ts` suffix will be appended to that filename.
+
+This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefits new single file format.)
+
+Example:
+
+webpack.config.js:
+
+```javascript
+module.exports = {
+    entry: './index.vue',
+    output: { filename: 'bundle.js' },
+    resolve: {
+        extensions: ['', '.ts', '.vue']
+    },
+    module: {
+        loaders: [
+            { test: /\.vue$/, loader: 'vue' },
+            { test: /\.ts$/, loader: 'ts' }
+        ]
+    },
+    ts: {
+      appendTsSuffixTo: [/\.vue$/]
+    }
+}
+```
+
+index.vue
+
+```vue
+<template><p>hello {{msg}}</p></template>
+<script lang="ts">
+export default {
+  data(): Object {
+    return {
+      msg: "world"
+    }
+  },
+}
+</script>
+```
+
 
 ### Loading other resources and code splitting
 
