@@ -63,7 +63,7 @@
 	if (typeof __vue_options__ === "function") {
 	  __vue_options__ = __vue_options__.options
 	}
-	__vue_options__.__file = "C:\\source\\ts-loader\\.test\\vue.transpile\\index.vue"
+	__vue_options__.__file = "/vue.transpile/index.vue"
 	__vue_options__.render = __vue_template__.render
 	__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
@@ -129,7 +129,7 @@
 	if (typeof __vue_options__ === "function") {
 	  __vue_options__ = __vue_options__.options
 	}
-	__vue_options__.__file = "C:\\source\\ts-loader\\.test\\vue.transpile\\component.vue"
+	__vue_options__.__file = "/vue.transpile/component.vue"
 	__vue_options__.render = __vue_template__.render
 	__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 

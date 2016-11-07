@@ -327,13 +327,18 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
  * independent as possible
  **/
 function cleanHashFromOutput(stats, webpackOutput) {
+    var escapedStagingPath = stagingPath.replace(new RegExp(regexEscape('\\'), 'g'), '\\\\');
     if (stats) {
         glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
             var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
                 .split(stats.hash).join('[hash]')
                 .replace(/\r\n/g, '\n')
                 // Ignore hot module hashes
-                .replace(hotModuleHashRegex, hotModuleHashReplace);
+                .replace(hotModuleHashRegex, hotModuleHashReplace)
+                // Ignore complete paths
+                .replace(new RegExp(regexEscape(escapedStagingPath), 'g'), '')
+                // turn \\ to /
+                .replace(new RegExp(regexEscape('\\\\'), 'g'), '/');
 
             fs.writeFileSync(path.join(webpackOutput, file), content);
         });
