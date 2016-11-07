@@ -140,10 +140,6 @@ function createWebpackWatchHandler(done, paths, testState, outputs, options, tes
     return function (err, stats) {
         var patch = setPathsAndGetPatch(paths, testState);
 
-            console.log('stats.hash', stats.hash)
-            //  data-v-0e55f8eb
-            //  data-v-6043e8f4
-            // data-v-[\da-f]+
         cleanHashFromOutput(stats, paths.webpackOutput);
 
         saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch);
@@ -260,7 +256,7 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
             .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
             .replace(/\.transpile/g, '');
-console.log('statsFileName', statsFileName) // data-v-[\da-f]+
+
         fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
         if (saveOutputMode) {
             var patchedStatsFileName = patch + '/' + statsFileName;
