@@ -27,6 +27,8 @@ if (saveOutputMode) {
 
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 var FLAKY = '_FLAKY_';
+var hotModuleHashRegex = /data-v-[\da-f]+/g;
+var hotModuleHashReplace = '[hot-module-hash]';
 
 // set up new paths
 var rootPath = path.resolve(__dirname, '../../');
@@ -171,22 +173,6 @@ function setPathsAndGetPatch(paths, testState) {
     return patch;
 }
 
-/**
- * replace the hash if found in the output since it can change depending
- * on environments and we're not super interested in it and normalize
- * line endings
- **/
-function cleanHashFromOutput(stats, webpackOutput) {
-    if (stats) {
-        glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
-            var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
-                .split(stats.hash).join('[hash]')
-                .split('\r\n').join('\n');
-            fs.writeFileSync(path.join(webpackOutput, file), content);
-        });
-    }
-}
-
 function saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch) {
     // output results
     if (saveOutputMode) {
@@ -255,7 +241,9 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
             .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
             .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
-            .replace(/\.transpile/g, '');
+            .replace(/\.transpile/g, '')
+            // Ignore hot module hashes
+            .replace(hotModuleHashRegex, hotModuleHashReplace);
 
         fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
         if (saveOutputMode) {
@@ -333,29 +321,46 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
     }
 }
 
+/**
+ * replace the elements in the output that can change depending on 
+ * environments; we want to generate a string that is as environment
+ * independent as possible
+ **/
+function cleanHashFromOutput(stats, webpackOutput) {
+    if (stats) {
+        glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
+            var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
+                .split(stats.hash).join('[hash]')
+                .replace(/\r\n/g, '\n')
+                // Ignore hot module hashes
+                .replace(hotModuleHashRegex, hotModuleHashReplace);
+
+            fs.writeFileSync(path.join(webpackOutput, file), content);
+        });
+    }
+}
+
 function getNormalisedFileContent(file, location, test) {
     var fileContent;
     var filePath = path.join(location, file);
     try {
-        fileContent = fs.readFileSync(filePath).toString().replace(/\r\n/g, '\n');
-
-        if (file.indexOf('output.') === 0) {
-            // Convert '/' to '\' and back to '/' so slashes are treated the same
-            // whether running / generated on windows or *nix
-            fileContent = fileContent
-                .replace(new RegExp(regexEscape('/'), 'g'), '\\')
-                .replace(new RegExp(regexEscape('\\'), 'g'), '/');
-        } else {
-            fileContent = fileContent
-                .replace(new RegExp(regexEscape('/'), 'g'), '\\')
-                .replace(new RegExp(regexEscape('\\'), 'g'), '/')
-                .replace(/data-v-[\da-f]+/g, '[hot-module-hash]');
-        }
+        fileContent = normaliseString(fs.readFileSync(filePath).toString());
     }
     catch (e) {
         fileContent = '!!!' + filePath + ' doesnt exist!!!';
     }
     return fileContent;
+}
+
+function normaliseString(platformSpecificContent) {
+    return platformSpecificContent
+        .replace(/\r\n/g, '\n')
+        // Convert '/' to '\' and back to '/' so slashes are treated the same
+        // whether running / generated on windows or *nix
+        .replace(new RegExp(regexEscape('/'), 'g'), '\\')
+        .replace(new RegExp(regexEscape('\\'), 'g'), '/')
+        // Ignore hot module hashes
+        .replace(hotModuleHashRegex, hotModuleHashReplace);
 }
 
 /**

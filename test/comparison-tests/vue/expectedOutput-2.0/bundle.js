@@ -45,6 +45,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_exports__, __vue_options__
+	var __vue_styles__ = {}
 
 	/* script */
 	__vue_exports__ = __webpack_require__(1)
@@ -62,7 +63,7 @@
 	if (typeof __vue_options__ === "function") {
 	  __vue_options__ = __vue_options__.options
 	}
-	__vue_options__.__file = "/ts-loader/.test/vue/index.vue"
+	__vue_options__.__file = "C:\\source\\ts-loader\\.test\\vue\\index.vue"
 	__vue_options__.render = __vue_template__.render
 	__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
@@ -73,9 +74,9 @@
 	  if (!hotAPI.compatible) return
 	  module.hot.accept()
 	  if (!module.hot.data) {
-	    hotAPI.createRecord("data-v-1e83055b", __vue_options__)
+	    hotAPI.createRecord("[hot-module-hash]", __vue_options__)
 	  } else {
-	    hotAPI.reload("data-v-1e83055b", __vue_options__)
+	    hotAPI.reload("[hot-module-hash]", __vue_options__)
 	  }
 	})()}
 	if (__vue_options__.functional) {console.error("[vue-loader] index.vue: functional components are not supported and should be defined in plain js files using render functions.")}
@@ -110,6 +111,7 @@
 /***/ function(module, exports, __webpack_require__) {
 
 	var __vue_exports__, __vue_options__
+	var __vue_styles__ = {}
 
 	/* script */
 	__vue_exports__ = __webpack_require__(3)
@@ -127,7 +129,7 @@
 	if (typeof __vue_options__ === "function") {
 	  __vue_options__ = __vue_options__.options
 	}
-	__vue_options__.__file = "/ts-loader/.test/vue/component.vue"
+	__vue_options__.__file = "C:\\source\\ts-loader\\.test\\vue\\component.vue"
 	__vue_options__.render = __vue_template__.render
 	__vue_options__.staticRenderFns = __vue_template__.staticRenderFns
 
@@ -138,9 +140,9 @@
 	  if (!hotAPI.compatible) return
 	  module.hot.accept()
 	  if (!module.hot.data) {
-	    hotAPI.createRecord("data-v-6043e8f4", __vue_options__)
+	    hotAPI.createRecord("[hot-module-hash]", __vue_options__)
 	  } else {
-	    hotAPI.reload("data-v-6043e8f4", __vue_options__)
+	    hotAPI.reload("[hot-module-hash]", __vue_options__)
 	  }
 	})()}
 	if (__vue_options__.functional) {console.error("[vue-loader] component.vue: functional components are not supported and should be defined in plain js files using render functions.")}
@@ -174,7 +176,7 @@
 	if (false) {
 	  module.hot.accept()
 	  if (module.hot.data) {
-	     require("vue-hot-reload-api").rerender("data-v-6043e8f4", module.exports)
+	     require("vue-hot-reload-api").rerender("[hot-module-hash]", module.exports)
 	  }
 	}
 
@@ -199,7 +201,7 @@
 	if (false) {
 	  module.hot.accept()
 	  if (module.hot.data) {
-	     require("vue-hot-reload-api").rerender("data-v-1e83055b", module.exports)
+	     require("vue-hot-reload-api").rerender("[hot-module-hash]", module.exports)
 	  }
 	}
 
