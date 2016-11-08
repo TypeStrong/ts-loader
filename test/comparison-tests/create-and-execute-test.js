@@ -349,7 +349,10 @@ function getNormalisedFileContent(file, location, test) {
     var fileContent;
     var filePath = path.join(location, file);
     try {
-        fileContent = normaliseString(fs.readFileSync(filePath).toString());
+        var originalContent = fs.readFileSync(filePath).toString();
+        fileContent = (file.indexOf('output.') === 0) 
+            ? normaliseString(originalContent).replace(/[.][\d]* kB/g, ' kB') // We really don't care if it's 4.31 kB; it's enough to know that it's 4 kB
+            : normaliseString(originalContent);
     }
     catch (e) {
         fileContent = '!!!' + filePath + ' doesnt exist!!!';
