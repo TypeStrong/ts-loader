@@ -181,9 +181,9 @@ of your code.
 
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
-A list of regular expression to be matched against filename. If filename matches one of the regular expressions, a `.ts` suffix will be appended to that filename.
+A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` suffix will be appended to that filename.
 
-This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefits new single file format.)
+This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefit from the new single file format in the future.)
 
 Example:
 
