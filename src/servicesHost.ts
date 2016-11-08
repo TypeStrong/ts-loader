@@ -19,8 +19,8 @@ function makeServicesHost(
     const { compiler, compilerOptions, files } = instance;
 
     const newLine =
-        compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? constants.CarriageReturnLineFeed :
-        compilerOptions.newLine === 1 /* LineFeed */ ? constants.LineFeed :
+        compilerOptions.newLine === compiler.NewLineKind.CarriageReturnLineFeed ? constants.CarriageReturnLineFeed :
+        compilerOptions.newLine === compiler.NewLineKind.LineFeed ? constants.LineFeed :
         constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules

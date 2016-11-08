@@ -51,11 +51,11 @@ export function getCompilerOptions(
     });
 
     // if `module` is not specified and not using ES6 target, default to CJS module output
-    if ((!compilerOptions.module) && compilerOptions.target !== 2 /* ES6 */) {
-        compilerOptions.module = 1; /* CommonJS */
-    } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === 2 /* ES6 */) {
+    if ((!compilerOptions.module) && compilerOptions.target !== compiler.ScriptTarget.ES6) {
+        compilerOptions.module = compiler.ModuleKind.CommonJS;
+    } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === compiler.ScriptTarget.ES6) {
        // special handling for TS 1.6 and target: es6
-        compilerOptions.module = 0 /* None */;
+        compilerOptions.module = compiler.ModuleKind.None;
     }
 
     return compilerOptions;
