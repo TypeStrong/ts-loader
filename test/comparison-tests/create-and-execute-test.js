@@ -351,7 +351,11 @@ function getNormalisedFileContent(file, location, test) {
     try {
         var originalContent = fs.readFileSync(filePath).toString();
         fileContent = (file.indexOf('output.') === 0) 
-            ? normaliseString(originalContent).replace(/[.][\d]* kB/g, ' kB') // We really don't care if it's 4.31 kB; it's enough to know that it's 4 kB
+            ? normaliseString(originalContent)
+                // We really don't care if it's 4.31 kB; it's enough to know that it's 4 kB
+                .replace(/[.][\d]* kB/g, ' kB')
+                // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
+                .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
             : normaliseString(originalContent);
     }
     catch (e) {
