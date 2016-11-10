@@ -6,4 +6,4 @@ chunk    {0} bundle.js (main) 319 bytes [rendered]
     [2] ./.test/basic/lib/externalLib.js 55 bytes {0}
 
 ERROR in ./.test/basic/app.ts
-[31mapp.ts[39m[37m([39m[36m3[39m,[36m13[39m): [31merror TS2339: Property 'doSomething2' does not exist on type 'typeof externalLib'.[39m
+[37m([39m[36m3[39m,[36m13[39m): [31merror TS2339: Property 'doSomething2' does not exist on type 'typeof externalLib'.[39m
