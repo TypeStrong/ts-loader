@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.1 - NOT RELEASED YET
+
+- [Crash when adding/removing files in watch-mode](https://github.com/TypeStrong/ts-loader/pull/364) [#358] - thanks @jbbr for the suggested fix
+
 ## v1.1.0
 
 - [Added support for vuejs via `appendTsSuffixTo` option](https://github.com/TypeStrong/ts-loader/pull/354) [#270] - thanks @HerringtonDarkholme

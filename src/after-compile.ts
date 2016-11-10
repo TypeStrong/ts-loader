@@ -1,13 +1,12 @@
 import interfaces = require('./interfaces');
 import path = require('path');
+import typescript = require('typescript');
 import utils = require('./utils');
 
 function makeAfterCompile(
     instance: interfaces.TSInstance,
     configFilePath: string
 ) {
-    const { compiler, languageService } = instance;
-
     let getCompilerOptionDiagnostics = true;
     let checkAllFilesForErrors = true;
 
@@ -20,108 +19,160 @@ function makeAfterCompile(
 
         removeTSLoaderErrors(compilation.errors);
 
-        // handle compiler option errors after the first compile
-        if (getCompilerOptionDiagnostics) {
-            getCompilerOptionDiagnostics = false;
-            utils.registerWebpackErrors(
-                compilation.errors,
-                utils.formatErrors(languageService.getCompilerOptionsDiagnostics(),
-                    instance.loaderOptions,
-                    compiler,
-                    { file: configFilePath || 'tsconfig.json' }));
-        }
+        provideCompilerOptionDiagnosticErrorsToWebpack(getCompilerOptionDiagnostics, compilation, instance, configFilePath);
+        getCompilerOptionDiagnostics = false;
 
-        // build map of all modules based on normalized filename
-        // this is used for quick-lookup when trying to find modules
-        // based on filepath
-        const modules: { [modulePath: string]: interfaces.WebpackModule[] } = {};
-        compilation.modules.forEach(module => {
-            if (module.resource) {
-                const modulePath = path.normalize(module.resource);
-                if (utils.hasOwnProperty(modules, modulePath)) {
-                    const existingModules = modules[modulePath];
-                    if (existingModules.indexOf(module) === -1) {
-                        existingModules.push(module);
-                    }
-                } else {
-                    modules[modulePath] = [module];
-                }
-            }
-        });
+        const modules = determineModules(compilation);
 
-        // gather all errors from TypeScript and output them to webpack
-        let filesWithErrors: interfaces.TSFiles = {};
-        // calculate array of files to check
-        let filesToCheckForErrors: interfaces.TSFiles = null;
-        if (checkAllFilesForErrors) {
-            // check all files on initial run
-            filesToCheckForErrors = instance.files;
-            checkAllFilesForErrors = false;
-        } else {
-            filesToCheckForErrors = {};
-            // check all modified files, and all dependants
-            Object.keys(instance.modifiedFiles).forEach(modifiedFileName => {
-                collectAllDependants(instance, modifiedFileName).forEach(fName => {
-                    filesToCheckForErrors[fName] = instance.files[fName];
-                });
-            });
-        }
-        // re-check files with errors from previous build
-        if (instance.filesWithErrors) {
-            Object.keys(instance.filesWithErrors).forEach(fileWithErrorName =>
-                filesToCheckForErrors[fileWithErrorName] = instance.filesWithErrors[fileWithErrorName]
-            );
-        }
+        const filesToCheckForErrors = determineFilesToCheckForErrors(checkAllFilesForErrors, instance);
+        checkAllFilesForErrors = false;
 
-        Object.keys(filesToCheckForErrors)
-            .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
-            .forEach(filePath => {
-                const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
-                if (errors.length > 0) {
-                    if (null === filesWithErrors) {
-                        filesWithErrors = {};
-                    }
-                    filesWithErrors[filePath] = instance.files[filePath];
-                }
+        const filesWithErrors: interfaces.TSFiles = {};
+        provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
 
-                // if we have access to a webpack module, use that
-                if (utils.hasOwnProperty(modules, filePath)) {
-                    const associatedModules = modules[filePath];
-
-                    associatedModules.forEach(module => {
-                        // remove any existing errors
-                        removeTSLoaderErrors(module.errors);
-
-                        // append errors
-                        const formattedErrors = utils.formatErrors(errors, instance.loaderOptions, compiler, { module });
-                        utils.registerWebpackErrors(module.errors, formattedErrors);
-                        utils.registerWebpackErrors(compilation.errors, formattedErrors);
-                    });
-                } else {
-                    // otherwise it's a more generic error
-                    utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, instance.loaderOptions, compiler, { file: filePath }));
-                }
-            });
-
-        // gather all declaration files from TypeScript and output them to webpack
-        Object.keys(filesToCheckForErrors)
-            .filter(filePath => !!filePath.match(/\.ts(x?)$/))
-            .forEach(filePath => {
-                const output = languageService.getEmitOutput(filePath);
-                const declarationFile = output.outputFiles.filter(fp => !!fp.name.match(/\.d.ts$/)).pop();
-                if (declarationFile) {
-                    const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
-                    compilation.assets[assetPath] = {
-                        source: () => declarationFile.text,
-                        size: () => declarationFile.text.length,
-                    };
-                }
-            });
+        provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService, compilation);
 
         instance.filesWithErrors = filesWithErrors;
         instance.modifiedFiles = null;
         callback();
     };
+}
+
+interface Modules {
+    [modulePath: string]: interfaces.WebpackModule[];
+}
+
+/**
+ * handle compiler option errors after the first compile
+ */
+function provideCompilerOptionDiagnosticErrorsToWebpack(
+    getCompilerOptionDiagnostics: boolean,
+    compilation: interfaces.WebpackCompilation,
+    instance: interfaces.TSInstance,
+    configFilePath: string
+) {
+    const { languageService, loaderOptions, compiler } = instance;
+    if (getCompilerOptionDiagnostics) {
+        utils.registerWebpackErrors(
+            compilation.errors,
+            utils.formatErrors(
+                languageService.getCompilerOptionsDiagnostics(),
+                loaderOptions, compiler,
+                { file: configFilePath || 'tsconfig.json' }));
+    }
+}
+
+/**
+ * build map of all modules based on normalized filename
+ * this is used for quick-lookup when trying to find modules
+ * based on filepath
+ */
+function determineModules(
+    compilation: interfaces.WebpackCompilation
+) {
+    const modules: Modules = {};
+    compilation.modules.forEach(module => {
+        if (module.resource) {
+            const modulePath = path.normalize(module.resource);
+            if (utils.hasOwnProperty(modules, modulePath)) {
+                const existingModules = modules[modulePath];
+                if (existingModules.indexOf(module) === -1) {
+                    existingModules.push(module);
+                }
+            } else {
+                modules[modulePath] = [module];
+            }
+        }
+    });
+    return modules;
+}
+
+function determineFilesToCheckForErrors(
+    checkAllFilesForErrors: boolean,
+    instance: interfaces.TSInstance
+) {
+    const { files, modifiedFiles, filesWithErrors } = instance
+    // calculate array of files to check
+    let filesToCheckForErrors: interfaces.TSFiles = {};
+    if (checkAllFilesForErrors) {
+        // check all files on initial run
+        filesToCheckForErrors = files;
+    } else if (modifiedFiles) {
+        // check all modified files, and all dependants
+        Object.keys(modifiedFiles).forEach(modifiedFileName => {
+            collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
+                .forEach(fileName => {
+                    filesToCheckForErrors[fileName] = files[fileName];
+                });
+        });
+    }
+
+    // re-check files with errors from previous build
+    if (filesWithErrors) {
+        Object.keys(filesWithErrors).forEach(fileWithErrorName =>
+            filesToCheckForErrors[fileWithErrorName] = filesWithErrors[fileWithErrorName]
+        );
+    }
+    return filesToCheckForErrors;
+}
+
+function provideErrorsToWebpack(
+    filesToCheckForErrors: interfaces.TSFiles,
+    filesWithErrors: interfaces.TSFiles,
+    compilation: interfaces.WebpackCompilation,
+    modules: Modules,
+    instance: interfaces.TSInstance
+) {
+    const { compiler, languageService, files, loaderOptions } = instance;
+    Object.keys(filesToCheckForErrors)
+        .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
+        .forEach(filePath => {
+            const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+            if (errors.length > 0) {
+                filesWithErrors[filePath] = files[filePath];
+            }
+
+            // if we have access to a webpack module, use that
+            if (utils.hasOwnProperty(modules, filePath)) {
+                const associatedModules = modules[filePath];
+
+                associatedModules.forEach(module => {
+                    // remove any existing errors
+                    removeTSLoaderErrors(module.errors);
+
+                    // append errors
+                    const formattedErrors = utils.formatErrors(errors, loaderOptions, compiler, { module });
+                    utils.registerWebpackErrors(module.errors, formattedErrors);
+                    utils.registerWebpackErrors(compilation.errors, formattedErrors);
+                });
+            } else {
+                // otherwise it's a more generic error
+                utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, loaderOptions, compiler, { file: filePath }));
+            }
+        });
+}
+
+/**
+ * gather all declaration files from TypeScript and output them to webpack
+ */
+function provideDeclarationFilesToWebpack(
+    filesToCheckForErrors: interfaces.TSFiles,
+    languageService: typescript.LanguageService,
+    compilation: interfaces.WebpackCompilation
+) {
+    Object.keys(filesToCheckForErrors)
+        .filter(filePath => !!filePath.match(/\.ts(x?)$/))
+        .forEach(filePath => {
+            const output = languageService.getEmitOutput(filePath);
+            const declarationFile = output.outputFiles.filter(fp => !!fp.name.match(/\.d.ts$/)).pop();
+            if (declarationFile) {
+                const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
+                compilation.assets[assetPath] = {
+                    source: () => declarationFile.text,
+                    size: () => declarationFile.text.length,
+                };
+            }
+        });
 }
 
 /**
@@ -145,14 +196,19 @@ function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
 /**
  * Recursively collect all possible dependants of passed file
  */
-function collectAllDependants(instance: interfaces.TSInstance, fileName: string, collected: any = {}): string[] {
-    let result = {};
+function collectAllDependants(
+    reverseDependencyGraph: interfaces.ReverseDependencyGraph,
+    fileName: string,
+    collected: {[file:string]: boolean} = {}
+): string[] {
+    const result = {};
     result[fileName] = true;
     collected[fileName] = true;
-    if (instance.reverseDependencyGraph[fileName]) {
-        Object.keys(instance.reverseDependencyGraph[fileName]).forEach(dependantFileName => {
+    if (reverseDependencyGraph[fileName]) {
+        Object.keys(reverseDependencyGraph[fileName]).forEach(dependantFileName => {
             if (!collected[dependantFileName]) {
-                collectAllDependants(instance, dependantFileName, collected).forEach(fName => result[fName] = true);
+                collectAllDependants(reverseDependencyGraph, dependantFileName, collected)
+                    .forEach(fName => result[fName] = true);
             }
         });
     }
