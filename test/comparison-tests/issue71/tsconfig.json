@@ -1,7 +1,5 @@
 {
 	"compilerOptions": {
 		"noEmitOnError": true
-	},
-	"files": [
-	]
+	}
 }

@@ -3,7 +3,5 @@
 		"target": "es6",
         "moduleResolution": "node",
         "jsx": "react"
-	},
-	"files": [
-	]
+	}
 }
