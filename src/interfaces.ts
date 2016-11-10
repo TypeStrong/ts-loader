@@ -134,12 +134,12 @@ export interface TSInstances {
 }
 
 interface DependencyGraph {
-    [index: string]: string[];
+    [file: string]: string[];
 }
 
-interface ReverseDependencyGraph {
-    [index: string]: {
-        [index: string]: boolean
+export interface ReverseDependencyGraph {
+    [file: string]: {
+        [file: string]: boolean
     };
 }
 

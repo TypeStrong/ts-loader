@@ -51,12 +51,13 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
     instance: interfaces.TSInstance,
     configFilePath: string
 ) {
+    const { languageService, loaderOptions, compiler } = instance;
     if (getCompilerOptionDiagnostics) {
         utils.registerWebpackErrors(
             compilation.errors,
-            utils.formatErrors(instance.languageService.getCompilerOptionsDiagnostics(),
-                instance.loaderOptions,
-                instance.compiler,
+            utils.formatErrors(
+                languageService.getCompilerOptionsDiagnostics(),
+                loaderOptions, compiler,
                 { file: configFilePath || 'tsconfig.json' }));
     }
 }
@@ -90,24 +91,26 @@ function determineFilesToCheckForErrors(
     checkAllFilesForErrors: boolean,
     instance: interfaces.TSInstance
 ) {
+    const { files, modifiedFiles, filesWithErrors } = instance
     // calculate array of files to check
     let filesToCheckForErrors: interfaces.TSFiles = {};
     if (checkAllFilesForErrors) {
         // check all files on initial run
-        filesToCheckForErrors = instance.files;
-    } else if (instance.modifiedFiles) {
+        filesToCheckForErrors = files;
+    } else if (modifiedFiles) {
         // check all modified files, and all dependants
-        Object.keys(instance.modifiedFiles).forEach(modifiedFileName => {
-            collectAllDependants(instance, modifiedFileName).forEach(fName => {
-                filesToCheckForErrors[fName] = instance.files[fName];
-            });
+        Object.keys(modifiedFiles).forEach(modifiedFileName => {
+            collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
+                .forEach(fileName => {
+                    filesToCheckForErrors[fileName] = files[fileName];
+                });
         });
     }
 
     // re-check files with errors from previous build
-    if (instance.filesWithErrors) {
-        Object.keys(instance.filesWithErrors).forEach(fileWithErrorName =>
-            filesToCheckForErrors[fileWithErrorName] = instance.filesWithErrors[fileWithErrorName]
+    if (filesWithErrors) {
+        Object.keys(filesWithErrors).forEach(fileWithErrorName =>
+            filesToCheckForErrors[fileWithErrorName] = filesWithErrors[fileWithErrorName]
         );
     }
     return filesToCheckForErrors;
@@ -120,13 +123,13 @@ function provideErrorsToWebpack(
     modules: Modules,
     instance: interfaces.TSInstance
 ) {
-    const { compiler, languageService } = instance;
+    const { compiler, languageService, files, loaderOptions } = instance;
     Object.keys(filesToCheckForErrors)
         .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
         .forEach(filePath => {
             const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
             if (errors.length > 0) {
-                filesWithErrors[filePath] = instance.files[filePath];
+                filesWithErrors[filePath] = files[filePath];
             }
 
             // if we have access to a webpack module, use that
@@ -138,13 +141,13 @@ function provideErrorsToWebpack(
                     removeTSLoaderErrors(module.errors);
 
                     // append errors
-                    const formattedErrors = utils.formatErrors(errors, instance.loaderOptions, compiler, { module });
+                    const formattedErrors = utils.formatErrors(errors, loaderOptions, compiler, { module });
                     utils.registerWebpackErrors(module.errors, formattedErrors);
                     utils.registerWebpackErrors(compilation.errors, formattedErrors);
                 });
             } else {
                 // otherwise it's a more generic error
-                utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, instance.loaderOptions, compiler, { file: filePath }));
+                utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, loaderOptions, compiler, { file: filePath }));
             }
         });
 }
@@ -193,14 +196,19 @@ function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
 /**
  * Recursively collect all possible dependants of passed file
  */
-function collectAllDependants(instance: interfaces.TSInstance, fileName: string, collected: any = {}): string[] {
-    let result = {};
+function collectAllDependants(
+    reverseDependencyGraph: interfaces.ReverseDependencyGraph,
+    fileName: string,
+    collected: {[file:string]: boolean} = {}
+): string[] {
+    const result = {};
     result[fileName] = true;
     collected[fileName] = true;
-    if (instance.reverseDependencyGraph[fileName]) {
-        Object.keys(instance.reverseDependencyGraph[fileName]).forEach(dependantFileName => {
+    if (reverseDependencyGraph[fileName]) {
+        Object.keys(reverseDependencyGraph[fileName]).forEach(dependantFileName => {
             if (!collected[dependantFileName]) {
-                collectAllDependants(instance, dependantFileName, collected).forEach(fName => result[fName] = true);
+                collectAllDependants(reverseDependencyGraph, dependantFileName, collected)
+                    .forEach(fName => result[fName] = true);
             }
         });
     }
