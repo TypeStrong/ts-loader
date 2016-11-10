@@ -168,6 +168,10 @@ set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basar
 
 Allows you to specify a custom configuration file.
 
+##### visualStudioErrorFormat *(boolean) (default=false)*
+
+If `true`, the TypeScript compiler output for an error or a warning, e.g. `(3,14): error TS4711: you did something very wrong`, in file `myFile` will instead be `myFile(3,14): error TS4711: you did something very wrong` (notice the file name at the beginning). This way Visual Studio will interpret this line and show any errors or warnings in the *error list*. This enables navigation to the file/line/column through double click.
+
 ##### compilerOptions *(object) (default={})*
 
 Allows overriding TypeScript options. Should be specified in the same format
