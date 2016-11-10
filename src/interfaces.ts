@@ -152,6 +152,7 @@ export interface LoaderOptions {
     configFileName: string;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
+    visualStudioErrorFormat: boolean;
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
 }
