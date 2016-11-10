@@ -34,8 +34,12 @@ export function formatErrors(
             let error: interfaces.WebpackError;
             if (diagnostic.file) {
                 const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+                let errorMessage = `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`;
+                if (loaderOptions.visualStudioErrorFormat) {
+                    errorMessage = path.normalize(diagnostic.file.fileName).red + errorMessage;
+                }
                 error = makeError({
-                    message: `${path.normalize(diagnostic.file.fileName).red}${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`,
+                    message: errorMessage,
                     rawMessage: messageText,
                     location: { line: lineChar.line + 1, character: lineChar.character + 1 }
                 });

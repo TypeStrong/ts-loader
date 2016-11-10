@@ -57,6 +57,7 @@ function makeOptions(loader: interfaces.Webpack) {
         compiler: 'typescript',
         configFileName: 'tsconfig.json',
         transpileOnly: false,
+        visualStudioErrorFormat: false,
         compilerOptions: {},
     }, configFileOptions, queryOptions);
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
