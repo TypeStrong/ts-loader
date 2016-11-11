@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.2.0 - NOT RELEASED YET
+## v1.2.0
 
 - [Crash when adding/removing files in watch-mode](https://github.com/TypeStrong/ts-loader/pull/364) [#358] - thanks @jbbr for the suggested fix
 - [Provided an option to produce Visual Studio compatible error output](https://github.com/TypeStrong/ts-loader/pull/356) [#355] - thanks @gamli
