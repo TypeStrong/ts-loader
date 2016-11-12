@@ -1,10 +1,10 @@
-    Asset    Size  Chunks             Chunk Names
-bundle.js  5.9 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 4.31 kB [rendered]
+    Asset     Size  Chunks             Chunk Names
+bundle.js  5.92 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 4.33 kB [rendered]
     [0] ./.test/vue/index.vue 1.58 kB {0} [built]
     [1] .!./~/vue-loader/lib/selector.js?type=script&index=0!./.test/vue/index.vue 355 bytes {0} [built]
     [2] ./.test/vue/component.vue 1.59 kB {0} [built]
     [3] .!./~/vue-loader/lib/selector.js?type=script&index=0!./.test/vue/component.vue 157 bytes {0} [built]
-    [4] ./~/vue-loader/lib/template-compiler.js?id=[hot-module-hash]!./~/vue-loader/lib/selector.js?type=template&index=0!./.test/vue/component.vue 265 bytes {0} [built]
+    [4] ./~/vue-loader/lib/template-compiler.js?id=[hot-module-hash]!./~/vue-loader/lib/selector.js?type=template&index=0!./.test/vue/component.vue 277 bytes {0} [built]
     [5] ./.test/vue/helper.ts 100 bytes {0} [built]
-    [6] ./~/vue-loader/lib/template-compiler.js?id=[hot-module-hash]!./~/vue-loader/lib/selector.js?type=template&index=0!./.test/vue/index.vue 260 bytes {0} [built]
+    [6] ./~/vue-loader/lib/template-compiler.js?id=[hot-module-hash]!./~/vue-loader/lib/selector.js?type=template&index=0!./.test/vue/index.vue 272 bytes {0} [built]
