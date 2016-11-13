@@ -4,7 +4,8 @@ environment:
   - TYPESCRIPT: typescript@1.6.2
   - TYPESCRIPT: typescript@1.7.5
   - TYPESCRIPT: typescript@1.8.2
-  - TYPESCRIPT: typescript@2.0.3
+  - TYPESCRIPT: typescript@2.0.9
+  - TYPESCRIPT: typescript@2.1.1
   - TYPESCRIPT: typescript@next
 install:
   - ps: Install-Product node $env:nodejs_version

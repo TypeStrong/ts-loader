@@ -1,0 +1,3 @@
+
+ERROR in ./.test/tsconfigInvalidFile/app.ts
+Module build failed: [31mA file specified in tsconfig.json could not be found: i-am-a-file-what-does-not-exist.ts[39m

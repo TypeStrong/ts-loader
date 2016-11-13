@@ -1,0 +1,9 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  1.75 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 197 bytes [rendered]
+    [0] ./.test/simpleDependency/app.ts 51 bytes {0} [1 error]
+    [1] ./.test/simpleDependency/dep.ts 70 bytes {0} [built]
+    [2] ./.test/simpleDependency/deeperDep.ts 76 bytes {0} [built]
+
+ERROR in ./.test/simpleDependency/app.ts
+[37m([39m[36m3[39m,[36m5[39m): [31merror TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.[39m
