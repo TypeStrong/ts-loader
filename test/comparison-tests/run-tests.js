@@ -5,11 +5,11 @@ var typescript = require('typescript');
 var semver = require('semver');
 var execSync = require('child_process').execSync;
 
-// Don't run the tests if using a version of typescript other than 2.0; 
+// Don't run the tests if using a version of typescript other than 2.0 or 2.1; 
 // i.e. not typescript@next and not typescript pre 2.0
 // We only want to run comparison tests for the latest released version
 var typescriptVersion = parseFloat(semver.major(typescript.version) + '.' + semver.minor(typescript.version));
-if (typescriptVersion < 2.0  || typescriptVersion >= 2.1) return;
+if (typescriptVersion < 2.0  || typescriptVersion > 2.1) return;
 
 // Parse command line arguments
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
