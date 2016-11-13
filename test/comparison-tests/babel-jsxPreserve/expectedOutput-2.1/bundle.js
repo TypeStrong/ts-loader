@@ -57,7 +57,7 @@
 	var MyComponent = function (_super) {
 	    __extends(MyComponent, _super);
 	    function MyComponent() {
-	        _super.apply(this, arguments);
+	        return _super.apply(this, arguments) || this;
 	    }
 	    MyComponent.prototype.render = function () {
 	        return React.createElement(

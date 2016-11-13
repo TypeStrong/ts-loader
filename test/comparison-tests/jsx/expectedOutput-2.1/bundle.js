@@ -54,14 +54,14 @@
 	var MyComponent = (function (_super) {
 	    __extends(MyComponent, _super);
 	    function MyComponent() {
-	        _super.apply(this, arguments);
+	        return _super.apply(this, arguments) || this;
 	    }
 	    MyComponent.prototype.render = function () {
 	        return React.createElement("div", null, this.props.content);
 	    };
 	    return MyComponent;
 	}(React.Component));
-	React.render(React.createElement(MyComponent, {content: "Hello World"}), document.body);
+	React.render(React.createElement(MyComponent, { content: "Hello World" }), document.body);
 
 
 /***/ },

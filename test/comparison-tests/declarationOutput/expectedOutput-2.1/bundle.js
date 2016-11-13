@@ -54,7 +54,7 @@
 	var Test = (function (_super) {
 	    __extends(Test, _super);
 	    function Test() {
-	        _super.apply(this, arguments);
+	        return _super.apply(this, arguments) || this;
 	    }
 	    Test.prototype.doSomething = function () {
 	    };
