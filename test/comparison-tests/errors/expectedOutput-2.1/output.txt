@@ -1,0 +1,36 @@
+
+ERROR in ./.test/errors/app.ts
+[37m([39m[36m1[39m,[36m7[39m): [31merror TS1005: '=' expected.[39m
+
+ERROR in ./.test/errors/app.ts
+Module parse failed: index.js!app.ts Unexpected token (1:9)
+You may need an appropriate loader to handle this file type.
+SyntaxError: Unexpected token (1:9)
+    at Parser.pp$4.raise (node_modules\acorn\dist\acorn.js:2221:15)
+    at Parser.pp.unexpected (node_modules\acorn\dist\acorn.js:603:10)
+    at Parser.pp$3.parseExprAtom (node_modules\acorn\dist\acorn.js:1822:12)
+    at Parser.pp$3.parseExprSubscripts (node_modules\acorn\dist\acorn.js:1715:21)
+    at Parser.pp$3.parseMaybeUnary (node_modules\acorn\dist\acorn.js:1692:19)
+    at Parser.pp$3.parseExprOps (node_modules\acorn\dist\acorn.js:1637:21)
+    at Parser.pp$3.parseMaybeConditional (node_modules\acorn\dist\acorn.js:1620:21)
+    at Parser.pp$3.parseMaybeAssign (node_modules\acorn\dist\acorn.js:1597:21)
+    at Parser.pp$1.parseVar (node_modules\acorn\dist\acorn.js:1034:28)
+    at Parser.pp$1.parseVarStatement (node_modules\acorn\dist\acorn.js:917:10)
+    at Parser.pp$1.parseStatement (node_modules\acorn\dist\acorn.js:706:19)
+    at Parser.pp$1.parseTopLevel (node_modules\acorn\dist\acorn.js:638:25)
+    at Parser.parse (node_modules\acorn\dist\acorn.js:516:17)
+    at Object.parse (node_modules\acorn\dist\acorn.js:3098:39)
+    at Parser.parse (node_modules\webpack\lib\Parser.js:902:15)
+    at NormalModule.<anonymous> (node_modules\webpack\lib\NormalModule.js:104:16)
+    at NormalModule.onModuleBuild (node_modules\webpack-core\lib\NormalModuleMixin.js:310:10)
+    at nextLoader (node_modules\webpack-core\lib\NormalModuleMixin.js:275:25)
+    at node_modules\webpack-core\lib\NormalModuleMixin.js:292:15
+    at context.callback (node_modules\webpack-core\lib\NormalModuleMixin.js:148:14)
+    at Object.loader (dist\index.js:34:5)
+    at WEBPACK_CORE_LOADER_EXECUTION (node_modules\webpack-core\lib\NormalModuleMixin.js:155:71)
+    at runSyncOrAsync (node_modules\webpack-core\lib\NormalModuleMixin.js:155:93)
+    at nextLoader (node_modules\webpack-core\lib\NormalModuleMixin.js:290:3)
+    at node_modules\webpack-core\lib\NormalModuleMixin.js:259:5
+    at Storage.finished (node_modules\enhanced-resolve\lib\CachedInputFileSystem.js:38:16)
+    at node_modules\graceful-fs\graceful-fs.js:78:16
+    at FSReqWrap.readFileAfterClose [as oncomplete] (fs.js:415:3)

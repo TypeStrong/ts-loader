@@ -1,0 +1,9 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  1.39 kB    0, 1  [emitted]  a, b
+chunk    {0} bundle.js (a) 0 bytes [rendered]
+    [0] ./.test/instance/a.ts 0 bytes {0} [built]
+chunk    {1} bundle.js (b) 0 bytes [rendered]
+    [0] ./.test/instance/b.ts 0 bytes {1} [built] [1 error]
+
+ERROR in ./.test/instance/b.ts
+[37m([39m[36m1[39m,[36m13[39m): [31merror TS2403: Subsequent variable declarations must have the same type.  Variable 'someGlobal' must be of type 'number', but here has type 'string'.[39m
