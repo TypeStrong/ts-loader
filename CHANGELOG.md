@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.2.1
+
+- [Fix TS module resolution paths on Windows - watch mode becomes faster](https://github.com/TypeStrong/ts-loader/pull/373) [#372] - thanks @smphhh
+
 ## v1.2.0
 
 - [Crash when adding/removing files in watch-mode](https://github.com/TypeStrong/ts-loader/pull/364) [#358] - thanks @jbbr for the suggested fix
