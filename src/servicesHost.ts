@@ -69,54 +69,97 @@ function makeServicesHost(
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
         log: log.log,
-        resolveModuleNames: (moduleNames: string[], containingFile: string) => {
-            let resolvedModules: interfaces.ResolvedModule[] = [];
-
-            for (let moduleName of moduleNames) {
-                let resolutionResult: interfaces.ResolvedModule;
-
-                try {
-                    let resolvedFileName: string = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
-                    resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
-
-                    if (resolvedFileName.match(scriptRegex)) {
-                        resolutionResult = { resolvedFileName };
-                    }
-                } catch (e) {}
-
-                const tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
-
-                if (tsResolution.resolvedModule) {
-                    let tsResolutionResult: interfaces.ResolvedModule = {
-                        resolvedFileName: path.normalize(tsResolution.resolvedModule.resolvedFileName),
-                        isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
-                    };
-                    if (resolutionResult) {
-                        if (resolutionResult.resolvedFileName === tsResolutionResult.resolvedFileName) {
-                            resolutionResult.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
-                        }
-                    } else {
-                        resolutionResult = tsResolutionResult;
-                    }
-                }
-
-                resolvedModules.push(resolutionResult);
-            }
-
-            const importedFiles = resolvedModules
-                .filter(m => m !== null && m !== undefined)
-                .map(m => m.resolvedFileName);
-            instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
-            importedFiles.forEach(importedFileName => {
-                if (!instance.reverseDependencyGraph[importedFileName]) {
-                    instance.reverseDependencyGraph[importedFileName] = {};
-                }
-                instance.reverseDependencyGraph[importedFileName][path.normalize(containingFile)] = true;
-            });
-
-            return resolvedModules;
-        },
+        resolveModuleNames: (moduleNames: string[], containingFile: string) => 
+            resolveModuleNames(
+                resolver, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
+                moduleNames, containingFile)
     };
+}
+
+function resolveModuleNames(
+    resolver: { resolveSync(path:string, moduleName: string): string },
+    moduleResolutionHost: {
+        fileExists(fileName: string): boolean,
+        readFile(fileName: string): string,
+    },
+    appendTsSuffixTo: RegExp[],
+    scriptRegex: RegExp,
+    instance: interfaces.TSInstance,
+
+    moduleNames: string[],
+    containingFile: string
+) {
+    const resolvedModules = moduleNames.map(moduleName => 
+        resolveModuleName(resolver, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
+            moduleName, containingFile)
+    );
+
+    populateDependencyGraphs(resolvedModules, instance, containingFile);
+
+    return resolvedModules;
+}
+
+function resolveModuleName(
+    resolver: { resolveSync(path:string, moduleName: string): string },
+    moduleResolutionHost: {
+        fileExists(fileName: string): boolean,
+        readFile(fileName: string): string,
+    },
+    appendTsSuffixTo: RegExp[],
+    scriptRegex: RegExp,
+    instance: interfaces.TSInstance,
+
+    moduleName: string,
+    containingFile: string
+) {
+    const { compiler, compilerOptions } = instance;
+
+    let resolutionResult: interfaces.ResolvedModule;
+
+    try {
+        let resolvedFileName: string = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
+        resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
+
+        if (resolvedFileName.match(scriptRegex)) {
+            resolutionResult = { resolvedFileName };
+        }
+    } catch (e) { }
+
+    const tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
+
+    if (tsResolution.resolvedModule) {
+        let tsResolutionResult: interfaces.ResolvedModule = {
+            resolvedFileName: path.normalize(tsResolution.resolvedModule.resolvedFileName),
+            isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
+        };
+        if (resolutionResult) {
+            if (resolutionResult.resolvedFileName === tsResolutionResult.resolvedFileName) {
+                resolutionResult.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
+            }
+        } else {
+            resolutionResult = tsResolutionResult;
+        }
+    }
+    return resolutionResult;
+}
+
+function populateDependencyGraphs(
+    resolvedModules: interfaces.ResolvedModule[],
+    instance: interfaces.TSInstance,
+    containingFile: string
+) {
+    const importedFiles = resolvedModules
+        .filter(m => m !== null && m !== undefined)
+        .map(m => m.resolvedFileName);
+
+    instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
+
+    importedFiles.forEach(importedFileName => {
+        if (!instance.reverseDependencyGraph[importedFileName]) {
+            instance.reverseDependencyGraph[importedFileName] = {};
+        }
+        instance.reverseDependencyGraph[importedFileName][path.normalize(containingFile)] = true;
+    });
 }
 
 export = makeServicesHost;
