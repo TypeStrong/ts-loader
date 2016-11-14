@@ -73,29 +73,30 @@ function makeServicesHost(
             let resolvedModules: interfaces.ResolvedModule[] = [];
 
             for (let moduleName of moduleNames) {
-                let resolvedFileName: string;
-                let resolutionResult: any;
+                let resolutionResult: interfaces.ResolvedModule;
 
                 try {
-                    resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
+                    let resolvedFileName: string = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
                     resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
 
-                    if (!resolvedFileName.match(scriptRegex)) {
-                        resolvedFileName = null;
-                    } else {
+                    if (resolvedFileName.match(scriptRegex)) {
                         resolutionResult = { resolvedFileName };
                     }
-                } catch (e) { resolvedFileName = null; }
+                } catch (e) {}
 
                 const tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
                 if (tsResolution.resolvedModule) {
-                    if (resolvedFileName) {
-                        if (resolvedFileName === tsResolution.resolvedModule.resolvedFileName) {
-                            resolutionResult.isExternalLibraryImport = tsResolution.resolvedModule.isExternalLibraryImport;
+                    let tsResolutionResult: interfaces.ResolvedModule = {
+                        resolvedFileName: path.normalize(tsResolution.resolvedModule.resolvedFileName),
+                        isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
+                    };
+                    if (resolutionResult) {
+                        if (resolutionResult.resolvedFileName === tsResolutionResult.resolvedFileName) {
+                            resolutionResult.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
                         }
                     } else {
-                        resolutionResult = tsResolution.resolvedModule;
+                        resolutionResult = tsResolutionResult;
                     }
                 }
 
