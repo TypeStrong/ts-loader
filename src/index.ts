@@ -112,7 +112,7 @@ function getEmit(
 
     // Additionally make this file dependent on all imported files as well
     // as any deeper recursive dependencies
-    let additionalDependencies = utils.collectAllDependencies(instance.dependencyGraph, filePath, {});
+    let additionalDependencies = utils.collectAllDependencies(instance.dependencyGraph, filePath);
     if (additionalDependencies) {
         additionalDependencies.forEach(loader.addDependency.bind(loader));
     }
