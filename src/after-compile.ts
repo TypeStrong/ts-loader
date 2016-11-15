@@ -100,7 +100,7 @@ function determineFilesToCheckForErrors(
     } else if (modifiedFiles) {
         // check all modified files, and all dependants
         Object.keys(modifiedFiles).forEach(modifiedFileName => {
-            collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
+            utils.collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
                 .forEach(fileName => {
                     filesToCheckForErrors[fileName] = files[fileName];
                 });
@@ -191,28 +191,6 @@ function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
             length--;
         }
     }
-}
-
-/**
- * Recursively collect all possible dependants of passed file
- */
-function collectAllDependants(
-    reverseDependencyGraph: interfaces.ReverseDependencyGraph,
-    fileName: string,
-    collected: {[file:string]: boolean} = {}
-): string[] {
-    const result = {};
-    result[fileName] = true;
-    collected[fileName] = true;
-    if (reverseDependencyGraph[fileName]) {
-        Object.keys(reverseDependencyGraph[fileName]).forEach(dependantFileName => {
-            if (!collected[dependantFileName]) {
-                collectAllDependants(reverseDependencyGraph, dependantFileName, collected)
-                    .forEach(fName => result[fName] = true);
-            }
-        });
-    }
-    return Object.keys(result);
 }
 
 export = makeAfterCompile;

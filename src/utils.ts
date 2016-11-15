@@ -86,3 +86,48 @@ export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string 
     }
     return path;
 }
+
+/**
+ * Recursively collect all possible dependants of passed file
+ */
+export function collectAllDependants(
+    reverseDependencyGraph: interfaces.ReverseDependencyGraph,
+    fileName: string,
+    collected: {[file:string]: boolean} = {}
+): string[] {
+    const result = {};
+    result[fileName] = true;
+    collected[fileName] = true;
+    if (reverseDependencyGraph[fileName]) {
+        Object.keys(reverseDependencyGraph[fileName]).forEach(dependantFileName => {
+            if (!collected[dependantFileName]) {
+                collectAllDependants(reverseDependencyGraph, dependantFileName, collected)
+                    .forEach(fName => result[fName] = true);
+            }
+        });
+    }
+    return Object.keys(result);
+}
+
+/**
+ * Recursively collect all possible dependencies of passed file
+ */
+export function collectAllDependencies(
+    dependencyGraph: interfaces.DependencyGraph,
+    filePath: string,
+    collected: {[file:string]: boolean} = {}
+): string[] {
+    const result = {};
+    result[filePath] = true;
+    collected[filePath] = true;
+    let directDependencies = dependencyGraph[filePath]; 
+    if (directDependencies) {
+        directDependencies.forEach(dependencyFilePath => {
+            if (!collected[dependencyFilePath]) {
+                collectAllDependencies(dependencyGraph, dependencyFilePath, collected)
+                    .forEach(fPath => result[fPath] = true);
+            }
+        });
+    }
+    return Object.keys(result);
+}

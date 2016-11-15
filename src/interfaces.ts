@@ -133,7 +133,7 @@ export interface TSInstances {
     [name: string]: TSInstance;
 }
 
-interface DependencyGraph {
+export interface DependencyGraph {
     [file: string]: string[];
 }
 
