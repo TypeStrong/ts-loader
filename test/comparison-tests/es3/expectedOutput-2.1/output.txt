@@ -1,0 +1,7 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  1.42 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 29 bytes [rendered]
+    [0] ./.test/es3/app.ts 29 bytes {0} [built] [1 error]
+
+ERROR in ./.test/es3/app.ts
+[37m([39m[36m1[39m,[36m7[39m): [31merror TS1056: Accessors are only available when targeting ECMAScript 5 and higher.[39m

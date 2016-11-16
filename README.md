@@ -16,6 +16,7 @@ Tutorials and examples can be [found here](https://github.com/TypeStrong/ts-load
 ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
 
 A full test suite runs each night (and on each pull request). It runs both on Linux ([Travis](https://travis-ci.org/)) and Windows ([AppVeyor](https://www.appveyor.com/)), testing ts-loader against the following versions of TypeScript:
+- TypeScript 2.1
 - TypeScript 2.0
 - TypeScript 1.8
 - TypeScript 1.7
@@ -168,6 +169,10 @@ set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basar
 
 Allows you to specify a custom configuration file.
 
+##### visualStudioErrorFormat *(boolean) (default=false)*
+
+If `true`, the TypeScript compiler output for an error or a warning, e.g. `(3,14): error TS4711: you did something very wrong`, in file `myFile` will instead be `myFile(3,14): error TS4711: you did something very wrong` (notice the file name at the beginning). This way Visual Studio will interpret this line and show any errors or warnings in the *error list*. This enables navigation to the file/line/column through double click.
+
 ##### compilerOptions *(object) (default={})*
 
 Allows overriding TypeScript options. Should be specified in the same format
@@ -181,9 +186,9 @@ of your code.
 
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
-A list of regular expression to be matched against filename. If filename matches one of the regular expressions, a `.ts` suffix will be appended to that filename.
+A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` suffix will be appended to that filename.
 
-This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefits new single file format.)
+This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefit from the new single file format in the future.)
 
 Example:
 

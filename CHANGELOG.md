@@ -1,11 +1,17 @@
 # Changelog
 
-## v1.1.0 - NOT RELEASED YET
+## v1.2.1
+
+- [Fix TS module resolution paths on Windows - watch mode becomes faster](https://github.com/TypeStrong/ts-loader/pull/373) [#372] - thanks @smphhh
+
+## v1.2.0
+
+- [Crash when adding/removing files in watch-mode](https://github.com/TypeStrong/ts-loader/pull/364) [#358] - thanks @jbbr for the suggested fix
+- [Provided an option to produce Visual Studio compatible error output](https://github.com/TypeStrong/ts-loader/pull/356) [#355] - thanks @gamli
+
+## v1.1.0
 
 - [Added support for vuejs via `appendTsSuffixTo` option](https://github.com/TypeStrong/ts-loader/pull/354) [#270] - thanks @HerringtonDarkholme
-
-Still to do:
-- document usage of `appendTsSuffixTo` in the README
 
 ## v1.0.0
 

@@ -134,12 +134,12 @@ export interface TSInstances {
 }
 
 interface DependencyGraph {
-    [index: string]: string[];
+    [file: string]: string[];
 }
 
-interface ReverseDependencyGraph {
-    [index: string]: {
-        [index: string]: boolean
+export interface ReverseDependencyGraph {
+    [file: string]: {
+        [file: string]: boolean
     };
 }
 
@@ -152,6 +152,7 @@ export interface LoaderOptions {
     configFileName: string;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
+    visualStudioErrorFormat: boolean;
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
 }

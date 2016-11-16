@@ -1,0 +1,7 @@
+    Asset     Size  Chunks       Chunk Names
+bundle.js  1.42 kB       0       main
+chunk    {0} bundle.js (main) 27 bytes [rendered]
+    [0] ./.test/noErrorsPlugin/app.ts 27 bytes {0} [built] [1 error]
+
+ERROR in ./.test/noErrorsPlugin/app.ts
+[37m([39m[36m4[39m,[36m1[39m): [31merror TS2322: Type 'string' is not assignable to type 'number'.[39m

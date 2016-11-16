@@ -6,7 +6,7 @@ import constants = require('./constants');
 import interfaces = require('./interfaces');
 
 export function registerWebpackErrors(existingErrors: interfaces.WebpackError[], errorsToPush: interfaces.WebpackError[]) {
-    Array.prototype.splice.apply(existingErrors, (<(number | interfaces.WebpackError)[]> [0, 0]).concat(errorsToPush));
+    Array.prototype.splice.apply(existingErrors, (<(number | interfaces.WebpackError)[]>[0, 0]).concat(errorsToPush));
 }
 
 export function hasOwnProperty<T extends {}>(obj: T, property: string) {
@@ -34,15 +34,19 @@ export function formatErrors(
             let error: interfaces.WebpackError;
             if (diagnostic.file) {
                 const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
+                let errorMessage = `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`;
+                if (loaderOptions.visualStudioErrorFormat) {
+                    errorMessage = path.normalize(diagnostic.file.fileName).red + errorMessage;
+                }
                 error = makeError({
-                    message: `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`,
+                    message: errorMessage,
                     rawMessage: messageText,
                     location: { line: lineChar.line + 1, character: lineChar.character + 1 }
                 });
             } else {
                 error = makeError({ rawMessage: messageText });
             }
-            return <interfaces.WebpackError> objectAssign(error, merge);
+            return <interfaces.WebpackError>objectAssign(error, merge);
         });
 }
 
@@ -69,14 +73,16 @@ export function makeError({ rawMessage, message, location, file }: MakeError): i
         loaderSource: 'ts-loader'
     };
 
-    return <interfaces.WebpackError> objectAssign(error, { location, file });
+    return <interfaces.WebpackError>objectAssign(error, { location, file });
 }
 
 export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string {
-    for (let regexp of patterns) {
-      if (regexp.test(path)) {
-        return path + '.ts';
-      }
+    if (patterns.length > 0) {
+        for (let regexp of patterns) {
+            if (regexp.test(path)) {
+                return path + '.ts';
+            }
+        }
     }
     return path;
 }

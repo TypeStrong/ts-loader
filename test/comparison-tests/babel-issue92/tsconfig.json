@@ -1,7 +1,5 @@
 {
 	"compilerOptions": {
 		"target": "es6"
-	},
-	"files": [
-	]
+	}
 }
