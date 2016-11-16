@@ -57,12 +57,12 @@ function makeServicesHost(
          * getDirectories is also required for full import and type reference completions.
          * Without it defined, certain completions will not be provided
          */
-        getDirectories: typescript.sys ? (<any> typescript.sys).getDirectories : undefined,
+        getDirectories: compiler.sys ? (<any> compiler.sys).getDirectories : undefined,
 
         /**
          * For @types expansion, these two functions are needed.
          */
-        directoryExists: typescript.sys ? (<any> typescript.sys).directoryExists : undefined,
+        directoryExists: compiler.sys ? (<any> compiler.sys).directoryExists : undefined,
         getCurrentDirectory: () => process.cwd(),
 
         getCompilationSettings: () => compilerOptions,
