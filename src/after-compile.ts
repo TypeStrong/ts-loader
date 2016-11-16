@@ -113,7 +113,7 @@ function determineFilesToCheckForErrors(
             filesToCheckForErrors[fileWithErrorName] = filesWithErrors[fileWithErrorName]
         );
     }
-    return filesToCheckForErrors;
+    return filterFilesToCheckForErrors(instance, filesToCheckForErrors);
 }
 
 function provideErrorsToWebpack(
@@ -213,6 +213,30 @@ function collectAllDependants(
         });
     }
     return Object.keys(result);
+}
+
+/**
+ * Filters files to check according to loader options.
+ * @return {interfaces.TSFiles} filtered files.
+ */
+function filterFilesToCheckForErrors(instance: interfaces.TSInstance, filesToCheckForErrors: interfaces.TSFiles): interfaces.TSFiles {
+    if (instance.loaderOptions.skipLibsErrorCheck) {
+        filesToCheckForErrors = filterLibs(filesToCheckForErrors)
+    }
+    return filesToCheckForErrors
+}
+
+/**
+ * Filters all files that are placed in 'node_modules'.
+ * @return {interfaces.TSFiles} filtered files.
+ */
+function filterLibs(filesToCheckForErrors: interfaces.TSFiles): interfaces.TSFiles {
+    return Object.keys(filesToCheckForErrors)
+        .filter(key => key.indexOf('node_modules') < 0)
+        .reduce((acc: interfaces.TSFiles, key: string) => {
+            acc[key] = filesToCheckForErrors[key];
+            return acc;
+        }, {})
 }
 
 export = makeAfterCompile;

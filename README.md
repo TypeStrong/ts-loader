@@ -229,6 +229,30 @@ export default {
 ```
 
 
+##### sharedNodeModules *(boolean) (default=false)*
+In some projects node_modules folder is shared by several npm modules like:
+```
+\_
+  \_node_modules (folder)
+  \_first-module
+    \_node_modules (symbolic link to ../node_modules)
+    \_...
+  \_second-module
+    \_node_modules (symbolic link to ../node_modules)
+    \_...
+```
+Setting sharedNodeModules=true allows avoid including the same files for compilation from node_modules several times. For example, _first_module_ and _second_module_ uses jQuery. So with sharedNodeModules=false the following files are added for compilation:
+```
+/first-module/node_modules/@types/jquery/index.d.ts
+/second-module/node_modules/@types/jquery/index.d.ts
+```
+With sharedNodeModules=true only one such file will be compiled.
+
+
+##### skipLibsErrorCheck *(boolean) (default=false)*
+If 'true' the plugin skips checking errors in files that are placed in 'node_modules' folder(s) and it's subfolders.
+
+
 ### Loading other resources and code splitting
 
 Loading css and other resources is possible but you will need to make sure that

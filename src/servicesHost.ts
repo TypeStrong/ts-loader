@@ -30,7 +30,7 @@ function makeServicesHost(
         fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
         readFile: (fileName: string) => utils.readFile(fileName),
     };
-
+    const fileStorage = createFileStorage(instance, files)
     return {
         getProjectVersion: () => `${instance.version}`,
         getScriptFileNames: () => Object.keys(files).filter(filePath => scriptRegex.test(filePath)),
@@ -42,13 +42,13 @@ function makeServicesHost(
             // This is called any time TypeScript needs a file's text
             // We either load from memory or from disk
             fileName = path.normalize(fileName);
-            let file = files[fileName];
+            let file = fileStorage.getFile(files, fileName);
 
             if (!file) {
                 let text = utils.readFile(fileName);
                 if (!text) { return undefined; }
 
-                file = files[fileName] = { version: 0, text };
+                file = fileStorage.setFile(files, fileName, { version: 0, text });
             }
 
             return compiler.ScriptSnapshot.fromString(file.text);
@@ -160,6 +160,84 @@ function populateDependencyGraphs(
         }
         instance.reverseDependencyGraph[importedFileName][path.normalize(containingFile)] = true;
     });
+}
+
+/**
+ * Provides implementation of FileStorage depending of loader options.
+ */
+function createFileStorage(instance: interfaces.TSInstance, files: interfaces.TSFiles): FileStorage {
+    if (instance.loaderOptions.sharedNodeModules) {
+        return new SharedNodeModulesStorage(files)
+    } else {
+        return new DefaultFileStorage()
+    }
+}
+
+/**
+ * Provides methods for getting and setting TSFile by file name from TSFiles
+ */
+interface FileStorage {
+    getFile(files: interfaces.TSFiles, fileName: string): interfaces.TSFile
+    setFile(files: interfaces.TSFiles, fileName: string, file: interfaces.TSFile): interfaces.TSFile
+}
+
+/**
+ * Reads and writes values into provided TSFiles without any additional logic.
+ */
+class DefaultFileStorage implements FileStorage {
+    getFile(files: interfaces.TSFiles, fileName: string): interfaces.TSFile {
+        return files[fileName]
+    }
+
+    setFile(files: interfaces.TSFiles, fileName: string, file: interfaces.TSFile): interfaces.TSFile {
+        files[fileName] = file
+        return file
+    }
+}
+
+/**
+ * Caches files by local path. It means that all files from 'node_modules' will be cached not by full path, but
+ * by path like 'node_modules/somelib/somefile.ts'. And the class uses this cache to avoid adding files with the same
+ * local path. It is used if sharedNodeModules=true.
+ */
+class SharedNodeModulesStorage implements FileStorage {
+    private nodeModulesFiles = {}
+
+    constructor(files: interfaces.TSFiles) {
+        Object.keys(files).forEach(key => {
+            this.nodeModulesFiles[this.createLocalPath(key)] = key
+        })
+    }
+
+    private createLocalPath(fileName: string): string {
+        if (fileName.indexOf('node_modules') >= 0) {
+            return fileName.substring(fileName.lastIndexOf('node_modules'));
+        } else {
+            return fileName;
+        }
+    }
+
+    getFile(files: interfaces.TSFiles, fileName: string): interfaces.TSFile {
+        let result = files[this.nodeModulesFiles[this.createLocalPath(fileName)]]
+        if (result) {
+            return result
+        }
+        result = files[fileName]
+        if (result) {
+            this.nodeModulesFiles[this.createLocalPath(fileName)] = result
+        }
+        return result
+    }
+
+    setFile(files: interfaces.TSFiles, fileName: string, file: interfaces.TSFile): interfaces.TSFile {
+        const previousValue = this.getFile(files, fileName)
+        if (previousValue) {
+            return previousValue
+        }
+        this.nodeModulesFiles[this.createLocalPath(fileName)] = fileName
+        files[fileName] = file
+        return file
+    }
 }
 
 export = makeServicesHost;
