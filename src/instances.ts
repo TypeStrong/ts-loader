@@ -1,5 +1,6 @@
 import path = require('path');
 import fs = require('fs');
+import typescript = require('typescript');
 require('colors');
 
 import afterCompile = require('./after-compile');
@@ -12,6 +13,62 @@ import makeServicesHost = require('./servicesHost');
 import watchRun = require('./watch-run');
 
 const instances = <interfaces.TSInstances> {};
+
+/**
+ * Parse the configuration passed to the loader
+ * to extract the list of files that need to be
+ * loaded in addition to those in tsconfig.json
+ */
+function parseLoaderConfiguration(
+    compiler: typeof typescript,
+    loaderOptions: interfaces.LoaderOptions,
+    configFilePath: string
+): typescript.ParsedCommandLine {
+
+    // Fast path if we don't have any of these fields set, no file will be loaded
+    if (!loaderOptions.exclude && !loaderOptions.include && !loaderOptions.files) {
+        return {errors: [], fileNames: [], options: {}};
+    }
+
+    // Only pass the options related to files to
+    // include, As we already handled the rest
+    const options = {
+        config: {
+            files: loaderOptions.files || [],
+            include: loaderOptions.include || [],
+            exclude: loaderOptions.exclude || []
+        }
+    };
+
+    return config.getConfigParseResult(compiler, options, configFilePath || process.cwd());
+}
+
+/**
+ * Take a list of files to load, clean the path and add them to a map.
+ */
+function prepareLoadedFiles(
+    filesToLoad: string[],
+    files: interfaces.TSFiles
+): interfaces.TSFiles {
+    let filePath: string;
+    try {
+        filesToLoad.forEach(fp => {
+            filePath = path.normalize(fp);
+
+            // Skip files already in the list
+            if (filePath in files) { return; }
+
+            files[filePath] = {
+                text: fs.readFileSync(filePath, 'utf-8'),
+                version: 0
+            };
+        });
+    } catch (exc) {
+        throw new Error(`A file specified in tsconfig.json could not be found: ${ filePath }`)
+    }
+
+    return files;
+}
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -56,7 +113,7 @@ export function ensureTypeScriptInstance(
     }
 
     const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler, configParseResult);
-    const files: interfaces.TSFiles = {};
+    let files: interfaces.TSFiles = {};
 
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
@@ -71,21 +128,26 @@ export function ensureTypeScriptInstance(
         return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {} }};
     }
 
-    // Load initial files (core lib files, any files specified in tsconfig.json)
-    let filePath: string;
+    const extendedConfigParse = parseLoaderConfiguration(compiler, loaderOptions, configFilePath);
+
+    if (extendedConfigParse.errors.length) {
+        utils.registerWebpackErrors(
+            loader._module.errors,
+            utils.formatErrors(extendedConfigParse.errors, loaderOptions, compiler, { file: "loader configuration" }));
+
+        return { error: utils.makeError({ rawMessage: 'error while parsing loader configuration', file: "loader configuration" }) };
+    }
+
     try {
-        const filesToLoad = configParseResult.fileNames;
-        filesToLoad.forEach(fp => {
-            filePath = path.normalize(fp);
-            files[filePath] = {
-                text: fs.readFileSync(filePath, 'utf-8'),
-                version: 0
-            };
-          });
-    } catch (exc) {
-        return { error: utils.makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ filePath }`
-        }) };
+        // Load initial files (core lib files, any files specified in tsconfig.json)
+        files = prepareLoadedFiles(configParseResult.fileNames, files);
+
+        // Load files defined in the loader configuration
+        if (extendedConfigParse.fileNames) {
+            files = prepareLoadedFiles(extendedConfigParse.fileNames, files);
+        }
+    } catch (e) {
+        return { error: utils.makeError({rawMessage: e.message}) };
     }
 
     // if allowJs is set then we should accept js(x) files

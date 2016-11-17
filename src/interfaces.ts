@@ -155,6 +155,9 @@ export interface LoaderOptions {
     visualStudioErrorFormat: boolean;
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
+    files: string[];
+    include: string[];
+    exclude: string[];
 }
 
 export interface TSFile {
