@@ -110,8 +110,9 @@ function getEmit(
     const allDefinitionFiles = Object.keys(instance.files).filter(fp => definitionFileRegex.test(fp));
     allDefinitionFiles.forEach(loader.addDependency.bind(loader));
 
-    // Additionally make this file dependent on all imported files
-    let additionalDependencies = instance.dependencyGraph[filePath];
+    // Additionally make this file dependent on all imported files as well
+    // as any deeper recursive dependencies
+    let additionalDependencies = utils.collectAllDependencies(instance.dependencyGraph, filePath);
     if (additionalDependencies) {
         additionalDependencies.forEach(loader.addDependency.bind(loader));
     }
