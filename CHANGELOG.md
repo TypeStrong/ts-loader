@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.2
+
+- [Re-exported const enums no longer break emit in watch mode](https://github.com/TypeStrong/ts-loader/pull/377) [#376] - thanks @smphhh
+- [typescript.sys should be compiler.sys](https://github.com/TypeStrong/ts-loader/pull/380) [#379] - thanks @johnnyreilly and @jbrantly
+
 ## v1.2.1
 
 - [Fix TS module resolution paths on Windows - watch mode becomes faster](https://github.com/TypeStrong/ts-loader/pull/373) [#372] - thanks @smphhh
