@@ -82,23 +82,18 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
     }
     ```
 
-2. Add a `tsconfig.json` file. <a name="tsconfig"></a>
+2. Add a [`tsconfig.json`](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file. (The one below is super simple; but you can tweak this to your hearts desire)
 
-    ```javascript
+    ```json
     {
       "compilerOptions": {
-        "target": "es5",
-        "sourceMap": true
-      },
-      "exclude": [
-        "node_modules"
-      ]
+      }
     }
     ```
 
 The [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
-same options. TypeScript files from all subdirectories will get included except the ones matching `exclude`.
+same options.
 
 ### Failing the build on TypeScript compilation error
 
