@@ -1,0 +1,7 @@
+{
+  "name": "libissue388",
+  "version": "0.0.1",
+  "description": "Dummy lib for issue 388 testing for ts-loader",
+  "main": "./main.js",
+  "typings": "./main.d.ts"
+}

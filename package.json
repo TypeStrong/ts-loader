@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
-    "comparison-tests": "npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
+    "comparison-tests": "npm link ./test/comparison-tests/testLib && npm link ./test/comparison-tests/testLibIssue388 && node test/comparison-tests/run-tests.js",
     "execution-tests": "node test/execution-tests/run-tests.js",
     "test": "node test/run-tests.js"
   },
