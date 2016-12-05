@@ -27,12 +27,15 @@ function loader(this: interfaces.Webpack, contents: string) {
 
     const file = updateFileInCache(filePath, contents, instance);
 
-    let { outputText, sourceMapText } = options.transpileOnly
+    const { outputText, sourceMapText } = options.transpileOnly
         ? getTranspilationEmit(filePath, contents, instance, this)
         : getEmit(filePath, instance, this);
 
     if (outputText === null || outputText === undefined) {
-        throw new Error(`Typescript emitted no output for ${filePath}`);
+        const additionalGuidance = filePath.indexOf('node_modules') !== -1 
+        ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
+        : "";
+        throw new Error(`Typescript emitted no output for ${filePath}.${additionalGuidance}`);
     }
 
     const { sourceMap, output } = makeSourceMap(sourceMapText, outputText, filePath, contents, this);
