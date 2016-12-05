@@ -14,11 +14,11 @@ interface InternalLoggerFunc {
     (whereToLog: any, messages: string[]): void;
 }
 
-const doNothingLogger = (...messages: string[]) => {};
+const doNothingLogger = (..._messages: string[]) => {};
 
 function makeLoggerFunc(loaderOptions: interfaces.LoaderOptions) {
     return loaderOptions.silent 
-        ? (whereToLog: any, messages: string[]) => {}
+        ? (_whereToLog: any, _messages: string[]) => {}
         : (whereToLog: any, messages: string[]) => console.log.apply(whereToLog, messages);
 }
 
