@@ -4,7 +4,7 @@
         "noImplicitReturns": true,
         "noImplicitThis": false,
         "noUnusedLocals": true,
-        "noUnusedParameters": false,
+        "noUnusedParameters": true,
         "suppressImplicitAnyIndexErrors": true,
         "strictNullChecks": false,
         "module": "commonjs",

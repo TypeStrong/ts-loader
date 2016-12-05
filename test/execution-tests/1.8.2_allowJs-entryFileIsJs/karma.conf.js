@@ -29,6 +29,7 @@ module.exports = function(config) {
       module: {
           loaders: webpackConfig.module.loaders
       },
+      ts: webpackConfig.ts,
       resolve: webpackConfig.resolve,
 
       // for test harness purposes only, you would not need this in a normal project

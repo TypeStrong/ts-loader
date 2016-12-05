@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.3.0
+
+- [Introduce meaningful error when importing TypeScript from `node_modules`](https://github.com/TypeStrong/ts-loader/pull/399)
+- [Introduce `entryFileIsJs` loader option which allows having an entry file which is js.](https://github.com/TypeStrong/ts-loader/pull/399) resolves #388 and #401 - thanks @Wykks and @pqr.  
+
+NB Previously the `entryFileIsJs` option was on by default when `allowJs` was true.  Now it has to be specified directly.  Strictly speaking this is a breaking change; however given this is a rarely used option which exists for what is arguably an edge case this is being added without moving to 2.0.  If this breaks people then we'll never do this again; I'd be surprised if anyone is relying on this though so we're taking a chance.  Related tests have been suffixed "-entryFileIsJs" in the test name.
+
 ## v1.2.2
 
 - [Re-exported const enums no longer break emit in watch mode](https://github.com/TypeStrong/ts-loader/pull/377) [#376] - thanks @smphhh

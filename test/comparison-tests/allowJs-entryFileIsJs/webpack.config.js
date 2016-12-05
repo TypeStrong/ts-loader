@@ -13,6 +13,9 @@ module.exports = {
         loader: 'ts-loader'
       }
     ]
+  },
+  ts: {
+    entryFileIsJs: true
   }
 }
 
