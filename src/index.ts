@@ -63,6 +63,7 @@ function makeOptions(loader: interfaces.Webpack) {
         visualStudioErrorFormat: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
+        entryFileIsJs: false,
     }, configFileOptions, queryOptions);
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();

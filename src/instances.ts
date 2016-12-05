@@ -89,7 +89,7 @@ export function ensureTypeScriptInstance(
     }
 
     // if allowJs is set then we should accept js(x) files
-    const scriptRegex = configFile.config.compilerOptions.allowJs
+    const scriptRegex = configFile.config.compilerOptions.allowJs && loaderOptions.entryFileIsJs
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
