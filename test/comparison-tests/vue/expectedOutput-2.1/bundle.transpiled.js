@@ -170,8 +170,8 @@
 /* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports={render:function (){var _vm=this;
-	  return _vm._h('p', ["Hello from " + _vm._s(_vm.msg)])
+	module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;
+	  return _h('p', ["Hello from " + _vm._s(_vm.msg)])
 	},staticRenderFns: []}
 	if (false) {
 	  module.hot.accept()
@@ -195,8 +195,8 @@
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports={render:function (){var _vm=this;
-	  return _vm._h('p', ["hallo " + _vm._s(_vm.msg)])
+	module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;
+	  return _h('p', ["hallo " + _vm._s(_vm.msg)])
 	},staticRenderFns: []}
 	if (false) {
 	  module.hot.accept()

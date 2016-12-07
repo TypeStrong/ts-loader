@@ -14,5 +14,5 @@ env:
   - TYPESCRIPT=typescript@1.7.5
   - TYPESCRIPT=typescript@1.8.2
   - TYPESCRIPT=typescript@2.0.9
-  - TYPESCRIPT=typescript@2.1.1
+  - TYPESCRIPT=typescript@2.1.4
   - TYPESCRIPT=typescript@next

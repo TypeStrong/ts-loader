@@ -63,10 +63,10 @@
 /***/ function(module, exports) {
 
 	"use strict";
+	var BarEnum;
 	(function (BarEnum) {
 	    BarEnum[BarEnum["Bar"] = 2] = "Bar";
-	})(exports.BarEnum || (exports.BarEnum = {}));
-	var BarEnum = exports.BarEnum;
+	})(BarEnum = exports.BarEnum || (exports.BarEnum = {}));
 	;
 
 
