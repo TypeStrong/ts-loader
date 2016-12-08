@@ -50,7 +50,6 @@
 	    }
 	    return Foo;
 	}());
-	exports.Foo = Foo;
 	var Bar = (function () {
 	    function Bar() {
 	    }

@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.1
+
+- [Rolled back re-exported const enums no longer break emit in watch mode as performance cost was too high](https://github.com/TypeStrong/ts-loader/pull/406) resolves #393
+
 ## v1.3.0
 
 - [Introduce meaningful error when importing TypeScript from `node_modules`](https://github.com/TypeStrong/ts-loader/pull/399)

@@ -2,6 +2,6 @@
 	"compilerOptions": {
 	},
 	"files": [
-		"a.ts"
+		"i-dont-exist"
 	]
 }

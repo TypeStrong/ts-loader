@@ -26,7 +26,7 @@ SyntaxError: Unexpected token (1:9)
     at nextLoader (node_modules\webpack-core\lib\NormalModuleMixin.js:275:25)
     at node_modules\webpack-core\lib\NormalModuleMixin.js:292:15
     at context.callback (node_modules\webpack-core\lib\NormalModuleMixin.js:148:14)
-    at Object.loader (dist\index.js:34:5)
+    at Object.loader (dist\index.js:37:5)
     at WEBPACK_CORE_LOADER_EXECUTION (node_modules\webpack-core\lib\NormalModuleMixin.js:155:71)
     at runSyncOrAsync (node_modules\webpack-core\lib\NormalModuleMixin.js:155:93)
     at nextLoader (node_modules\webpack-core\lib\NormalModuleMixin.js:290:3)
