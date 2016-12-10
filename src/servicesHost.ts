@@ -77,7 +77,7 @@ function makeServicesHost(
 }
 
 function resolveModuleNames(
-    resolver: interfaces.Resolver,
+    resolver: interfaces.ResolveSync,
     moduleResolutionHost: interfaces.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
@@ -97,7 +97,7 @@ function resolveModuleNames(
 }
 
 function resolveModuleName(
-    resolver: interfaces.Resolver,
+    resolveSync: interfaces.ResolveSync,
     moduleResolutionHost: interfaces.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
@@ -107,11 +107,11 @@ function resolveModuleName(
     containingFile: string
 ) {
     const { compiler, compilerOptions } = instance;
-
+    
     let resolutionResult: interfaces.ResolvedModule;
 
     try {
-        let resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
+        let resolvedFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
         resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
 
         if (resolvedFileName.match(scriptRegex)) {

@@ -29,7 +29,7 @@
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
     "colors": "^1.0.3",
-    "enhanced-resolve": "^0.9.0",
+    "enhanced-resolve": "^3.0.0",
     "loader-utils": "^0.2.6",
     "object-assign": "^4.1.0",
     "semver": "^5.0.1"
