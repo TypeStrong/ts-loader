@@ -33,7 +33,7 @@ If you become aware of issues not caught by the test suite then please let us kn
 
 ts-loader is designed for Webpack 1.x.  All our CI tests run against that.  Webpack 2.0 is on the way and we're excited.  When it's released we'll look to target it.  In the meantime, people have been using webpack 2.0 with ts-loader with some success.  
 
-There's a known "gotcha" if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
+[There's a known "gotcha"](/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
 
 ```js
 new LoaderOptionsPlugin({
