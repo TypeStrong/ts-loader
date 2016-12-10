@@ -13,6 +13,8 @@ Tutorials and examples can be [found here](https://github.com/TypeStrong/ts-load
 
 ### Compatibility
 
+#### TypeScript
+
 ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
 
 A full test suite runs each night (and on each pull request). It runs both on Linux ([Travis](https://travis-ci.org/)) and Windows ([AppVeyor](https://www.appveyor.com/)), testing ts-loader against the following versions of TypeScript:
@@ -26,6 +28,21 @@ and also:
 - TypeScript@next (because we want to use it as much as you do)
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
+
+#### Webpack
+
+ts-loader is designed for Webpack 1.x.  All our CI tests run against that.  Webpack 2.0 is on the way and we're excited.  When it's released we'll look to target it.  In the meantime, people have been using webpack 2.0 with ts-loader with some success.  
+
+There's a known "gotcha" if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
+
+```js
+new LoaderOptionsPlugin({
+  debug: false,
+  options: {
+    resolve: {} // super important by all accounts...
+  }
+})
+```
 
 ### Babel
 
