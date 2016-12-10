@@ -1,7 +1,6 @@
 import path = require('path');
 import loaderUtils = require('loader-utils');
 import objectAssign = require('object-assign');
-import arrify = require('arrify');
 require('colors');
 
 import instances = require('./instances');
@@ -65,7 +64,7 @@ function makeOptions(loader: interfaces.Webpack) {
         appendTsSuffixTo: [],
         entryFileIsJs: false,
     }, configFileOptions, queryOptions);
-    options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
+    options.ignoreDiagnostics = utils.arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
 
     // differentiate the TypeScript instance based on the webpack instance

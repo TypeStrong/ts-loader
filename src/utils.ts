@@ -131,3 +131,11 @@ export function collectAllDependencies(
     }
     return Object.keys(result);
 }
+
+export function arrify<T>(val: T | T[]) {
+	if (val === null || val === undefined) {
+		return [];
+	}
+
+	return Array.isArray(val) ? val : [val];
+};
