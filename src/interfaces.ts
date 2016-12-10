@@ -116,6 +116,15 @@ export interface Resolve {
     unsafeCache?: RegExp | RegExp[] | boolean;
 }
 
+export interface Resolver {
+    resolveSync(path: string, moduleName: string): string;
+}
+
+export interface ModuleResolutionHost {
+    fileExists(fileName: string): boolean;
+    readFile(fileName: string): string
+}
+
 export interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;

@@ -19,8 +19,8 @@ function makeServicesHost(
     const { compiler, compilerOptions, files } = instance;
 
     const newLine =
-        compilerOptions.newLine === 0 /* CarriageReturnLineFeed */ ? constants.CarriageReturnLineFeed :
-        compilerOptions.newLine === 1 /* LineFeed */ ? constants.LineFeed :
+        compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
+        compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
         constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
@@ -45,7 +45,7 @@ function makeServicesHost(
             let file = files[fileName];
 
             if (!file) {
-                let text = utils.readFile(fileName);
+                const text = utils.readFile(fileName);
                 if (!text) { return undefined; }
 
                 file = files[fileName] = { version: 0, text };
@@ -77,11 +77,8 @@ function makeServicesHost(
 }
 
 function resolveModuleNames(
-    resolver: { resolveSync(path:string, moduleName: string): string },
-    moduleResolutionHost: {
-        fileExists(fileName: string): boolean,
-        readFile(fileName: string): string,
-    },
+    resolver: interfaces.Resolver,
+    moduleResolutionHost: interfaces.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
@@ -100,11 +97,8 @@ function resolveModuleNames(
 }
 
 function resolveModuleName(
-    resolver: { resolveSync(path:string, moduleName: string): string },
-    moduleResolutionHost: {
-        fileExists(fileName: string): boolean,
-        readFile(fileName: string): string,
-    },
+    resolver: interfaces.Resolver,
+    moduleResolutionHost: interfaces.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
@@ -117,7 +111,7 @@ function resolveModuleName(
     let resolutionResult: interfaces.ResolvedModule;
 
     try {
-        let resolvedFileName: string = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
+        let resolvedFileName = resolver.resolveSync(path.normalize(path.dirname(containingFile)), moduleName);
         resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
 
         if (resolvedFileName.match(scriptRegex)) {

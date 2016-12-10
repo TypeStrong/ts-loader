@@ -3,6 +3,7 @@ import objectAssign = require('object-assign');
 const semver = require('semver');
 
 import interfaces = require('./interfaces');
+import constants = require('./constants');
 import logger = require('./logger');
 
 export function getCompiler(
@@ -51,11 +52,11 @@ export function getCompilerOptions(
     });
 
     // if `module` is not specified and not using ES6 target, default to CJS module output
-    if ((!compilerOptions.module) && compilerOptions.target !== 2 /* ES6 */) {
-        compilerOptions.module = 1; /* CommonJS */
-    } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === 2 /* ES6 */) {
-       // special handling for TS 1.6 and target: es6
-        compilerOptions.module = 0 /* None */;
+    if ((!compilerOptions.module) && compilerOptions.target !== constants.ScriptTargetES2015) {
+        compilerOptions.module = constants.ModuleKindCommonJs;
+    } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === constants.ScriptTargetES2015) {
+        // special handling for TS 1.6 and target: es6
+        compilerOptions.module = constants.ModuleKindNone;
     }
 
     return compilerOptions;
