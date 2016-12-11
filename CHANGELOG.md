@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.3.2
+
+- [Upgrade enhanced-resolve to v3](https://github.com/TypeStrong/ts-loader/pull/411)
+- [Remove arrify dependency](https://github.com/TypeStrong/ts-loader/pull/410)
+
 ## v1.3.1
 
 - [Rolled back re-exported const enums no longer break emit in watch mode as performance cost was too high](https://github.com/TypeStrong/ts-loader/pull/406) resolves #393
