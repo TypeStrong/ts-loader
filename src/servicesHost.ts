@@ -24,7 +24,7 @@ function makeServicesHost(
         constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
-    const resolver = makeResolver(loader.options);
+    const resolveSync = makeResolver(loader.options);
 
     const moduleResolutionHost = {
         fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
@@ -71,23 +71,22 @@ function makeServicesHost(
         log: log.log,
         resolveModuleNames: (moduleNames: string[], containingFile: string) => 
             resolveModuleNames(
-                resolver, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
+                resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
                 moduleNames, containingFile)
     };
 }
 
 function resolveModuleNames(
-    resolver: interfaces.ResolveSync,
+    resolveSync: interfaces.ResolveSync,
     moduleResolutionHost: interfaces.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
-
     moduleNames: string[],
     containingFile: string
 ) {
     const resolvedModules = moduleNames.map(moduleName => 
-        resolveModuleName(resolver, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
+        resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
             moduleName, containingFile)
     );
 

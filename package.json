@@ -58,7 +58,7 @@
     "phantomjs-prebuilt": "^2.1.2",
     "rimraf": "^2.4.2",
     "typescript": "^2.0.3",
-    "typings": "^1.4.0",
+    "typings": "^2.0.0",
     "vue": "^2.0.5",
     "vue-loader": "^9.7.0",
     "webpack": "^1.11.0"
