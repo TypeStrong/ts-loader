@@ -29,7 +29,7 @@
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
     "colors": "^1.0.3",
-    "enhanced-resolve": "^0.9.0",
+    "enhanced-resolve": "^3.0.0",
     "loader-utils": "^0.2.6",
     "object-assign": "^4.1.0",
     "semver": "^5.0.1"
@@ -58,7 +58,7 @@
     "phantomjs-prebuilt": "^2.1.2",
     "rimraf": "^2.4.2",
     "typescript": "^2.0.3",
-    "typings": "^1.4.0",
+    "typings": "^2.0.0",
     "vue": "^2.0.5",
     "vue-loader": "^9.7.0",
     "webpack": "^1.11.0"
