@@ -7,17 +7,23 @@ import instances = require('./instances');
 import interfaces = require('./interfaces');
 import utils = require('./utils');
 
-let webpackInstances: any = [];
+const webpackInstances: interfaces.Compiler[] = [];
+const loaderOptionsCache: interfaces.LoaderOptionsCache = {};
 const definitionFileRegex = /\.d\.ts$/;
 
+type PartialLoaderOptions = interfaces.Partial<interfaces.LoaderOptions>;
+
+/**
+ * The entry point for ts-loader
+ */
 function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
-    const options = makeOptions(this);
+    const options = getLoaderOptions(this);
     const rawFilePath = path.normalize(this.resourcePath);
     const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
 
-    const { instance, error } = instances.ensureTypeScriptInstance(options, this);
+    const { instance, error } = instances.getTypeScriptInstance(options, this);
 
     if (error) {
         callback(error);
@@ -47,15 +53,30 @@ function loader(this: interfaces.Webpack, contents: string) {
     callback(null, output, sourceMap);
 }
 
-function makeOptions(loader: interfaces.Webpack) {
+/**
+ * either retrieves loader options from the cache
+ * or creates them, adds them to the cache and returns
+ */
+function getLoaderOptions(loader: interfaces.Webpack) {
+    // differentiate the TypeScript instance based on the webpack instance
+    let webpackIndex = webpackInstances.indexOf(loader._compiler);
+    if (webpackIndex === -1) {
+        webpackIndex = webpackInstances.push(loader._compiler) - 1;
+    }
+
     const queryOptions = loaderUtils.parseQuery<interfaces.LoaderOptions>(loader.query);
-    const configFileOptions = loader.options.ts || {};
+    const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
+
+    const instanceName = webpackIndex + '_' + (queryOptions.instance || configFileOptions.instance || 'default');
+
+    if (utils.hasOwnProperty(loaderOptionsCache, instanceName)) {
+        return loaderOptionsCache[instanceName];
+    }
 
     const options = objectAssign<interfaces.LoaderOptions>({}, {
         silent: false,
         logLevel: 'INFO',
         logInfoToStdOut: false,
-        instance: 'default',
         compiler: 'typescript',
         configFileName: 'tsconfig.json',
         transpileOnly: false,
@@ -64,19 +85,20 @@ function makeOptions(loader: interfaces.Webpack) {
         appendTsSuffixTo: [],
         entryFileIsJs: false,
     }, configFileOptions, queryOptions);
+
     options.ignoreDiagnostics = utils.arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
+    options.instance = instanceName;
 
-    // differentiate the TypeScript instance based on the webpack instance
-    let webpackIndex = webpackInstances.indexOf(loader._compiler);
-    if (webpackIndex === -1) {
-        webpackIndex = webpackInstances.push(loader._compiler) - 1;
-    }
-    options.instance = webpackIndex + '_' + options.instance;
+    loaderOptionsCache[instanceName] = options;
 
     return options;
 }
 
+/**
+ * Either add file to the overall files cache or update it in the cache when the file contents have changed
+ * Also add the file to the modified files
+ */
 function updateFileInCache(filePath: string, contents: string, instance: interfaces.TSInstance) {
     // Update file contents
     let file = instance.files[filePath];

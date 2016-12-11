@@ -23,7 +23,7 @@ export interface Webpack {
     };
 }
 
-interface Compiler {
+export interface Compiler {
     plugin: (name: string, callback: Function) => void;
 }
 
@@ -129,13 +129,23 @@ export interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
     loaderOptions: LoaderOptions;
+    /**
+     * a cache of all the files
+     */
     files: TSFiles;
+    /**
+     * contains the modified files - cleared each time after-compile is called
+     */
     modifiedFiles?: TSFiles;
     languageService?: typescript.LanguageService;
     version?: number;
     dependencyGraph: DependencyGraph;
     reverseDependencyGraph: ReverseDependencyGraph;
     filesWithErrors?: TSFiles;
+}
+
+export interface LoaderOptionsCache {
+    [name: string]: LoaderOptions;
 }
 
 export interface TSInstances {
@@ -151,6 +161,10 @@ export interface ReverseDependencyGraph {
         [file: string]: boolean
     };
 }
+
+export type Partial<T> = {
+    [P in keyof T]?: T[P];
+};
 
 export interface LoaderOptions {
     silent: boolean;
