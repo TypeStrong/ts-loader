@@ -6,17 +6,86 @@ export interface SourceMap {
     sourcesContent: string[];
 }
 
+/**
+ * Details here: https://webpack.github.io/docs/loaders.html#loader-context
+ */
 export interface Webpack {
     _compiler: Compiler;
     _module: WebpackModule;
+    /**
+     * Make this loader result cacheable. By default it’s not cacheable.
+     *
+     * A cacheable loader must have a deterministic result, when inputs and dependencies haven’t changed. This means the loader shouldn’t have other dependencies than specified with this.addDependency. Most loaders are deterministic and cacheable.
+     */
     cacheable: () => void;
+    /**
+     * The directory of the module. Can be used as context for resolving other stuff.
+     */
+    context: string;
+    /**
+     * The resolved request string.
+     * eg: "/abc/loader1.js?xyz!/abc/node_modules/loader2/index.js!/abc/resource.js?rrr"
+     */
+    request: string;
+    /**
+     * The query of the request for the current loader.
+     */
     query: string;
+    /**
+     * A data object shared between the pitch and the normal phase.
+     */
+    data: Object;
     async: () => (err: Error | WebpackError, source?: string, map?: string) => void;
+    /**
+     * The resource part of the request, including query.
+     * eg: "/abc/resource.js?rrr"
+     */
+    resource: string;
+    /**
+     * The resource file.
+     * eg: "/abc/resource.js"
+     */
     resourcePath: string;
-    resolve: () => void; // unused yet...
-    addDependency: (dep: string) => void;
+    /**
+     * The query of the resource.
+     * eg: "?rrr"
+     */
+    resourceQuery: string;
+    /**
+     * Resolve a request like a require expression.
+     */
+    resolve: (context: string, request: string, callback: (err: Error, result: string) => void) => void;
+    /**
+     * Resolve a request like a require expression.
+     */
+    resolveSync: (context: string, request: string) => string;
+    /**
+     * Add a file as dependency of the loader result in order to make them watchable.
+     */
+    addDependency: (file: string) => void;
+    /**
+     * Add a directory as dependency of the loader result.
+     */
+    addContextDependency: (directory: string) => void;
+    /**
+     * Remove all dependencies of the loader result. Even initial dependencies and these of other loaders. Consider using pitch.
+     */
     clearDependencies: () => void;
+    /**
+     * Emit a warning.
+     */
+    emitWarning: (message: string) => void;
+    /**
+     * Emit an error.
+     */
+    emitError: (message: string) => void;
+    /**
+     * Emit a file. This is webpack-specific
+     */
     emitFile: (fileName: string, text: string) => void; // unused
+    /**
+     * The options passed to the Compiler.
+     */
     options: {
         ts: {},
         resolve: Resolve;

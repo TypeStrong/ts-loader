@@ -20,8 +20,6 @@ function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
     const options = getLoaderOptions(this);
-    const rawFilePath = path.normalize(this.resourcePath);
-    const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
 
     const { instance, error } = instances.getTypeScriptInstance(options, this);
 
@@ -30,6 +28,8 @@ function loader(this: interfaces.Webpack, contents: string) {
         return;
     }
 
+    const rawFilePath = path.normalize(this.resourcePath);
+    const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
     const file = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
@@ -37,9 +37,9 @@ function loader(this: interfaces.Webpack, contents: string) {
         : getEmit(filePath, instance, this);
 
     if (outputText === null || outputText === undefined) {
-        const additionalGuidance = filePath.indexOf('node_modules') !== -1 
-        ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
-        : "";
+        const additionalGuidance = filePath.indexOf('node_modules') !== -1
+            ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
+            : "";
         throw new Error(`Typescript emitted no output for ${filePath}.${additionalGuidance}`);
     }
 
@@ -73,7 +73,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         return loaderOptionsCache[instanceName];
     }
 
-    const options = objectAssign<interfaces.LoaderOptions>({}, {
+    const options = objectAssign({}, {
         silent: false,
         logLevel: 'INFO',
         logInfoToStdOut: false,
@@ -103,7 +103,7 @@ function updateFileInCache(filePath: string, contents: string, instance: interfa
     // Update file contents
     let file = instance.files[filePath];
     if (!file) {
-        file = instance.files[filePath] = <interfaces.TSFile> { version: 0 };
+        file = instance.files[filePath] = <interfaces.TSFile>{ version: 0 };
     }
 
     if (file.text !== contents) {
@@ -128,12 +128,14 @@ function getEmit(
     // Emit Javascript
     const output = instance.languageService.getEmitOutput(filePath);
 
-    // Make this file dependent on *all* definition files in the program
     loader.clearDependencies();
     loader.addDependency(filePath);
 
     const allDefinitionFiles = Object.keys(instance.files).filter(fp => definitionFileRegex.test(fp));
-    allDefinitionFiles.forEach(loader.addDependency.bind(loader));
+
+    // Make this file dependent on *all* definition files in the program
+    const addDependency = loader.addDependency.bind(loader);
+    allDefinitionFiles.forEach(addDependency);
 
     /* - alternative approach to the below which is more correct but has a heavy performance cost
          see https://github.com/TypeStrong/ts-loader/issues/393
@@ -147,12 +149,12 @@ function getEmit(
     // Additionally make this file dependent on all imported files
     const additionalDependencies = instance.dependencyGraph[filePath];
     if (additionalDependencies) {
-        additionalDependencies.forEach(loader.addDependency.bind(loader));
+        additionalDependencies.forEach(addDependency);
     }
 
     loader._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
         .concat(additionalDependencies)
-        .map(fp => fp + '@' + (instance.files[fp] || {version: '?'}).version);
+        .map(fp => fp + '@' + (instance.files[fp] || { version: '?' }).version);
 
     const outputFile = output.outputFiles.filter(f => !!f.name.match(/\.js(x?)$/)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;
@@ -163,6 +165,9 @@ function getEmit(
     return { outputText, sourceMapText };
 }
 
+/**
+ * Transpile file
+ */
 function getTranspilationEmit(
     filePath: string,
     contents: string,
@@ -170,15 +175,17 @@ function getTranspilationEmit(
     loader: interfaces.Webpack
 ) {
     const fileName = path.basename(filePath);
-    const transpileResult = instance.compiler.transpileModule(contents, {
+
+    const { outputText, sourceMapText, diagnostics } = instance.compiler.transpileModule(contents, {
         compilerOptions: instance.compilerOptions,
         reportDiagnostics: true,
         fileName,
     });
 
-    const { outputText, sourceMapText, diagnostics } = transpileResult;
-
-    utils.registerWebpackErrors(loader._module.errors, utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, {module: loader._module}));
+    utils.registerWebpackErrors(
+        loader._module.errors,
+        utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
+    );
 
     return { outputText, sourceMapText };
 }
@@ -194,14 +201,13 @@ function makeSourceMap(
         return { output: outputText, sourceMap: undefined as interfaces.SourceMap };
     }
 
-    const sourceMap = JSON.parse(sourceMapText);
-    sourceMap.sources = [loaderUtils.getRemainingRequest(loader)];
-    sourceMap.file = filePath;
-    sourceMap.sourcesContent = [contents];
-
     return {
         output: outputText.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, ''),
-        sourceMap
+        sourceMap: objectAssign(JSON.parse(sourceMapText), {
+            sources: [loaderUtils.getRemainingRequest(loader)],
+            file: filePath,
+            sourcesContent: [contents]
+        })
     };
 }
 

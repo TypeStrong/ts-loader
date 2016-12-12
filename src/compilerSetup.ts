@@ -46,7 +46,7 @@ export function getCompilerOptions(
     compiler: typeof typescript,
     configParseResult: typescript.ParsedCommandLine
 ) {
-    const compilerOptions = objectAssign<typescript.CompilerOptions>({}, configParseResult.options, {
+    const compilerOptions = objectAssign({}, configParseResult.options, {
         skipDefaultLibCheck: true,
         suppressOutputPathCheck: true, // This is why: https://github.com/Microsoft/TypeScript/issues/7363
     });
