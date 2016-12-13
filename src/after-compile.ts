@@ -2,6 +2,7 @@ import interfaces = require('./interfaces');
 import path = require('path');
 import typescript = require('typescript');
 import utils = require('./utils');
+import constants = require('./constants');
 
 function makeAfterCompile(
     instance: interfaces.TSInstance,
@@ -125,7 +126,7 @@ function provideErrorsToWebpack(
 ) {
     const { compiler, languageService, files, loaderOptions } = instance;
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => !!filePath.match(/(\.d)?\.ts(x?)$/))
+        .filter(filePath => constants.dtsTsTsxRegex.test(filePath))
         .forEach(filePath => {
             const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
             if (errors.length > 0) {
@@ -161,10 +162,10 @@ function provideDeclarationFilesToWebpack(
     compilation: interfaces.WebpackCompilation
 ) {
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => !!filePath.match(/\.ts(x?)$/))
+        .filter(filePath => constants.tsTsxRegex.test(filePath))
         .forEach(filePath => {
             const output = languageService.getEmitOutput(filePath);
-            const declarationFile = output.outputFiles.filter(fp => !!fp.name.match(/\.d.ts$/)).pop();
+            const declarationFile = output.outputFiles.filter(outputFile => constants.dtsdTsxRegex.test(outputFile.name)).pop();
             if (declarationFile) {
                 const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                 compilation.assets[assetPath] = {

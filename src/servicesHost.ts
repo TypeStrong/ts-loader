@@ -113,7 +113,7 @@ function resolveModuleName(
         let resolvedFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
         resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
 
-        if (resolvedFileName.match(scriptRegex)) {
+        if (scriptRegex.test(resolvedFileName)) {
             resolutionResult = { resolvedFileName };
         }
     } catch (e) { }

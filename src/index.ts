@@ -6,10 +6,10 @@ require('colors');
 import instances = require('./instances');
 import interfaces = require('./interfaces');
 import utils = require('./utils');
+import constants = require('./constants');
 
 const webpackInstances: interfaces.Compiler[] = [];
 const loaderOptionsCache: interfaces.LoaderOptionsCache = {};
-const definitionFileRegex = /\.d\.ts$/;
 
 type PartialLoaderOptions = interfaces.Partial<interfaces.LoaderOptions>;
 
@@ -30,7 +30,7 @@ function loader(this: interfaces.Webpack, contents: string) {
 
     const rawFilePath = path.normalize(this.resourcePath);
     const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
-    const file = updateFileInCache(filePath, contents, instance);
+    const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
         ? getTranspilationEmit(filePath, contents, instance, this)
@@ -48,7 +48,7 @@ function loader(this: interfaces.Webpack, contents: string) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
-    this._module.meta.tsLoaderFileVersion = file.version;
+    this._module.meta.tsLoaderFileVersion = fileVersion;
 
     callback(null, output, sourceMap);
 }
@@ -117,7 +117,7 @@ function updateFileInCache(filePath: string, contents: string, instance: interfa
         instance.modifiedFiles = {};
     }
     instance.modifiedFiles[filePath] = file;
-    return file;
+    return file.version;
 }
 
 function getEmit(
@@ -131,7 +131,7 @@ function getEmit(
     loader.clearDependencies();
     loader.addDependency(filePath);
 
-    const allDefinitionFiles = Object.keys(instance.files).filter(fp => definitionFileRegex.test(fp));
+    const allDefinitionFiles = Object.keys(instance.files).filter(fp => constants.dtsdTsxRegex.test(fp));
 
     // Make this file dependent on *all* definition files in the program
     const addDependency = loader.addDependency.bind(loader);
@@ -156,10 +156,10 @@ function getEmit(
         .concat(additionalDependencies)
         .map(fp => fp + '@' + (instance.files[fp] || { version: '?' }).version);
 
-    const outputFile = output.outputFiles.filter(f => !!f.name.match(/\.js(x?)$/)).pop();
+    const outputFile = output.outputFiles.filter(outputFile => constants.jsJsx.test(outputFile.name)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;
 
-    const sourceMapFile = output.outputFiles.filter(f => !!f.name.match(/\.js(x?)\.map$/)).pop();
+    const sourceMapFile = output.outputFiles.filter(outputFile => constants.jsJsxMap.test(outputFile.name)).pop();
     const sourceMapText = (sourceMapFile) ? sourceMapFile.text : undefined;
 
     return { outputText, sourceMapText };
