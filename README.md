@@ -50,7 +50,7 @@ ts-loader works very well in combination with [babel](https://babeljs.io/) and [
 
 ### Contributing
 
-This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributer's guide](CONTRIBUTING.md) to get started.
+This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributor's guide](CONTRIBUTING.md) to get started.
 
 ### Installation
 
