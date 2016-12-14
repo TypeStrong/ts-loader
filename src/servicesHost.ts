@@ -33,7 +33,7 @@ function makeServicesHost(
 
     return {
         getProjectVersion: () => `${instance.version}`,
-        getScriptFileNames: () => Object.keys(files).filter(filePath => scriptRegex.test(filePath)),
+        getScriptFileNames: () => Object.keys(files).filter(filePath => !!filePath.match(scriptRegex)),
         getScriptVersion: (fileName: string) => {
             fileName = path.normalize(fileName);
             return files[fileName] && files[fileName].version.toString();
@@ -113,7 +113,7 @@ function resolveModuleName(
         let resolvedFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
         resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
 
-        if (scriptRegex.test(resolvedFileName)) {
+        if (resolvedFileName.match(scriptRegex)) {
             resolutionResult = { resolvedFileName };
         }
     } catch (e) { }

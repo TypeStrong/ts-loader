@@ -79,7 +79,7 @@ export function makeError({ rawMessage, message, location, file }: MakeError): i
 export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string {
     if (patterns.length > 0) {
         for (let regexp of patterns) {
-            if (regexp.test(path)) {
+            if (path.match(regexp)) {
                 return path + '.ts';
             }
         }

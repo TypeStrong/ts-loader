@@ -126,7 +126,7 @@ function provideErrorsToWebpack(
 ) {
     const { compiler, languageService, files, loaderOptions } = instance;
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => constants.dtsTsTsxRegex.test(filePath))
+        .filter(filePath => !!filePath.match(constants.dtsTsTsxRegex))
         .forEach(filePath => {
             const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
             if (errors.length > 0) {
@@ -162,10 +162,10 @@ function provideDeclarationFilesToWebpack(
     compilation: interfaces.WebpackCompilation
 ) {
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => constants.tsTsxRegex.test(filePath))
+        .filter(filePath => !!filePath.match(constants.tsTsxRegex))
         .forEach(filePath => {
             const output = languageService.getEmitOutput(filePath);
-            const declarationFile = output.outputFiles.filter(outputFile => constants.dtsdTsxRegex.test(outputFile.name)).pop();
+            const declarationFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.dtsdTsxRegex)).pop();
             if (declarationFile) {
                 const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                 compilation.assets[assetPath] = {

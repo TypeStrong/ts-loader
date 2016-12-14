@@ -16,7 +16,7 @@ function makeWatchRun(
         }
 
         Object.keys(mtimes)
-            .filter(filePath => constants.tsTsxJsJsxRegex.test(filePath))
+            .filter(filePath => !!filePath.match(constants.tsTsxJsJsxRegex))
             .forEach(filePath => {
                 filePath = path.normalize(filePath);
                 const file = instance.files[filePath];
