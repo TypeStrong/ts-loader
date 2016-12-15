@@ -154,7 +154,7 @@ function getEmit(
 
     loader._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
         .concat(additionalDependencies)
-        .map(fp => fp + '@' + (instance.files[fp] || { version: '?' }).version);
+        .map(filePath => filePath + '@' + (instance.files[filePath] || { version: '?' }).version);
 
     const outputFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.jsJsx)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;

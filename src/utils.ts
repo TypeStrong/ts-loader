@@ -125,7 +125,7 @@ export function collectAllDependencies(
         directDependencies.forEach(dependencyFilePath => {
             if (!collected[dependencyFilePath]) {
                 collectAllDependencies(dependencyGraph, dependencyFilePath, collected)
-                    .forEach(fPath => result[fPath] = true);
+                    .forEach(filePath => result[filePath] = true);
             }
         });
     }

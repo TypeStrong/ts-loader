@@ -1,5 +1,4 @@
 import path = require('path');
-import fs = require('fs');
 require('colors');
 
 import afterCompile = require('./after-compile');
@@ -75,10 +74,10 @@ export function getTypeScriptInstance(
     let filePath: string;
     try {
         const filesToLoad = configParseResult.fileNames;
-        filesToLoad.forEach(fp => {
-            filePath = path.normalize(fp);
+        filesToLoad.forEach(filePath => {
+            filePath = path.normalize(filePath);
             files[filePath] = {
-                text: fs.readFileSync(filePath, 'utf-8'),
+                text: utils.readFile(filePath),
                 version: 0
             };
           });

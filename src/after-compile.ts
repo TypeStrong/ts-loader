@@ -52,8 +52,8 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
     instance: interfaces.TSInstance,
     configFilePath: string
 ) {
-    const { languageService, loaderOptions, compiler } = instance;
     if (getCompilerOptionDiagnostics) {
+        const { languageService, loaderOptions, compiler } = instance;
         utils.registerWebpackErrors(
             compilation.errors,
             utils.formatErrors(
