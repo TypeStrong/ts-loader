@@ -165,7 +165,7 @@ function provideDeclarationFilesToWebpack(
         .filter(filePath => !!filePath.match(constants.tsTsxRegex))
         .forEach(filePath => {
             const output = languageService.getEmitOutput(filePath);
-            const declarationFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.dtsdTsxRegex)).pop();
+            const declarationFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.dtsDtsxRegex)).pop();
             if (declarationFile) {
                 const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                 compilation.assets[assetPath] = {

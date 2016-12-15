@@ -53,7 +53,7 @@ export function formatErrors(
 export function readFile(fileName: string) {
     fileName = path.normalize(fileName);
     try {
-        return fs.readFileSync(fileName, { encoding: 'utf8' });
+        return fs.readFileSync(fileName, 'utf8');
     } catch (e) {
         return undefined;
     }

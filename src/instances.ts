@@ -1,4 +1,5 @@
 import path = require('path');
+import fs = require('fs');
 require('colors');
 
 import afterCompile = require('./after-compile');
@@ -71,19 +72,19 @@ export function getTypeScriptInstance(
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
-    let filePath: string;
+    let normalizedFilePath: string;
     try {
         const filesToLoad = configParseResult.fileNames;
         filesToLoad.forEach(filePath => {
-            filePath = path.normalize(filePath);
-            files[filePath] = {
-                text: utils.readFile(filePath),
+            normalizedFilePath = path.normalize(filePath);
+            files[normalizedFilePath] = {
+                text: fs.readFileSync(normalizedFilePath, 'utf-8'),
                 version: 0
             };
           });
     } catch (exc) {
         return { error: utils.makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ filePath }`
+            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath }`
         }) };
     }
 

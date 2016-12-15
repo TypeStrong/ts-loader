@@ -131,7 +131,7 @@ function getEmit(
     loader.clearDependencies();
     loader.addDependency(filePath);
 
-    const allDefinitionFiles = Object.keys(instance.files).filter(filePath => !!filePath.match(constants.dtsdTsxRegex));
+    const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => !!defFilePath.match(constants.dtsDtsxRegex));
 
     // Make this file dependent on *all* definition files in the program
     const addDependency = loader.addDependency.bind(loader);
@@ -154,7 +154,7 @@ function getEmit(
 
     loader._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
         .concat(additionalDependencies)
-        .map(filePath => filePath + '@' + (instance.files[filePath] || { version: '?' }).version);
+        .map(defFilePath => defFilePath + '@' + (instance.files[defFilePath] || { version: '?' }).version);
 
     const outputFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.jsJsx)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;
