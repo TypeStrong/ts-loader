@@ -6,34 +6,40 @@ require('colors');
 import instances = require('./instances');
 import interfaces = require('./interfaces');
 import utils = require('./utils');
+import constants = require('./constants');
 
-let webpackInstances: any = [];
-const definitionFileRegex = /\.d\.ts$/;
+const webpackInstances: interfaces.Compiler[] = [];
+const loaderOptionsCache: interfaces.LoaderOptionsCache = {};
 
+type PartialLoaderOptions = interfaces.Partial<interfaces.LoaderOptions>;
+
+/**
+ * The entry point for ts-loader
+ */
 function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
-    const options = makeOptions(this);
-    const rawFilePath = path.normalize(this.resourcePath);
-    const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
+    const options = getLoaderOptions(this);
 
-    const { instance, error } = instances.ensureTypeScriptInstance(options, this);
+    const { instance, error } = instances.getTypeScriptInstance(options, this);
 
     if (error) {
         callback(error);
         return;
     }
 
-    const file = updateFileInCache(filePath, contents, instance);
+    const rawFilePath = path.normalize(this.resourcePath);
+    const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
+    const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
         ? getTranspilationEmit(filePath, contents, instance, this)
         : getEmit(filePath, instance, this);
 
     if (outputText === null || outputText === undefined) {
-        const additionalGuidance = filePath.indexOf('node_modules') !== -1 
-        ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
-        : "";
+        const additionalGuidance = filePath.indexOf('node_modules') !== -1
+            ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
+            : "";
         throw new Error(`Typescript emitted no output for ${filePath}.${additionalGuidance}`);
     }
 
@@ -42,20 +48,35 @@ function loader(this: interfaces.Webpack, contents: string) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
-    this._module.meta.tsLoaderFileVersion = file.version;
+    this._module.meta.tsLoaderFileVersion = fileVersion;
 
     callback(null, output, sourceMap);
 }
 
-function makeOptions(loader: interfaces.Webpack) {
-    const queryOptions = loaderUtils.parseQuery<interfaces.LoaderOptions>(loader.query);
-    const configFileOptions = loader.options.ts || {};
+/**
+ * either retrieves loader options from the cache
+ * or creates them, adds them to the cache and returns
+ */
+function getLoaderOptions(loader: interfaces.Webpack) {
+    // differentiate the TypeScript instance based on the webpack instance
+    let webpackIndex = webpackInstances.indexOf(loader._compiler);
+    if (webpackIndex === -1) {
+        webpackIndex = webpackInstances.push(loader._compiler) - 1;
+    }
 
-    const options = objectAssign<interfaces.LoaderOptions>({}, {
+    const queryOptions = loaderUtils.parseQuery<interfaces.LoaderOptions>(loader.query);
+    const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
+
+    const instanceName = webpackIndex + '_' + (queryOptions.instance || configFileOptions.instance || 'default');
+
+    if (utils.hasOwnProperty(loaderOptionsCache, instanceName)) {
+        return loaderOptionsCache[instanceName];
+    }
+
+    const options = objectAssign({}, {
         silent: false,
         logLevel: 'INFO',
         logInfoToStdOut: false,
-        instance: 'default',
         compiler: 'typescript',
         configFileName: 'tsconfig.json',
         transpileOnly: false,
@@ -64,24 +85,25 @@ function makeOptions(loader: interfaces.Webpack) {
         appendTsSuffixTo: [],
         entryFileIsJs: false,
     }, configFileOptions, queryOptions);
+
     options.ignoreDiagnostics = utils.arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
+    options.instance = instanceName;
 
-    // differentiate the TypeScript instance based on the webpack instance
-    let webpackIndex = webpackInstances.indexOf(loader._compiler);
-    if (webpackIndex === -1) {
-        webpackIndex = webpackInstances.push(loader._compiler) - 1;
-    }
-    options.instance = webpackIndex + '_' + options.instance;
+    loaderOptionsCache[instanceName] = options;
 
     return options;
 }
 
+/**
+ * Either add file to the overall files cache or update it in the cache when the file contents have changed
+ * Also add the file to the modified files
+ */
 function updateFileInCache(filePath: string, contents: string, instance: interfaces.TSInstance) {
     // Update file contents
     let file = instance.files[filePath];
     if (!file) {
-        file = instance.files[filePath] = <interfaces.TSFile> { version: 0 };
+        file = instance.files[filePath] = <interfaces.TSFile>{ version: 0 };
     }
 
     if (file.text !== contents) {
@@ -95,7 +117,7 @@ function updateFileInCache(filePath: string, contents: string, instance: interfa
         instance.modifiedFiles = {};
     }
     instance.modifiedFiles[filePath] = file;
-    return file;
+    return file.version;
 }
 
 function getEmit(
@@ -106,12 +128,14 @@ function getEmit(
     // Emit Javascript
     const output = instance.languageService.getEmitOutput(filePath);
 
-    // Make this file dependent on *all* definition files in the program
     loader.clearDependencies();
     loader.addDependency(filePath);
 
-    const allDefinitionFiles = Object.keys(instance.files).filter(fp => definitionFileRegex.test(fp));
-    allDefinitionFiles.forEach(loader.addDependency.bind(loader));
+    const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => !!defFilePath.match(constants.dtsDtsxRegex));
+
+    // Make this file dependent on *all* definition files in the program
+    const addDependency = loader.addDependency.bind(loader);
+    allDefinitionFiles.forEach(addDependency);
 
     /* - alternative approach to the below which is more correct but has a heavy performance cost
          see https://github.com/TypeStrong/ts-loader/issues/393
@@ -125,22 +149,25 @@ function getEmit(
     // Additionally make this file dependent on all imported files
     const additionalDependencies = instance.dependencyGraph[filePath];
     if (additionalDependencies) {
-        additionalDependencies.forEach(loader.addDependency.bind(loader));
+        additionalDependencies.forEach(addDependency);
     }
 
     loader._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
         .concat(additionalDependencies)
-        .map(fp => fp + '@' + (instance.files[fp] || {version: '?'}).version);
+        .map(defFilePath => defFilePath + '@' + (instance.files[defFilePath] || { version: '?' }).version);
 
-    const outputFile = output.outputFiles.filter(f => !!f.name.match(/\.js(x?)$/)).pop();
+    const outputFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.jsJsx)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;
 
-    const sourceMapFile = output.outputFiles.filter(f => !!f.name.match(/\.js(x?)\.map$/)).pop();
+    const sourceMapFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.jsJsxMap)).pop();
     const sourceMapText = (sourceMapFile) ? sourceMapFile.text : undefined;
 
     return { outputText, sourceMapText };
 }
 
+/**
+ * Transpile file
+ */
 function getTranspilationEmit(
     filePath: string,
     contents: string,
@@ -148,15 +175,17 @@ function getTranspilationEmit(
     loader: interfaces.Webpack
 ) {
     const fileName = path.basename(filePath);
-    const transpileResult = instance.compiler.transpileModule(contents, {
+
+    const { outputText, sourceMapText, diagnostics } = instance.compiler.transpileModule(contents, {
         compilerOptions: instance.compilerOptions,
         reportDiagnostics: true,
         fileName,
     });
 
-    const { outputText, sourceMapText, diagnostics } = transpileResult;
-
-    utils.registerWebpackErrors(loader._module.errors, utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, {module: loader._module}));
+    utils.registerWebpackErrors(
+        loader._module.errors,
+        utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
+    );
 
     return { outputText, sourceMapText };
 }
@@ -172,14 +201,13 @@ function makeSourceMap(
         return { output: outputText, sourceMap: undefined as interfaces.SourceMap };
     }
 
-    const sourceMap = JSON.parse(sourceMapText);
-    sourceMap.sources = [loaderUtils.getRemainingRequest(loader)];
-    sourceMap.file = filePath;
-    sourceMap.sourcesContent = [contents];
-
     return {
         output: outputText.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, ''),
-        sourceMap
+        sourceMap: objectAssign(JSON.parse(sourceMapText), {
+            sources: [loaderUtils.getRemainingRequest(loader)],
+            file: filePath,
+            sourcesContent: [contents]
+        })
     };
 }
 

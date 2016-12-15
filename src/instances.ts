@@ -20,7 +20,7 @@ const instances = <interfaces.TSInstances> {};
  * or returns the existing one. Multiple instances are possible by using the
  * `instance` property.
  */
-export function ensureTypeScriptInstance(
+export function getTypeScriptInstance(
     loaderOptions: interfaces.LoaderOptions,
     loader: interfaces.Webpack
 ): { instance?: interfaces.TSInstance, error?: interfaces.WebpackError } {
@@ -72,19 +72,19 @@ export function ensureTypeScriptInstance(
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
-    let filePath: string;
+    let normalizedFilePath: string;
     try {
         const filesToLoad = configParseResult.fileNames;
-        filesToLoad.forEach(fp => {
-            filePath = path.normalize(fp);
-            files[filePath] = {
-                text: fs.readFileSync(filePath, 'utf-8'),
+        filesToLoad.forEach(filePath => {
+            normalizedFilePath = path.normalize(filePath);
+            files[normalizedFilePath] = {
+                text: fs.readFileSync(normalizedFilePath, 'utf-8'),
                 version: 0
             };
           });
     } catch (exc) {
         return { error: utils.makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ filePath }`
+            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath }`
         }) };
     }
 

@@ -1,6 +1,7 @@
 import path = require('path');
 import utils = require('./utils');
 import interfaces = require('./interfaces');
+import constants = require('./constants');
 
 /**
  * Make function which will manually update changed files
@@ -15,7 +16,7 @@ function makeWatchRun(
         }
 
         Object.keys(mtimes)
-            .filter(filePath => !!filePath.match(/\.tsx?$|\.jsx?$/))
+            .filter(filePath => !!filePath.match(constants.tsTsxJsJsxRegex))
             .forEach(filePath => {
                 filePath = path.normalize(filePath);
                 const file = instance.files[filePath];

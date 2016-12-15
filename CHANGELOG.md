@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.3.3 - not released yet
+
+- [Fix bug when "extend"ing a tsconfig that specifies "allowJs"](https://github.com/TypeStrong/ts-loader/pull/415) THanks @cspotcode
+
 ## v1.3.2
 
 - [Upgrade enhanced-resolve to v3](https://github.com/TypeStrong/ts-loader/pull/411)

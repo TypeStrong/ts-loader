@@ -53,7 +53,7 @@ export function formatErrors(
 export function readFile(fileName: string) {
     fileName = path.normalize(fileName);
     try {
-        return fs.readFileSync(fileName, { encoding: 'utf8' });
+        return fs.readFileSync(fileName, 'utf8');
     } catch (e) {
         return undefined;
     }
@@ -79,7 +79,7 @@ export function makeError({ rawMessage, message, location, file }: MakeError): i
 export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string {
     if (patterns.length > 0) {
         for (let regexp of patterns) {
-            if (regexp.test(path)) {
+            if (path.match(regexp)) {
                 return path + '.ts';
             }
         }
@@ -125,7 +125,7 @@ export function collectAllDependencies(
         directDependencies.forEach(dependencyFilePath => {
             if (!collected[dependencyFilePath]) {
                 collectAllDependencies(dependencyGraph, dependencyFilePath, collected)
-                    .forEach(fPath => result[fPath] = true);
+                    .forEach(filePath => result[filePath] = true);
             }
         });
     }
