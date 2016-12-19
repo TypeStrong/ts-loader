@@ -1,6 +1,5 @@
 import path = require('path');
 import loaderUtils = require('loader-utils');
-import objectAssign = require('object-assign');
 require('colors');
 
 import instances = require('./instances');
@@ -73,7 +72,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         return loaderOptionsCache[instanceName];
     }
 
-    const options = objectAssign({}, {
+    const options = Object.assign({}, {
         silent: false,
         logLevel: 'INFO',
         logInfoToStdOut: false,
@@ -203,7 +202,7 @@ function makeSourceMap(
 
     return {
         output: outputText.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, ''),
-        sourceMap: objectAssign(JSON.parse(sourceMapText), {
+        sourceMap: Object.assign(JSON.parse(sourceMapText), {
             sources: [loaderUtils.getRemainingRequest(loader)],
             file: filePath,
             sourcesContent: [contents]

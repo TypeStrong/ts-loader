@@ -1,7 +1,7 @@
 import typescript = require('typescript');
 import path = require('path');
 import fs = require('fs');
-import objectAssign = require('object-assign');
+
 import constants = require('./constants');
 import interfaces = require('./interfaces');
 
@@ -46,7 +46,7 @@ export function formatErrors(
             } else {
                 error = makeError({ rawMessage: messageText });
             }
-            return <interfaces.WebpackError>objectAssign(error, merge);
+            return <interfaces.WebpackError>Object.assign(error, merge);
         });
 }
 
@@ -73,7 +73,7 @@ export function makeError({ rawMessage, message, location, file }: MakeError): i
         loaderSource: 'ts-loader'
     };
 
-    return <interfaces.WebpackError>objectAssign(error, { location, file });
+    return <interfaces.WebpackError>Object.assign(error, { location, file });
 }
 
 export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string {

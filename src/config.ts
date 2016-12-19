@@ -1,4 +1,3 @@
-import objectAssign = require('object-assign');
 import typescript = require('typescript');
 import path = require('path');
 
@@ -52,7 +51,7 @@ export function getConfigFile(
     }
 
     if (!configFileError) {
-        configFile.config.compilerOptions = objectAssign({},
+        configFile.config.compilerOptions = Object.assign({},
             configFile.config.compilerOptions,
             loaderOptions.compilerOptions);
 
