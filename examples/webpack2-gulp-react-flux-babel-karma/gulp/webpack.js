@@ -20,8 +20,11 @@ function buildProduction(done) {
          }
       }),
       new webpack.optimize.CommonsChunkPlugin({ name: 'vendor', filename: 'vendor.[hash].js' }),
-      new webpack.optimize.DedupePlugin(),
       new webpack.optimize.UglifyJsPlugin(),
+      new webpack.LoaderOptionsPlugin({
+        minimize: true,
+        debug: false
+      }),
       failPlugin
    );
 
