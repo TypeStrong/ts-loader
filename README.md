@@ -31,18 +31,9 @@ If you become aware of issues not caught by the test suite then please let us kn
 
 #### Webpack
 
-ts-loader is designed for Webpack 1.x.  All our CI tests run against that.  Webpack 2.0 is on the way and we're excited.  When it's released we'll look to target it.  In the meantime, people have been using webpack 2.0 with ts-loader with some success.  
+ts-loader was designed for Webpack 1.x.  All our CI tests run against that.  
 
-[There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
-
-```js
-new LoaderOptionsPlugin({
-  debug: false,
-  options: {
-    resolve: {} // super important by all accounts...
-  }
-})
-```
+Webpack 2.0 is on the way and we're excited.  If you'd like to see an example setup that works with webpack 2 rc 1 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma).
 
 ### Babel
 

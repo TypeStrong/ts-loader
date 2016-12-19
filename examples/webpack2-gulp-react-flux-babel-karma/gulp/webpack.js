@@ -10,7 +10,7 @@ var packageJson = require('../package.json');
 
 function buildProduction(done) {
    // modify some webpack config options
-   var myProdConfig = Object.create(webpackConfig);
+   var myProdConfig = webpackConfig;
    myProdConfig.output.filename = '[name].[hash].js';
 
    myProdConfig.plugins = myProdConfig.plugins.concat(
@@ -38,13 +38,17 @@ function buildProduction(done) {
 
 function createDevCompiler() {
    // modify some webpack config options
-   var myDevConfig = Object.create(webpackConfig);
+   var myDevConfig = webpackConfig;
    myDevConfig.devtool = 'inline-source-map';
-   myDevConfig.debug = true;
 
    myDevConfig.plugins = myDevConfig.plugins.concat(
       new webpack.optimize.CommonsChunkPlugin({ name: 'vendor', filename: 'vendor.js' }),
-      new WebpackNotifierPlugin({ title: 'Webpack build', excludeWarnings: true })
+      new WebpackNotifierPlugin({ title: 'Webpack build', excludeWarnings: true }),
+      // Webpack 2 hotness!
+      new webpack.LoaderOptionsPlugin({
+         debug: true,
+         options: myDevConfig
+      })
    );
 
    // create a single instance of the compiler to allow caching
