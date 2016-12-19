@@ -1,4 +1,3 @@
-/* eslint-disable no-var, strict, prefer-arrow-callback */
 'use strict';
 
 var path = require('path');
@@ -24,20 +23,16 @@ module.exports = {
     loaders: [{
       test: /\.ts(x?)$/,
       exclude: /node_modules/,
-      loader: 'babel-loader?presets[]=es2016&presets[]=es2015&presets[]=react!ts-loader'
+      loader: 'babel-loader!ts-loader'
     }, {
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel',
-      query: {
-        presets: ['es2016', 'es2015', 'react']
-      }
+      loader: 'babel-loader'
     }]
   },
   plugins: [
   ],
   resolve: {
-    // Add `.ts` and `.tsx` as a resolvable extension.
-    extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
+    extensions: ['.ts', '.tsx', '.js']
   },
 };
