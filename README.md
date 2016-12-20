@@ -35,6 +35,19 @@ ts-loader was designed for Webpack 1.x.  All our CI tests run against that.
 
 Webpack 2.0 is on the way and we're excited.  If you'd like to see an example setup that works with webpack 2 rc 1 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma).
 
+[There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
+ 		
+ ```js		
+ new LoaderOptionsPlugin({		
+   debug: false,		
+   options: {		
+     resolve: {
+       extensions: ['.ts', '.tsx', '.js']
+     }	
+   }		
+ })		
+ ```
+
 ### Babel
 
 ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples) or in our [examples](examples/).
