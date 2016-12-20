@@ -20,10 +20,10 @@ function buildProduction(done) {
          }
       }),
       new webpack.optimize.CommonsChunkPlugin({ name: 'vendor', filename: 'vendor.[hash].js' }),
-      new webpack.optimize.UglifyJsPlugin(),
-      new webpack.LoaderOptionsPlugin({
-        minimize: true,
-        debug: false
+      new webpack.optimize.UglifyJsPlugin({
+         compress: {
+            warnings: true
+         }
       }),
       failPlugin
    );
@@ -46,12 +46,7 @@ function createDevCompiler() {
 
    myDevConfig.plugins = myDevConfig.plugins.concat(
       new webpack.optimize.CommonsChunkPlugin({ name: 'vendor', filename: 'vendor.js' }),
-      new WebpackNotifierPlugin({ title: 'Webpack build', excludeWarnings: true }),
-      // Webpack 2 hotness!
-      new webpack.LoaderOptionsPlugin({
-         debug: true,
-         options: myDevConfig
-      })
+      new WebpackNotifierPlugin({ title: 'Webpack build', excludeWarnings: true })
    );
 
    // create a single instance of the compiler to allow caching
