@@ -1,7 +1,6 @@
 /* eslint-disable no-var, strict */
 'use strict';
 
-var webpack = require('webpack');
 var webpackConfig = require('./webpack.config.js');
 
 module.exports = function(config) {
@@ -26,12 +25,6 @@ module.exports = function(config) {
 
     webpack: {
       devtool: 'inline-source-map',
-      plugins: [
-         new webpack.LoaderOptionsPlugin({
-            debug: true,
-            options: webpackConfig
-         })
-      ],
       module: webpackConfig.module,
       resolve: webpackConfig.resolve
     },
