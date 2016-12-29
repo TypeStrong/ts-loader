@@ -128,9 +128,7 @@ Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
 
 #### Options
 
-There are two types of options: TypeScript options (aka "compiler options") and loader options.
-TypeScript options should be set using a tsconfig.json file. Loader options can be set either
-using a query when specifying the loader or through the `ts` property in the webpack configuration.
+There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be set either using a query when specifying the loader or through the `ts` property in the webpack configuration. 
 
 ```javascript
 module.exports = {
@@ -141,12 +139,36 @@ module.exports = {
       { test: /\.tsx?$/, loader: 'ts-loader?compiler=ntypescript' }
     ]
   },
-  // specify option using `ts` property
+  // specify option using `ts` property - **only do this if you are using webpack 1**
   ts: {
     compiler: 'ntypescript'
   }
 }
 ```
+
+**WARNING** using the `ts` property is **deprecated** as webpack 2 does not allow extension of the `webpack.config.js` Consequently you are advised to use the query to configure ts-loader.  For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#parsequery).
+
+##### Webpack 2
+
+You may be using webpack 2 and thinking to yourself "gosh I'm going to miss the expressiveness of using JSON to configure ts-loader".  Me too.  Well, I'm here to tell you there's a get-out-of-jail-free. You might want to use the approach below:
+
+```javascript
+var ts = {
+  compiler: 'ntypescript'
+};
+
+module.exports = {
+  ...
+  module: {
+    loaders: [
+      // specify option using query with the magic of JSON
+      { test: /\.tsx?$/, loader: 'ts-loader?' + JSON.stringify(ts) }
+    ]
+  }
+}
+```
+
+Boom!!!  You're happy now, right?
 
 ##### transpileOnly *(boolean) (default=false)*
 

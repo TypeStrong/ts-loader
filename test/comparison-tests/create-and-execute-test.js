@@ -121,20 +121,29 @@ function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
 
 function createWebpackConfig(paths, transpile) {
     var config = require(path.join(paths.testStagingPath, 'webpack.config'));
+
+    var options = config.ts || {};
+    options.silent = true;
+    options.compilerOptions = {
+        newLine: 'LF'
+    }
+
+    if (transpile) { options.transpileOnly = true; }
+
+    var rules = config.module.loaders || config.module.rules;
+    rules.forEach(function(rule) {
+        var tsLoaderPath = require('path').join(__dirname, "../../index.js");
+        rule.loader = rule.loader.replace('ts-loader', tsLoaderPath + '?' + JSON.stringify(options));
+    });
+
+    delete config.ts;
+
     config.output.path = paths.webpackOutput;
     config.context = paths.testStagingPath;
     config.resolveLoader = config.resolveLoader || {};
     config.resolveLoader.alias = config.resolveLoader.alias || {};
     config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
     config.module.loaders.push({ test: /\.js$/, loader: 'newLine' });
-    config.ts = config.ts || {};
-    config.ts.silent = true;
-    config.ts.compilerOptions = {
-        newLine: 'LF'
-    }
-
-    if (transpile) { config.ts.transpileOnly = true; }
-
     return config;
 }
 

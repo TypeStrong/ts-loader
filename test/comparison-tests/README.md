@@ -24,8 +24,6 @@ module.exports = {
     }
 }
 
-// for test harness purposes only, you would not need this in a normal project
-module.exports.resolveLoader = { alias: { 'ts-loader': require('path').join(__dirname, "../../index.js") } }
 ```
 
 You can run all the tests in the Comparison Test Pack with `npm run comparison-tests`. You can also go into an individual test directory and manually build a project using `webpack` or `webpack --watch`. This can be useful both when developing the test and also when fixing an issue or adding a feature.
