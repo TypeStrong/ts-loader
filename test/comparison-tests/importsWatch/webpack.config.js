@@ -13,5 +13,4 @@ module.exports = {
     }
 }
 
-// for test harness purposes only, you would not need this in a normal project
-module.exports.resolveLoader = { alias: { 'ts-loader': require('path').join(__dirname, "../../index.js") } }
+
