@@ -2,6 +2,19 @@
 
 var path = require('path');
 
+var babelOptions = {
+  "presets": [
+    "react",
+    [
+      "es2015",
+      {
+        "modules": false
+      }
+    ],
+    "es2016"
+  ]
+};
+
 module.exports = {
   cache: true,
   entry: {
@@ -20,14 +33,27 @@ module.exports = {
     chunkFilename: '[chunkhash].js'
   },
   module: {
-    loaders: [{
+    rules: [{
       test: /\.ts(x?)$/,
       exclude: /node_modules/,
-      loader: 'babel-loader!ts-loader'
+      use: [
+        {
+          loader: 'babel-loader',
+          options: babelOptions
+        },
+        {
+          loader: 'ts-loader'
+        }
+      ]
     }, {
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel-loader'
+      use: [
+        {
+          loader: 'babel-loader',
+          options: babelOptions
+        }
+      ]
     }]
   },
   plugins: [
