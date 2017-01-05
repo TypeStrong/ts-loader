@@ -1,4 +1,11 @@
-module.exports = {
+var path = require('path');
+var aliasLoader = require('../../aliasLoader');
+
+var options = {
+    entryFileIsJs: true
+};
+
+var config = {
     entry: './src/app.ts',
     output: {
         filename: 'bundle.js'
@@ -10,11 +17,11 @@ module.exports = {
         loaders: [
             { test: /\.js$/, loader: 'ts-loader' }
         ]
-    },
-    ts: {
-        entryFileIsJs: true
     }
-}
+};
+
+module.exports = config;
 
 // for test harness purposes only, you would not need this in a normal project
-module.exports.resolveLoader = { alias: { 'ts-loader': require('path').join(__dirname, "../../../index.js") } }
+var tsLoaderPath = require('path').join(__dirname, "../../../index.js");
+aliasLoader(config, tsLoaderPath, options);

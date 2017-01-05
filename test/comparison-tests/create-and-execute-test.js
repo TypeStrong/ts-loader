@@ -10,6 +10,7 @@ var typescript = require('typescript');
 var semver = require('semver');
 var glob = require('glob');
 var pathExists = require('../pathExists');
+var aliasLoader = require('../aliasLoader');
 
 // force colors on for tests since expected output has colors
 require('colors').enabled = true;
@@ -130,11 +131,9 @@ function createWebpackConfig(paths, transpile) {
 
     if (transpile) { options.transpileOnly = true; }
 
-    var rules = config.module.loaders || config.module.rules;
-    rules.forEach(function(rule) {
-        var tsLoaderPath = require('path').join(__dirname, "../../index.js");
-        rule.loader = rule.loader.replace('ts-loader', tsLoaderPath + '?' + JSON.stringify(options));
-    });
+    var tsLoaderPath = require('path').join(__dirname, "../../index.js");
+
+    aliasLoader(config, tsLoaderPath, options);
 
     delete config.ts;
 
