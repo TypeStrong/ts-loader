@@ -136,12 +136,12 @@ module.exports = {
   module: {
     loaders: [
       // specify option using query
-      { test: /\.tsx?$/, loader: 'ts-loader?compiler=ntypescript' }
+      { test: /\.tsx?$/, loader: 'ts-loader?compiler=typescript' }
     ]
   },
   // specify option using `ts` property - **only do this if you are using webpack 1**
   ts: {
-    compiler: 'ntypescript'
+    compiler: 'typescript'
   }
 }
 ```
