@@ -60,7 +60,7 @@
     "typescript": "^2.1.4",
     "typings": "^2.0.0",
     "vue": "^2.0.5",
-    "vue-loader": "^9.7.0",
+    "vue-loader": "^10.0.2",
     "webpack": "^1.11.0"
   }
 }
