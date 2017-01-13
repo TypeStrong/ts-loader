@@ -10,12 +10,13 @@ function makeWatchRun(
     instance: interfaces.TSInstance
 ) {
     return (watching: interfaces.WebpackWatching, cb: () => void) => {
-        const mtimes = watching.compiler.watchFileSystem.watcher.mtimes;
+        const watcher = watching.compiler.watchFileSystem.watcher ||
+            watching.compiler.watchFileSystem.wfs.watcher;
         if (null === instance.modifiedFiles) {
             instance.modifiedFiles = {};
         }
 
-        Object.keys(mtimes)
+        Object.keys(watcher.mtimes)
             .filter(filePath => !!filePath.match(constants.tsTsxJsJsxRegex))
             .forEach(filePath => {
                 filePath = path.normalize(filePath);

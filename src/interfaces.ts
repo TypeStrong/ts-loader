@@ -138,10 +138,15 @@ export interface WebpackModule {
     };
 }
 
+export interface Watcher {
+    mtimes: number; // a guess
+}
+
 export interface WebpackNodeWatchFileSystem {
-    watcher: {
-        mtimes: number; // a guess
-    };
+    watcher?: Watcher;
+    wfs?: {
+        watcher: Watcher;
+    }
 }
 
 export interface WebpackWatching {
