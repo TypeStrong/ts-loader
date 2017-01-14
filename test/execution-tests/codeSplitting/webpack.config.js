@@ -1,3 +1,14 @@
+var babelOptions = {
+  "presets": [
+    [
+      "es2015",
+      {
+        "modules": false
+      }
+    ]
+  ]
+};
+
 module.exports = {
     entry: './app.ts',
     output: {
@@ -7,9 +18,28 @@ module.exports = {
         extensions: ['.ts', '.js']
     },
     module: {
-        loaders: [
-            { test: /\.ts$/, loader: 'ts-loader' }
-        ]
+        rules: [{
+            test: /\.ts(x?)$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'babel-loader',
+                    options: babelOptions
+                },
+                {
+                    loader: 'ts-loader'
+                }
+            ]
+        }, {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'babel-loader',
+                    options: babelOptions
+                }
+            ]
+        }]
     }
 }
 
