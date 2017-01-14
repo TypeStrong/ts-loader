@@ -25,10 +25,7 @@ module.exports = function(config) {
 
     webpack: {
       devtool: 'inline-source-map',
-      debug: true,
-      module: {
-          loaders: webpackConfig.module.loaders
-      },
+      module: webpackConfig.module,
       resolve: webpackConfig.resolve,
 
       // for test harness purposes only, you would not need this in a normal project

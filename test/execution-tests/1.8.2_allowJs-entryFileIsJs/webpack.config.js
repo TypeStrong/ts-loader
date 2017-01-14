@@ -11,7 +11,7 @@ var config = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.ts', '.js']
+        extensions: ['.ts', '.js']
     },
     module: {
         loaders: [
