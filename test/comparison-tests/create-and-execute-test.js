@@ -44,7 +44,7 @@ if (fs.statSync(testPath).isDirectory() &&
     describe(testToRun, function () {
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
-        if (testToRun === 'declarationOutput' || 
+        if (testToRun === 'declarationOutput' ||
             testToRun === 'importsWatch' ||
             testToRun === 'declarationWatch' ||
             testToRun === 'issue71') { return; }
@@ -123,10 +123,11 @@ function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
 function createWebpackConfig(paths, transpile) {
     var config = require(path.join(paths.testStagingPath, 'webpack.config'));
 
-    var options = config.ts || {};
-    options.silent = true;
-    options.compilerOptions = {
-        newLine: 'LF'
+    var options = {
+        silent: true,
+        compilerOptions: {
+            newLine: 'LF'
+        }
     }
 
     if (transpile) { options.transpileOnly = true; }
@@ -142,7 +143,10 @@ function createWebpackConfig(paths, transpile) {
     config.resolveLoader = config.resolveLoader || {};
     config.resolveLoader.alias = config.resolveLoader.alias || {};
     config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
-    config.module.loaders.push({ test: /\.js$/, loader: 'newLine' });
+
+    var rules = config.module.rules || config.module.loaders;
+
+    rules.push({ test: /\.js$/, loader: 'newLine' });
     return config;
 }
 
@@ -358,7 +362,7 @@ function getNormalisedFileContent(file, location, test) {
     var filePath = path.join(location, file);
     try {
         var originalContent = fs.readFileSync(filePath).toString();
-        fileContent = (file.indexOf('output.') === 0) 
+        fileContent = (file.indexOf('output.') === 0)
             ? normaliseString(originalContent)
                 // We really don't care if it's 4.31 kB; it's enough to know that it's 4 kB
                 .replace(/[.][\d]* kB/g, ' kB')

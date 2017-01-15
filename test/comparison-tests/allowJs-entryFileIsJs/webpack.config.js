@@ -1,21 +1,21 @@
 module.exports = {
-  entry: './src',
-    output: {
-        filename: 'bundle.js'
-    },
+  entry: './src/index.js',
+  output: {
+    filename: 'bundle.js'
+  },
   resolve: {
-    extensions: ['.webpack.js', '.web.js', '.ts', '.tsx', '.js', '.jsx']
+    extensions: ['.ts', '.tsx', '.js', '.jsx']
   },
   module: {
     loaders: [
       {
         test: /\.js$/,
-        loader: 'ts-loader'
+        loader: 'ts-loader',
+        options: {
+          entryFileIsJs: true
+        }
       }
     ]
-  },
-  ts: {
-    entryFileIsJs: true
   }
 }
 
