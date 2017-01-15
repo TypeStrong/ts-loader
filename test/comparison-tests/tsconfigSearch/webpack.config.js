@@ -7,7 +7,7 @@ module.exports = {
     },
     resolve: {
         alias: { externalLib: path.join(__dirname, "./lib/externalLib.js") },
-        extensions: ['', '.js', '.ts']
+        extensions: ['.js', '.ts']
     },
     module: {
         loaders: [

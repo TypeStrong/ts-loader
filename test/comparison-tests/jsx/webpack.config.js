@@ -4,7 +4,7 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.tsx', '.ts', '.js']
+        extensions: ['.tsx', '.ts', '.js']
     },
     externals: {
         react: true,

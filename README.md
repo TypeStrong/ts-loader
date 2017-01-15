@@ -92,7 +92,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
       },
       resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js']
       },
       module: {
         loaders: [
@@ -136,12 +136,16 @@ module.exports = {
   module: {
     loaders: [
       // specify option using query
-      { test: /\.tsx?$/, loader: 'ts-loader?compiler=ntypescript' }
+      { 
+        test: /\.tsx?$/,
+        loader: 'ts-loader?' + JSON.stringify({
+          transpileOnly: true
+        }) }
     ]
   },
   // specify option using `ts` property - **only do this if you are using webpack 1**
   ts: {
-    compiler: 'ntypescript'
+    transpileOnly: true
   }
 }
 ```
@@ -153,16 +157,17 @@ module.exports = {
 You may be using webpack 2 and thinking to yourself "gosh I'm going to miss the expressiveness of using JSON to configure ts-loader".  Me too.  Well, I'm here to tell you there's a get-out-of-jail-free. You might want to use the approach below:
 
 ```javascript
-var ts = {
-  compiler: 'ntypescript'
-};
-
 module.exports = {
   ...
   module: {
-    loaders: [
-      // specify option using query with the magic of JSON
-      { test: /\.tsx?$/, loader: 'ts-loader?' + JSON.stringify(ts) }
+    rules: [
+      { 
+        test: /\.tsx?$/, 
+        loader: 'ts-loader', 
+        options: {
+          transpileOnly: true
+        } 
+      }
     ]
   }
 }
@@ -240,7 +245,7 @@ module.exports = {
     entry: './index.vue',
     output: { filename: 'bundle.js' },
     resolve: {
-        extensions: ['', '.ts', '.vue']
+        extensions: ['.ts', '.vue']
     },
     module: {
         loaders: [
