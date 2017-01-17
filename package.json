@@ -61,6 +61,6 @@
     "typings": "^2.0.0",
     "vue": "^2.0.5",
     "vue-loader": "^9.7.0",
-    "webpack": "^2.2.0-rc.4"
+    "webpack": "^2.2.0"
   }
 }
