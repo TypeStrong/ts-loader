@@ -10,9 +10,23 @@ module.exports = {
         react: true,
     },
     module: {
-        loaders: [
-            { test: /\.ts(x?)$/, loader: 'babel-loader?presets[]=react!ts-loader' }
-        ]
+        rules: [{
+            test: /\.ts(x?)$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'babel-loader',
+                    options: {
+                        "presets": [
+                            "react"
+                        ]
+                    }
+                },
+                {
+                    loader: 'ts-loader'
+                }
+            ]
+        }]
     }
 }
 
