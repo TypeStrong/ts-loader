@@ -68,11 +68,9 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
+throw new Error("Module build failed: \u001b[31mA file specified in tsconfig.json could not be found: /tsconfigInvalidFile/i-am-a-file-what-does-not-exist.ts\u001b[39m");
 
 /***/ })
 /******/ ]);
