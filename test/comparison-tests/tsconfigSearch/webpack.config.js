@@ -10,7 +10,7 @@ module.exports = {
         extensions: ['.js', '.ts']
     },
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts$/, loader: 'ts-loader' }
         ]
     }
