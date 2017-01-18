@@ -12,13 +12,14 @@ module.exports = {
         extensions: ['.ts', '.js']
     },
     module: {
-        loaders: [
-            { test: /\.ts$/, loader: 'ts-loader' }
+        rules: [
+            {
+                test: /\.ts$/, loader: 'ts-loader', options: {
+                    visualStudioErrorFormat: true
+                }
+            }
         ]
-    },
-    ts: {
-        visualStudioErrorFormat: true
-    }
+    } 
 }
 
 
