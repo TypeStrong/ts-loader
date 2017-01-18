@@ -1,7 +1,7 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.71 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 206 bytes [entry] [rendered]
-    [0] ./.test/tsconfigNotReadable/app.ts 206 bytes {0} [built] [failed] [1 error]
+bundle.js  2.73 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 216 bytes [entry] [rendered]
+    [0] ./.test/tsconfigNotReadable/app.ts 216 bytes {0} [built] [failed] [1 error]
 
 ERROR in ./.test/tsconfigNotReadable/app.ts
 Module build failed: [31merror TS5014: Failed to parse file 'tsconfig.json': Unexpected token . in JSON at position 41.[39m
