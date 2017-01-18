@@ -1,3 +1,7 @@
+    Asset    Size  Chunks             Chunk Names
+bundle.js  2.6 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 94 bytes [entry] [rendered]
+    [0] ./.test/tsconfigInvalid/app.ts 94 bytes {0} [built] [failed] [3 errors]
 
 ERROR in tsconfig.json
 [31merror TS6046: Argument for '--target' option must be: 'es3', 'es5', 'es6', 'es2015', 'es2016', 'es2017', 'esnext'[39m
