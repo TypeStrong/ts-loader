@@ -9,7 +9,7 @@ module.exports = {
         extensions: ['.ts', '.js']
     },
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts$/, loader: 'ts-loader' }
         ]
     },
@@ -19,7 +19,7 @@ module.exports = {
         // inside an always false if statement should not be included
         // in the bundle.
         new webpack.DefinePlugin({
-            //DEBUG: true
+            DEBUG: false
         }),
         // This plugin can additionally optimize dead code away
         // so that it's not taking up space.

@@ -1,10 +1,10 @@
-    Asset       Size  Chunks             Chunk Names
-bundle.js  758 bytes       0  [emitted]  main
-chunk    {0} bundle.js (main) 285 bytes [rendered]
+    Asset    Size  Chunks             Chunk Names
+bundle.js  1.5 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 285 bytes [entry] [rendered]
     [0] ./.test/conditionalRequire/app.ts 285 bytes {0} [built]
 
 WARNING in bundle.js from UglifyJs
-Condition always false [?{"silent":true,"compilerOptions":{"newLine":"LF"}}!./app.ts:5,0]
-Dropping unreachable code [?{"silent":true,"compilerOptions":{"newLine":"LF"}}!./app.ts:5,0]
-Declarations in unreachable code! [?{"silent":true,"compilerOptions":{"newLine":"LF"}}!./app.ts:6,0]
-Dropping unused variable debug [?{"silent":true,"compilerOptions":{"newLine":"LF"}}!./app.ts:6,0]
+Condition always false [bundle.js:78,4]
+Dropping unreachable code [bundle.js:78,11]
+Declarations in unreachable code! [bundle.js:79,4]
+Dropping unused variable debug [bundle.js:79,8]
