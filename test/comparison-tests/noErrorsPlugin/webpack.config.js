@@ -1,4 +1,3 @@
-var path = require('path')
 var webpack = require('webpack');
 
 module.exports = {
@@ -10,7 +9,7 @@ module.exports = {
         extensions: ['.ts', '.js']
     },
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts$/, loader: 'ts-loader' }
         ]
     },
