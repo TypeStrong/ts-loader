@@ -1,6 +1,6 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  1.42 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 29 bytes [rendered]
+bundle.js  2.54 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 29 bytes [entry] [rendered]
     [0] ./.test/es3/app.ts 29 bytes {0} [built] [1 error]
 
 ERROR in ./.test/es3/app.ts
