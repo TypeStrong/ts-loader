@@ -28,6 +28,7 @@ if (saveOutputMode) {
 
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 var FLAKY = '_FLAKY_';
+var BROKEN = '_BROKEN_';
 var hotModuleHashRegex = /data-v-[\da-f]+/g;
 var hotModuleHashReplace = '[hot-module-hash]';
 
@@ -38,8 +39,10 @@ var stagingPath = path.resolve(rootPath, '.test');
 
 var testPath = path.join(__dirname, testToRun);
 var testIsFlaky = pathExists(path.join(testPath, FLAKY));
+var testIsBroken = pathExists(path.join(testPath, BROKEN));
 if (fs.statSync(testPath).isDirectory() &&
-    testToRun !== 'testLib') {
+    testToRun !== 'testLib' &&
+    !testIsBroken) {
 
     describe(testToRun, function () {
         it('should have the correct output', createTest(testToRun, testPath, {}));
