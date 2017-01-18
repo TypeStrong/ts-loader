@@ -10,7 +10,7 @@ module.exports = {
         react: true,
     },
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts(x?)$/, loader: 'ts-loader' }
         ]
     }
