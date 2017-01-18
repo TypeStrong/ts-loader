@@ -1,6 +1,6 @@
-    Asset    Size  Chunks             Chunk Names
-bundle.js  1.4 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 16 bytes [rendered]
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.52 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 16 bytes [entry] [rendered]
     [0] ./.test/nolib/app.ts 16 bytes {0} [built] [1 error]
 
 ERROR in ./.test/nolib/app.ts
