@@ -1,8 +1,7 @@
 language: node_js
 node_js:
-  - "4.0"
-  - "5.0"
-  - "6.0"
+  - "4.4.x"
+  - "6.1.x"
 sudo: false
 install:
   - npm install npm -g
