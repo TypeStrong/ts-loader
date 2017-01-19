@@ -1,5 +1,5 @@
 environment:
-  nodejs_version: "6.0"
+  nodejs_version: "6"
   matrix:
   - TYPESCRIPT: typescript@1.6.2
   - TYPESCRIPT: typescript@1.7.5
