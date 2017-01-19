@@ -1,23 +1,47 @@
 var path = require('path')
 
+var babelOptions = {
+  "presets": [
+    [
+      "es2015",
+      {
+        "modules": false
+      }
+    ]
+  ]
+};
+
 module.exports = {
     entry: './src/index',
     output: {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.ts', '.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js']
     },
     module: {
-        loaders: [
-            { test: /\.tsx?$/, loader: 'babel-loader?presets[]=es2015&presets[]=react!ts-loader' }, {
-              test: /\.js$/,
-                loader: 'babel',
-                query: {
-                    presets: ['es2015']
+        rules: [{
+            test: /\.ts(x?)$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'babel-loader',
+                    options: babelOptions
+                },
+                {
+                    loader: 'ts-loader'
                 }
-            }
-        ]
+            ]
+        }, {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'babel-loader',
+                    options: babelOptions
+                }
+            ]
+        }]
     }
 }
 

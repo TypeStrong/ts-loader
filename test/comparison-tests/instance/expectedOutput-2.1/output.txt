@@ -1,9 +1,16 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  1.39 kB    0, 1  [emitted]  a, b
-chunk    {0} bundle.js (a) 0 bytes [rendered]
-    [0] ./.test/instance/a.ts 0 bytes {0} [built]
-chunk    {1} bundle.js (b) 0 bytes [rendered]
-    [0] ./.test/instance/b.ts 0 bytes {1} [built] [1 error]
+bundle.js  2.69 kB       0  [emitted]  b
+chunk    {0} bundle.js (b) 167 bytes [entry] [rendered]
+    [1] ./.test/instance/b.ts 167 bytes {0} [built] [failed] [1 error]
+chunk    {1}  (a) 167 bytes [entry] [rendered]
+    [0] ./.test/instance/a.ts 167 bytes {1} [built] [failed] [1 error]
+
+ERROR in ./.test/instance/a.ts
+Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
 
 ERROR in ./.test/instance/b.ts
-[37m([39m[36m1[39m,[36m13[39m): [31merror TS2403: Subsequent variable declarations must have the same type.  Variable 'someGlobal' must be of type 'number', but here has type 'string'.[39m
+Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
+
+ERROR in chunk a [entry]
+bundle.js
+Conflict: Multiple assets emit to the same filename bundle.js

@@ -9,10 +9,10 @@ module.exports = {
         alias: {
             components: path.resolve(__dirname, 'common/components')
         },
-        extensions: ['', '.ts', '.js']
+        extensions: ['.ts', '.js']
     },
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts$/, loader: 'ts-loader' }
         ]
     }

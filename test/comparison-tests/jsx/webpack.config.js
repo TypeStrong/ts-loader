@@ -4,13 +4,13 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.tsx', '.ts', '.js']
+        extensions: ['.tsx', '.ts', '.js']
     },
     externals: {
         react: true,
     },
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts(x?)$/, loader: 'ts-loader' }
         ]
     }

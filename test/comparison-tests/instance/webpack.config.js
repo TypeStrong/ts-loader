@@ -7,13 +7,13 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.ts', '.js']
+        extensions: ['.ts', '.js']
     },
     module: {
-        loaders: [
+        rules: [
             // this will fail if both files are passed through the same instance
             { test: /a\.ts$/, loader: '../../index.js' },
-            { test: /b\.ts$/, loader: '../../index.js?instance=different' }
+            { test: /b\.ts$/, loader: '../../index.js', options: { instance: 'different' } }
         ]
     }
 }

@@ -31,9 +31,9 @@ If you become aware of issues not caught by the test suite then please let us kn
 
 #### Webpack
 
-ts-loader was designed for Webpack 1.x.  All our CI tests run against that.  
+ts-loader was originally designed for Webpack 1.  It still works with webpack 1 but now that webpack 2.2 has shipped, ts-loader will begin to targeting that.  Our test suites now run nightly against webpack 2. 
 
-Webpack 2.0 is on the way and we're excited.  If you'd like to see an example setup that works with webpack 2 rc 1 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma).
+If you'd like to see a setup that works with webpack 2 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma) or at some of our tests; they all target webpack 2.
 
 [There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
  		
@@ -47,6 +47,8 @@ Webpack 2.0 is on the way and we're excited.  If you'd like to see an example se
    }		
  })		
  ```
+
+It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/).  You may want to look at removing it entirely.
 
 ### Babel
 
@@ -92,10 +94,10 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
       },
       resolve: {
         // Add `.ts` and `.tsx` as a resolvable extension.
-        extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js'] // note if using webpack 1 you'd also need a '' in the array as well
       },
       module: {
-        loaders: [
+        loaders: [ // loaders will work with webpack 1 or 2; but will be renamed "rules" in future
           // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
           { test: /\.tsx?$/, loader: 'ts-loader' }
         ]
@@ -122,10 +124,6 @@ When the build fails (i.e. at least one typescript compile error occured), ts-lo
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
 
-### Upgrading
-
-Take advantage of the [Changelog](CHANGELOG.md) and [Upgrade Guide](UPGRADE.md).
-
 #### Options
 
 There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be set either using a query when specifying the loader or through the `ts` property in the webpack configuration. 
@@ -136,12 +134,16 @@ module.exports = {
   module: {
     loaders: [
       // specify option using query
-      { test: /\.tsx?$/, loader: 'ts-loader?compiler=ntypescript' }
+      { 
+        test: /\.tsx?$/,
+        loader: 'ts-loader?' + JSON.stringify({
+          transpileOnly: true
+        }) }
     ]
   },
   // specify option using `ts` property - **only do this if you are using webpack 1**
   ts: {
-    compiler: 'ntypescript'
+    transpileOnly: true
   }
 }
 ```
@@ -150,19 +152,20 @@ module.exports = {
 
 ##### Webpack 2
 
-You may be using webpack 2 and thinking to yourself "gosh I'm going to miss the expressiveness of using JSON to configure ts-loader".  Me too.  Well, I'm here to tell you there's a get-out-of-jail-free. You might want to use the approach below:
+You may be using webpack 2 and thinking to yourself "gosh I'm going to miss the expressiveness of using an object literal to configure ts-loader".  Well, I'm here to tell you there's a get-out-of-jail-free. The literal just moves into the `options` setting:
 
 ```javascript
-var ts = {
-  compiler: 'ntypescript'
-};
-
 module.exports = {
   ...
   module: {
-    loaders: [
-      // specify option using query with the magic of JSON
-      { test: /\.tsx?$/, loader: 'ts-loader?' + JSON.stringify(ts) }
+    rules: [
+      { 
+        test: /\.tsx?$/, 
+        loader: 'ts-loader', 
+        options: {
+          transpileOnly: true
+        } 
+      }
     ]
   }
 }
@@ -240,7 +243,7 @@ module.exports = {
     entry: './index.vue',
     output: { filename: 'bundle.js' },
     resolve: {
-        extensions: ['', '.ts', '.vue']
+        extensions: ['.ts', '.vue']
     },
     module: {
         loaders: [

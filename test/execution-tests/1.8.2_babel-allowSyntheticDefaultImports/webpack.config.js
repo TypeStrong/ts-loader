@@ -4,28 +4,49 @@
 var path = require('path');
 var webpack = require('webpack');
 
+var babelOptions = {
+  "presets": [
+    [
+      "es2015",
+      {
+        "modules": false
+      }
+    ]
+  ]
+};
+
 module.exports = {
   entry: './src/simple.ts',
   output: {
       filename: 'bundle.js'
   },
   module: {
-    loaders: [{
+    rules: [{
       test: /\.ts(x?)$/,
       exclude: /node_modules/,
-      loader: 'babel-loader?presets[]=es2015!ts-loader'
+      use: [
+        {
+          loader: 'babel-loader',
+          options: babelOptions
+        },
+        {
+          loader: 'ts-loader'
+        }
+      ]
     }, {
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel',
-      query: {
-        presets: ['es2015']
-      }
+      use: [
+        {
+          loader: 'babel-loader',
+          options: babelOptions
+        }
+      ]
     }]
   },
   resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.
-    extensions: ['', '.ts', '.tsx', '.js']
+    extensions: ['.ts', '.tsx', '.js']
   },
 };
 

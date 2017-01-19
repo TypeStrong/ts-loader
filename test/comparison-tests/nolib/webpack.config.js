@@ -8,10 +8,10 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.ts', '.js']
+        extensions: ['.ts', '.js']
     },
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts$/, loader: 'ts-loader' }
         ]
     }

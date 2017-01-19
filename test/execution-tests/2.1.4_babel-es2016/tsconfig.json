@@ -10,6 +10,6 @@
     "preserveConstEnums": true,
     "removeComments": false,
     "suppressImplicitAnyIndexErrors": true,
-    "target": "es2015"
+    "target": "es2016"
   }
 }

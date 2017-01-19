@@ -1,17 +1,34 @@
-var path = require('path')
-
 module.exports = {
     entry: './app',
     output: {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.ts', '.tsx', '.js']
+        extensions: ['.ts', '.tsx', '.js']
     },
     module: {
-        loaders: [
-            { test: /\.tsx?$/, loader: 'babel-loader?presets[]=es2015!ts-loader' }
-        ]
+        rules: [{
+            test: /\.ts(x?)$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'babel-loader',
+                    options: {
+                        "presets": [
+                            [
+                                "es2015",
+                                {
+                                    "modules": false
+                                }
+                            ]
+                        ]
+                    }
+                },
+                {
+                    loader: 'ts-loader'
+                }
+            ]
+        }]
     }
 }
 

@@ -1,4 +1,3 @@
-var path = require('path')
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -7,13 +6,13 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.ts', '.js']
+        extensions: ['.ts', '.js']
     },
     plugins: [
         new HtmlWebpackPlugin({})
     ],
     module: {
-        loaders: [
+        rules: [
             { test: /\.ts$/, loader: 'ts-loader' }
         ]
     }

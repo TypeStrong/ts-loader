@@ -4,13 +4,32 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['', '.ts', '.js']
+        extensions: ['.ts', '.js']
     },
     devtool: 'source-map',
     module: {
-        loaders: [
-            { test: /\.ts$/, loader: 'babel-loader?presets[]=es2015!ts-loader' }
-        ]
+        rules: [{
+            test: /\.ts(x?)$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: 'babel-loader',
+                    options: {
+                        "presets": [
+                            [
+                                "es2015",
+                                {
+                                    "modules": false
+                                }
+                            ]
+                        ]
+                    }
+                },
+                {
+                    loader: 'ts-loader'
+                }
+            ]
+        }]
     }
 }
 
