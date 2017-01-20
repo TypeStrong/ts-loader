@@ -368,6 +368,8 @@ function getNormalisedFileContent(file, location, test) {
             ? normaliseString(originalContent)
                 // We really don't care if it's 4.31 kB; it's enough to know that it's 4 kB
                 .replace(/[.][\d]* kB/g, ' kB')
+                // We also don't want a difference in the number of bytes to fail the build
+                .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
             : normaliseString(originalContent);
