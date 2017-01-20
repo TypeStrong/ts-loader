@@ -59,8 +59,6 @@
     "rimraf": "^2.4.2",
     "typescript": "^2.1.4",
     "typings": "^2.0.0",
-    "vue": "^2.0.5",
-    "vue-loader": "^9.7.0",
     "webpack": "^2.2.0"
   }
 }

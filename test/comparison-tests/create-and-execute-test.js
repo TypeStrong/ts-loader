@@ -29,8 +29,6 @@ if (saveOutputMode) {
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 var FLAKY = '_FLAKY_';
 var IGNORED = '_IGNORED_';
-var hotModuleHashRegex = /data-v-[\da-f]+/g;
-var hotModuleHashReplace = '[hot-module-hash]';
 
 // set up new paths
 var rootPath = path.resolve(__dirname, '../../');
@@ -261,9 +259,7 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
             .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
             .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
-            .replace(/\.transpile/g, '')
-            // Ignore hot module hashes
-            .replace(hotModuleHashRegex, hotModuleHashReplace);
+            .replace(/\.transpile/g, '');
 
         fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
         if (saveOutputMode) {
@@ -342,7 +338,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
 }
 
 /**
- * replace the elements in the output that can change depending on 
+ * replace the elements in the output that can change depending on
  * environments; we want to generate a string that is as environment
  * independent as possible
  **/
@@ -353,8 +349,6 @@ function cleanHashFromOutput(stats, webpackOutput) {
             var content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
                 .split(stats.hash).join('[hash]')
                 .replace(/\r\n/g, '\n')
-                // Ignore hot module hashes
-                .replace(hotModuleHashRegex, hotModuleHashReplace)
                 // Ignore complete paths
                 .replace(new RegExp(regexEscape(escapedStagingPath), 'g'), '')
                 // turn \\ to /
@@ -390,9 +384,7 @@ function normaliseString(platformSpecificContent) {
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
-        .replace(new RegExp(regexEscape('\\'), 'g'), '/')
-        // Ignore hot module hashes
-        .replace(hotModuleHashRegex, hotModuleHashReplace);
+        .replace(new RegExp(regexEscape('\\'), 'g'), '/');
 }
 
 /**
