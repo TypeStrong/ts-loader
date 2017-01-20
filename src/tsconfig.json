@@ -9,7 +9,7 @@
         "suppressImplicitAnyIndexErrors": true,
         "strictNullChecks": false,
         "lib": [
-            "dom", "es2015" // dom for console.log only
+            "es5", "es2015.core"
         ],
         "module": "commonjs",
         "moduleResolution": "node",
