@@ -22,7 +22,7 @@
     "ts"
   ],
   "engines": {
-    "node": ">=4.0"
+    "node": ">=4.3.0 <5.0.0 || >=5.10"
   },
   "author": "James Brantly <james@jbrantly.com> (http://www.jbrantly.com/)",
   "license": "MIT",
