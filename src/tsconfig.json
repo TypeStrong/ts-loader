@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "target": "es5",
         "noImplicitAny": true,
         "noImplicitReturns": true,
         "noImplicitThis": false,
@@ -7,6 +8,9 @@
         "noUnusedParameters": true,
         "suppressImplicitAnyIndexErrors": true,
         "strictNullChecks": false,
+        "lib": [
+            "es5", "es2015.core"
+        ],
         "module": "commonjs",
         "moduleResolution": "node",
         "outDir": "../dist"

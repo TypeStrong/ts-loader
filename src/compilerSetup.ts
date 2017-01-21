@@ -1,5 +1,4 @@
 import typescript = require('typescript');
-import objectAssign = require('object-assign');
 const semver = require('semver');
 
 import interfaces = require('./interfaces');
@@ -46,7 +45,7 @@ export function getCompilerOptions(
     compiler: typeof typescript,
     configParseResult: typescript.ParsedCommandLine
 ) {
-    const compilerOptions = objectAssign({}, configParseResult.options, {
+    const compilerOptions = Object.assign({}, configParseResult.options, {
         skipDefaultLibCheck: true,
         suppressOutputPathCheck: true, // This is why: https://github.com/Microsoft/TypeScript/issues/7363
     });
