@@ -2,7 +2,13 @@
 
 ## v2.0.0 - NOT RELEASED YET
 
-- [Add support for IgnoringWatchFileSystem](https://github.com/TypeStrong/ts-loader/pull/444) Thanks @herschel666
+- [Add support for IgnoringWatchFileSystem](https://github.com/TypeStrong/ts-loader/pull/444) - thanks @herschel666
+- [Use native Object.assign()](https://github.com/TypeStrong/ts-loader/pull/418) - thanks @arusakov
+
+Breaking changes:
+
+- ts-loader now officially only supports webpack 2.  ts-loader 2.x may work with webpack 1 but it is not supported.  Related to that, all continuous integration tests now run against webpack 2.   
+- as webpack 2 does not support node 0.12 neither does ts-loader from now.  node 4 at least is required.
 
 ## v1.3.3
 
