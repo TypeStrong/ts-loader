@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.0.0 - NOT RELEASED YET
+## v2.0.0
 
 - [Add support for IgnoringWatchFileSystem](https://github.com/TypeStrong/ts-loader/pull/444) - thanks @herschel666
 - [Use native Object.assign()](https://github.com/TypeStrong/ts-loader/pull/418) - thanks @arusakov

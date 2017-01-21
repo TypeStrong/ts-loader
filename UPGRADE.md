@@ -1,5 +1,9 @@
 # Upgrade Guide
 
+## v1.x.x to 2.0.x
+
+We no longer support Node 0.12 or webpack 1.  Please use Node 4+ and webpack 2. 
+
 ## v0.9.x to 1.0.x
 
 We no longer support Node 0.12 officially since it is being end-of-lifed.  
