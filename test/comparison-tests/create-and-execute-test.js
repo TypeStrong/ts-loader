@@ -386,7 +386,7 @@ function normaliseString(platformSpecificContent) {
         // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
         .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/, 'ts-loader')
         // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js/, '(ts-loader')
+        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/, '(ts-loader)')
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
