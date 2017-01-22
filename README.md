@@ -9,7 +9,7 @@ This is the typescript loader for webpack.
 
 ## Getting Started
 
-Tutorials and examples can be [found here](https://github.com/TypeStrong/ts-loader/wiki/Tutorials-&-Examples).  Also take a look at our [examples](examples/).
+Take a look at our [examples](examples/).  You can also find some older tutorials and examples [here](https://github.com/TypeStrong/ts-loader/wiki/Tutorials-&-Examples).
 
 ### Compatibility
 
@@ -17,7 +17,7 @@ Tutorials and examples can be [found here](https://github.com/TypeStrong/ts-load
 
 ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
 
-A full test suite runs each night (and on each pull request). It runs both on Linux ([Travis](https://travis-ci.org/)) and Windows ([AppVeyor](https://www.appveyor.com/)), testing ts-loader against the following versions of TypeScript:
+A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against the following versions of TypeScript:
 - TypeScript 2.1
 - TypeScript 2.0
 - TypeScript 1.8
@@ -31,9 +31,11 @@ If you become aware of issues not caught by the test suite then please let us kn
 
 #### Webpack
 
-ts-loader was originally designed for Webpack 1.  It still works with webpack 1 but now that webpack 2.2 has shipped, ts-loader will begin to targeting that.  Our test suites now run nightly against webpack 2. 
+ts-loader was originally designed for Webpack 1.  It may well still work with webpack 1 but it does not officially support webpack 1 any more.  All development now targets webpack 2.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
 
-If you'd like to see a setup that works with webpack 2 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma) or at some of our tests; they all target webpack 2.
+If you'd like to see a setup that works with webpack 2 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma) or at some of our [tests](test/comparison-tests); they all target webpack 2.
+
+#### `LoaderOptionsPlugin`
 
 [There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
  		
@@ -52,7 +54,9 @@ It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be 
 
 ### Babel
 
-ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples) or in our [examples](examples/).
+ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples).
+
+Alternatively take a look at this [webpack 2 example](examples/webpack2-gulp-react-flux-babel-karma).
 
 ### Contributing
 
@@ -126,33 +130,7 @@ For more background have a read of [this issue](https://github.com/TypeStrong/ts
 
 #### Options
 
-There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be set either using a query when specifying the loader or through the `ts` property in the webpack configuration. 
-
-```javascript
-module.exports = {
-  ...
-  module: {
-    loaders: [
-      // specify option using query
-      { 
-        test: /\.tsx?$/,
-        loader: 'ts-loader?' + JSON.stringify({
-          transpileOnly: true
-        }) }
-    ]
-  },
-  // specify option using `ts` property - **only do this if you are using webpack 1**
-  ts: {
-    transpileOnly: true
-  }
-}
-```
-
-**WARNING** using the `ts` property is **deprecated** as webpack 2 does not allow extension of the `webpack.config.js` Consequently you are advised to use the query to configure ts-loader.  For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#parsequery).
-
-##### Webpack 2
-
-You may be using webpack 2 and thinking to yourself "gosh I'm going to miss the expressiveness of using an object literal to configure ts-loader".  Well, I'm here to tell you there's a get-out-of-jail-free. The literal just moves into the `options` setting:
+There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be set either using a query when specifying the loader or through the `options` property in the webpack configuration:
 
 ```javascript
 module.exports = {
@@ -171,7 +149,27 @@ module.exports = {
 }
 ```
 
-Boom!!!  You're happy now, right?
+Alternatively this can be configured using a query:
+
+```javascript
+module.exports = {
+  ...
+  module: {
+    loaders: [
+      // specify option using query
+      { 
+        test: /\.tsx?$/,
+        loader: 'ts-loader?' + JSON.stringify({
+          transpileOnly: true
+        }) }
+    ]
+  }
+}
+```
+
+For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#parsequery).
+
+#### Available Options
 
 ##### transpileOnly *(boolean) (default=false)*
 
@@ -248,12 +246,9 @@ module.exports = {
     module: {
         loaders: [
             { test: /\.vue$/, loader: 'vue' },
-            { test: /\.ts$/, loader: 'ts' }
+            { test: /\.ts$/, loader: 'ts', options: { appendTsSuffixTo: [/\.vue$/] } }
         ]
-    },
-    ts: {
-      appendTsSuffixTo: [/\.vue$/]
-    }
+    } 
 }
 ```
 
@@ -299,4 +294,3 @@ See [this example](test/comparison-tests/codeSplitting) and [this example](test/
 ## License
 
 MIT License
-
