@@ -1,0 +1,16 @@
+{
+  "name": "webpack2-react-cdn-simple",
+  "main": "index.js",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack"
+  },
+  "devDependencies": {
+    "ts-loader": "^2.0.0",
+    "webpack": "^2.2.0"
+  },
+  "dependencies": {
+    "@types/react": "^15.0.4",
+    "@types/react-dom": "^0.14.21"
+  }
+}
