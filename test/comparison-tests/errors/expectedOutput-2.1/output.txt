@@ -1,13 +1,13 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.79 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 283 bytes [entry] [rendered]
-    [0] ./.test/errors/app.ts 283 bytes {0} [built] [failed] [2 errors]
+bundle.js  2.74 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 232 bytes [entry] [rendered]
+    [0] ./.test/errors/app.ts 232 bytes {0} [built] [failed] [2 errors]
 
 ERROR in ./.test/errors/app.ts
 [37m([39m[36m1[39m,[36m7[39m): [31merror TS1005: '=' expected.[39m
 
 ERROR in ./.test/errors/app.ts
-Module parse failed: index.js?{"silent":true,"compilerOptions":{"newLine":"LF"}}!app.ts Unexpected token (1:9)
+Module parse failed: index.js??ref--0!app.ts Unexpected token (1:9)
 You may need an appropriate loader to handle this file type.
 | var a =  == 0;
 | 
