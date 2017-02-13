@@ -1,0 +1,7 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.02 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 395 bytes [rendered]
+    [0] ./.test/issue388/app.ts 92 bytes {0} [built]
+    [1] ./test/comparison-tests/testLibIssue388/main.js 109 bytes {0} [built]
+    [2] ./test/comparison-tests/testLibIssue388/clientExports.js 138 bytes {0} [built]
+    [3] ./test/comparison-tests/testLibIssue388/foo.js 56 bytes {0} [built]
