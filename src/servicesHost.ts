@@ -26,10 +26,7 @@ function makeServicesHost(
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
 
-    const moduleResolutionHost = {
-        fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
-        readFile: (fileName: string) => utils.readFile(fileName),
-    };
+    const moduleResolutionHost = typescript.sys;
 
     return {
         getProjectVersion: () => `${instance.version}`,
@@ -69,7 +66,7 @@ function makeServicesHost(
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
         log: log.log,
-        resolveModuleNames: (moduleNames: string[], containingFile: string) => 
+        resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
                 moduleNames, containingFile)
@@ -78,14 +75,14 @@ function makeServicesHost(
 
 function resolveModuleNames(
     resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    moduleResolutionHost: typescript.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
     moduleNames: string[],
     containingFile: string
 ) {
-    const resolvedModules = moduleNames.map(moduleName => 
+    const resolvedModules = moduleNames.map(moduleName =>
         resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
             moduleName, containingFile)
     );
@@ -97,7 +94,7 @@ function resolveModuleNames(
 
 function resolveModuleName(
     resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    moduleResolutionHost: typescript.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
@@ -106,7 +103,7 @@ function resolveModuleName(
     containingFile: string
 ) {
     const { compiler, compilerOptions } = instance;
-    
+
     let resolutionResult: interfaces.ResolvedModule;
 
     try {

@@ -120,7 +120,7 @@ export function collectAllDependencies(
     const result = {};
     result[filePath] = true;
     collected[filePath] = true;
-    let directDependencies = dependencyGraph[filePath]; 
+    let directDependencies = dependencyGraph[filePath];
     if (directDependencies) {
         directDependencies.forEach(dependencyFilePath => {
             if (!collected[dependencyFilePath]) {
