@@ -1,8 +1,8 @@
-    Asset    Size  Chunks             Chunk Names
-bundle.js  3.1 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 501 bytes [entry] [rendered]
-    [0] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts 449 bytes {0} [built] [failed] [1 error]
-    [1] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 52 bytes {0} [built]
+    Asset     Size  Chunks             Chunk Names
+bundle.js  3.12 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 518 bytes [entry] [rendered]
+    [0] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts 466 bytes {0}  [failed] [1 error]
+    [1] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 52 bytes {0} 
 
 ERROR in ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts
 Module build failed: Error: Typescript emitted no output for node_modules/a/index.ts.

@@ -7,8 +7,19 @@ import constants = require('./constants');
  * Make function which will manually update changed files
  */
 function makeWatchRun(
-    instance: interfaces.TSInstance
+    instance: interfaces.TSInstance,
+    loader: interfaces.Webpack
 ) {
+    // always output stats
+    var lastHash: string;
+    const outputOptions = loader.outputOptions || {};
+    loader._compiler.plugin('done', (stats: any) => {
+        if (lastHash === stats.hash && !outputOptions.json)  {
+            process.stdout.write(stats.toString(outputOptions) + '\n');
+        }
+        lastHash = stats.hash;
+    });
+
     return (watching: interfaces.WebpackWatching, cb: () => void) => {
         const watcher = watching.compiler.watchFileSystem.watcher ||
             watching.compiler.watchFileSystem.wfs.watcher;

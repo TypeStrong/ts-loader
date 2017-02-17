@@ -126,30 +126,10 @@ function getEmit(
 ) {
     // Emit Javascript
     const output = instance.languageService.getEmitOutput(filePath);
-
-    loader.clearDependencies();
-    loader.addDependency(filePath);
-
     const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => !!defFilePath.match(constants.dtsDtsxRegex));
-
-    // Make this file dependent on *all* definition files in the program
-    const addDependency = loader.addDependency.bind(loader);
-    allDefinitionFiles.forEach(addDependency);
-
-    /* - alternative approach to the below which is more correct but has a heavy performance cost
-         see https://github.com/TypeStrong/ts-loader/issues/393
-         with this approach constEnumReExportWatch test will pass; without it, not.
-
-    // Additionally make this file dependent on all imported files as well
-    // as any deeper recursive dependencies
-    const additionalDependencies = utils.collectAllDependencies(instance.dependencyGraph, filePath);
-    */
 
     // Additionally make this file dependent on all imported files
     const additionalDependencies = instance.dependencyGraph[filePath];
-    if (additionalDependencies) {
-        additionalDependencies.forEach(addDependency);
-    }
 
     loader._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
         .concat(additionalDependencies)

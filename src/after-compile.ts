@@ -19,6 +19,7 @@ function makeAfterCompile(
         }
 
         removeTSLoaderErrors(compilation.errors);
+        addWatchFileList(instance, compilation);
 
         provideCompilerOptionDiagnosticErrorsToWebpack(getCompilerOptionDiagnostics, compilation, instance, configFilePath);
         getCompilerOptionDiagnostics = false;
@@ -41,6 +42,13 @@ function makeAfterCompile(
 
 interface Modules {
     [modulePath: string]: interfaces.WebpackModule[];
+}
+
+// for modules without JS emission, we need to add it to watch list manually
+function addWatchFileList(instance: interfaces.TSInstance, compilation: interfaces.WebpackCompilation) {
+      var program = instance.languageService.getProgram()
+      var files = program.getSourceFiles().map(f => f.fileName)
+      Array.prototype.push.apply(compilation.fileDependencies, files.map(path.normalize));
 }
 
 /**
@@ -125,32 +133,44 @@ function provideErrorsToWebpack(
     instance: interfaces.TSInstance
 ) {
     const { compiler, languageService, files, loaderOptions } = instance;
-    Object.keys(filesToCheckForErrors)
+
+    const fileNames = Object.keys(filesToCheckForErrors);
+
+    if (fileNames.some(fn => constants.dtsDtsxRegex.test(fn))) {
+          Object.keys(instance.files)
+               .filter(filePath => !!filePath.match(constants.dtsTsTsxRegex))
+              .forEach(addErrorToFile);
+          return;
+    }
+
+    fileNames
         .filter(filePath => !!filePath.match(constants.dtsTsTsxRegex))
-        .forEach(filePath => {
-            const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
-            if (errors.length > 0) {
-                filesWithErrors[filePath] = files[filePath];
-            }
+        .forEach(addErrorToFile);
 
-            // if we have access to a webpack module, use that
-            if (utils.hasOwnProperty(modules, filePath)) {
-                const associatedModules = modules[filePath];
+    function addErrorToFile(filePath: string) {
+        const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+        if (errors.length > 0) {
+            filesWithErrors[filePath] = files[filePath];
+        }
 
-                associatedModules.forEach(module => {
-                    // remove any existing errors
-                    removeTSLoaderErrors(module.errors);
+        // if we have access to a webpack module, use that
+        if (utils.hasOwnProperty(modules, filePath)) {
+            const associatedModules = modules[filePath];
 
-                    // append errors
-                    const formattedErrors = utils.formatErrors(errors, loaderOptions, compiler, { module });
-                    utils.registerWebpackErrors(module.errors, formattedErrors);
-                    utils.registerWebpackErrors(compilation.errors, formattedErrors);
-                });
-            } else {
-                // otherwise it's a more generic error
-                utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, loaderOptions, compiler, { file: filePath }));
-            }
-        });
+            associatedModules.forEach(module => {
+                // remove any existing errors
+                removeTSLoaderErrors(module.errors);
+
+                // append errors
+                const formattedErrors = utils.formatErrors(errors, loaderOptions, compiler, { module });
+                utils.registerWebpackErrors(module.errors, formattedErrors);
+                utils.registerWebpackErrors(compilation.errors, formattedErrors);
+            });
+        } else {
+            // otherwise it's a more generic error
+            utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, loaderOptions, compiler, { file: filePath }));
+        }
+    }
 }
 
 /**

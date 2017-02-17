@@ -2,4 +2,4 @@
 bundle.js  3.42 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 842 bytes [entry] [rendered]
     [0] external "react" 42 bytes {0} [not cacheable]
-    [1] ./.test/babel-jsxPreserve/app.tsx 800 bytes {0} [built]
+    [1] ./.test/babel-jsxPreserve/app.tsx 800 bytes {0} 

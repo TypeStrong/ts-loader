@@ -1,7 +1,7 @@
     Asset    Size  Chunks             Chunk Names
 bundle.js  1.5 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 285 bytes [entry] [rendered]
-    [0] ./.test/conditionalRequire/app.ts 285 bytes {0} [built]
+    [0] ./.test/conditionalRequire/app.ts 285 bytes {0} 
 
 WARNING in bundle.js from UglifyJs
 Condition always false [bundle.js:78,4]

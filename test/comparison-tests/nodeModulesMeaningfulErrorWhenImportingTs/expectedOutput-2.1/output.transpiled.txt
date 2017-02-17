@@ -1,5 +1,5 @@
     Asset     Size  Chunks             Chunk Names
 bundle.js  2.74 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 123 bytes [entry] [rendered]
-    [0] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts 71 bytes {0} [built]
-    [1] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 52 bytes {0} [built]
+    [0] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts 71 bytes {0} 
+    [1] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 52 bytes {0} 
