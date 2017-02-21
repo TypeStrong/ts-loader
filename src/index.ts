@@ -63,7 +63,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         webpackIndex = webpackInstances.push(loader._compiler) - 1;
     }
 
-    const queryOptions = loaderUtils.parseQuery<interfaces.LoaderOptions>(loader.query);
+    const queryOptions = loaderUtils.getOptions<interfaces.LoaderOptions>(loader);
     const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
 
     const instanceName = webpackIndex + '_' + (queryOptions.instance || configFileOptions.instance || 'default');
