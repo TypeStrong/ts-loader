@@ -2,4 +2,4 @@
     bundle.js  2.69 kB       0  [emitted]  main
 bundle.js.map  2.74 kB       0  [emitted]  main
 chunk    {0} bundle.js, bundle.js.map (main) 28 bytes [entry] [rendered]
-    [0] ./.test/sourceMaps/a.ts 28 bytes {0} 
+    [0] ./.test/sourceMaps/a.ts 28 bytes {0} [built]

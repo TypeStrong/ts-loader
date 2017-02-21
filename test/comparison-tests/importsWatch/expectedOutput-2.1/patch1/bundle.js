@@ -68,9 +68,13 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-throw new Error("Module build failed: \u001b[31merror TS5014: Failed to parse file '/tsconfigNotReadable.transpile/tsconfig.json': Unexpected token . in JSON at position 41.\u001b[39m");
+"use strict";
+
+var foo;
+foo.bar = 'foobar';
+
 
 /***/ })
 /******/ ]);

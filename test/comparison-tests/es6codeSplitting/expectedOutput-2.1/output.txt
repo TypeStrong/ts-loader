@@ -2,9 +2,9 @@
 0.bundle.js  377 bytes       0  [emitted]  
   bundle.js    6.98 kB       1  [emitted]  main
 chunk    {0} 0.bundle.js 200 bytes {1} [rendered]
-    [0] ./.test/es6codeSplitting/c.ts 100 bytes {0} 
-    [1] ./.test/es6codeSplitting/d.ts 100 bytes {0} 
+    [0] ./.test/es6codeSplitting/c.ts 100 bytes {0} [built]
+    [1] ./.test/es6codeSplitting/d.ts 100 bytes {0} [built]
 chunk    {1} bundle.js (main) 1.16 kB [entry] [rendered]
-    [2] ./.test/es6codeSplitting/a.ts 100 bytes {1} 
-    [3] ./.test/es6codeSplitting/b.ts 100 bytes {1} 
-    [4] ./.test/es6codeSplitting/app.ts 957 bytes {1} 
+    [2] ./.test/es6codeSplitting/a.ts 100 bytes {1} [built]
+    [3] ./.test/es6codeSplitting/b.ts 100 bytes {1} [built]
+    [4] ./.test/es6codeSplitting/app.ts 957 bytes {1} [built]

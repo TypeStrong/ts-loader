@@ -70,7 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: \u001b[31merror TS5014: Failed to parse file '/tsconfigNotReadable/tsconfig.json': Unexpected token . in JSON at position 38.\u001b[39m");
+throw new Error("Module build failed: \u001b[31merror TS5014: Failed to parse file '/tsconfigNotReadable/tsconfig.json': Unexpected token . in JSON at position 41.\u001b[39m");
 
 /***/ })
 /******/ ]);

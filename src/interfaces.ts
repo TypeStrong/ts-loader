@@ -90,13 +90,6 @@ export interface Webpack {
         ts: {},
         resolve: Resolve;
     };
-    /**
-     * The output options
-     */
-    outputOptions?: {
-      json?: boolean
-    }
-
 }
 
 export interface Compiler {
@@ -119,7 +112,6 @@ export interface WebpackCompilation {
     compiler: WebpackCompiler;
     errors: WebpackError[];
     modules: WebpackModule[];
-    fileDependencies: string[];
     assets: {
         [index: string]: {
             size: () => number;

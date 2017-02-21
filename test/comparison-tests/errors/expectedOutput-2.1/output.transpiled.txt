@@ -1,7 +1,7 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.79 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 281 bytes [entry] [rendered]
-    [0] ./.test/errors/app.ts 281 bytes {0}  [failed] [2 errors]
+bundle.js  2.77 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 261 bytes [entry] [rendered]
+    [0] ./.test/errors/app.ts 261 bytes {0} [built] [failed] [2 errors]
 
 ERROR in ./.test/errors/app.ts
 [37m([39m[36m1[39m,[36m7[39m): [31merror TS1005: '=' expected.[39m

@@ -109,7 +109,7 @@ export function getTypeScriptInstance(
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
     loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));
-    loader._compiler.plugin("watch-run", watchRun(instance, loader));
+    loader._compiler.plugin("watch-run", watchRun(instance));
 
     return { instance };
 }

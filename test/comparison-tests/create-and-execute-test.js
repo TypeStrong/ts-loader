@@ -259,10 +259,8 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
             .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
             .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
-            .replace(/\[built\]/g, '')
             .replace(/\.transpile/g, '');
 
-            console.log(statsString)
         fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
         if (saveOutputMode) {
             var patchedStatsFileName = patch + '/' + statsFileName;
@@ -392,7 +390,6 @@ function normaliseString(platformSpecificContent) {
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
-        .replace(/\[built\]/g, '')
         .replace(new RegExp(regexEscape('\\'), 'g'), '/');
 }
 
