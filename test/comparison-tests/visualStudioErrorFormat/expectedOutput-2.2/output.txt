@@ -1,0 +1,8 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.74 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 139 bytes [entry] [rendered]
+    [0] ./.test/visualStudioErrorFormat/common/components/myComponent.ts 46 bytes {0} [built]
+    [1] ./.test/visualStudioErrorFormat/app.ts 93 bytes {0} [built] [1 error]
+
+ERROR in ./.test/visualStudioErrorFormat/app.ts
+[31mapp.ts[39m[37m([39m[36m2[39m,[36m31[39m): [31merror TS2307: Cannot find module 'components/myComponent2'.[39m
