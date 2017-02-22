@@ -18,8 +18,7 @@ type PartialLoaderOptions = interfaces.Partial<interfaces.LoaderOptions>;
 function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
-    const options = getLoaderOptions(this);
-
+    const options = getLoaderOptions(this) || {};
     const { instance, error } = instances.getTypeScriptInstance(options, this);
 
     if (error) {
