@@ -18,6 +18,7 @@ Take a look at our [examples](examples/).  You can also find some older tutorial
 ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
 
 A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against the following versions of TypeScript:
+- TypeScript 2.2
 - TypeScript 2.1
 - TypeScript 2.0
 - TypeScript 1.8

@@ -1,7 +1,8 @@
 # Changelog
 
-## v2.0.1 - NOT RELEASED YET
+## v2.0.1
 
+- [make watch resilient to no watcher / watcher.mtimes](https://github.com/TypeStrong/ts-loader/pull/482) - thanks @bancek and @mredbishop 
 - [move to using loader-utils 1.0](https://github.com/TypeStrong/ts-loader/pull/475)
 
 ## v2.0.0
