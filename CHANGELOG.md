@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.1 - NOT RELEASED YET
+
+- [move to using loader-utils 1.0](https://github.com/TypeStrong/ts-loader/pull/475)
+
 ## v2.0.0
 
 - [Add support for IgnoringWatchFileSystem](https://github.com/TypeStrong/ts-loader/pull/444) - thanks @herschel666
