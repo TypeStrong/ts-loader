@@ -94,6 +94,7 @@ module.exports = doSomething;
 
 "use strict";
 
+exports.__esModule = true;
 var dep1 = __webpack_require__(0);
 var dep2 = __webpack_require__(1);
 dep1('');

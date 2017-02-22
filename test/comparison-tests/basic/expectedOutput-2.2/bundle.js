@@ -92,6 +92,7 @@ module.exports = message;
 
 "use strict";
 
+exports.__esModule = true;
 var submodule = __webpack_require__(1);
 var externalLib = __webpack_require__(0);
 externalLib.doSomething(submodule);

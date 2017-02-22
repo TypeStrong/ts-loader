@@ -78,6 +78,7 @@ module.exports = hello;
 
 "use strict";
 
+exports.__esModule = true;
 var hello = __webpack_require__(0);
 var msg = hello.sayHello('World');
 

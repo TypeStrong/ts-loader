@@ -93,6 +93,7 @@ module.exports = doSomething;
 
 "use strict";
 
+exports.__esModule = true;
 var dep = __webpack_require__(0);
 dep('');
 

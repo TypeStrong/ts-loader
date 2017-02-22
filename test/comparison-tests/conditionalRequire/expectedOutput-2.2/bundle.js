@@ -31,6 +31,6 @@
     }, __webpack_require__.p = "", __webpack_require__(__webpack_require__.s = 0);
 }([ function(module, exports, __webpack_require__) {
     "use strict";
-    console.log("do something");
+    exports.__esModule = !0, console.log("do something");
     console.log("do something else");
 } ]);

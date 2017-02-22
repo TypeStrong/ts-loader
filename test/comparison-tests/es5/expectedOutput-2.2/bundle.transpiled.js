@@ -72,6 +72,7 @@
 
 "use strict";
 
+Object.defineProperty(exports, "__esModule", { value: true });
 ({ get x() { return 1; } });
 Symbol;
 

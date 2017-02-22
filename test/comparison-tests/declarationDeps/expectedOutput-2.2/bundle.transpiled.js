@@ -72,6 +72,7 @@
 
 "use strict";
 
+exports.__esModule = true;
 Hello.sayHello('Hi');
 Hello.sayHi('Hi');
 

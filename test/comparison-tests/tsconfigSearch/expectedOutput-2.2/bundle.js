@@ -80,6 +80,7 @@ module.exports = {
 
 "use strict";
 
+exports.__esModule = true;
 var externalLib = __webpack_require__(0);
 externalLib.doSomething('');
 

@@ -72,6 +72,7 @@
 
 "use strict";
 
+exports.__esModule = true;
 var sString = __webpack_require__(1);
 exports.s = sString;
 
@@ -88,6 +89,7 @@ module.exports = 'a';
 
 "use strict";
 
+exports.__esModule = true;
 var foo_1 = __webpack_require__(0);
 var foo;
 foo.bar = 'foobar' + foo_1.s;

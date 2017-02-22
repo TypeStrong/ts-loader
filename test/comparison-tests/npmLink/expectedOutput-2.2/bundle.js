@@ -82,6 +82,7 @@ exports["default"] = 'foo';
 
 "use strict";
 
+exports.__esModule = true;
 var foo_1 = __webpack_require__(0);
 console.log(foo_1["default"]);
 

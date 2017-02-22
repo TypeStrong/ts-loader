@@ -166,6 +166,7 @@ module.exports = 'b';
 
 "use strict";
 
+exports.__esModule = true;
 var a = __webpack_require__(2);
 var b = __webpack_require__(3);
 console.log(a);

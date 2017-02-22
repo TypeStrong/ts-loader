@@ -72,6 +72,7 @@
 
 "use strict";
 
+exports.__esModule = true;
 /// <reference path="../../src/typings/node/node.d.ts" /> 
 
 

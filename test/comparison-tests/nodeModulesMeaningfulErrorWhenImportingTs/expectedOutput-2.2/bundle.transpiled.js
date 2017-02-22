@@ -82,6 +82,7 @@ module.exports = elephant;
 
 "use strict";
 
+exports.__esModule = true;
 var a = __webpack_require__(0);
 console.log(a);
 

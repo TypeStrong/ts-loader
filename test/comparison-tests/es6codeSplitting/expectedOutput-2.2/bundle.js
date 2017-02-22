@@ -168,6 +168,7 @@ exports.default = 'b';
 
 "use strict";
 
+Object.defineProperty(exports, "__esModule", { value: true });
 var a_1 = __webpack_require__(2);
 var b_1 = __webpack_require__(3);
 console.log(a_1.default);

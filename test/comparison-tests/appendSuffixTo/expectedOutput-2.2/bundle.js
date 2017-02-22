@@ -88,6 +88,7 @@ exports["default"] = {
 
 "use strict";
 
+exports.__esModule = true;
 function myMethod() {
     console.log('from helper!');
 }
@@ -100,9 +101,9 @@ exports.myMethod = myMethod;
 
 "use strict";
 
+exports.__esModule = true;
 var component_vue_1 = __webpack_require__(0);
 var helper_1 = __webpack_require__(1);
-exports.__esModule = true;
 exports["default"] = {
     components: { component: component_vue_1["default"] },
     data: function () {
