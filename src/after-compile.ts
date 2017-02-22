@@ -4,6 +4,8 @@ import typescript = require('typescript');
 import utils = require('./utils');
 import constants = require('./constants');
 
+// toggle comment
+
 function makeAfterCompile(
     instance: interfaces.TSInstance,
     configFilePath: string
