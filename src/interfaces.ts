@@ -139,7 +139,7 @@ export interface WebpackModule {
 }
 
 export interface Watcher {
-    mtimes: number; // a guess
+    getTimes(): { [filePath: string]: number };
 }
 
 export interface WebpackNodeWatchFileSystem {
