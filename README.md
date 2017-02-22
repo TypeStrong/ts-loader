@@ -167,7 +167,7 @@ module.exports = {
 }
 ```
 
-For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#parsequery).
+For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#getoptions).
 
 #### Available Options
 
