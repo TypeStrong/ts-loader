@@ -16,7 +16,7 @@ function makeWatchRun(
             instance.modifiedFiles = {};
         }
 
-        Object.keys(watcher.mtimes)
+        Object.keys(watcher.getTimes())
             .filter(filePath => !!filePath.match(constants.tsTsxJsJsxRegex))
             .forEach(filePath => {
                 filePath = path.normalize(filePath);
