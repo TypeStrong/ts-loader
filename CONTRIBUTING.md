@@ -45,7 +45,7 @@ Before you can actually publish make sure the following statements are true:
 - The version number in [package.json](package.json) has been incremented.
 - The [changelog](CHANGELOG.md) has been updated with details of the changes in this release.  Where possible include the details of the issues affected and the PRs raised.
 
-OK - you're actually ready.  We're going to publish.  Here we need tread carefully. Follow these steps: 
+OK - you're actually ready.  We're going to publish.  Here we need to tread carefully. Follow these steps: 
 
 - clone ts-loader from the main repo with this command: `git clone https://github.com/TypeStrong/ts-loader.git`
 - [Login to npm](https://docs.npmjs.com/cli/adduser) if you need to: `npm login`
