@@ -18,7 +18,7 @@ type PartialLoaderOptions = interfaces.Partial<interfaces.LoaderOptions>;
 function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
-    const options = getLoaderOptions(this) || {} as interfaces.LoaderOptions;
+    const options = getLoaderOptions(this);
     const { instance, error } = instances.getTypeScriptInstance(options, this);
 
     if (error) {
@@ -62,7 +62,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         webpackIndex = webpackInstances.push(loader._compiler) - 1;
     }
 
-    const queryOptions = loaderUtils.getOptions<interfaces.LoaderOptions>(loader);
+    const queryOptions = loaderUtils.getOptions<interfaces.LoaderOptions>(loader) || {} as interfaces.LoaderOptions;
     const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
 
     const instanceName = webpackIndex + '_' + (queryOptions.instance || configFileOptions.instance || 'default');
