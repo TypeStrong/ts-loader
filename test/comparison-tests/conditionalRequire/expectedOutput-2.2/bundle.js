@@ -10,8 +10,7 @@
         module.l = !0, module.exports;
     }
     var installedModules = {};
-    return __webpack_require__.m = modules, __webpack_require__.c = installedModules, 
-    __webpack_require__.i = function(value) {
+    __webpack_require__.m = modules, __webpack_require__.c = installedModules, __webpack_require__.i = function(value) {
         return value;
     }, __webpack_require__.d = function(exports, name, getter) {
         __webpack_require__.o(exports, name) || Object.defineProperty(exports, name, {

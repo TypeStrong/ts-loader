@@ -1,5 +1,5 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  1.52 kB       0  [emitted]  main
+bundle.js  1.51 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 312 bytes [entry] [rendered]
     [0] ./.test/conditionalRequire/app.ts 312 bytes {0} [built]
 
