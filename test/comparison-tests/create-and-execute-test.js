@@ -366,8 +366,8 @@ function getNormalisedFileContent(file, location, test) {
         var originalContent = fs.readFileSync(filePath).toString();
         fileContent = (file.indexOf('output.') === 0)
             ? normaliseString(originalContent)
-                // We really don't care if it's 4.31 kB; it's enough to know that it's 4 kB
-                .replace(/[.][\d]* kB/g, ' kB')
+                // We don't want a difference in the number of kilobytes to fail the build
+                .replace(/[\d]+[.][\d]* kB/g, ' A-NUMBER-OF kB')
                 // We also don't want a difference in the number of bytes to fail the build
                 .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
