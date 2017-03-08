@@ -1,5 +1,5 @@
     Asset     Size  Chunks  Chunk Names
-bundle.js  2.54 kB       0  main
+bundle.js  2.66 kB       0  main
 chunk    {0} bundle.js (main) 27 bytes [entry] [rendered]
     [0] ./.test/noErrorsPlugin/app.ts 27 bytes {0} [built] [1 error]
 

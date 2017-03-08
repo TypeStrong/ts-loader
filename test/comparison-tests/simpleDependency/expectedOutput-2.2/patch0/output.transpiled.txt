@@ -1,5 +1,5 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.92 kB       0  [emitted]  main
+bundle.js  3.04 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 224 bytes [entry] [rendered]
     [0] ./.test/simpleDependency/dep.ts 70 bytes {0}
     [1] ./.test/simpleDependency/deeperDep.ts 76 bytes {0} [built]
