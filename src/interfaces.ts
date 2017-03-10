@@ -227,7 +227,7 @@ export interface TSInstances {
 }
 
 export interface DependencyGraph {
-    [file: string]: string[];
+    [file: string]: ResolvedModule[];
 }
 
 export interface ReverseDependencyGraph {
@@ -265,6 +265,7 @@ export interface TSFiles {
 }
 
 export interface ResolvedModule {
+    originalFileName: string;
     resolvedFileName: string;
     resolvedModule?: ResolvedModule;
     isExternalLibraryImport?: boolean;
