@@ -68,9 +68,13 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-throw new Error("Module build failed: Error: Could not find file: '/appendSuffixToWatch/component.vue'.\n    at getValidSourceFile (/Users/toby/dev/ts-loader/node_modules/typescript/lib/typescript.js:81080:23)\n    at Object.getEmitOutput (/Users/toby/dev/ts-loader/node_modules/typescript/lib/typescript.js:81446:30)\n    at getEmit (/Users/toby/dev/ts-loader/dist/index.js:99:43)\n    at Object.loader (/Users/toby/dev/ts-loader/dist/index.js:27:11)");
+"use strict";
+
+exports.__esModule = true;
+exports["default"] = "some value";
+
 
 /***/ }),
 /* 1 */,

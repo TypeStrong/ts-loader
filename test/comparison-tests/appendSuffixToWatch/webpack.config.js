@@ -11,15 +11,12 @@ module.exports = {
         extensions: ['.js', '.ts', '.vue']
     },
     module: {
-        rules: [
-            {
-                test: /\.ts$|\.vue$/,
-                use: [{
-                  loader: 'ts-loader',
-                  options: { appendTsSuffixTo: [/\.vue$/] }
-                }]
-
-            }
-        ]
+      loaders: [
+        {
+          test: /\.ts$|\.vue$/,
+          loader: 'ts-loader',
+          options: { appendTsSuffixTo: [/\.vue$/] }
+        }
+      ]
     }
 };
