@@ -151,6 +151,7 @@ export interface WebpackNodeWatchFileSystem {
 
 export interface WebpackWatching {
     compiler: WebpackCompiler; // a guess
+    startTime: number;
 }
 
 export interface Resolve {
