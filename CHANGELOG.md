@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.2 - NOT RELEASED YET
+
+- [Fix performance regression related to using getTimes() by tracking timestamps](https://github.com/TypeStrong/ts-loader/pull/500) - thanks @wearymonkey
+
 ## v2.0.1
 
 - [make watch resilient to no watcher / watcher.mtimes](https://github.com/TypeStrong/ts-loader/pull/482) - thanks @bancek and @mredbishop 
