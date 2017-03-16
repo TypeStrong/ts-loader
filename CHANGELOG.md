@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.0.2 - NOT RELEASED YET
+## v2.0.2
 
 - [Fix performance regression related to using getTimes() by tracking timestamps](https://github.com/TypeStrong/ts-loader/pull/500) - thanks @wearymonkey
 
