@@ -53,7 +53,8 @@ if (fs.statSync(testPath).isDirectory() &&
         if (testToRun === 'declarationOutput' ||
             testToRun === 'importsWatch' ||
             testToRun === 'declarationWatch' ||
-            testToRun === 'issue71') { return; }
+            testToRun === 'issue71' ||
+            testToRun === 'appendSuffixToWatch') { return; }
 
         it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
     });

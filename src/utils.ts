@@ -122,9 +122,9 @@ export function collectAllDependencies(
     collected[filePath] = true;
     let directDependencies = dependencyGraph[filePath]; 
     if (directDependencies) {
-        directDependencies.forEach(dependencyFilePath => {
-            if (!collected[dependencyFilePath]) {
-                collectAllDependencies(dependencyGraph, dependencyFilePath, collected)
+        directDependencies.forEach(dependencyModule => {
+            if (!collected[dependencyModule.originalFileName]) {
+                collectAllDependencies(dependencyGraph, dependencyModule.resolvedFileName, collected)
                     .forEach(filePath => result[filePath] = true);
             }
         });

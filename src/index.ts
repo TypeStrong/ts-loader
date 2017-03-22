@@ -32,7 +32,7 @@ function loader(this: interfaces.Webpack, contents: string) {
 
     const { outputText, sourceMapText } = options.transpileOnly
         ? getTranspilationEmit(filePath, contents, instance, this)
-        : getEmit(filePath, instance, this);
+        : getEmit(rawFilePath, filePath, instance, this);
 
     if (outputText === null || outputText === undefined) {
         const additionalGuidance = filePath.indexOf('node_modules') !== -1
@@ -119,6 +119,7 @@ function updateFileInCache(filePath: string, contents: string, instance: interfa
 }
 
 function getEmit(
+    rawFilePath: string,
     filePath: string,
     instance: interfaces.TSInstance,
     loader: interfaces.Webpack
@@ -127,7 +128,7 @@ function getEmit(
     const output = instance.languageService.getEmitOutput(filePath);
 
     loader.clearDependencies();
-    loader.addDependency(filePath);
+    loader.addDependency(rawFilePath);
 
     const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => !!defFilePath.match(constants.dtsDtsxRegex));
 
@@ -145,7 +146,8 @@ function getEmit(
     */
 
     // Additionally make this file dependent on all imported files
-    const additionalDependencies = instance.dependencyGraph[filePath];
+    const additionalDependencies = instance.dependencyGraph[filePath]
+        && instance.dependencyGraph[filePath].map(module => module.originalFileName);
     if (additionalDependencies) {
         additionalDependencies.forEach(addDependency);
     }

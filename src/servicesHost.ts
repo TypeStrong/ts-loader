@@ -110,19 +110,21 @@ function resolveModuleName(
     let resolutionResult: interfaces.ResolvedModule;
 
     try {
-        let resolvedFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
-        resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, resolvedFileName);
+        const originalFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
+        const resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, originalFileName);
 
         if (resolvedFileName.match(scriptRegex)) {
-            resolutionResult = { resolvedFileName };
+            resolutionResult = { resolvedFileName, originalFileName };
         }
     } catch (e) { }
 
     const tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
     if (tsResolution.resolvedModule) {
-        let tsResolutionResult: interfaces.ResolvedModule = {
-            resolvedFileName: path.normalize(tsResolution.resolvedModule.resolvedFileName),
+        const resolvedFileName = path.normalize(tsResolution.resolvedModule.resolvedFileName);
+        const tsResolutionResult: interfaces.ResolvedModule = {
+            originalFileName: resolvedFileName,
+            resolvedFileName,
             isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
         };
         if (resolutionResult) {
@@ -141,17 +143,16 @@ function populateDependencyGraphs(
     instance: interfaces.TSInstance,
     containingFile: string
 ) {
-    const importedFiles = resolvedModules
-        .filter(m => m !== null && m !== undefined)
-        .map(m => m.resolvedFileName);
+    resolvedModules = resolvedModules
+        .filter(m => m !== null && m !== undefined);
 
-    instance.dependencyGraph[path.normalize(containingFile)] = importedFiles;
+    instance.dependencyGraph[path.normalize(containingFile)] = resolvedModules;
 
-    importedFiles.forEach(importedFileName => {
-        if (!instance.reverseDependencyGraph[importedFileName]) {
-            instance.reverseDependencyGraph[importedFileName] = {};
+    resolvedModules.forEach(resolvedModule => {
+        if (!instance.reverseDependencyGraph[resolvedModule.resolvedFileName]) {
+            instance.reverseDependencyGraph[resolvedModule.resolvedFileName] = {};
         }
-        instance.reverseDependencyGraph[importedFileName][path.normalize(containingFile)] = true;
+        instance.reverseDependencyGraph[resolvedModule.resolvedFileName][path.normalize(containingFile)] = true;
     });
 }
 
