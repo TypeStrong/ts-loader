@@ -62,6 +62,6 @@
     "rimraf": "^2.4.2",
     "typescript": "^2.2.1",
     "typings": "^2.0.0",
-    "webpack": "^2.2.0"
+    "webpack": "^2.3.1"
   }
 }
