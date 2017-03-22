@@ -70,7 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: Error: Typescript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts.\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358\n    at Object.loader (E:/source/ts-loader/dist/index.js:32:15)");
+throw new Error("Module build failed: Error: Typescript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts.\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358\n    at Object.loader (C:/source/ts-loader/dist/index.js:32:15)");
 
 /***/ }),
 /* 1 */

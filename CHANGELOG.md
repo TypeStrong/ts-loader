@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.0.3
+
+- [Don't include appended TS extension in webpack dependencies](https://github.com/TypeStrong/ts-loader/pull/497) - thanks again @wearymonkey!
+
 ## v2.0.2
 
 - [Fix performance regression related to using getTimes() by tracking timestamps](https://github.com/TypeStrong/ts-loader/pull/500) - thanks @wearymonkey

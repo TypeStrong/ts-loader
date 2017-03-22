@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -73,18 +73,12 @@
 "use strict";
 
 exports.__esModule = true;
-var sString = __webpack_require__(1);
+var sString = __webpack_require__(2);
 exports.s = sString;
 
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
-
-module.exports = 'a';
-
-/***/ }),
-/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -94,6 +88,12 @@ var foo_1 = __webpack_require__(0);
 var foo;
 foo.bar = 'foobar_patch0' + foo_1.s;
 
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+module.exports = 'a';
 
 /***/ })
 /******/ ]);
