@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -72,7 +72,7 @@
 
 "use strict";
 
-var dep = __webpack_require__(1);
+var dep = __webpack_require__(2);
 module.exports = dep;
 
 
@@ -82,8 +82,9 @@ module.exports = dep;
 
 "use strict";
 
-var dep = 'replacement';
-module.exports = dep;
+exports.__esModule = true;
+var a = __webpack_require__(0);
+console.log(a);
 
 
 /***/ }),
@@ -92,9 +93,8 @@ module.exports = dep;
 
 "use strict";
 
-exports.__esModule = true;
-var a = __webpack_require__(0);
-console.log(a);
+var dep = 'replacement';
+module.exports = dep;
 
 
 /***/ })

@@ -2,5 +2,5 @@
 bundle.js  3.03 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 206 bytes [entry] [rendered]
     [0] ./.test/replacement/a.ts 64 bytes {0} [built]
-    [1] ./.test/replacement/sub/dep.ts 61 bytes {0} [built]
-    [2] ./.test/replacement/app.ts 81 bytes {0} [built]
+    [1] ./.test/replacement/app.ts 81 bytes {0} [built]
+    [2] ./.test/replacement/sub/dep.ts 61 bytes {0} [built]

@@ -71,7 +71,7 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony default export */ __webpack_exports__["a"] = "Hello from submodule";
+/* harmony default export */ __webpack_exports__["a"] = ("Hello from submodule");
 
 /***/ }),
 /* 1 */
@@ -81,7 +81,7 @@
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__submodule_submodule__ = __webpack_require__(0);
 
-/* harmony default export */ __webpack_exports__["default"] = __WEBPACK_IMPORTED_MODULE_0__submodule_submodule__["a" /* default */];
+/* harmony default export */ __webpack_exports__["default"] = (__WEBPACK_IMPORTED_MODULE_0__submodule_submodule__["a" /* default */]);
 
 /***/ })
 /******/ ]);
