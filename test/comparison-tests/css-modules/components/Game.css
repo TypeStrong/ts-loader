@@ -1,0 +1,15 @@
+.game {
+    display: flex;
+    flex-direction: row;
+}
+
+.game-board {
+}
+
+.game-info {
+    margin-left: 20px;
+}
+
+.game-footer {
+    margin-top: 20px;
+}
