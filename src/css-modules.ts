@@ -323,6 +323,7 @@ export class CssModule {
         let typings = '';
 
         // Generate default object
+        typings += '// Default object containing all local CSS classes\n';
         typings += 'declare const __styles: {\n';
         for (const className of classNames) {
             typings += `    ${JSON.stringify(className)}: string;\n`;
@@ -331,8 +332,13 @@ export class CssModule {
         typings += 'export default __styles;\n\n';
 
         // Generate named exports
+        let firstNamedExport = true;
         for (const className of classNames) {
             if (className !== '__styles' && this.isValidIdentifier(className)) {
+                if (firstNamedExport) {
+                    typings += '// Named exports with local CSS classes whose names are valid identifiers\n';
+                }
+                firstNamedExport = false;
                 typings += `export const ${className}: string;\n`;
             }
         }
