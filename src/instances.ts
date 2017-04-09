@@ -10,6 +10,7 @@ import utils = require('./utils');
 import logger = require('./logger');
 import makeServicesHost = require('./servicesHost');
 import watchRun = require('./watch-run');
+import cssModules = require('./css-modules');
 
 const instances = <interfaces.TSInstances> {};
 
@@ -106,6 +107,7 @@ export function getTypeScriptInstance(
     };
 
     const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo);
+    instance.cssModules = new cssModules.CssModules(instance, loader._compiler, servicesHost);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
     loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));

@@ -20,8 +20,8 @@ function makeServicesHost(
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
-        compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
-        constants.EOL;
+            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+                constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
@@ -57,19 +57,19 @@ function makeServicesHost(
          * getDirectories is also required for full import and type reference completions.
          * Without it defined, certain completions will not be provided
          */
-        getDirectories: compiler.sys ? (<any> compiler.sys).getDirectories : undefined,
+        getDirectories: compiler.sys ? (<any>compiler.sys).getDirectories : undefined,
 
         /**
          * For @types expansion, these two functions are needed.
          */
-        directoryExists: compiler.sys ? (<any> compiler.sys).directoryExists : undefined,
+        directoryExists: compiler.sys ? (<any>compiler.sys).directoryExists : undefined,
         getCurrentDirectory: () => process.cwd(),
 
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
         log: log.log,
-        resolveModuleNames: (moduleNames: string[], containingFile: string) => 
+        resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
                 moduleNames, containingFile)
@@ -85,7 +85,7 @@ function resolveModuleNames(
     moduleNames: string[],
     containingFile: string
 ) {
-    const resolvedModules = moduleNames.map(moduleName => 
+    const resolvedModules = moduleNames.map(moduleName =>
         resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
             moduleName, containingFile)
     );
@@ -106,7 +106,7 @@ function resolveModuleName(
     containingFile: string
 ) {
     const { compiler, compilerOptions } = instance;
-    
+
     let resolutionResult: interfaces.ResolvedModule;
 
     try {

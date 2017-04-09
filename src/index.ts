@@ -30,25 +30,36 @@ function loader(this: interfaces.Webpack, contents: string) {
     const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
     const fileVersion = updateFileInCache(filePath, contents, instance);
 
-    const { outputText, sourceMapText } = options.transpileOnly
-        ? getTranspilationEmit(filePath, contents, instance, this)
-        : getEmit(rawFilePath, filePath, instance, this);
+    instance.cssModules.loadCssModules(this, contents, (err, cssModules) => {
+        if (err) return callback(err);
 
-    if (outputText === null || outputText === undefined) {
-        const additionalGuidance = filePath.indexOf('node_modules') !== -1
-            ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
-            : "";
-        throw new Error(`Typescript emitted no output for ${filePath}.${additionalGuidance}`);
-    }
+        const { outputText, sourceMapText } = options.transpileOnly
+            ? getTranspilationEmit(filePath, contents, instance, this)
+            : getEmit(rawFilePath, filePath, instance, this);
 
-    const { sourceMap, output } = makeSourceMap(sourceMapText, outputText, filePath, contents, this);
+        if (outputText === null || outputText === undefined) {
+            const additionalGuidance = filePath.indexOf('node_modules') !== -1
+                ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
+                : "";
+            throw new Error(`Typescript emitted no output for ${filePath}.${additionalGuidance}`);
+        }
 
-    // Make sure webpack is aware that even though the emitted JavaScript may be the same as
-    // a previously cached version the TypeScript may be different and therefore should be
-    // treated as new
-    this._module.meta.tsLoaderFileVersion = fileVersion;
+        const { sourceMap, output } = makeSourceMap(sourceMapText, outputText, filePath, contents, this);
 
-    callback(null, output, sourceMap);
+        // Make sure webpack is aware that even though the emitted JavaScript may be the same as
+        // a previously cached version the TypeScript may be different and therefore should be
+        // treated as new
+        this._module.meta.tsLoaderFileVersion = fileVersion;
+
+        // Mark css modules as dependencies
+        if (!options.transpileOnly) {
+            for (const cssModule of cssModules) {
+                this.addDependency(cssModule.modulePath);
+            }
+        }
+
+        callback(null, output, sourceMap);
+    });
 }
 
 /**
