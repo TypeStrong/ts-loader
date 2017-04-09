@@ -52,7 +52,8 @@ export class CssModules {
 
         this.isValid = !instance.loaderOptions.transpileOnly
             && this.options
-            && !!this.options.test;
+            && !!this.options.test
+            && !!servicesHost;
 
         // Bind methods to be used as plugins
         this.reset = this.reset.bind(this);
