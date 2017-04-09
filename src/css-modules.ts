@@ -40,8 +40,6 @@ export interface ServicesHost {
 
 export interface CssModulesOptions {
     test: RegExp;
-    include: string[];
-    exclude: string[];
     save: boolean;
 }
 
