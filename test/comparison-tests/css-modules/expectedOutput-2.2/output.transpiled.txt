@@ -3,7 +3,7 @@ bundle.js  61.3 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 57.9 kB [entry] [rendered]
     [0] ./.test/css-modules/components/Game.ts 111 bytes {0} [built]
     [1] ./.test/css-modules/app.ts 116 bytes {0} [built]
-    [2] ./.test/css-modules/components/Game.css 697 bytes {0} [built]
+    [2] ./.test/css-modules/components/Game.css 718 bytes {0} [built]
     [3] ./~/base64-js/index.js 3.48 kB {0} [built]
     [4] ./~/buffer/index.js 48.6 kB {0} [built]
     [5] ./~/css-loader/lib/css-base.js 2.19 kB {0} [built]

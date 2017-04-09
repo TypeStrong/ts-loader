@@ -13,7 +13,8 @@ module.exports = {
                 loader: 'css-loader',
                 options: {
                     modules: true,
-                    camelCase: true
+                    camelCase: true,
+                    localIdentName: '[path][name]-[local]'
                 }
             },
             {

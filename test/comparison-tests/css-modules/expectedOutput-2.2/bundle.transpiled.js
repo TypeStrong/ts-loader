@@ -97,17 +97,17 @@ exports = module.exports = __webpack_require__(5)(undefined);
 
 
 // module
-exports.push([module.i, "._2NuXT3FpYy81uV_hDtw0ix {\n    display: flex;\n    flex-direction: row;\n}\n\n._3gSBQWL3Cbj2bMxgH6185- {\n}\n\n._2Boyyayd376O1UY1YP9Qz_ {\n    margin-left: 20px;\n}\n\n._3os9kPazekWfv8E0NEVx-k {\n    margin-top: 20px;\n}\n", ""]);
+exports.push([module.i, ".components-Game-game {\n    display: flex;\n    flex-direction: row;\n}\n\n.components-Game-game-board {\n}\n\n.components-Game-game-info {\n    margin-left: 20px;\n}\n\n.components-Game-game-footer {\n    margin-top: 20px;\n}\n", ""]);
 
 // exports
 exports.locals = {
-	"game": "_2NuXT3FpYy81uV_hDtw0ix",
-	"game-board": "_3gSBQWL3Cbj2bMxgH6185-",
-	"gameBoard": "_3gSBQWL3Cbj2bMxgH6185-",
-	"game-info": "_2Boyyayd376O1UY1YP9Qz_",
-	"gameInfo": "_2Boyyayd376O1UY1YP9Qz_",
-	"game-footer": "_3os9kPazekWfv8E0NEVx-k",
-	"gameFooter": "_3os9kPazekWfv8E0NEVx-k"
+	"game": "components-Game-game",
+	"game-board": "components-Game-game-board",
+	"gameBoard": "components-Game-game-board",
+	"game-info": "components-Game-game-info",
+	"gameInfo": "components-Game-game-info",
+	"game-footer": "components-Game-game-footer",
+	"gameFooter": "components-Game-game-footer"
 };
 
 /***/ }),

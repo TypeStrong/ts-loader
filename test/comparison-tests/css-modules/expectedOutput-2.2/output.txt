@@ -1,7 +1,7 @@
                       Asset       Size  Chunks             Chunk Names
-                  bundle.js    3.86 kB       0  [emitted]  main
+                  bundle.js    3.88 kB       0  [emitted]  main
 ../components/Game.css.d.ts  476 bytes          [emitted]  
-chunk    {0} bundle.js (main) 924 bytes [entry] [rendered]
-    [0] ./.test/css-modules/components/Game.css 697 bytes {0} [built]
+chunk    {0} bundle.js (main) 945 bytes [entry] [rendered]
+    [0] ./.test/css-modules/components/Game.css 718 bytes {0} [built]
     [1] ./.test/css-modules/components/Game.ts 111 bytes {0} [built]
     [2] ./.test/css-modules/app.ts 116 bytes {0} [built]
