@@ -268,6 +268,16 @@ export default {
 </script>
 ```
 
+#### cssModules *(RegExp) (default=undefined)*
+
+To be used in concert with the `css-loader` with option `modules` set to `true`. Provides typings for [CSS Modules](https://github.com/webpack-contrib/css-loader#css-modules) so they can be used in TypeScript.  
+See below.
+
+#### saveCssModules *(boolean) (default=false)*
+
+If true, typings created by the `cssModules` will be saved to disk.  
+See below.
+
 
 ### Loading other resources and code splitting
 
@@ -291,6 +301,116 @@ require('!style!css!./style.css');
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
+
+
+### Loading CSS modules
+
+The [css-loader](https://github.com/webpack-contrib/css-loader) for WebPack has the ability to make [CSS Modules](https://github.com/webpack-contrib/css-loader#css-modules).
+
+Given a css file `Game.css`:
+
+```css
+.game {
+    display: flex;
+    flex-direction: row;
+}
+
+.game-board {
+}
+
+.game-info {
+    margin-left: 20px;
+}
+
+.game-footer {
+    margin-top: 20px;
+}
+```
+
+It would be nice to be able to import and use the CSS classes in TypeScript.
+
+For example:
+
+```typescript
+import * as css from './Game.css';
+
+export const html = `<div className="${css.game}"></div>`;
+```
+
+Normally, this would fail with a type error, because TypeScript has no typing information for `Game.css`.
+
+However, by using the `cssModules` option, typings will be provided during compile.
+
+Example:
+
+```javascript
+module.exports = {
+  ...
+  module: {
+    rules: [
+      {
+        test: /\.css$/,
+        loader: 'css-loader',
+        options: {
+          // Set up css-loader to provide CSS modules
+          modules: true,
+          camelCase: true
+        }
+      },
+      {
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        options: {
+          // Set up cssModules to match the css-loader
+          cssModules: /\.css$/
+        }
+      }
+    ]
+  }
+}
+```
+
+It is also possible to save the typings to disk, so that they can be available for other tools (tsc, IDEs, etc.):
+
+```javascript
+module.exports = {
+  ...
+      {
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        options: {
+          // Set up cssModules to match the css-loader
+          cssModules: /\.css$/,
+          saveCssModules: true
+        }
+      }
+  ...
+}
+```
+
+This will create a `.d.ts` file for each CSS module, that is loaded in the same directory as the CSS module.
+
+In our example, a file `Game.css.d.ts` will be created in the same directory as `Game.css`, with the following contents:
+
+```typescript
+// Default object containing all local CSS classes
+declare const __styles: {
+    "game": string;
+    "game-board": string;
+    "gameBoard": string;
+    "game-info": string;
+    "gameInfo": string;
+    "game-footer": string;
+    "gameFooter": string;
+};
+export default __styles;
+
+// Named exports with local CSS classes whose names are valid identifiers
+export const game: string;
+export const gameBoard: string;
+export const gameInfo: string;
+export const gameFooter: string;
+```
 
 ## License
 
