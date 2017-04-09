@@ -28,7 +28,8 @@ declare module './interfaces' {
     }
 
     export interface LoaderOptions {
-        cssModules: CssModulesOptions;
+        cssModules: RegExp;
+        saveCssModules: boolean;
     }
 }
 
@@ -38,19 +39,14 @@ export interface ServicesHost {
     resolveModuleNames(moduleNames: string[], containingFile: string): interfaces.ResolvedModule[];
 }
 
-export interface CssModulesOptions {
-    test: RegExp;
-    save: boolean;
-}
-
 export class CssModules {
     constructor(readonly instance: interfaces.TSInstance, compiler: interfaces.Compiler, servicesHost: ServicesHost) {
-        this.options = instance.loaderOptions.cssModules;
+        this.options = instance.loaderOptions;
         this._cssModules = new CssModulesContainer(instance);
 
         this.isValid = !instance.loaderOptions.transpileOnly
             && this.options
-            && !!this.options.test
+            && !!this.options.cssModules
             && !!servicesHost;
 
         // Bind methods to be used as plugins
@@ -65,7 +61,7 @@ export class CssModules {
             compiler.plugin("done", this.reset);
             compiler.plugin("watch-run", this.watchRun);
 
-            if (this.options.save) {
+            if (this.options.saveCssModules) {
                 // Save used CSS module type definitions after compile
                 compiler.plugin("emit", this.saveCssModules);
                 compiler.plugin("after-emit", this.afterEmit);
@@ -74,7 +70,7 @@ export class CssModules {
     }
 
     private readonly _cssModules: CssModulesContainer;
-    readonly options: CssModulesOptions;
+    readonly options: interfaces.LoaderOptions;
     readonly isValid: boolean;
 
     loadCssModules(loader: interfaces.Webpack, contents: string, callback: (err: interfaces.WebpackError, cssModules?: CssModule[]) => void): void {
@@ -229,7 +225,7 @@ export class CssModules {
 
     private startTime: number = new Date().getTime();
     private watchRun(watching: interfaces.WebpackWatching, callback: () => void) {
-        const { test } = this.options;
+        const { cssModules } = this.options;
 
         const watcher = watching.compiler.watchFileSystem.watcher ||
             watching.compiler.watchFileSystem.wfs.watcher;
@@ -237,7 +233,7 @@ export class CssModules {
         this.startTime = Math.max(this.startTime || watching.startTime);
         const times = watcher.getTimes();
 
-        for (const filePath of Object.keys(times).filter(f => test.test(f))) {
+        for (const filePath of Object.keys(times).filter(f => cssModules.test(f))) {
             const time = times[filePath];
             const module = this._cssModules.get(filePath, false);
             if (module && time > module.time) {
@@ -251,7 +247,7 @@ export class CssModules {
     private _imports: { [modulePath: string]: string[] } = {};
     private parseImports(modulePath: string, sourceText?: string, visitedModules: { [modulePath: string]: boolean } = {}): string[] {
         const { compiler } = this.instance;
-        const { test } = this.options;
+        const { cssModules } = this.options;
 
         function readSourceText(filePaths: string[]): void {
             for (const filePath of filePaths) {
@@ -289,7 +285,7 @@ export class CssModules {
             let fileName = importFile.fileName;
             if (/^\.\.?\//.test(fileName)) {
                 fileName = path.resolve(path.dirname(modulePath), fileName);
-                if (test.test(fileName)) {
+                if (cssModules.test(fileName)) {
                     imports.push(fileName);
                 } else {
                     imports = imports.concat(this.parseImports(fileName, undefined, visitedModules));

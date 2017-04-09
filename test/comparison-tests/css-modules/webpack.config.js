@@ -20,12 +20,9 @@ module.exports = {
                 test: /\.tsx?$/,
                 loader: 'ts-loader',
                 options: {
-                    cssModules: {
-                        test: /\.css$/,
-                        save: true
-                    }
+                    cssModules: /\.css$/,
+                    saveCssModules: true
                 }
-
             }
         ]
     }
