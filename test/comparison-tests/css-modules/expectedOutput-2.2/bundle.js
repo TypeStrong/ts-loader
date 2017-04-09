@@ -75,7 +75,7 @@ exports = module.exports = __webpack_require__(!(function webpackMissingModule()
 
 
 // module
-exports.push([module.i, "._2NuXT3FpYy81uV_hDtw0ix {\r\n    display: flex;\r\n    flex-direction: row;\r\n}\r\n\r\n._3gSBQWL3Cbj2bMxgH6185- {\r\n}\r\n\r\n._2Boyyayd376O1UY1YP9Qz_ {\r\n    margin-left: 20px;\r\n}\r\n\r\n._3os9kPazekWfv8E0NEVx-k {\r\n    margin-top: 20px;\r\n}\r\n", ""]);
+exports.push([module.i, "._2NuXT3FpYy81uV_hDtw0ix {\n    display: flex;\n    flex-direction: row;\n}\n\n._3gSBQWL3Cbj2bMxgH6185- {\n}\n\n._2Boyyayd376O1UY1YP9Qz_ {\n    margin-left: 20px;\n}\n\n._3os9kPazekWfv8E0NEVx-k {\n    margin-top: 20px;\n}\n", ""]);
 
 // exports
 exports.locals = {
