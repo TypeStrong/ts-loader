@@ -384,10 +384,12 @@ function getNormalisedFileContent(file, location, test) {
 function normaliseString(platformSpecificContent) {
     return platformSpecificContent
         .replace(/\r\n/g, '\n')
-        // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/, 'ts-loader')
-        // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/, '(ts-loader)')
+        // replace C:/source/ts-loader/<filename>.js or /home/travis/build/TypeStrong/ts-loader/<filename>.js with ts-loader/<filename>.js
+        .replace(/ \S+[\/|\\]ts-loader[\/|\\]([\w-]+).js/g, ' ts-loader/$1.js')
+        // replace (C:/source/ts-loader/dist/<filename>.js:<line>:<pos>) with (ts-loader/<filename>.js)
+        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]([\w-]+).js:\d*:\d*\)/g, '(ts-loader/$1.js)')
+        // replace C:/source/ts-loader/dist/<filename>.js:<line>:<pos> with ts-loader/<filename>.js
+        .replace(/ \S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]([\w-]+).js:\d*:\d*/g, ' ts-loader/$1.js')
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
