@@ -1,7 +1,7 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  3.25 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 528 bytes [entry] [rendered]
-    [0] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts 449 bytes {0} [built] [failed] [1 error]
+bundle.js  3.41 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 690 bytes [entry] [rendered]
+    [0] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts 611 bytes {0} [built] [failed] [1 error]
     [1] ./.test/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 79 bytes {0} [built]
 
 ERROR in ./.test/nodeModulesMeaningfulErrorWhenImportingTs/~/a/index.ts
@@ -9,5 +9,7 @@ Module build failed: Error: Typescript emitted no output for node_modules\a\inde
 You should not need to recompile .ts files in node_modules.
 Please contact the package author to advise them to use --declaration --outDir.
 More https://github.com/Microsoft/TypeScript/issues/12358
-    at Object.loader (dist\index.js:32:15)
+    at dist/index.js:36:19
+    at CssModules.loadCssModules (dist/css-modules.js:38:20)
+    at Object.loader (dist/index.js:26:25)
  @ ./.test/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 3:8-20

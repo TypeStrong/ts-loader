@@ -10,8 +10,9 @@ import utils = require('./utils');
 import logger = require('./logger');
 import makeServicesHost = require('./servicesHost');
 import watchRun = require('./watch-run');
+import cssModules = require('./css-modules');
 
-const instances = <interfaces.TSInstances> {};
+const instances = <interfaces.TSInstances>{};
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -66,9 +67,20 @@ export function getTypeScriptInstance(
 
         utils.registerWebpackErrors(
             loader._module.errors,
-            utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
+            utils.formatErrors(diagnostics, loaderOptions, compiler, { file: configFilePath || 'tsconfig.json' }));
 
-        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {} }};
+        const instance: interfaces.TSInstance = instances[loaderOptions.instance] = {
+            compiler,
+            compilerOptions,
+            loaderOptions,
+            files,
+            dependencyGraph: {},
+            reverseDependencyGraph: {}
+        };
+
+        instance.cssModules = new cssModules.CssModules(instance, loader._compiler, undefined);
+
+        return { instance };
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -81,11 +93,13 @@ export function getTypeScriptInstance(
                 text: fs.readFileSync(normalizedFilePath, 'utf-8'),
                 version: 0
             };
-          });
+        });
     } catch (exc) {
-        return { error: utils.makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath }`
-        }) };
+        return {
+            error: utils.makeError({
+                rawMessage: `A file specified in tsconfig.json could not be found: ${normalizedFilePath}`
+            })
+        };
     }
 
     // if allowJs is set then we should accept js(x) files
@@ -106,6 +120,7 @@ export function getTypeScriptInstance(
     };
 
     const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo);
+    instance.cssModules = new cssModules.CssModules(instance, loader._compiler, servicesHost);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
     loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));

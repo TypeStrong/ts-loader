@@ -63,14 +63,30 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-throw new Error("Module build failed: Error: Typescript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts.\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358\n    at C:/source/ts-loader/dist/index.js:36:19\n    at CssModules.loadCssModules (C:/source/ts-loader/dist/css-modules.js:38:20)\n    at Object.loader (C:/source/ts-loader/dist/index.js:26:25)");
+exports = module.exports = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module \"../../../node_modules/css-loader/lib/css-base.js\""); e.code = 'MODULE_NOT_FOUND'; throw e; }()))(undefined);
+// imports
+
+
+// module
+exports.push([module.i, ".components-Game-game {\n    display: flex;\n    flex-direction: row;\n}\n\n.components-Game-game-board {\n}\n\n.components-Game-game-info {\n    margin-left: 20px;\n}\n\n.components-Game-game-footer {\n    margin-top: 20px;\n}\n", ""]);
+
+// exports
+exports.locals = {
+	"game": "components-Game-game",
+	"game-board": "components-Game-game-board",
+	"gameBoard": "components-Game-game-board",
+	"game-info": "components-Game-game-info",
+	"gameInfo": "components-Game-game-info",
+	"game-footer": "components-Game-game-footer",
+	"gameFooter": "components-Game-game-footer"
+};
 
 /***/ }),
 /* 1 */
@@ -79,8 +95,19 @@ throw new Error("Module build failed: Error: Typescript emitted no output for /n
 "use strict";
 
 exports.__esModule = true;
-var a = __webpack_require__(0);
-console.log(a);
+var css = __webpack_require__(0);
+exports.gameFooter = css.gameFooter;
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+exports.__esModule = true;
+var Game_1 = __webpack_require__(1);
+console.log(Game_1.gameFooter);
 
 
 /***/ })

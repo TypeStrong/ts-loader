@@ -371,6 +371,8 @@ function getNormalisedFileContent(file, location, test) {
                 .replace(/[\d]+[.][\d]* kB/g, ' A-NUMBER-OF kB')
                 // We also don't want a difference in the number of bytes to fail the build
                 .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
+                // Sometimes "[built]" is written to output, and sometimes not. This should not fail the build
+                .replace(/\s\[build\]/g, '')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
             : normaliseString(originalContent);
@@ -384,10 +386,12 @@ function getNormalisedFileContent(file, location, test) {
 function normaliseString(platformSpecificContent) {
     return platformSpecificContent
         .replace(/\r\n/g, '\n')
-        // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/, 'ts-loader')
-        // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/, '(ts-loader)')
+        // replace C:/source/ts-loader/<filename>.js or /home/travis/build/TypeStrong/ts-loader/<filename>.js with ts-loader/<filename>.js
+        .replace(/ \S+[\/|\\]ts-loader[\/|\\]([\w-]+).js/g, ' ts-loader/$1.js')
+        // replace (C:/source/ts-loader/dist/<filename>.js:<line>:<pos>) with (ts-loader/<filename>.js)
+        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]([\w-]+).js:\d*:\d*\)/g, '(ts-loader/$1.js)')
+        // replace C:/source/ts-loader/dist/<filename>.js:<line>:<pos> with ts-loader/<filename>.js
+        .replace(/ \S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]([\w-]+).js:\d*:\d*/g, ' ts-loader/$1.js')
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
