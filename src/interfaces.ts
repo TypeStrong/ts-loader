@@ -98,6 +98,10 @@ export interface Webpack {
      * The index in the loaders array of the current loader.
      */
     loaderIndex: number;
+    /**
+     * Get the current file dependencies
+     */
+    getDependencies: () => string[];
 }
 
 export interface Compiler {
@@ -262,6 +266,7 @@ export interface LoaderOptions {
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
     entryFileIsJs: boolean;
+    usePreviousLoaderGeneratedFiles: boolean;
 }
 
 export interface TSFile {
