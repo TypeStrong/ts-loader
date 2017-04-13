@@ -90,6 +90,14 @@ export interface Webpack {
         ts: {},
         resolve: Resolve;
     };
+    /**
+     * An array of all the loaders. It is writeable in the pitch phase.
+     */
+    loaders: { request: string, path: string, query: string, module: Function, data: any }[];
+    /**
+     * The index in the loaders array of the current loader.
+     */
+    loaderIndex: number;
 }
 
 export interface Compiler {

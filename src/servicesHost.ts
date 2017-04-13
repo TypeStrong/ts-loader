@@ -27,8 +27,17 @@ function makeServicesHost(
     const resolveSync = makeResolver(loader.options);
 
     const moduleResolutionHost = {
-        fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
-        readFile: (fileName: string) => utils.readFile(fileName),
+        fileExists: (fileName: string) => {
+            const tsFile = instance.files[path.normalize(fileName)];
+            return tsFile !== undefined || utils.readFile(fileName) !== undefined;
+        },
+        readFile: (fileName: string) => {
+            const tsFile = instance.files[path.normalize(fileName)];
+            if (tsFile !== undefined) {
+                return tsFile.text;
+            }
+            return utils.readFile(fileName);
+        }
     };
 
     return {
