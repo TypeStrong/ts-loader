@@ -102,6 +102,10 @@ export interface Webpack {
      * Get the current file dependencies
      */
     getDependencies: () => string[];
+    /**
+     * Get the current context dependencies
+     */
+    getContextDependencies: () => string[];
 }
 
 export interface Compiler {
