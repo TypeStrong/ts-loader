@@ -1,5 +1,5 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.81 kB       0  [emitted]  b
+bundle.js  2.82 kB       0  [emitted]  b
 chunk    {0} bundle.js (b) 177 bytes [entry] [rendered]
     [1] ./.test/instance/b.ts 177 bytes {0} [built] [failed] [1 error]
 chunk    {1}  (a) 177 bytes [entry] [rendered]
