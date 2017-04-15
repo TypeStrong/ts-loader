@@ -6,9 +6,9 @@
 /******/ 	function __webpack_require__(moduleId) {
 /******/
 /******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
+/******/ 		if(installedModules[moduleId]) {
 /******/ 			return installedModules[moduleId].exports;
-/******/
+/******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
@@ -70,7 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-throw new Error("Module parse failed: C:/source/ts-loader/index.js??ref--0!/errors.transpile/app.ts Unexpected token (3:9)\nYou may need an appropriate loader to handle this file type.\n| \"use strict\";\n| exports.__esModule = true;\n| var a =  == 0;\n| ");
+throw new Error("Module parse failed: C:/Source/ts-loader/index.js??ref--0!/errors.transpile/app.ts Unexpected token (3:9)\nYou may need an appropriate loader to handle this file type.\n| \"use strict\";\n| exports.__esModule = true;\n| var a =  == 0;\n| ");
 
 /***/ })
 /******/ ]);
