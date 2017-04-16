@@ -1,4 +1,4 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.65 kB       0  [emitted]  main
+bundle.js  2.66 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 24 bytes [entry] [rendered]
     [0] ./.test/allowJs-entryFileIsJs/src/index.js 24 bytes {0} [built]
