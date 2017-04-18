@@ -371,8 +371,6 @@ function getNormalisedFileContent(file, location, test) {
                 .replace(/[\d]+[.][\d]* kB/g, ' A-NUMBER-OF kB')
                 // We also don't want a difference in the number of bytes to fail the build
                 .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
-                // Sometimes "[built]" is written to output, and sometimes not. This should not fail the build
-                .replace(/\s\[built\]/g, '')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
             : normaliseString(originalContent);
