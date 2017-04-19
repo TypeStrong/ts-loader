@@ -245,9 +245,9 @@ module.exports = {
         extensions: ['.ts', '.vue']
     },
     module: {
-        loaders: [
-            { test: /\.vue$/, loader: 'vue' },
-            { test: /\.ts$/, loader: 'ts', options: { appendTsSuffixTo: [/\.vue$/] } }
+        rules: [
+            { test: /\.vue$/, loader: 'vue-loader' },
+            { test: /\.ts$/, loader: 'ts-loader', options: { appendTsSuffixTo: [/\.vue$/] } }
         ]
     } 
 }
