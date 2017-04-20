@@ -46,7 +46,7 @@
     "babel-preset-es2016": "^6.16.0",
     "babel-preset-react": "^6.0.0",
     "escape-string-regexp": "^1.0.3",
-    "fs-extra": "^2.0.0",
+    "fs-extra": "^2.1.0",
     "glob": "^7.1.1",
     "html-webpack-plugin": "^2.17.0",
     "jasmine-core": "^2.5.2",
