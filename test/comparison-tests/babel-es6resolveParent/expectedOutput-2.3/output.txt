@@ -1,0 +1,4 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  3.13 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 251 bytes [entry] [rendered]
+    [0] ./.test/babel-es6resolveParent/index.tsx 251 bytes {0} [built]
