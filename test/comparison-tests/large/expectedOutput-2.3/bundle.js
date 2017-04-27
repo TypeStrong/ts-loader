@@ -90,10 +90,10 @@ exports.doSomething = doSomething;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
 /// <reference path="N.d.ts" />
 /// <reference path="N.d.ts" />
 /// <reference path="B.d.ts" />
-
 exports.__esModule = true;
 N.doSomething();
 N.doSomething();
