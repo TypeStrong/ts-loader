@@ -8,7 +8,7 @@ var execSync = require('child_process').execSync;
 // Don't run the tests if using a version of typescript less than 2.2 or if typescript@next
 // We only want to run comparison tests for the latest released version
 var typescriptVersion = parseFloat(semver.major(typescript.version) + '.' + semver.minor(typescript.version));
-if (typescriptVersion < 2.2  || typescriptVersion > 2.2) return;
+if (typescriptVersion < 2.3  || typescriptVersion > 2.3) return;
 
 // Parse command line arguments
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;

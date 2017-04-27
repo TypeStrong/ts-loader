@@ -1,0 +1,4 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.83 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 198 bytes [entry] [rendered]
+    [0] ./.test/typeSystemWatch/app.ts 198 bytes {0} [built]
