@@ -5,6 +5,8 @@
 
 # TypeScript loader for webpack
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/TypeStrong/ts-loader.svg)](https://greenkeeper.io/)
+
 This is the typescript loader for webpack.
 
 ## Getting Started
