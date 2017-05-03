@@ -217,6 +217,7 @@ export interface TSInstance {
     dependencyGraph: DependencyGraph;
     reverseDependencyGraph: ReverseDependencyGraph;
     filesWithErrors?: TSFiles;
+    transformers: typescript.CustomTransformers;
 }
 
 export interface LoaderOptionsCache {
@@ -255,6 +256,7 @@ export interface LoaderOptions {
     appendTsSuffixTo: RegExp[];
     entryFileIsJs: boolean;
     happyPackMode: boolean;
+    getCustomTransformers?(): typescript.CustomTransformers | undefined;
 }
 
 export interface TSFile {

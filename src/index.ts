@@ -84,6 +84,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         visualStudioErrorFormat: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
+        transformers: {},
         entryFileIsJs: false,
         happyPackMode: false,
     }, configFileOptions, queryOptions);
@@ -185,6 +186,7 @@ function getTranspilationEmit(
 
     const { outputText, sourceMapText, diagnostics } = instance.compiler.transpileModule(contents, {
         compilerOptions: instance.compilerOptions,
+        transformers: instance.transformers,
         reportDiagnostics: true,
         fileName,
     });
