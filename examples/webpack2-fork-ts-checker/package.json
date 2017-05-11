@@ -1,0 +1,14 @@
+{
+  "name": "webpack2-fork-ts-checker",
+  "main": "index.js",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "./node_modules/.bin/webpack --watch"
+  },
+  "devDependencies": {
+    "fork-ts-checker-webpack-plugin": "^0.1.2",
+    "ts-loader": "^2.0.3",
+    "typescript": "^2.2.2",
+    "webpack": "^2.2.0"
+  }
+}

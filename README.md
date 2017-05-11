@@ -294,6 +294,19 @@ The same basic process is required for code splitting. In this case, you `import
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
 
+### Faster incremental builds
+
+As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect
+all files on every rebuild. 
+
+The simple solution is to disable it by `transpileOnly: true` option but it leaves you without type checking.
+
+If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).
+It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make
+incremental type checking faster (AST cache, multiple workers).
+
+If you'd like to see a simple setup take a look at [our example](examples/webpack2-fork-ts-checker/).
+
 ## License
 
 MIT License
