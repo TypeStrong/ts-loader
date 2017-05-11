@@ -302,8 +302,8 @@ all files on every rebuild.
 The simple solution is to disable it by `transpileOnly: true` option but it leaves you without type checking.
 
 If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).
-It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has implemented several optimizations 
-to make incremental type checking faster (AST cache, multiple workers).
+It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make
+incremental type checking faster (AST cache, multiple workers).
 
 If you'd like to see a simple setup take a look at [our example](examples/webpack2-fork-ts-checker/).
 
