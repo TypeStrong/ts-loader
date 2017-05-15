@@ -19,24 +19,13 @@ Take a look at our [examples](examples/).  You can also find some older tutorial
 
 ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
 
-A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against the following versions of TypeScript:
-- TypeScript 2.2
-- TypeScript 2.1
-- TypeScript 2.0
-- TypeScript 1.8
-- TypeScript 1.7
-- TypeScript 1.6
-
-and also:
-- TypeScript@next (because we want to use it as much as you do)
+A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against each major release of TypeScript from the latest right back to 1.6.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 
 #### Webpack
 
-ts-loader was originally designed for Webpack 1.  It may well still work with webpack 1 but it does not officially support webpack 1 any more.  All development now targets webpack 2.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
-
-If you'd like to see a setup that works with webpack 2 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma) or at some of our [tests](test/comparison-tests); they all target webpack 2.
+ts-loader targets webpack 2.  It may well still work with webpack 1 but it does not officially support webpack 1 any longer.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
 
 #### `LoaderOptionsPlugin`
 
