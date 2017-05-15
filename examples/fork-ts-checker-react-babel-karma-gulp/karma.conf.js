@@ -8,7 +8,6 @@ var ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpa
 module.exports = function (config) {
   var forkTsCheckerOptions = {
     blockEmit: true,
-    // tslint: true,
     watch: ['./test'] // optional but improves performance (less stat calls)
   };
   var plugins = config.singleRun
