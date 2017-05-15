@@ -20,7 +20,7 @@ gulp.task('build-other', ['delete-dist'], function() {
   staticFiles.build();
 });
 
-gulp.task('build', ['build-js', 'build-other', 'lint'], function () {
+gulp.task('build', ['build-js', 'build-other'], function () {
   inject.build();
 });
 

@@ -12,10 +12,6 @@ class Greeting extends React.Component<Props, any> {
     super(props);
   }
 
-  static propTypes: React.ValidationMap<Props> = {
-    targetOfGreeting: React.PropTypes.string.isRequired
-  }
-
   render() {
     return (
       <p>

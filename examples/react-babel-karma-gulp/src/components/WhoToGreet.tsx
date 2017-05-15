@@ -11,10 +11,6 @@ class WhoToGreet extends React.Component<Props, any> {
     super(props);
   }
 
-  static propTypes: React.ValidationMap<Props> = {
-    newGreeting: React.PropTypes.string.isRequired
-  }
-
   render() {
     return (
         <form role="form">
