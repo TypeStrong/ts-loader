@@ -48,7 +48,7 @@ It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be 
 
 ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples).
 
-Alternatively take a look at this [webpack 2 example](examples/webpack2-gulp-react-flux-babel-karma).
+Alternatively take a look at this [webpack 2 example](examples/react-babel-karma-gulp).
 
 ### Contributing
 
