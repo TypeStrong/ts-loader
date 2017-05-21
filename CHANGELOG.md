@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.1.0
+
+- [Add happypack compatibility mode](https://github.com/TypeStrong/ts-loader/pull/547) - thanks @aindlq!
+
 ## v2.0.3
 
 - [Don't include appended TS extension in webpack dependencies](https://github.com/TypeStrong/ts-loader/pull/497) - thanks again @wearymonkey!

@@ -17,7 +17,7 @@ Take a look at our [examples](examples/).  You can also find some older tutorial
 
 #### TypeScript
 
-ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
+ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  
 
 A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against each major release of TypeScript from the latest right back to 1.6.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
@@ -171,6 +171,10 @@ different dependencies in your application will be lost. You should also
 set the `isolatedModules` TypeScript option if you plan to ever make use
 of this.
 
+##### happyPackMode *(boolean) (default=false)*
+
+Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
+
 ##### logInfoToStdOut *(boolean) (default=false)*
 
 This is important if you read from stdout or stderr and for proper error handling.
@@ -214,10 +218,6 @@ as you would do for the `compilerOptions` property in tsconfig.json.
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
-
-##### happyPackMode *(boolean) (default=false)*
-
-Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
 
 #### entryFileIsJs *(boolean) (default=false)*
 
@@ -289,16 +289,14 @@ See [this example](test/comparison-tests/codeSplitting) and [this example](test/
 
 ### Faster incremental builds
 
-As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect
-all files on every rebuild. 
+As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. 
 
 The simple solution is to disable it by `transpileOnly: true` option but it leaves you without type checking.
 
 If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).
-It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make
-incremental type checking faster (AST cache, multiple workers).
+It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make incremental type checking faster (AST cache, multiple workers).
 
-If you'd like to see a simple setup take a look at [our example](examples/webpack2-fork-ts-checker/).
+If you'd like to see a simple setup take a look at [our simple example](examples/webpack2-fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples\fork-ts-checker-react-babel-karma-gulp).
 
 ## License
 
