@@ -43,10 +43,13 @@ function loader(this: interfaces.Webpack, contents: string) {
 
     const { sourceMap, output } = makeSourceMap(sourceMapText, outputText, filePath, contents, this);
 
-    // Make sure webpack is aware that even though the emitted JavaScript may be the same as
-    // a previously cached version the TypeScript may be different and therefore should be
-    // treated as new
-    this._module.meta.tsLoaderFileVersion = fileVersion;
+    // _module.meta is not available inside happypack
+    if (!options.happyPackMode) {
+      // Make sure webpack is aware that even though the emitted JavaScript may be the same as
+      // a previously cached version the TypeScript may be different and therefore should be
+      // treated as new
+      this._module.meta.tsLoaderFileVersion = fileVersion;
+    }
 
     callback(null, output, sourceMap);
 }
@@ -82,11 +85,15 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         compilerOptions: {},
         appendTsSuffixTo: [],
         entryFileIsJs: false,
+        happyPackMode: false,
     }, configFileOptions, queryOptions);
 
     options.ignoreDiagnostics = utils.arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
     options.instance = instanceName;
+
+    // happypack can be used only together with transpileOnly mode
+    options.transpileOnly = options.happyPackMode ? true : options.transpileOnly;
 
     loaderOptionsCache[instanceName] = options;
 
@@ -182,10 +189,13 @@ function getTranspilationEmit(
         fileName,
     });
 
-    utils.registerWebpackErrors(
-        loader._module.errors,
-        utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
-    );
+    // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
+    if (!instance.loaderOptions.happyPackMode) {
+        utils.registerWebpackErrors(
+            loader._module.errors,
+            utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
+        );
+    }
 
     return { outputText, sourceMapText };
 }
