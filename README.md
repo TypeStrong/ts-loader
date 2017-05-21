@@ -215,6 +215,10 @@ Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
 
+##### happyPackMode *(boolean) (default=false)*
+
+Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode, that implicitly set `*traspileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (tsconfig.json parsing errors, dependency resolution errors, etc.). 
+
 #### entryFileIsJs *(boolean) (default=false)*
 
 To be used in concert with the `allowJs` compiler option. If your entry file is JS then you'll need to set this option to true.  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.

@@ -1,0 +1,3 @@
+module.exports = {
+    doSomething: function() { }   
+}

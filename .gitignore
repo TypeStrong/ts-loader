@@ -12,4 +12,5 @@ npm-debug.log
 !/test/**/expectedOutput-*/**
 /**/node_modules
 /**/dist
+/**/.happypack
 !build.js

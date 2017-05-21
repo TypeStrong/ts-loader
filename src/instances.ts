@@ -49,7 +49,7 @@ export function getTypeScriptInstance(
 
     if (configParseResult.errors.length) {
         utils.registerWebpackErrors(
-            loader._module.errors,
+            loaderOptions.happyPackMode ? [] : loader._module.errors, // see https://github.com/TypeStrong/ts-loader/issues/336
             utils.formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
 
         return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
@@ -65,7 +65,7 @@ export function getTypeScriptInstance(
         const diagnostics = program.getOptionsDiagnostics();
 
         utils.registerWebpackErrors(
-            loader._module.errors,
+            loaderOptions.happyPackMode ? [] : loader._module.errors, // see https://github.com/TypeStrong/ts-loader/issues/336
             utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
 
         return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {} }};
