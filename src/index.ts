@@ -91,7 +91,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
     options.logLevel = options.logLevel.toUpperCase();
     options.instance = instanceName;
 
-    // happypack can be used only together with traspileOnly mode
+    // happypack can be used only together with transpileOnly mode
     options.transpileOnly = options.happyPackMode ? true : options.transpileOnly;
 
     loaderOptionsCache[instanceName] = options;
@@ -189,7 +189,8 @@ function getTranspilationEmit(
     });
 
     utils.registerWebpackErrors(
-        instance.loaderOptions.happyPackMode ? [] : loader._module.errors, // see https://github.com/TypeStrong/ts-loader/issues/336
+        // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
+        instance.loaderOptions.happyPackMode ? [] : loader._module.errors,
         utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
     );
 
