@@ -217,7 +217,7 @@ of your code.
 
 ##### happyPackMode *(boolean) (default=false)*
 
-Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode, that implicitly set `*traspileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (tsconfig.json parsing errors, dependency resolution errors, etc.). 
+Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
 
 #### entryFileIsJs *(boolean) (default=false)*
 
