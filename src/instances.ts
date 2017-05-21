@@ -47,9 +47,9 @@ export function getTypeScriptInstance(
 
     const configParseResult = config.getConfigParseResult(compiler, configFile, configFilePath);
 
-    if (configParseResult.errors.length) {
+    if (configParseResult.errors.length && !loaderOptions.happyPackMode) {
         utils.registerWebpackErrors(
-            loaderOptions.happyPackMode ? [] : loader._module.errors, // see https://github.com/TypeStrong/ts-loader/issues/336
+            loader._module.errors,
             utils.formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
 
         return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
@@ -64,10 +64,13 @@ export function getTypeScriptInstance(
         const program = compiler.createProgram([], compilerOptions);
         const diagnostics = program.getOptionsDiagnostics();
 
-        utils.registerWebpackErrors(
-            loaderOptions.happyPackMode ? [] : loader._module.errors, // see https://github.com/TypeStrong/ts-loader/issues/336
-            utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
-
+        // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
+        if (!loaderOptions.happyPackMode) {
+            utils.registerWebpackErrors(
+                loader._module.errors,
+                utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
+        }
+        
         return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {} }};
     }
 
