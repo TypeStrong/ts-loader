@@ -50,6 +50,7 @@ function loader(this: interfaces.Webpack, contents: string) {
       // treated as new
       this._module.meta.tsLoaderFileVersion = fileVersion;
     }
+
     callback(null, output, sourceMap);
 }
 
@@ -188,11 +189,13 @@ function getTranspilationEmit(
         fileName,
     });
 
-    utils.registerWebpackErrors(
-        // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
-        instance.loaderOptions.happyPackMode ? [] : loader._module.errors,
-        utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
-    );
+    // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
+    if (!instance.loaderOptions.happyPackMode) {
+        utils.registerWebpackErrors(
+            loader._module.errors,
+            utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
+        );
+    }
 
     return { outputText, sourceMapText };
 }
