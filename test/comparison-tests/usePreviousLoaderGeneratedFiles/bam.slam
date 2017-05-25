@@ -1,0 +1,2 @@
+var bam = 'slam';
+exports.bam = bam;
