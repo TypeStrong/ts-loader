@@ -10,6 +10,7 @@ npm-debug.log
 /.vscode/
 /test/execution-tests/**/typings
 !/test/**/expectedOutput-*/**
-/node_modules
-/dist
+/**/node_modules
+/**/dist
+/**/.happypack
 !build.js

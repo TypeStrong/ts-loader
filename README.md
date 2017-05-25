@@ -5,6 +5,8 @@
 
 # TypeScript loader for webpack
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/TypeStrong/ts-loader.svg)](https://greenkeeper.io/)
+
 This is the typescript loader for webpack.
 
 ## Getting Started
@@ -15,26 +17,15 @@ Take a look at our [examples](examples/).  You can also find some older tutorial
 
 #### TypeScript
 
-ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  (Including the [nightly build](http://blogs.msdn.com/b/typescript/archive/2015/07/27/introducing-typescript-nightlies.aspx).)
+ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  
 
-A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against the following versions of TypeScript:
-- TypeScript 2.2
-- TypeScript 2.1
-- TypeScript 2.0
-- TypeScript 1.8
-- TypeScript 1.7
-- TypeScript 1.6
-
-and also:
-- TypeScript@next (because we want to use it as much as you do)
+A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against each major release of TypeScript from the latest right back to 1.6.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 
 #### Webpack
 
-ts-loader was originally designed for Webpack 1.  It may well still work with webpack 1 but it does not officially support webpack 1 any more.  All development now targets webpack 2.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
-
-If you'd like to see a setup that works with webpack 2 take a look [at our example](examples/webpack2-gulp-react-flux-babel-karma) or at some of our [tests](test/comparison-tests); they all target webpack 2.
+ts-loader targets webpack 2.  It may well still work with webpack 1 but it does not officially support webpack 1 any longer.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
 
 #### `LoaderOptionsPlugin`
 
@@ -57,7 +48,7 @@ It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be 
 
 ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples).
 
-Alternatively take a look at this [webpack 2 example](examples/webpack2-gulp-react-flux-babel-karma).
+Alternatively take a look at this [webpack 2 example](examples/react-babel-karma-gulp).
 
 ### Contributing
 
@@ -180,6 +171,10 @@ different dependencies in your application will be lost. You should also
 set the `isolatedModules` TypeScript option if you plan to ever make use
 of this.
 
+##### happyPackMode *(boolean) (default=false)*
+
+Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
+
 ##### logInfoToStdOut *(boolean) (default=false)*
 
 This is important if you read from stdout or stderr and for proper error handling.
@@ -245,9 +240,9 @@ module.exports = {
         extensions: ['.ts', '.vue']
     },
     module: {
-        loaders: [
-            { test: /\.vue$/, loader: 'vue' },
-            { test: /\.ts$/, loader: 'ts', options: { appendTsSuffixTo: [/\.vue$/] } }
+        rules: [
+            { test: /\.vue$/, loader: 'vue-loader' },
+            { test: /\.ts$/, loader: 'ts-loader', options: { appendTsSuffixTo: [/\.vue$/] } }
         ]
     } 
 }
@@ -291,6 +286,17 @@ require('!style!css!./style.css');
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
+
+### Faster incremental builds
+
+As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. 
+
+The simple solution is to disable it by `transpileOnly: true` option but it leaves you without type checking.
+
+If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).
+It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make incremental type checking faster (AST cache, multiple workers).
+
+If you'd like to see a simple setup take a look at [our simple example](examples/webpack2-fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples\fork-ts-checker-react-babel-karma-gulp).
 
 ## License
 

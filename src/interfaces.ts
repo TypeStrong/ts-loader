@@ -271,6 +271,7 @@ export interface LoaderOptions {
     appendTsSuffixTo: RegExp[];
     entryFileIsJs: boolean;
     usePreviousLoaderGeneratedFiles: boolean;
+    happyPackMode: boolean;
 }
 
 export interface TSFile {
