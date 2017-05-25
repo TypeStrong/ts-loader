@@ -138,15 +138,15 @@ function getGeneratedFiles(loader: interfaces.Webpack) {
  * Remove dependencies specified by argument exclude.
  */
 function removeDependencies(loader: interfaces.Webpack, exclude: (filePath: string) => boolean): void {
-    const dependencies = loader.getDependencies();
-    const contextDependencies = loader.getContextDependencies();
+    const dependenciesToPreserve = loader.getDependencies();
+    const contextDependenciesToPreserve = loader.getContextDependencies();
     loader.clearDependencies();
-    for (const filePath of dependencies) {
-        if (!exclude(filePath)) {
-            loader.addDependency(filePath);
+    for (const dependency of dependenciesToPreserve) {
+        if (!exclude(dependency)) {
+            loader.addDependency(dependency);
         }
     }
-    for (const contextPath of contextDependencies) {
+    for (const contextPath of contextDependenciesToPreserve) {
         if (!exclude(contextPath)) {
             loader.addContextDependency(contextPath);
         }
