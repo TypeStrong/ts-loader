@@ -32,6 +32,8 @@
 /******/ 		1: 0
 /******/ 	};
 /******/
+/******/ 	var resolvedPromise = new Promise(function(resolve) { resolve(); });
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/
@@ -60,7 +62,7 @@
 /******/ 	// The chunk loading function for additional chunks
 /******/ 	__webpack_require__.e = function requireEnsure(chunkId) {
 /******/ 		if(installedChunks[chunkId] === 0) {
-/******/ 			return Promise.resolve();
+/******/ 			return resolvedPromise;
 /******/ 		}
 /******/
 /******/ 		// a Promise means "currently loading".
