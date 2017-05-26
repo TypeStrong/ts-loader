@@ -112,7 +112,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 The [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
-same options.
+same options. For ts-loader to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap: true`.
 
 ### Failing the build on TypeScript compilation error
 
