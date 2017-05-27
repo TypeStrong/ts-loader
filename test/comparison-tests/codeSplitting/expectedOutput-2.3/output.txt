@@ -1,6 +1,6 @@
       Asset       Size  Chunks             Chunk Names
 0.bundle.js  249 bytes       0  [emitted]  
-  bundle.js     6.8 kB       1  [emitted]  main
+  bundle.js    6.89 kB       1  [emitted]  main
 chunk    {0} 0.bundle.js 72 bytes {1} [rendered]
     [0] ./.test/codeSplitting/c.ts 36 bytes {0} [built]
     [1] ./.test/codeSplitting/d.ts 36 bytes {0} [built]
