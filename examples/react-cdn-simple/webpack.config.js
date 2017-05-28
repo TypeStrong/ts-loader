@@ -15,7 +15,7 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: [ '.ts', '.tsx' ]
+        extensions: [ '.ts', '.tsx', 'js' ]
     },
     externals: {
         'react': 'React',

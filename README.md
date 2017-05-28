@@ -173,7 +173,9 @@ of this.
 
 ##### happyPackMode *(boolean) (default=false)*
 
-Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
+Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). It's advisable to use happypack alongside [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again.
+
+If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-happypack).
 
 ##### logInfoToStdOut *(boolean) (default=false)*
 
@@ -296,7 +298,7 @@ The simple solution is to disable it by `transpileOnly: true` option but it leav
 If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).
 It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make incremental type checking faster (AST cache, multiple workers).
 
-If you'd like to see a simple setup take a look at [our simple example](examples/webpack2-fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples\fork-ts-checker-react-babel-karma-gulp).
+If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-fork-ts-checker).
 
 ## License
 

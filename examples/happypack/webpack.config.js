@@ -1,6 +1,7 @@
 'use strict';
 
 var process = require('process');
+var HappyPack = require('happypack');
 var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
@@ -11,17 +12,25 @@ module.exports = {
         rules: [
             {
                 test: /\.tsx?$/,
-                loader: 'ts-loader',
-                options: {
-                    transpileOnly: true // IMPORTANT! use transpileOnly mode to speed-up compilation
-                }
+                exclude: /node_modules/,
+                loader: 'happypack/loader?id=ts'
             }
         ]
     },
     resolve: {
-        extensions: [ '.ts', '.tsx', 'js' ]
+        extensions: ['.ts', '.tsx', 'js']
     },
     plugins: [
+        new HappyPack({
+            id: 'ts',
+            threads: 2,
+            loaders: [
+                {
+                    path: 'ts-loader',
+                    query: { happyPackMode: true }
+                }
+            ]
+        }),
         new ForkTsCheckerWebpackPlugin({
             tslint: false, // disable tslint support
             watch: './src', // optional but improves performance (less stat calls)

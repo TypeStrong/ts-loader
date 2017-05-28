@@ -1,5 +1,5 @@
 {
-  "name": "webpack2-fork-ts-checker",
+  "name": "webpack2-happypack",
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {
@@ -7,6 +7,7 @@
   },
   "devDependencies": {
     "fork-ts-checker-webpack-plugin": "^0.1.2",
+    "happypack": "^3.1.0",
     "ts-loader": "^2.0.3",
     "typescript": "^2.2.2",
     "webpack": "^2.2.0"
