@@ -2,22 +2,14 @@
 'use strict';
 
 var webpackConfig = require('./webpack.config.js');
-var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-var ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 
 module.exports = function (config) {
-  var forkTsCheckerOptions = {
-    blockEmit: true,
-    watch: ['./test'] // optional but improves performance (less stat calls)
-  };
-  var plugins = config.singleRun
-    ? [
-      new ForkTsCheckerWebpackPlugin(forkTsCheckerOptions)
-    ]
-    : [
-      new ForkTsCheckerNotifierWebpackPlugin({ title: 'Tests Build', excludeWarnings: false }),
-      new ForkTsCheckerWebpackPlugin(Object.assign({}, forkTsCheckerOptions, { blockEmit: false }))
-    ];
+
+  var plugins = [].concat(webpackConfig.plugins);
+
+  // https://github.com/webpack-contrib/karma-webpack/issues/24#issuecomment-257613167
+  var commonsChunkPluginIndex = plugins.findIndex(plugin => plugin.chunkNames);
+  plugins.splice(commonsChunkPluginIndex, 1);
 
   // Documentation: https://karma-runner.github.io/0.13/config/configuration-file.html
   config.set({
