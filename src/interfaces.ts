@@ -270,7 +270,6 @@ export interface LoaderOptions {
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
     entryFileIsJs: boolean;
-    usePreviousLoaderGeneratedFiles: boolean;
     happyPackMode: boolean;
 }
 

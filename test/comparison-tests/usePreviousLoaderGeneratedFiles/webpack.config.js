@@ -16,7 +16,6 @@ module.exports = {
                     {
                         loader: 'ts-loader',
                         options: {
-                            usePreviousLoaderGeneratedFiles: true,
                             silent: true
                         }
                     },
