@@ -1,2 +1,2 @@
-import slam = require('./bam.slam');
-const bam: string = slam.bam;
+import html = require('./foo.html');
+console.log(html);

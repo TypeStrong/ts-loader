@@ -70,8 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-var bam = 'slam';
-exports.bam = bam;
+module.exports = "<html>\r\n</html>"
 
 /***/ }),
 /* 1 */
@@ -80,8 +79,8 @@ exports.bam = bam;
 "use strict";
 
 exports.__esModule = true;
-var slam = __webpack_require__(0);
-var bam = slam.bam;
+var html = __webpack_require__(0);
+console.log(html);
 
 
 /***/ })

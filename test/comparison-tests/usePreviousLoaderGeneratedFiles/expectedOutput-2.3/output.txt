@@ -1,5 +1,5 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.85 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 132 bytes [entry] [rendered]
-    [0] ./.test/usePreviousLoaderGeneratedFiles/bam.slam 37 bytes {0} [built]
-    [1] ./.test/usePreviousLoaderGeneratedFiles/app.ts 95 bytes {0} [built]
+bundle.js  2.84 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 130 bytes [entry] [rendered]
+    [0] ./.test/usePreviousLoaderGeneratedFiles/foo.html 36 bytes {0} [built]
+    [1] ./.test/usePreviousLoaderGeneratedFiles/app.ts 94 bytes {0} [built]

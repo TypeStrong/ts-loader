@@ -1,15 +1,17 @@
-var path = require('path')
-
 module.exports = {
     entry: './app.ts',
     output: {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.ts', '.js', '.slam']
+        extensions: ['.ts', '.js']
     },
     module: {
         rules: [
+            {
+                test: /\.html?$/,
+                loader: './raw-loader'
+            },
             {
                 test: /\.tsx?$/,
                 use: [
@@ -20,7 +22,7 @@ module.exports = {
                         }
                     },
                     {
-                        loader: './ts-slam-loader'
+                        loader: './my-ts-html-loader'
                     }
                 ]
             }
