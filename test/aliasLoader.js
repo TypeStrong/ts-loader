@@ -6,7 +6,7 @@ module.exports = function aliasLoaderWithOptions(config, tsLoaderPath, options) 
                 if (use.loader.indexOf('ts-loader') !== -1) {
                     use.loader = use.loader.replace('ts-loader', tsLoaderPath);
                     if (options) {
-                        use.options = Object.assign({}, options, rule.options);
+                        use.options = Object.assign({}, options, use.options);
                     }
                 }
             })
