@@ -70,7 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-module.exports = "<html>\r\n</html>"
+module.exports = "<html></html>"
 
 /***/ }),
 /* 1 */
