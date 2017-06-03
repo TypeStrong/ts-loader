@@ -11,44 +11,28 @@ This is the typescript loader for webpack.
 
 ## Getting Started
 
-Take a look at our [examples](examples/).  You can also find some older tutorials and examples [here](https://github.com/TypeStrong/ts-loader/wiki/Tutorials-&-Examples).
+### Examples
 
-### Compatibility
+We have a number of example setups to accomodate different workflows.  From "vanilla" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process . 
 
-#### TypeScript
-
-ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  
-
-A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against each major release of TypeScript from the latest right back to 1.6.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
-
-If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
-
-#### Webpack
-
-ts-loader targets webpack 2.  It may well still work with webpack 1 but it does not officially support webpack 1 any longer.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
-
-#### `LoaderOptionsPlugin`
-
-[There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
- 		
- ```js		
- new LoaderOptionsPlugin({		
-   debug: false,		
-   options: {		
-     resolve: {
-       extensions: ['.ts', '.tsx', '.js']
-     }	
-   }		
- })		
- ```
-
-It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/).  You may want to look at removing it entirely.
+Take a look at our [examples](examples/).
 
 ### Babel
 
 ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples).
 
-Alternatively take a look at this [webpack 2 example](examples/react-babel-karma-gulp).
+Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
+
+### Faster incremental builds
+
+As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. The simple solution is to disable it by `transpileOnly: true` option but it leaves you without type checking.
+
+If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin). It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make incremental type checking faster (AST cache, multiple workers).
+
+If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-fork-ts-checker).
+
+If you'd like to make things even faster still then you might want to consider using ts-loader with [happypack](https://github.com/amireh/happypack) which speeds builds by parallelising work.  (This should be used in combination with  [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)  If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-happypack).
+
 
 ### Contributing
 
@@ -64,13 +48,6 @@ You will also need to install TypeScript if you have not already.
 
 ```
 npm install typescript
-```
-
-or if you want to install TypeScript globally
-
-```
-npm install typescript -g
-npm link typescript
 ```
 
 ### Running
@@ -106,13 +83,43 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
     ```json
     {
       "compilerOptions": {
+        "sourceMap": true
       }
     }
     ```
 
 The [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
-same options. For ts-loader to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap: true`.
+same options. For ts-loader to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap": true`.
+
+### Compatibility
+
+#### TypeScript / Webpack
+
+ts-loader supports the latest and greatest version of TypeScript right back to v1.6.  
+
+ts-loader supports webpack 2.  It may well still work with webpack 1 but it does not officially support webpack 1 any longer.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
+
+A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against each major release of TypeScript from the latest right back to 1.6.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
+
+If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
+
+#### `LoaderOptionsPlugin`
+
+[There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
+ 		
+ ```js		
+ new LoaderOptionsPlugin({		
+   debug: false,		
+   options: {		
+     resolve: {
+       extensions: ['.ts', '.tsx', '.js']
+     }	
+   }		
+ })		
+ ```
+
+It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/).  You may want to look at removing it entirely.
 
 ### Failing the build on TypeScript compilation error
 
@@ -288,17 +295,6 @@ require('!style!css!./style.css');
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
 don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
 See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
-
-### Faster incremental builds
-
-As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. 
-
-The simple solution is to disable it by `transpileOnly: true` option but it leaves you without type checking.
-
-If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).
-It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make incremental type checking faster (AST cache, multiple workers).
-
-If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-fork-ts-checker).
 
 ## License
 

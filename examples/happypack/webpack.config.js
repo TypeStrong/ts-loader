@@ -1,6 +1,5 @@
 'use strict';
 
-var process = require('process');
 var HappyPack = require('happypack');
 var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
@@ -31,11 +30,6 @@ module.exports = {
                 }
             ]
         }),
-        new ForkTsCheckerWebpackPlugin({
-            tslint: false, // disable tslint support
-            watch: './src', // optional but improves performance (less stat calls)
-            workers: ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE, // use multi-process mode, leave 2 cpu's free for builder and system
-            blockEmit: process.env.NODE_ENV === 'production' // for production make it synchronous
-        })
+        new ForkTsCheckerWebpackPlugin()
     ]
 };
