@@ -29,9 +29,9 @@ As your project becomes bigger and bigger, compilation time increases linearly. 
 
 If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin). It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make incremental type checking faster (AST cache, multiple workers).
 
-If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-fork-ts-checker).
+If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-fork-ts-checker).
 
-If you'd like to make things even faster still then you might want to consider using ts-loader with [happypack](https://github.com/amireh/happypack) which speeds builds by parallelising work.  (This should be used in combination with  [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)  If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-happypack).
+If you'd like to make things even faster still then you might want to consider using ts-loader with [happypack](https://github.com/amireh/happypack) which speeds builds by parallelising work.  (This should be used in combination with  [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)  If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
 
 
 ### Contributing
