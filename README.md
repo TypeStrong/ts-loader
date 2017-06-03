@@ -182,7 +182,7 @@ of this.
 
 Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
 
-It's advisable to use happypack alongside [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples\react-babel-karma-gulp-happypack).
+It's advisable to use happypack alongside [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/happypack). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
 
 ##### logInfoToStdOut *(boolean) (default=false)*
 
