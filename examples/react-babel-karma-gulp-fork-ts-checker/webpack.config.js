@@ -1,6 +1,7 @@
 'use strict';
 
 var path = require('path');
+var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 var babelOptions = {
   "presets": [
@@ -58,6 +59,10 @@ module.exports = {
     }]
   },
   plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      tslint: true,
+      watch: ['./src', './test'] // optional but improves performance (less stat calls)
+    })
   ],
   resolve: {
     extensions: ['.ts', '.tsx', '.js']
