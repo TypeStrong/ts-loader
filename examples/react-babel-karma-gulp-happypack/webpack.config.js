@@ -1,6 +1,7 @@
 'use strict';
 
 var path = require('path');
+var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 var HappyPack = require('happypack');
 
 var babelOptions = {
@@ -45,6 +46,10 @@ module.exports = {
     }]
   },
   plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      tslint: true,
+      watch: ['./src', './test'] // optional but improves performance (less stat calls)
+    }),
     new HappyPack({
       id: 'ts',
       threads: 2,
