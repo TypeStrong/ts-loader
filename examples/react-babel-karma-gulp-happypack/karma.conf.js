@@ -1,7 +1,7 @@
 /* eslint-disable no-var, strict */
 'use strict';
 
-var webpackConfig = require('./webpack.config.js');
+var webpackConfig = require('./webpack.config.base.js');
 
 module.exports = function (config) {
 

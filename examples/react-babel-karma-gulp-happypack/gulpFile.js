@@ -1,4 +1,3 @@
-/* eslint-disable no-var, strict, prefer-arrow-callback */
 'use strict';
 
 var gulp = require('gulp');
@@ -9,14 +8,12 @@ var tests = require('./gulp/tests');
 var clean = require('./gulp/clean');
 var inject = require('./gulp/inject');
 
-var lintSrcs = ['./gulp/**/*.js'];
-
 gulp.task('delete-dist', function (done) {
   clean.run(done);
 });
 
 gulp.task('build-js', ['delete-dist'], function(done) {
-  webpack.build().then(function() { done(); });
+  webpack.build(done);
 });
 
 gulp.task('build-other', ['delete-dist'], function() {
@@ -27,24 +24,17 @@ gulp.task('build', ['build-js', 'build-other'], function () {
   inject.build();
 });
 
-gulp.task('watch', ['delete-dist'], function(done) {
-  process.env.NODE_ENV = 'development';
-  Promise.all([
-    webpack.watch()//,
-    //less.watch()
-  ]).then(function() {
-    gutil.log('Now that initial assets (js and css) are generated inject will start...');
-    inject.watch();
-    done();
-  }).catch(function(error) {
-    gutil.log('Problem generating initial assets (js and css)', error);
-  });
+gulp.task('watch-js', ['delete-dist'], function (done) {
+  webpack.watch(done)
+});
 
+gulp.task('watch', ['watch-js'], function() {
+  inject.watch();
   staticFiles.watch();
   tests.watch();
 });
 
-gulp.task('watch-and-serve', ['watch'], function() {
+gulp.task('serve', ['watch'], function() {
   // local as not required for build
   var express = require('express')
   var app = express()
