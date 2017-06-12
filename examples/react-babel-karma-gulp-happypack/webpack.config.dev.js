@@ -1,7 +1,7 @@
 'use strict';
 
 var webpack = require('webpack');
-var WebpackNotifierPlugin = require('webpack-notifier');
+var ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 var webpackConfig = require('./webpack.config.base.js');
 
 module.exports = function() {
@@ -10,7 +10,7 @@ module.exports = function() {
 
   myDevConfig.plugins = myDevConfig.plugins.concat(
     new webpack.optimize.CommonsChunkPlugin({ name: 'vendor', filename: 'vendor.js' }),
-    new WebpackNotifierPlugin({ title: 'Webpack build', excludeWarnings: true })
+    new ForkTsCheckerNotifierWebpackPlugin({ title: 'Webpack build', excludeWarnings: true })
   );
 
   return myDevConfig;
