@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "karma start --reporters mocha,junit --single-run --browsers PhantomJS",
-    "serve": "gulp watch-and-serve",
+    "serve": "gulp serve",
     "watch": "gulp watch",
     "build": "gulp build"
   },

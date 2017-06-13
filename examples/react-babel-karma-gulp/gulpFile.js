@@ -13,7 +13,7 @@ gulp.task('delete-dist', function (done) {
 });
 
 gulp.task('build-js', ['delete-dist'], function(done) {
-  webpack.build().then(function() { done(); });
+  webpack.build(done);
 });
 
 gulp.task('build-other', ['delete-dist'], function() {
@@ -24,22 +24,17 @@ gulp.task('build', ['build-js', 'build-other'], function () {
   inject.build();
 });
 
-gulp.task('watch', ['delete-dist'], function(done) {
-  Promise.all([
-    webpack.watch()
-  ]).then(function() {
-    gutil.log('Now that initial assets (js and css) are generated inject will start...');
-    inject.watch();
-    done();
-  }).catch(function(error) {
-    gutil.log('Problem generating initial assets (js and css)', error);
-  });
+gulp.task('watch-js', ['delete-dist'], function (done) {
+  webpack.watch(done)
+});
 
+gulp.task('watch', ['watch-js'], function() {
+  inject.watch();
   staticFiles.watch();
   tests.watch();
 });
 
-gulp.task('watch-and-serve', ['watch'], function() {
+gulp.task('serve', ['watch'], function() {
   // local as not required for build
   var express = require('express')
   var app = express()
