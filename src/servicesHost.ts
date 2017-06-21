@@ -69,10 +69,11 @@ function makeServicesHost(
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
         log: log.log,
-        resolveModuleNames: (moduleNames: string[], containingFile: string) => 
+        resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
-                moduleNames, containingFile)
+                moduleNames, containingFile),
+        getCustomTransformers: () => instance.transformers
     };
 }
 
@@ -85,7 +86,7 @@ function resolveModuleNames(
     moduleNames: string[],
     containingFile: string
 ) {
-    const resolvedModules = moduleNames.map(moduleName => 
+    const resolvedModules = moduleNames.map(moduleName =>
         resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
             moduleName, containingFile)
     );
@@ -106,7 +107,7 @@ function resolveModuleName(
     containingFile: string
 ) {
     const { compiler, compilerOptions } = instance;
-    
+
     let resolutionResult: interfaces.ResolvedModule;
 
     try {

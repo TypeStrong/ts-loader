@@ -58,6 +58,8 @@ export function getTypeScriptInstance(
     const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler, configParseResult);
     const files: interfaces.TSFiles = {};
 
+    const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
+
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
         // we do need to check for any issues with TS options though
@@ -70,8 +72,8 @@ export function getTypeScriptInstance(
                 loader._module.errors,
                 utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
         }
-        
-        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {} }};
+
+        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() }};
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -103,6 +105,7 @@ export function getTypeScriptInstance(
         files,
         languageService: null,
         version: 0,
+        transformers: getCustomTransformers(),
         dependencyGraph: {},
         reverseDependencyGraph: {},
         modifiedFiles: null,
