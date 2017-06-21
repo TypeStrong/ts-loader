@@ -70,7 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-var message = "HELLO FROM ME!";
+var message = "Hello from us!";
 console.log(message);
 
 

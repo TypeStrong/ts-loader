@@ -1,2 +1,2 @@
-import submodule = require('./submodule/submodule');
-console.log(submodule);
+var message = "Hello from me!"
+console.log(message);

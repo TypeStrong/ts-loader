@@ -1,5 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  2.92 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 193 bytes [entry] [rendered]
-    [0] ./.test/customTransformer/submodule/submodule.ts 78 bytes {0} [built]
-    [1] ./.test/customTransformer/app.ts 115 bytes {0} [built]
