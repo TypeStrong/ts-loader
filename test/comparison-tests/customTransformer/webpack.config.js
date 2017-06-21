@@ -1,11 +1,6 @@
 var path = require('path')
 
-// 1. import default from the plugin module
-var createStyledComponentsTransformer = require('./uppercaseStringLiteralTransformer').default;
-
-// 2. create a transformer;
-// the factory additionally accepts an options object which described below
-var styledComponentsTransformer = createStyledComponentsTransformer();
+var uppercaseStringLiteralTransformer = require('./uppercaseStringLiteralTransformer').default;
 
 module.exports = {
     entry: './app.ts',
@@ -22,7 +17,7 @@ module.exports = {
                 loader: 'ts-loader',
                 options: {
                     getCustomTransformers: () => ({ // note parens
-                        before: [styledComponentsTransformer]
+                        before: [uppercaseStringLiteralTransformer]
                     })
                 }
             }

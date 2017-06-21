@@ -8,7 +8,7 @@ environment:
   - TYPESCRIPT: typescript@2.1.5
   - TYPESCRIPT: typescript@2.2.1
   - TYPESCRIPT: typescript@2.3.1
-  - TYPESCRIPT: typescript@next
+#  - TYPESCRIPT: typescript@next
 install:
   - ps: Install-Product node $env:nodejs_version
   - npm install
