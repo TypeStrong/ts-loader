@@ -184,6 +184,10 @@ Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. T
 
 It's advisable to use happypack alongside [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/happypack). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
 
+##### getCustomTransformers *( () => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[];  } )*
+
+Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
+
 ##### logInfoToStdOut *(boolean) (default=false)*
 
 This is important if you read from stdout or stderr and for proper error handling.

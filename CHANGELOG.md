@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.2.0
+
+- [Support custom transformers for ts](https://github.com/TypeStrong/ts-loader/pull/535) - thanks @longlho and @Igorbek!
+
 ## v2.1.0
 
 - [Add happypack compatibility mode](https://github.com/TypeStrong/ts-loader/pull/547) - thanks @aindlq!
