@@ -13,30 +13,21 @@ This is the typescript loader for webpack.
 
 ### Examples
 
-We have a number of example setups to accomodate different workflows.  From "vanilla" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process . 
-
-Take a look at our [examples](examples/).
+We have a number of example setups to accomodate different workflows.  From "vanilla" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process. Our examples can be found [here](examples/).
 
 ### Babel
 
-ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  To see an example of this in practice take a look at the [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples).
+ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader).  There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
 
-Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
+### Faster Builds
 
-### Faster incremental builds
+As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking.
 
-As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. The simple solution is to disable it by `transpileOnly: true` option but it leaves you without type checking.
-
-If you don't want give up type checking, you can use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin). It runs checker on separate process, so your build is as fast as with `transpileOnly: true`. Also, it has several optimizations to make incremental type checking faster (AST cache, multiple workers).
+You probably don't want to give up type checking; that's rather the point of TypeScript.  So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin). It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking. Also, the plugin has several optimizations to make incremental type checking faster (AST cache, multiple workers).
 
 If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-fork-ts-checker).
 
-If you'd like to make things even faster still then you might want to consider using ts-loader with [happypack](https://github.com/amireh/happypack) which speeds builds by parallelising work.  (This should be used in combination with  [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)  If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
-
-
-### Contributing
-
-This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributor's guide](CONTRIBUTING.md) to get started.
+If you'd like to make things even faster still (I know, right?) then you might want to consider using ts-loader with [happypack](https://github.com/amireh/happypack) which speeds builds by parallelising work.  (This should be used in combination with  [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)  If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
 
 ### Installation
 
@@ -91,6 +82,30 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 The [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
 same options. For ts-loader to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap": true`.
+
+### Code Splitting and Loading Other Resources
+
+Loading css and other resources is possible but you will need to make sure that
+you have defined the `require` function in a [declaration file](https://www.typescriptlang.org/docs/handbook/writing-declaration-files.html).
+
+```typescript
+declare var require: {
+    <T>(path: string): T;
+    (paths: string[], callback: (...modules: any[]) => void): void;
+    ensure: (paths: string[], callback: (require: <T>(path: string) => T) => void) => void;
+};
+```
+
+Then you can simply require assets or chunks per the [webpack documentation](https://webpack.js.org/guides/code-splitting/).
+
+```js
+require('!style!css!./style.css');
+```
+
+The same basic process is required for code splitting. In this case, you `import` modules you need but you
+don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point). See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
+
+[TypeScript 2.4 provides support for ECMAScript's new `import()` calls. These calls import a module and return a promise to that module.](https://blogs.msdn.microsoft.com/typescript/2017/06/12/announcing-typescript-2-4-rc/)  This is also supported in webpack - details on usage can be found [here](https://webpack.js.org/guides/code-splitting-async/#dynamic-import-import-).  Happy code splitting!
 
 ### Compatibility
 
@@ -276,29 +291,9 @@ export default {
 </script>
 ```
 
+## Contributing
 
-### Loading other resources and code splitting
-
-Loading css and other resources is possible but you will need to make sure that
-you have defined the `require` function in a [declaration file](https://www.typescriptlang.org/docs/handbook/writing-declaration-files.html).
-
-```typescript
-declare var require: {
-    <T>(path: string): T;
-    (paths: string[], callback: (...modules: any[]) => void): void;
-    ensure: (paths: string[], callback: (require: <T>(path: string) => T) => void) => void;
-};
-```
-
-Then you can simply require assets or chunks per the [webpack documentation](http://webpack.github.io/docs).
-
-```js
-require('!style!css!./style.css');
-```
-
-The same basic process is required for code splitting. In this case, you `import` modules you need but you
-don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point).
-See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
+This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributor's guide](CONTRIBUTING.md) to get started.
 
 ## License
 
