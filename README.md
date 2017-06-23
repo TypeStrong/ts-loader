@@ -119,30 +119,13 @@ A full test suite runs each night (and on each pull request). It runs both on [L
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 
-#### `LoaderOptionsPlugin`
-
-[There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
- 		
- ```js		
- new LoaderOptionsPlugin({		
-   debug: false,		
-   options: {		
-     resolve: {
-       extensions: ['.ts', '.tsx', '.js']
-     }	
-   }		
- })		
- ```
-
-It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/).  You may want to look at removing it entirely.
-
 ### Failing the build on TypeScript compilation error
 
 When the build fails (i.e. at least one typescript compile error occured), ts-loader does **not** propagate the build failure to webpack.  The upshot of this is you can fail to notice an erroring build. This is inconvenient; particularly in continuous integration scenarios.  If you want to ensure that the build failure is propogated it is advised that you make use of the [webpack-fail-plugin](https://www.npmjs.com/package/webpack-fail-plugin).  This plugin that will make the process return status code 1 when it finishes with errors in single-run mode. Et voilà! Build failure.
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
 
-#### Options
+### Options
 
 There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be set either using a query when specifying the loader or through the `options` property in the webpack configuration:
 
@@ -183,9 +166,9 @@ module.exports = {
 
 For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#getoptions).
 
-#### Available Options
+### Loader Options
 
-##### transpileOnly *(boolean) (default=false)*
+#### transpileOnly *(boolean) (default=false)*
 
 If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between
@@ -193,55 +176,55 @@ different dependencies in your application will be lost. You should also
 set the `isolatedModules` TypeScript option if you plan to ever make use
 of this.
 
-##### happyPackMode *(boolean) (default=false)*
+#### happyPackMode *(boolean) (default=false)*
 
 Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
 
 It's advisable to use happypack alongside [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/happypack). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
 
-##### getCustomTransformers *( () => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[];  } )*
+#### getCustomTransformers *( () => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[];  } )*
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 
-##### logInfoToStdOut *(boolean) (default=false)*
+#### logInfoToStdOut *(boolean) (default=false)*
 
 This is important if you read from stdout or stderr and for proper error handling.
 The default value ensures that you can read from stdout e.g. via pipes or you use webpack -j to generate json output.
 
-##### logLevel *(string) (default=info)*
+#### logLevel *(string) (default=info)*
 
 Can be `info`, `warn` or `error` which limits the log output to the specified log level.
 Beware of the fact that errors are written to stderr and everything else is written to stderr (or stdout if logInfoToStdOut is true).
 
-##### silent *(boolean) (default=false)*
+#### silent *(boolean) (default=false)*
 
 If true, no console.log messages will be emitted. Note that most error
 messages are emitted via webpack which is not affected by this flag.
 
-##### ignoreDiagnostics *(number[]) (default=[])*
+#### ignoreDiagnostics *(number[]) (default=[])*
 
 You can squelch certain TypeScript errors by specifying an array of diagnostic
 codes to ignore.
 
-##### compiler *(string) (default='typescript')*
+#### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
 set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basarat/ntypescript).
 
-##### configFileName *(string) (default='tsconfig.json')*
+#### configFileName *(string) (default='tsconfig.json')*
 
 Allows you to specify a custom configuration file.
 
-##### visualStudioErrorFormat *(boolean) (default=false)*
+#### visualStudioErrorFormat *(boolean) (default=false)*
 
 If `true`, the TypeScript compiler output for an error or a warning, e.g. `(3,14): error TS4711: you did something very wrong`, in file `myFile` will instead be `myFile(3,14): error TS4711: you did something very wrong` (notice the file name at the beginning). This way Visual Studio will interpret this line and show any errors or warnings in the *error list*. This enables navigation to the file/line/column through double click.
 
-##### compilerOptions *(object) (default={})*
+#### compilerOptions *(object) (default={})*
 
 Allows overriding TypeScript options. Should be specified in the same format
 as you would do for the `compilerOptions` property in tsconfig.json.
 
-##### instance *(string)*
+#### instance *(string)*
 
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
@@ -290,6 +273,23 @@ export default {
 }
 </script>
 ```
+
+### `LoaderOptionsPlugin`
+
+[There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
+ 		
+ ```js		
+ new LoaderOptionsPlugin({		
+   debug: false,		
+   options: {		
+     resolve: {
+       extensions: ['.ts', '.tsx', '.js']
+     }	
+   }		
+ })		
+ ```
+
+It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/).  You may want to look at removing it entirely.
 
 ## Contributing
 
