@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.2.1 - NOT RELEASED YET
+
+- [Report errors in JS(X) files when CheckJS is enabled](https://github.com/TypeStrong/ts-loader/pull/564) - thanks @schmuli!
+
 ## v2.2.0
 
 - [Support custom transformers for ts](https://github.com/TypeStrong/ts-loader/pull/535) - thanks @longlho and @Igorbek!
