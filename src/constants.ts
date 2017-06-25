@@ -15,6 +15,7 @@ export const ModuleKindCommonJs = 1;
 export const tsTsxRegex = /\.ts(x?)$/i;
 export const dtsDtsxRegex = /\.d\.ts(x?)$/i;
 export const dtsTsTsxRegex = /(\.d)?\.ts(x?)$/i;
+export const dtsTsTsxJsJsxRegex = /((\.d)?\.ts(x?)|js(x?))$/i;
 export const tsTsxJsJsxRegex = /\.tsx?$|\.jsx?$/i;
 export const jsJsx = /\.js(x?)$/i;
 export const jsJsxMap = /\.js(x?)\.map$/i;

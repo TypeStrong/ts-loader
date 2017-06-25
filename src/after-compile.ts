@@ -124,9 +124,12 @@ function provideErrorsToWebpack(
     modules: Modules,
     instance: interfaces.TSInstance
 ) {
-    const { compiler, languageService, files, loaderOptions } = instance;
+    const { compiler, languageService, files, loaderOptions, compilerOptions } = instance;
+
+    let filePathRegex = !!compilerOptions.checkJs ? constants.dtsTsTsxJsJsxRegex : constants.dtsTsTsxRegex;
+
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => !!filePath.match(constants.dtsTsTsxRegex))
+        .filter(filePath => !!filePath.match(filePathRegex))
         .forEach(filePath => {
             const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
             if (errors.length > 0) {
