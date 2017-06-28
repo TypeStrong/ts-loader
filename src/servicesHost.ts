@@ -63,6 +63,12 @@ function makeServicesHost(
          * For @types expansion, these two functions are needed.
          */
         directoryExists: compiler.sys ? (<any> compiler.sys).directoryExists : undefined,
+
+        // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
+        fileExists: moduleResolutionHost.fileExists,
+        readFile: moduleResolutionHost.readFile,
+        readDirectory: compiler.sys ? (<any> compiler.sys).readDirectory : undefined,
+
         getCurrentDirectory: () => process.cwd(),
 
         getCompilationSettings: () => compilerOptions,
