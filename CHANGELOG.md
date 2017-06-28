@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.2.1 - NOT RELEASED YET
+## v2.2.1
 
 - [Report errors in JS(X) files when CheckJS is enabled](https://github.com/TypeStrong/ts-loader/pull/564) - thanks @schmuli!
 - [Cater for change to @types acquisition strategy in TypeScript 2.4.1](https://github.com/TypeStrong/ts-loader/pull/566) - thanks @johnnyreilly
