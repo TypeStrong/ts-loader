@@ -70,7 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-throw new Error("Module parse failed: E:/Source/tmp/ts-loader/index.js??ref--0!/errors/app.ts Unexpected token (1:9)\nYou may need an appropriate loader to handle this file type.\n| var a =  == 0;\n| ");
+throw new Error("Module parse failed: C:/source/ts-loader/index.js??ref--0!/errors/app.ts Unexpected token (1:9)\nYou may need an appropriate loader to handle this file type.\n| var a =  == 0;\n| ");
 
 /***/ })
 /******/ ]);

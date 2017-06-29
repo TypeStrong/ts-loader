@@ -1,7 +1,7 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.84 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 205 bytes [entry] [rendered]
-    [0] ./.test/tsconfigInvalidFile/app.ts 205 bytes {0} [built] [failed] [1 error]
+bundle.js  2.83 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 200 bytes [entry] [rendered]
+    [0] ./.test/tsconfigInvalidFile/app.ts 200 bytes {0} [built] [failed] [1 error]
 
 ERROR in ./.test/tsconfigInvalidFile/app.ts
 Module build failed: [31mA file specified in tsconfig.json could not be found: i-am-a-file-what-does-not-exist.ts[39m
