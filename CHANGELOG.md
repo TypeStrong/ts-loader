@@ -2,7 +2,7 @@
 
 ## v2.2.2
 
-- [Remove default of setting isolatedModules to true when in transpileOnly mode](https://github.com/TypeStrong/ts-loader/pull/569) - thanks @johnnyreilly
+- [Remove default of setting isolatedModules to true when in transpileOnly mode](https://github.com/TypeStrong/ts-loader/pull/569) - thanks @johnnyreilly and @donaldpipowitch 
 
 ## v2.2.1
 
