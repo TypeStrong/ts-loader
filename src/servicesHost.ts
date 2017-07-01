@@ -65,8 +65,8 @@ function makeServicesHost(
         directoryExists: compiler.sys ? (<any> compiler.sys).directoryExists : undefined,
 
         // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
-        fileExists: moduleResolutionHost.fileExists,
-        readFile: moduleResolutionHost.readFile,
+        fileExists: compiler.sys ? (<any> compiler.sys).fileExists : undefined,
+        readFile: compiler.sys ? (<any> compiler.sys).readFile : undefined,
         readDirectory: compiler.sys ? (<any> compiler.sys).readDirectory : undefined,
 
         getCurrentDirectory: () => process.cwd(),

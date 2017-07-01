@@ -54,11 +54,6 @@ export function getConfigFile(
         configFile.config.compilerOptions = Object.assign({},
             configFile.config.compilerOptions,
             loaderOptions.compilerOptions);
-
-        // do any necessary config massaging
-        if (loaderOptions.transpileOnly) {
-            configFile.config.compilerOptions.isolatedModules = true;
-        }
     }
 
     return {
