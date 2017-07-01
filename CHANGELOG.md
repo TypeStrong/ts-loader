@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.2.2
+
+- [Remove default of setting isolatedModules to true when in transpileOnly mode](https://github.com/TypeStrong/ts-loader/pull/569) - thanks @johnnyreilly
+
 ## v2.2.1
 
 - [Report errors in JS(X) files when CheckJS is enabled](https://github.com/TypeStrong/ts-loader/pull/564) - thanks @schmuli!
