@@ -85,6 +85,11 @@ function runTests(testName) {
         execSync('typings install', { cwd: testPath, stdio: 'inherit' });
     }
 
+    if (pathExists(path.join(testPath, 'package.json'))) {
+        console.log('npm install into ' + testPath);
+        execSync('npm install', { cwd: testPath, stdio: 'inherit' });
+    }
+
     try {
         var singleRunOrWatch = watch ? '' : ' --single-run';
         execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers PhantomJS', { cwd: testPath, stdio: 'inherit' });
