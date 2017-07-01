@@ -10,8 +10,7 @@
     "@types/react-dom": "^0.14.18",
     "jasmine-core": "^2.3.4",
     "react-addons-test-utils": "^15.3.1",
-    "react-test-renderer": "^15.5.4",
-    "webpack": "^2.6.1"
+    "react-test-renderer": "^15.5.4"
   },
   "dependencies": {
     "react": "^15.4.1",
