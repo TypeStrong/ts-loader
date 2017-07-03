@@ -7,15 +7,38 @@ describe("app", () => {
     expect(b).toBe("b");
   });
 
-  it("await import results in a module with a default", async done => {
+  it("import results in a module with a default export", async done => {
+    import("../src/c").then(c => {
+      // .default is the default export
+      expect(c.default).toBe("c");
+
+      done();
+    }
+  });
+
+  it("import results in a module with an export", async done => {
+    import("../src/d").then(d => {
+      // .default is the default export
+      expect(d.d).toBe("d");
+
+      done();
+    }
+  });
+
+  it("await import results in a module with a default export", async done => {
     const c = await import("../src/c");
-    const d = await import("../src/d");
 
     // .default is the default export
     expect(c.default).toBe("c");
+
+    done();
+  });
+
+  it("await import results in a module with an export", async done => {
+    const d = await import("../src/d");
+
     expect(d.d).toBe("d");
 
     done();
   });
 });
-// npm run execution-tests -- --single-test 2.4.1_babel-importCodeSplitting
