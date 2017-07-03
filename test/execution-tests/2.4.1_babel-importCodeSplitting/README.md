@@ -1,8 +1,1 @@
-This test shows how to do simple code splitting with TypeScript and webpack.
-
-See the comments in `app.ts` for a quick overview of the process.
-
-More information can be found at these sites:
-- https://github.com/Microsoft/TypeScript/wiki/Modules#dynamic-module-loading-in-nodejs
-- http://webpack.github.io/docs/code-splitting.html
-- https://github.com/webpack/webpack/tree/master/examples/code-splitting
+This test shows how to do simple code splitting with TypeScript, Babel and webpack using the dynamic `import` syntax.  Support for this shipped with TypeScript 2.4 and is, at time of writing, at stage 3 on the TC39 proposals list.  See details [here](https://github.com/tc39/proposal-dynamic-import).
