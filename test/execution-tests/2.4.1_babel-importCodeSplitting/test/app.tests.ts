@@ -19,7 +19,7 @@ describe("app", () => {
   it("import results in a module with an export", async done => {
     import("../src/d").then(d => {
       // .default is the default export
-      expect(c.d).toBe("d");
+      expect(d.d).toBe("d");
 
       done();
     }
