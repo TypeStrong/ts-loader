@@ -7,7 +7,7 @@ describe("app", () => {
     expect(b).toBe("b");
   });
 
-  it("import results in a module with a default export", async done => {
+  it("import results in a module with a default export", done => {
     import("../src/c").then(c => {
       // .default is the default export
       expect(c.default).toBe("c");
@@ -16,7 +16,7 @@ describe("app", () => {
     }
   });
 
-  it("import results in a module with an export", async done => {
+  it("import results in a module with an export", done => {
     import("../src/d").then(d => {
       // .default is the default export
       expect(d.d).toBe("d");
