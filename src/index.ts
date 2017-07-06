@@ -1,6 +1,5 @@
 import path = require('path');
 import loaderUtils = require('loader-utils');
-require('colors');
 
 import instances = require('./instances');
 import interfaces = require('./interfaces');
