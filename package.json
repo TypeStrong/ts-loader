@@ -39,7 +39,6 @@
   },
   "devDependencies": {
     "@types/chalk": "^0.4.31",
-    "@types/node": "^8.0.9",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
