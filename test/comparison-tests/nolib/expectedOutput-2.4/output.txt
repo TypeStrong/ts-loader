@@ -3,6 +3,9 @@ bundle.js  2.65 kB       0  [emitted]  main
 chunk    {0} bundle.js (main) 16 bytes [entry] [rendered]
     [0] ./.test/nolib/app.ts 16 bytes {0} [built] [1 error]
 
+ERROR in node_modules\@types\chalk\index.d.ts
+[37m([39m[36m18[39m,[36m10[39m): [31merror TS2370: A rest parameter must be of an array type.[39m
+
 ERROR in ./.test/nolib/app.ts
 [37m([39m[36m1[39m,[36m1[39m): [31merror TS2304: Cannot find name 'parseInt'.[39m
 
