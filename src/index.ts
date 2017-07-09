@@ -143,15 +143,6 @@ function getEmit(
     const addDependency = loader.addDependency.bind(loader);
     allDefinitionFiles.forEach(addDependency);
 
-    /* - alternative approach to the below which is more correct but has a heavy performance cost
-         see https://github.com/TypeStrong/ts-loader/issues/393
-         with this approach constEnumReExportWatch test will pass; without it, not.
-
-    // Additionally make this file dependent on all imported files as well
-    // as any deeper recursive dependencies
-    const additionalDependencies = utils.collectAllDependencies(instance.dependencyGraph, filePath);
-    */
-
     // Additionally make this file dependent on all imported files
     const additionalDependencies = instance.dependencyGraph[filePath]
         && instance.dependencyGraph[filePath].map(module => module.originalFileName);
