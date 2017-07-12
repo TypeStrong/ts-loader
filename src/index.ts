@@ -27,7 +27,8 @@ function loader(this: interfaces.Webpack, contents: string) {
     }
 
     const rawFilePath = path.normalize(this.resourcePath);
-    const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
+    let filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
+    filePath = utils.appendTsxSuffixIfMatch(options.appendTsxSuffixTo, rawFilePath);
     const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
@@ -84,6 +85,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         visualStudioErrorFormat: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
+        appendTsxSuffixTo: [],
         transformers: {},
         entryFileIsJs: false,
         happyPackMode: false,

@@ -87,6 +87,17 @@ export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string 
     return path;
 }
 
+export function appendTsxSuffixIfMatch(patterns: RegExp[], path: string): string {
+    if (patterns.length > 0) {
+        for (let regexp of patterns) {
+            if (path.match(regexp)) {
+                return path + '.tsx';
+            }
+        }
+    }
+    return path;
+}
+
 /**
  * Recursively collect all possible dependants of passed file
  */
