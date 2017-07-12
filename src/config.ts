@@ -4,6 +4,7 @@ import path = require('path');
 import interfaces = require('./interfaces');
 import logger = require('./logger');
 import utils = require('./utils');
+import { green } from 'chalk';
 
 interface ConfigFile {
     config?: any;
@@ -24,9 +25,9 @@ export function getConfigFile(
 
     if (configFilePath) {
         if (compilerCompatible) {
-            log.logInfo(`${compilerDetailsLogMessage} and ${configFilePath}`.green);
+            log.logInfo(green(`${compilerDetailsLogMessage} and ${configFilePath}`));
         } else {
-            log.logInfo(`ts-loader: Using config file at ${configFilePath}`.green);
+            log.logInfo(green(`ts-loader: Using config file at ${configFilePath}`));
         }
 
         // HACK: relies on the fact that passing an extra argument won't break
@@ -40,7 +41,7 @@ export function getConfigFile(
             configFileError = utils.formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
         }
     } else {
-        if (compilerCompatible) { log.logInfo(compilerDetailsLogMessage.green); }
+        if (compilerCompatible) { log.logInfo(green(compilerDetailsLogMessage)); }
 
         configFile = {
             config: {
