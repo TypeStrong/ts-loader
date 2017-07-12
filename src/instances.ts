@@ -111,7 +111,7 @@ export function getTypeScriptInstance(
         modifiedFiles: null,
     };
 
-    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo);
+    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
     loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));

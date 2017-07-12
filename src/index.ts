@@ -28,7 +28,7 @@ function loader(this: interfaces.Webpack, contents: string) {
 
     const rawFilePath = path.normalize(this.resourcePath);
     let filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
-    filePath = utils.appendTsxSuffixIfMatch(options.appendTsxSuffixTo, rawFilePath);
+    filePath = utils.appendTsxSuffixIfMatch(options.appendTsxSuffixTo, filePath);
     const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
