@@ -1,6 +1,5 @@
 import path = require('path');
 import fs = require('fs');
-require('colors');
 
 import afterCompile = require('./after-compile');
 import config = require('./config');

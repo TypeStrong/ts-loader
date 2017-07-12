@@ -32,12 +32,13 @@
   },
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
-    "colors": "^1.0.3",
+    "chalk": "^2.0.1",
     "enhanced-resolve": "^3.0.0",
     "loader-utils": "^1.0.2",
     "semver": "^5.0.1"
   },
   "devDependencies": {
+    "@types/chalk": "^0.4.31",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
