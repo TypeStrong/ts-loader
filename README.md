@@ -235,7 +235,8 @@ of your code.
 To be used in concert with the `allowJs` compiler option. If your entry file is JS then you'll need to set this option to true.  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
-A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` suffix will be appended to that filename.
+#### appendTsxSuffixTo *(RegExp[]) (default=[])*
+A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
 
 This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefit from the new single file format in the future.)
 
