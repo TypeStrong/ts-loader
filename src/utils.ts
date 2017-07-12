@@ -1,6 +1,7 @@
 import typescript = require('typescript');
 import path = require('path');
 import fs = require('fs');
+import { white, red, cyan } from 'chalk';
 
 import constants = require('./constants');
 import interfaces = require('./interfaces');
@@ -34,9 +35,9 @@ export function formatErrors(
             let error: interfaces.WebpackError;
             if (diagnostic.file) {
                 const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-                let errorMessage = `${'('.white}${(lineChar.line + 1).toString().cyan},${(lineChar.character + 1).toString().cyan}): ${messageText.red}`;
+                let errorMessage = `${white('(')}${cyan((lineChar.line + 1).toString())},${cyan((lineChar.character + 1).toString())}): ${red(messageText)}`;
                 if (loaderOptions.visualStudioErrorFormat) {
-                    errorMessage = path.normalize(diagnostic.file.fileName).red + errorMessage;
+                    errorMessage = red(path.normalize(diagnostic.file.fileName)) + errorMessage;
                 }
                 error = makeError({
                     message: errorMessage,
@@ -69,7 +70,7 @@ interface MakeError {
 export function makeError({ rawMessage, message, location, file }: MakeError): interfaces.WebpackError {
     const error = {
         rawMessage,
-        message: message || `${rawMessage.red}`,
+        message: message || `${red(rawMessage)}`,
         loaderSource: 'ts-loader'
     };
 

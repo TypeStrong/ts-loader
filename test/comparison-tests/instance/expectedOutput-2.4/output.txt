@@ -5,10 +5,10 @@ chunk    {0} bundle.js (b) 167 bytes [entry] [rendered]
 chunk    {1}  (a) 167 bytes [entry] [rendered]
     [0] ./.test/instance/a.ts 167 bytes {1} [built] [failed] [1 error]
 
-ERROR in ./.test/instance/a.ts
+ERROR in ./.test/instance/b.ts
 Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
 
-ERROR in ./.test/instance/b.ts
+ERROR in ./.test/instance/a.ts
 Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
 
 ERROR in chunk a [entry]

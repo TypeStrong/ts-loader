@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.2.3 - NOT RELEASED YET
+
+- [refactor: Use chalk instead of colors](https://github.com/TypeStrong/ts-loader/pull/579) - thanks @develar! 
+
 ## v2.2.2
 
 - [Remove default of setting isolatedModules to true when in transpileOnly mode](https://github.com/TypeStrong/ts-loader/pull/569) - thanks @johnnyreilly and @donaldpipowitch 
