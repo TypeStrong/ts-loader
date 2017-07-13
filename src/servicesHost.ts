@@ -119,10 +119,14 @@ function resolveModuleName(
 
     let resolutionResult: interfaces.ResolvedModule;
 
+    const appendOptions = {
+        '.ts': appendTsSuffixTo,
+        '.tsx': appendTsxSuffixTo,
+    }
+
     try {
         const originalFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
-        let resolvedFileName = utils.appendSuffixIfMatch(appendTsSuffixTo, originalFileName, '.ts');
-        resolvedFileName = utils.appendSuffixIfMatch(appendTsxSuffixTo, resolvedFileName, '.tsx');
+        const resolvedFileName = utils.appendSuffixesIfMatch(appendOptions, originalFileName);
 
         if (resolvedFileName.match(scriptRegex)) {
             resolutionResult = { resolvedFileName, originalFileName };

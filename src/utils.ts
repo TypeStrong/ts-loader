@@ -88,6 +88,13 @@ export function appendSuffixIfMatch(patterns: RegExp[], path: string, suffix: st
     return path;
 }
 
+export function appendSuffixesIfMatch(suffixDict: {[suffix: string]: RegExp[]}, path: string): string {
+    for(let suffix in suffixDict) {
+        path = appendSuffixIfMatch(suffixDict[suffix], path, suffix);
+    }
+    return path;
+}
+
 /**
  * Recursively collect all possible dependants of passed file
  */
