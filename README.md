@@ -52,6 +52,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
     ```javascript
     module.exports = {
+      devtool: 'inline-source-map',
       entry: './app.ts',
       output: {
         filename: 'bundle.js'
@@ -81,7 +82,19 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 The [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) file controls
 TypeScript-related options so that your IDE, the `tsc` command, and this loader all share the
-same options. For ts-loader to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap": true`.
+same options.
+
+#### `devtool` / sourcemaps
+
+If you want to be able to debug your original source then you can thanks to the magic of sourcemaps.  There are 2 steps to getting this set up with ts-loader and webpack.  
+
+First, for ts-loader to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap": true`.
+
+Second, you need to set the `devtool` option in your `webpack.config.js` to support the type of sourcemaps you want.  To make your choice have a read of the [`devtool` webpack docs](https://webpack.js.org/configuration/devtool/).  You may be somewhat daunted by the choice available.  You may also want to vary the sourcemap strategy depending on your build environment. Here are some example strategies for different environments:
+
+- `devtool: 'inline-source-map'` - Solid sourcemap support; the best "all-rounder".  Works well with karma-webpack (not all strategies do)
+- `devtool: 'cheap-module-eval-source-map'` - Best support for sourcemaps whilst debugging.
+- `devtool: 'source-map'` - Approach that plays well with UglifyJsPlugin; typically you might use this in Production
 
 ### Code Splitting and Loading Other Resources
 
