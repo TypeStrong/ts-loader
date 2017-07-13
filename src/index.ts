@@ -26,8 +26,8 @@ function loader(this: interfaces.Webpack, contents: string) {
     }
 
     const rawFilePath = path.normalize(this.resourcePath);
-    let filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
-    filePath = utils.appendTsxSuffixIfMatch(options.appendTsxSuffixTo, filePath);
+    let filePath = utils.appendSuffixIfMatch(options.appendTsSuffixTo, rawFilePath, '.ts');
+    filePath = utils.appendSuffixIfMatch(options.appendTsxSuffixTo, filePath, '.tsx');
     const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
