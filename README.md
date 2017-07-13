@@ -284,7 +284,7 @@ module.exports = {
     entry: './index.vue',
     output: { filename: 'bundle.js' },
     resolve: {
-        extensions: ['.ts', '.vue']
+        extensions: ['.ts', '.tsx', '.vue', '.vuex']
     },
     module: {
         rules: [
