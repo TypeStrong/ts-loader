@@ -275,6 +275,58 @@ export default {
 </script>
 ```
 
+We can use .vuex to handle tsx:
+
+webpack.config.js:
+
+```javascript
+module.exports = {
+    entry: './index.vue',
+    output: { filename: 'bundle.js' },
+    resolve: {
+        extensions: ['.ts', '.vue']
+    },
+    module: {
+        rules: [
+            { test: /\.vue$/, loader: 'vue-loader' },
+            { test: /\.vuex$/, loader: 'vue-loader',
+              options: {
+                loaders: {
+                  tsx: 'babel-loader!ts-loader',
+                }
+              }
+            },
+            { test: /\.ts$/, loader: 'ts-loader', options: { appendTsSuffixTo: [/\.vue$/], appendTsxSuffixTo: [/\.vuex$/] } }
+            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsSuffixTo: [/\.vue$/], appendTsxSuffixTo: [/\.vuex$/] } }
+        ]
+    } 
+}
+```
+
+tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "preserve"
+  }
+}
+```
+
+index.vue
+
+```vue
+<script lang="tsx">
+export default {
+  functional: true,
+  render(h, c) {
+    return (<div>Content</div>);
+  }
+}
+</script>
+```
+
+
 ### `LoaderOptionsPlugin`
 
 [There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
