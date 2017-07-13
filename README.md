@@ -13,7 +13,7 @@ This is the typescript loader for webpack.
 
 ### Examples
 
-We have a number of example setups to accomodate different workflows.  From "vanilla" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process. Our examples can be found [here](examples/).
+We have a number of example setups to accomodate different workflows.  From "[vanilla](examples/vanilla)" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process. Our examples can be found [here](examples/).
 
 ### Babel
 
