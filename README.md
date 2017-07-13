@@ -275,7 +275,7 @@ export default {
 </script>
 ```
 
-We can use .vuex to handle tsx:
+We can use .vuex to handle tsx (set `jsx` option in `tsconfig.json` to `preserve` to let babel handle jsx):
 
 webpack.config.js:
 
