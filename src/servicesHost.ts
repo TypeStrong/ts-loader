@@ -26,10 +26,7 @@ function makeServicesHost(
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
 
-    const moduleResolutionHost = {
-        fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
-        readFile: (fileName: string) => utils.readFile(fileName),
-    };
+    const moduleResolutionHost = typescript.sys;
 
     return {
         getProjectVersion: () => `${instance.version}`,
@@ -85,7 +82,7 @@ function makeServicesHost(
 
 function resolveModuleNames(
     resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    moduleResolutionHost: typescript.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
@@ -104,7 +101,7 @@ function resolveModuleNames(
 
 function resolveModuleName(
     resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    moduleResolutionHost: typescript.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,

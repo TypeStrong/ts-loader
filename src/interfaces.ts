@@ -195,11 +195,6 @@ export interface ResolveSync {
     (context: string, path: string, moduleName: string): string;
 }
 
-export interface ModuleResolutionHost {
-    fileExists(fileName: string): boolean;
-    readFile(fileName: string): string
-}
-
 export interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
