@@ -288,7 +288,7 @@ export default {
 </script>
 ```
 
-We can use .vuex to handle tsx (set `jsx` option in `tsconfig.json` to `preserve` to let babel handle jsx):
+We can handle `.tsx` by quite similar way:
 
 webpack.config.js:
 
@@ -301,22 +301,22 @@ module.exports = {
     },
     module: {
         rules: [
-            { test: /\.vue$/, loader: 'vue-loader' },
-            { test: /\.vuex$/, loader: 'vue-loader',
+            { test: /\.vue$/, loader: 'vue-loader',
               options: {
                 loaders: {
+                  ts: 'ts-loader',
                   tsx: 'babel-loader!ts-loader',
                 }
               }
             },
-            { test: /\.ts$/, loader: 'ts-loader', options: { appendTsSuffixTo: [/\.vue$/], appendTsxSuffixTo: [/\.vuex$/] } }
-            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsSuffixTo: [/\.vue$/], appendTsxSuffixTo: [/\.vuex$/] } }
+            { test: /\.ts$/, loader: 'ts-loader', options: { appendTsSuffixTo: [/TS\.vue$/] } }
+            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/TSX\.vue$/] } }
         ]
     } 
 }
 ```
 
-tsconfig.json
+tsconfig.json (set `jsx` option to `preserve` to let babel handle jsx)
 
 ```json
 {
@@ -339,6 +339,12 @@ export default {
 </script>
 ```
 
+Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
+
+```javascript
+            { test: /\.ts$/, loader: 'ts-loader' }
+            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/\.vue$/] } }
+```
 
 ### `LoaderOptionsPlugin`
 
