@@ -5,6 +5,7 @@ var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
     context: __dirname, // to automatically find tsconfig.json
+    devtool: 'inline-source-map',
     entry: './src/index.ts',
     output: { filename: 'dist/index.js' },
     module: {

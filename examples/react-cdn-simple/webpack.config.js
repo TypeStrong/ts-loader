@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+    devtool: 'inline-source-map',
     entry: './src/index.tsx',
     output: { filename: 'index.js' },
     module: {
