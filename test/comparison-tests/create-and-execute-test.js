@@ -373,6 +373,10 @@ function getNormalisedFileContent(file, location, test) {
                 .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
+                // Ignore 'at Object.loader (dist\index.js:32:15)' style row number / column number differences
+                .replace(/(\(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(match, openingBracketPathAndColon, lineNumber, colon, columnNumber, closingBracket){
+                    return openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
+                })
             : normaliseString(originalContent);
     }
     catch (e) {
