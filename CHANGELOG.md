@@ -1,7 +1,8 @@
 # Changelog
 
-## v2.2.3 - NOT RELEASED YET
+## v2.3.0 - NOT RELEASED YET
 
+- [add appendTsxSuffixTo option to support using tsx with Vue](https://github.com/TypeStrong/ts-loader/pull/581) - lots of discussion went into this PR. Thanks to @vhqtvn (author) and @HerringtonDarkholme, @johnnyreilly, @jbrantly, @octref, @rhyek and others for helping us land on our final implementation.
 - [refactor: Use chalk instead of colors](https://github.com/TypeStrong/ts-loader/pull/579) - thanks @develar! 
 
 ## v2.2.2
