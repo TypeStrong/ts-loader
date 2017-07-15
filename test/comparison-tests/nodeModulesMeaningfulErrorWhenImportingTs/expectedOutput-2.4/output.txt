@@ -9,5 +9,5 @@ Module build failed: Error: Typescript emitted no output for node_modules\a\inde
 You should not need to recompile .ts files in node_modules.
 Please contact the package author to advise them to use --declaration --outDir.
 More https://github.com/Microsoft/TypeScript/issues/12358
-    at Object.loader (dist\index.js:31:15)
+    at Object.loader (dist\index.js:32:15)
  @ ./.test/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 3:8-20

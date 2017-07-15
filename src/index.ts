@@ -26,7 +26,14 @@ function loader(this: interfaces.Webpack, contents: string) {
     }
 
     const rawFilePath = path.normalize(this.resourcePath);
-    const filePath = utils.appendTsSuffixIfMatch(options.appendTsSuffixTo, rawFilePath);
+
+    const filePath = options.appendTsSuffixTo.length > 0 || options.appendTsxSuffixTo.length > 0
+        ? utils.appendSuffixesIfMatch({
+            '.ts': options.appendTsSuffixTo,
+            '.tsx': options.appendTsxSuffixTo,
+        }, rawFilePath)
+        : rawFilePath;
+
     const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
@@ -44,10 +51,10 @@ function loader(this: interfaces.Webpack, contents: string) {
 
     // _module.meta is not available inside happypack
     if (!options.happyPackMode) {
-      // Make sure webpack is aware that even though the emitted JavaScript may be the same as
-      // a previously cached version the TypeScript may be different and therefore should be
-      // treated as new
-      this._module.meta.tsLoaderFileVersion = fileVersion;
+        // Make sure webpack is aware that even though the emitted JavaScript may be the same as
+        // a previously cached version the TypeScript may be different and therefore should be
+        // treated as new
+        this._module.meta.tsLoaderFileVersion = fileVersion;
     }
 
     callback(null, output, sourceMap);
@@ -83,6 +90,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
         visualStudioErrorFormat: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
+        appendTsxSuffixTo: [],
         transformers: {},
         entryFileIsJs: false,
         happyPackMode: false,

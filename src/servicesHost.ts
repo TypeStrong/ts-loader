@@ -14,14 +14,15 @@ function makeServicesHost(
     log: logger.Logger,
     loader: interfaces.Webpack,
     instance: interfaces.TSInstance,
-    appendTsSuffixTo: RegExp[]
+    appendTsSuffixTo: RegExp[],
+    appendTsxSuffixTo: RegExp[]
 ) {
     const { compiler, compilerOptions, files } = instance;
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
-        compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
-        constants.EOL;
+            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+                constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
@@ -77,7 +78,7 @@ function makeServicesHost(
         log: log.log,
         resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
-                resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
+                resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
                 moduleNames, containingFile),
         getCustomTransformers: () => instance.transformers
     };
@@ -87,13 +88,14 @@ function resolveModuleNames(
     resolveSync: interfaces.ResolveSync,
     moduleResolutionHost: interfaces.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
+    appendTsxSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
     moduleNames: string[],
     containingFile: string
 ) {
     const resolvedModules = moduleNames.map(moduleName =>
-        resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, scriptRegex, instance,
+        resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
             moduleName, containingFile)
     );
 
@@ -106,6 +108,7 @@ function resolveModuleName(
     resolveSync: interfaces.ResolveSync,
     moduleResolutionHost: interfaces.ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
+    appendTsxSuffixTo: RegExp[],
     scriptRegex: RegExp,
     instance: interfaces.TSInstance,
 
@@ -118,7 +121,13 @@ function resolveModuleName(
 
     try {
         const originalFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
-        const resolvedFileName = utils.appendTsSuffixIfMatch(appendTsSuffixTo, originalFileName);
+
+        const resolvedFileName = appendTsSuffixTo.length > 0 || appendTsxSuffixTo.length > 0
+            ? utils.appendSuffixesIfMatch({
+                '.ts': appendTsSuffixTo,
+                '.tsx': appendTsxSuffixTo,
+            }, originalFileName)
+            : originalFileName;
 
         if (resolvedFileName.match(scriptRegex)) {
             resolutionResult = { resolvedFileName, originalFileName };

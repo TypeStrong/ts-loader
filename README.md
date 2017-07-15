@@ -248,7 +248,8 @@ of your code.
 To be used in concert with the `allowJs` compiler option. If your entry file is JS then you'll need to set this option to true.  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
-A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` suffix will be appended to that filename.
+#### appendTsxSuffixTo *(RegExp[]) (default=[])*
+A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
 
 This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefit from the new single file format in the future.)
 
@@ -285,6 +286,64 @@ export default {
   },
 }
 </script>
+```
+
+We can handle `.tsx` by quite similar way:
+
+webpack.config.js:
+
+```javascript
+module.exports = {
+    entry: './index.vue',
+    output: { filename: 'bundle.js' },
+    resolve: {
+        extensions: ['.ts', '.tsx', '.vue', '.vuex']
+    },
+    module: {
+        rules: [
+            { test: /\.vue$/, loader: 'vue-loader',
+              options: {
+                loaders: {
+                  ts: 'ts-loader',
+                  tsx: 'babel-loader!ts-loader',
+                }
+              }
+            },
+            { test: /\.ts$/, loader: 'ts-loader', options: { appendTsSuffixTo: [/TS\.vue$/] } }
+            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/TSX\.vue$/] } }
+        ]
+    } 
+}
+```
+
+tsconfig.json (set `jsx` option to `preserve` to let babel handle jsx)
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "preserve"
+  }
+}
+```
+
+index.vue
+
+```vue
+<script lang="tsx">
+export default {
+  functional: true,
+  render(h, c) {
+    return (<div>Content</div>);
+  }
+}
+</script>
+```
+
+Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
+
+```javascript
+            { test: /\.ts$/, loader: 'ts-loader' }
+            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/\.vue$/] } }
 ```
 
 ### `LoaderOptionsPlugin`

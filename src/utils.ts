@@ -77,13 +77,20 @@ export function makeError({ rawMessage, message, location, file }: MakeError): i
     return <interfaces.WebpackError>Object.assign(error, { location, file });
 }
 
-export function appendTsSuffixIfMatch(patterns: RegExp[], path: string): string {
+export function appendSuffixIfMatch(patterns: RegExp[], path: string, suffix: string): string {
     if (patterns.length > 0) {
         for (let regexp of patterns) {
             if (path.match(regexp)) {
-                return path + '.ts';
+                return path + suffix;
             }
         }
+    }
+    return path;
+}
+
+export function appendSuffixesIfMatch(suffixDict: {[suffix: string]: RegExp[]}, path: string): string {
+    for(let suffix in suffixDict) {
+        path = appendSuffixIfMatch(suffixDict[suffix], path, suffix);
     }
     return path;
 }
