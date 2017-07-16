@@ -8,17 +8,21 @@ var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 var packageJson = require('./package.json');
 var vendorDependencies = Object.keys(packageJson['dependencies']);
 
-var babelOptions = {
-  "presets": [
-    "react",
-    [
-      "es2015",
-      {
-        "modules": false
-      }
-    ],
-    "es2016"
-  ]
+var babelLoader = {
+  loader: 'babel-loader',
+  options: {
+    cacheDirectory: true,
+    presets: [
+      "react",
+      [
+        "es2015",
+        {
+          "modules": false
+        }
+      ],
+      "es2016"
+    ]
+  }
 };
 
 module.exports = {
@@ -37,10 +41,7 @@ module.exports = {
       test: /\.ts(x?)$/,
       exclude: /node_modules/,
       use: [
-        {
-          loader: 'babel-loader',
-          options: babelOptions
-        },
+        babelLoader,
         {
           loader: 'ts-loader',
           options: { transpileOnly: true }
@@ -50,10 +51,7 @@ module.exports = {
       test: /\.js$/,
       exclude: /node_modules/,
       use: [
-        {
-          loader: 'babel-loader',
-          options: babelOptions
-        }
+        babelLoader
       ]
     }]
   },

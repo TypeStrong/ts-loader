@@ -1,5 +1,5 @@
 {
-  "name": "webpack2-happypack",
+  "name": "happypack",
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {

@@ -3,9 +3,18 @@
 
 var path = require('path');
 var webpack = require('webpack');
+var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 var packageJson = require('./package.json');
 var vendorDependencies = Object.keys(packageJson['dependencies']);
+
+var threadLoader = {
+  loader: 'thread-loader',
+  options: {
+    // leave one cpu for the fork-ts-plugin
+    workers: require('os').cpus().length - 1,
+  },
+};
 
 var babelLoader = {
   loader: 'babel-loader',
@@ -40,19 +49,30 @@ module.exports = {
       test: /\.ts(x?)$/,
       exclude: /node_modules/,
       use: [
+        { loader: 'cache-loader' },
+        threadLoader,
         babelLoader,
         {
-          loader: 'ts-loader'
+          loader: 'ts-loader',
+          options: { happyPackMode: true }
         }
       ]
     }, {
       test: /\.js$/,
       exclude: /node_modules/,
       use: [
+        { loader: 'cache-loader' },
+        threadLoader,
         babelLoader
       ]
     }]
   },
+  plugins: [
+    new ForkTsCheckerWebpackPlugin({
+      tslint: true,
+      watch: ['./src', './test'] // optional but improves performance (less stat calls)
+    })
+  ],
   resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.
     extensions: ['.ts', '.tsx', '.js']

@@ -13,7 +13,7 @@ This is the typescript loader for webpack.
 
 ### Examples
 
-We have a number of example setups to accomodate different workflows.  From "[vanilla](examples/vanilla)" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process. Our examples can be found [here](examples/).
+We have a number of example setups to accomodate different workflows.  From "[vanilla](examples/vanilla)" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process. Our examples can be found [here](examples/).
 
 ### Babel
 
@@ -28,6 +28,8 @@ You probably don't want to give up type checking; that's rather the point of Typ
 If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-fork-ts-checker).
 
 If you'd like to make things even faster still (I know, right?) then you might want to consider using ts-loader with [happypack](https://github.com/amireh/happypack) which speeds builds by parallelising work.  (This should be used in combination with  [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)  If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
+
+There is a "webpack-way" of parallelising builds.  Instead of using happypack you can use ts-loader with ts-loader with [thread-loader](https://github.com/webpack-contrib/thread-loader) and [cache-loader](https://github.com/webpack-contrib/cache-loader) in combination.  (Again, this should be used in combination with  [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)  If you'd like to see a simple setup take a look at [our simple example](examples/thread-loader/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-thread-loader).
 
 ### Installation
 

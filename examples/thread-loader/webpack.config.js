@@ -1,0 +1,35 @@
+'use strict';
+
+var ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+
+module.exports = {
+    context: __dirname, // to automatically find tsconfig.json
+    devtool: 'inline-source-map',
+    entry: './src/index.ts',
+    output: { filename: 'dist/index.js' },
+    module: {
+        rules: [
+            { loader: 'cache-loader' },
+            {
+                loader: 'thread-loader',
+                options: {
+                    // leave one cpu for the fork-ts-plugin
+                    workers: require('os').cpus().length - 1,
+                },
+            },
+            {
+                test: /\.tsx?$/,
+                loader: 'ts-loader',
+                options: {
+                    happyPackMode: true // IMPORTANT! use happyPackMode mode to speed-up compilation and reduce errors reported to webpack
+                }
+            }
+        ]
+    },
+    resolve: {
+        extensions: ['.ts', '.tsx', 'js']
+    },
+    plugins: [
+        new ForkTsCheckerWebpackPlugin()
+    ]
+};

@@ -1,12 +1,14 @@
 {
-  "name": "fork-ts-checker",
+  "name": "thread-loader",
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {
     "start": "webpack --watch"
   },
   "devDependencies": {
+    "cache-loader": "^1.0.3",
     "fork-ts-checker-webpack-plugin": "^0.2.0",
+    "thread-loader": "^1.1.0",
     "ts-loader": "^2.0.3",
     "typescript": "^2.2.2",
     "webpack": "^2.2.0"

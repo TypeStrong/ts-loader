@@ -13,4 +13,5 @@ npm-debug.log
 /**/node_modules
 /**/dist
 /**/.happypack
+/**/.cache-loader
 !build.js
