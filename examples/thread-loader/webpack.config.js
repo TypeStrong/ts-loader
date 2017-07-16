@@ -13,7 +13,7 @@ module.exports = {
             {
                 loader: 'thread-loader',
                 options: {
-                    // leave one cpu for the fork-ts-plugin
+                    // there should be 1 cpu for the fork-ts-checker-webpack-plugin
                     workers: require('os').cpus().length - 1,
                 },
             },
