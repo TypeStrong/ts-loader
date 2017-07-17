@@ -127,6 +127,7 @@ export interface WebpackCompiler {
     isChild(): boolean;
     context: string; // a guess
     watchFileSystem: WebpackNodeWatchFileSystem;
+    fileTimestamps: {[key: string]: number};
 }
 
 export interface WebpackModule {
