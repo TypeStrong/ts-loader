@@ -12,13 +12,11 @@ function makeWatchRun(
     const lastTimes = {};
     let startTime : number = null;
     return (watching: interfaces.WebpackWatching, cb: () => void) => {
-        const watcher = watching.compiler.watchFileSystem.watcher ||
-            watching.compiler.watchFileSystem.wfs.watcher;
         if (null === instance.modifiedFiles) {
             instance.modifiedFiles = {};
         }
         startTime = startTime || watching.startTime;
-        const times = watcher.getTimes();
+        const times = watching.compiler.fileTimestamps;
         Object.keys(times)
             .filter(filePath =>
                 times[filePath] > (lastTimes[filePath] || startTime)
