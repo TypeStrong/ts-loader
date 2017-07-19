@@ -31,7 +31,7 @@ function makeAfterCompile(
         const filesWithErrors: interfaces.TSFiles = {};
         provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
 
-        provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService, compilation);
+        provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService!, compilation);
 
         instance.filesWithErrors = filesWithErrors;
         instance.modifiedFiles = null;
@@ -57,7 +57,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
         utils.registerWebpackErrors(
             compilation.errors,
             utils.formatErrors(
-                languageService.getCompilerOptionsDiagnostics(),
+                languageService!.getCompilerOptionsDiagnostics(),
                 loaderOptions, compiler,
                 { file: configFilePath || 'tsconfig.json' }));
     }
@@ -131,7 +131,7 @@ function provideErrorsToWebpack(
     Object.keys(filesToCheckForErrors)
         .filter(filePath => !!filePath.match(filePathRegex))
         .forEach(filePath => {
-            const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+            const errors = languageService!.getSyntacticDiagnostics(filePath).concat(languageService!.getSemanticDiagnostics(filePath));
             if (errors.length > 0) {
                 filesWithErrors[filePath] = files[filePath];
             }

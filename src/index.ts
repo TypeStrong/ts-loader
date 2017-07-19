@@ -37,8 +37,8 @@ function loader(this: interfaces.Webpack, contents: string) {
     const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
-        ? getTranspilationEmit(filePath, contents, instance, this)
-        : getEmit(rawFilePath, filePath, instance, this);
+        ? getTranspilationEmit(filePath, contents, instance!, this)
+        : getEmit(rawFilePath, filePath, instance!, this);
 
     if (outputText === null || outputText === undefined) {
         const additionalGuidance = filePath.indexOf('node_modules') !== -1
@@ -122,7 +122,7 @@ function updateFileInCache(filePath: string, contents: string, instance: interfa
     if (file.text !== contents) {
         file.version++;
         file.text = contents;
-        instance.version++;
+        instance.version!++;
     }
 
     // push this file to modified files hash.
@@ -140,7 +140,7 @@ function getEmit(
     loader: interfaces.Webpack
 ) {
     // Emit Javascript
-    const output = instance.languageService.getEmitOutput(filePath);
+    const output = instance.languageService!.getEmitOutput(filePath);
 
     loader.clearDependencies();
     loader.addDependency(rawFilePath);
@@ -201,14 +201,14 @@ function getTranspilationEmit(
 }
 
 function makeSourceMap(
-    sourceMapText: string,
+    sourceMapText: string | undefined,
     outputText: string,
     filePath: string,
     contents: string,
     loader: interfaces.Webpack
 ) {
     if (!sourceMapText) {
-        return { output: outputText, sourceMap: undefined as interfaces.SourceMap };
+        return { output: outputText, sourceMap: undefined };
     }
 
     return {

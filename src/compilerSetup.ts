@@ -10,9 +10,9 @@ export function getCompiler(
     loaderOptions: interfaces.LoaderOptions,
     log: logger.Logger
 ) {
-    let compiler: typeof typescript;
-    let errorMessage: string;
-    let compilerDetailsLogMessage: string;
+    let compiler: typeof typescript | undefined;
+    let errorMessage: string | undefined;
+    let compilerDetailsLogMessage: string | undefined;
     let compilerCompatible = false;
 
     try {
@@ -24,10 +24,10 @@ export function getCompiler(
     }
 
     if (!errorMessage) {
-        compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`;
+        compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler!.version}`;
         compilerCompatible = false;
         if (loaderOptions.compiler === 'typescript') {
-            if (compiler.version && semver.gte(compiler.version, '1.6.2-0')) {
+            if (compiler!.version && semver.gte(compiler!.version, '1.6.2-0')) {
                 // don't log yet in this case, if a tsconfig.json exists we want to combine the message
                 compilerCompatible = true;
             } else {

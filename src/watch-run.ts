@@ -10,7 +10,7 @@ function makeWatchRun(
     instance: interfaces.TSInstance
 ) {
     const lastTimes = {};
-    let startTime : number = null;
+    let startTime : number | null = null;
     return (watching: interfaces.WebpackWatching, cb: () => void) => {
         if (null === instance.modifiedFiles) {
             instance.modifiedFiles = {};
@@ -29,8 +29,8 @@ function makeWatchRun(
                 if (file) {
                     file.text = utils.readFile(filePath) || '';
                     file.version++;
-                    instance.version++;
-                    instance.modifiedFiles[filePath] = file;
+                    instance.version!++;
+                    instance.modifiedFiles![filePath] = file;
                 }
             });
         cb();

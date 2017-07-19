@@ -1,3 +1,4 @@
+import typescript = require('typescript');
 import path = require('path');
 import fs = require('fs');
 
@@ -34,17 +35,28 @@ export function getTypeScriptInstance(
         return { error: utils.makeError({ rawMessage: errorMessage }) };
     }
 
+    return successfulTypeScriptInstance(loaderOptions, loader, log, compiler!, compilerCompatible!, compilerDetailsLogMessage!);
+}
+
+function successfulTypeScriptInstance(
+    loaderOptions: interfaces.LoaderOptions,
+    loader: interfaces.Webpack,
+    log: logger.Logger,
+    compiler: typeof typescript,
+    compilerCompatible: boolean,
+    compilerDetailsLogMessage: string
+) {
     const {
         configFilePath,
         configFile,
         configFileError
-    } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage);
+    } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
 
     if (configFileError) {
         return { error: configFileError };
     }
 
-    const configParseResult = config.getConfigParseResult(compiler, configFile, configFilePath);
+    const configParseResult = config.getConfigParseResult(compiler!, configFile, configFilePath!);
 
     if (configParseResult.errors.length && !loaderOptions.happyPackMode) {
         utils.registerWebpackErrors(
@@ -54,7 +66,7 @@ export function getTypeScriptInstance(
         return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
     }
 
-    const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler, configParseResult);
+    const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler!, configParseResult);
     const files: interfaces.TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
@@ -62,17 +74,21 @@ export function getTypeScriptInstance(
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
         // we do need to check for any issues with TS options though
-        const program = compiler.createProgram([], compilerOptions);
+        const program = compiler!.createProgram([], compilerOptions);
         const diagnostics = program.getOptionsDiagnostics();
 
         // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
         if (!loaderOptions.happyPackMode) {
             utils.registerWebpackErrors(
                 loader._module.errors,
-                utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
+                utils.formatErrors(diagnostics, loaderOptions, compiler!, {file: configFilePath || 'tsconfig.json'}));
         }
 
-        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() }};
+        const instance = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() };
+
+        instances[loaderOptions.instance] = instance;
+
+        return { instance };
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -88,7 +104,7 @@ export function getTypeScriptInstance(
           });
     } catch (exc) {
         return { error: utils.makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath }`
+            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`
         }) };
     }
 

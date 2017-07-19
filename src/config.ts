@@ -20,7 +20,7 @@ export function getConfigFile(
     compilerDetailsLogMessage: string
 ) {
     const configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
-    let configFileError: interfaces.WebpackError;
+    let configFileError: interfaces.WebpackError | undefined;
     let configFile: ConfigFile;
 
     if (configFilePath) {
@@ -68,7 +68,7 @@ export function getConfigFile(
  * The tsconfig.json is found using the same method as `tsc`, starting in the current directory
  * and continuing up the parent directory chain.
  */
-function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string {
+function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string | undefined {
     while (true) {
         const fileName = path.join(searchPath, configFileName);
         if (compiler.sys.fileExists(fileName)) {
@@ -91,13 +91,13 @@ export function getConfigParseResult(
     let configParseResult: typescript.ParsedCommandLine;
     if (typeof (<any> compiler).parseJsonConfigFileContent === 'function') {
         // parseConfigFile was renamed between 1.6.2 and 1.7
-        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseJsonConfigFileContent(
+        configParseResult = (/*<interfaces.TSCompatibleCompiler>*/ <any> compiler).parseJsonConfigFileContent(
             configFile.config,
             compiler.sys,
             path.dirname(configFilePath || '')
         );
     } else {
-        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseConfigFile(
+        configParseResult = (/*<interfaces.TSCompatibleCompiler>*/ <any> compiler!).parseConfigFile(
             configFile.config,
             compiler.sys,
             path.dirname(configFilePath || '')

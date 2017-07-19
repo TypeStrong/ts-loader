@@ -35,7 +35,7 @@ export interface Webpack {
      * A data object shared between the pitch and the normal phase.
      */
     data: Object;
-    async: () => (err: Error | WebpackError, source?: string, map?: string) => void;
+    async: () => (err: Error | WebpackError | null, source?: string, map?: string) => void;
     /**
      * The resource part of the request, including query.
      * eg: "/abc/resource.js?rrr"
@@ -193,12 +193,12 @@ export interface Resolve {
 }
 
 export interface ResolveSync {
-    (context: string, path: string, moduleName: string): string;
+    (context: string | undefined, path: string, moduleName: string): string;
 }
 
 export interface ModuleResolutionHost {
     fileExists(fileName: string): boolean;
-    readFile(fileName: string): string
+    readFile(fileName: string): string;
 }
 
 export interface TSInstance {
@@ -212,8 +212,8 @@ export interface TSInstance {
     /**
      * contains the modified files - cleared each time after-compile is called
      */
-    modifiedFiles?: TSFiles;
-    languageService?: typescript.LanguageService;
+    modifiedFiles?: TSFiles | null;
+    languageService?: typescript.LanguageService | null;
     version?: number;
     dependencyGraph: DependencyGraph;
     reverseDependencyGraph: ReverseDependencyGraph;
@@ -255,7 +255,6 @@ export interface LoaderOptions {
     visualStudioErrorFormat: boolean;
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
-    appendTsxSuffixTo: RegExp[];
     entryFileIsJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;

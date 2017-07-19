@@ -19,36 +19,38 @@ export function hasOwnProperty<T extends {}>(obj: T, property: string) {
  * Optionally adds a file name
  */
 export function formatErrors(
-    diagnostics: typescript.Diagnostic[],
+    diagnostics: typescript.Diagnostic[] | undefined,
     loaderOptions: interfaces.LoaderOptions,
     compiler: typeof typescript,
     merge?: { file?: string; module?: interfaces.WebpackModule }
 ): interfaces.WebpackError[] {
 
     return diagnostics
-        .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
-        .map<interfaces.WebpackError>(diagnostic => {
-            const errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
-            const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
+        ? diagnostics
+            .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
+            .map<interfaces.WebpackError>(diagnostic => {
+                const errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
+                const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
 
-            const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
-            let error: interfaces.WebpackError;
-            if (diagnostic.file) {
-                const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-                let errorMessage = `${white('(')}${cyan((lineChar.line + 1).toString())},${cyan((lineChar.character + 1).toString())}): ${red(messageText)}`;
-                if (loaderOptions.visualStudioErrorFormat) {
-                    errorMessage = red(path.normalize(diagnostic.file.fileName)) + errorMessage;
+                const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
+                let error: interfaces.WebpackError;
+                if (diagnostic.file) {
+                    const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
+                    let errorMessage = `${white('(')}${cyan((lineChar.line + 1).toString())},${cyan((lineChar.character + 1).toString())}): ${red(messageText)}`;
+                    if (loaderOptions.visualStudioErrorFormat) {
+                        errorMessage = red(path.normalize(diagnostic.file.fileName)) + errorMessage;
+                    }
+                    error = makeError({
+                        message: errorMessage,
+                        rawMessage: messageText,
+                        location: { line: lineChar.line + 1, character: lineChar.character + 1 }
+                    });
+                } else {
+                    error = makeError({ rawMessage: messageText });
                 }
-                error = makeError({
-                    message: errorMessage,
-                    rawMessage: messageText,
-                    location: { line: lineChar.line + 1, character: lineChar.character + 1 }
-                });
-            } else {
-                error = makeError({ rawMessage: messageText });
-            }
-            return <interfaces.WebpackError>Object.assign(error, merge);
-        });
+                return <interfaces.WebpackError>Object.assign(error, merge);
+            })
+        : [];
 }
 
 export function readFile(fileName: string) {
@@ -101,7 +103,7 @@ export function appendSuffixesIfMatch(suffixDict: {[suffix: string]: RegExp[]}, 
 export function collectAllDependants(
     reverseDependencyGraph: interfaces.ReverseDependencyGraph,
     fileName: string,
-    collected: {[file:string]: boolean} = {}
+    collected: { [file: string]: boolean } = {}
 ): string[] {
     const result = {};
     result[fileName] = true;
@@ -123,12 +125,12 @@ export function collectAllDependants(
 export function collectAllDependencies(
     dependencyGraph: interfaces.DependencyGraph,
     filePath: string,
-    collected: {[file:string]: boolean} = {}
+    collected: { [file: string]: boolean } = {}
 ): string[] {
     const result = {};
     result[filePath] = true;
     collected[filePath] = true;
-    let directDependencies = dependencyGraph[filePath]; 
+    let directDependencies = dependencyGraph[filePath];
     if (directDependencies) {
         directDependencies.forEach(dependencyModule => {
             if (!collected[dependencyModule.originalFileName]) {
@@ -141,9 +143,9 @@ export function collectAllDependencies(
 }
 
 export function arrify<T>(val: T | T[]) {
-	if (val === null || val === undefined) {
-		return [];
-	}
+    if (val === null || val === undefined) {
+        return [];
+    }
 
-	return Array.isArray(val) ? val : [val];
+    return Array.isArray(val) ? val : [val];
 };

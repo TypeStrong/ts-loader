@@ -21,15 +21,15 @@ function makeServicesHost(
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
-            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
-                constants.EOL;
+        compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+        constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
 
-    const moduleResolutionHost = {
+    const moduleResolutionHost: interfaces.ModuleResolutionHost = {
         fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
-        readFile: (fileName: string) => utils.readFile(fileName),
+        readFile: (fileName: string) => utils.readFile(fileName)!,
     };
 
     return {
@@ -143,15 +143,15 @@ function resolveModuleName(
             resolvedFileName,
             isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
         };
-        if (resolutionResult) {
-            if (resolutionResult.resolvedFileName === tsResolutionResult.resolvedFileName) {
-                resolutionResult.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
+        if (resolutionResult!) {
+            if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName) {
+                resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
             }
         } else {
             resolutionResult = tsResolutionResult;
         }
     }
-    return resolutionResult;
+    return resolutionResult!;
 }
 
 function populateDependencyGraphs(
