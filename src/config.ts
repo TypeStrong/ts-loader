@@ -97,7 +97,7 @@ export function getConfigParseResult(
             path.dirname(configFilePath || '')
         );
     } else {
-        configParseResult = (/*<interfaces.TSCompatibleCompiler>*/ <any> compiler!).parseConfigFile(
+        configParseResult = (/*<interfaces.TSCompatibleCompiler>*/ <any> compiler).parseConfigFile(
             configFile.config,
             compiler.sys,
             path.dirname(configFilePath || '')
