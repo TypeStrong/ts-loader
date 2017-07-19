@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.3.1 - NOT RELEASED YET
+## v2.3.1
 
 - [Fix undefined watcher in watch-run causes error](https://github.com/TypeStrong/ts-loader/pull/587) (#585) - thanks @zinserjan and @sokra! 
 

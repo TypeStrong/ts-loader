@@ -3,7 +3,7 @@
         "target": "es5",
         "noImplicitAny": true,
         "noImplicitReturns": true,
-        "noImplicitThis": false,
+        "noImplicitThis": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "suppressImplicitAnyIndexErrors": true,
