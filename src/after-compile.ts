@@ -6,7 +6,7 @@ import constants = require('./constants');
 
 function makeAfterCompile(
     instance: interfaces.TSInstance,
-    configFilePath: string
+    configFilePath: string | undefined
 ) {
     let getCompilerOptionDiagnostics = true;
     let checkAllFilesForErrors = true;
@@ -50,7 +50,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
     getCompilerOptionDiagnostics: boolean,
     compilation: interfaces.WebpackCompilation,
     instance: interfaces.TSInstance,
-    configFilePath: string
+    configFilePath: string | undefined
 ) {
     if (getCompilerOptionDiagnostics) {
         const { languageService, loaderOptions, compiler } = instance;

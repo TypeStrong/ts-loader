@@ -34,7 +34,7 @@ function loader(this: interfaces.Webpack, contents: string) {
         }, rawFilePath)
         : rawFilePath;
 
-    const fileVersion = updateFileInCache(filePath, contents, instance);
+    const fileVersion = updateFileInCache(filePath, contents, instance!);
 
     const { outputText, sourceMapText } = options.transpileOnly
         ? getTranspilationEmit(filePath, contents, instance!, this)
