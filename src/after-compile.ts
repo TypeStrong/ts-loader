@@ -129,7 +129,7 @@ function provideErrorsToWebpack(
     let filePathRegex = !!compilerOptions.checkJs ? constants.dtsTsTsxJsJsxRegex : constants.dtsTsTsxRegex;
 
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => !!filePath.match(filePathRegex))
+        .filter(filePath => filePath.match(filePathRegex))
         .forEach(filePath => {
             const errors = languageService!.getSyntacticDiagnostics(filePath).concat(languageService!.getSemanticDiagnostics(filePath));
             if (errors.length > 0) {
@@ -165,10 +165,10 @@ function provideDeclarationFilesToWebpack(
     compilation: interfaces.WebpackCompilation
 ) {
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => !!filePath.match(constants.tsTsxRegex))
+        .filter(filePath => filePath.match(constants.tsTsxRegex))
         .forEach(filePath => {
             const output = languageService.getEmitOutput(filePath);
-            const declarationFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.dtsDtsxRegex)).pop();
+            const declarationFile = output.outputFiles.filter(outputFile => outputFile.name.match(constants.dtsDtsxRegex)).pop();
             if (declarationFile) {
                 const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                 compilation.assets[assetPath] = {

@@ -20,7 +20,7 @@ function makeWatchRun(
         Object.keys(times)
             .filter(filePath =>
                 times[filePath] > (lastTimes[filePath] || startTime)
-                && !!filePath.match(constants.tsTsxJsJsxRegex)
+                && filePath.match(constants.tsTsxJsJsxRegex)
             )
             .forEach(filePath => {
                 lastTimes[filePath] = times[filePath];

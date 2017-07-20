@@ -29,13 +29,16 @@ export function getTypeScriptInstance(
     }
 
     const log = logger.makeLogger(loaderOptions);
-    const { compiler, compilerCompatible, compilerDetailsLogMessage, errorMessage } = compilerSetup.getCompiler(loaderOptions, log);
+    const compiler = compilerSetup.getCompiler(loaderOptions, log);
 
-    if (errorMessage) {
-        return { error: utils.makeError({ rawMessage: errorMessage }) };
+    if (compiler.errorMessage !== undefined) {
+        return { error: utils.makeError({ rawMessage: compiler.errorMessage }) };
     }
 
-    return successfulTypeScriptInstance(loaderOptions, loader, log, compiler!, compilerCompatible!, compilerDetailsLogMessage!);
+    return successfulTypeScriptInstance(
+        loaderOptions, loader, log, 
+        compiler.compiler!, compiler.compilerCompatible!, compiler.compilerDetailsLogMessage!
+    );
 }
 
 function successfulTypeScriptInstance(
@@ -46,17 +49,15 @@ function successfulTypeScriptInstance(
     compilerCompatible: boolean,
     compilerDetailsLogMessage: string
 ) {
-    const {
-        configFilePath,
-        configFile,
-        configFileError
-    } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
+    const configFileAndPath = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
 
-    if (configFileError) {
-        return { error: configFileError };
+    if (configFileAndPath.configFileError) {
+        return { error: configFileAndPath.configFileError };
     }
 
-    const configParseResult = config.getConfigParseResult(compiler!, configFile, configFilePath!);
+    const { configFilePath } = configFileAndPath;
+
+    const configParseResult = config.getConfigParseResult(compiler, configFileAndPath.configFile, configFileAndPath.configFilePath!);
 
     if (configParseResult.errors.length && !loaderOptions.happyPackMode) {
         utils.registerWebpackErrors(

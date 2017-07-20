@@ -156,7 +156,7 @@ function getEmit(
     loader.clearDependencies();
     loader.addDependency(rawFilePath);
 
-    const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => !!defFilePath.match(constants.dtsDtsxRegex));
+    const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => defFilePath.match(constants.dtsDtsxRegex));
 
     // Make this file dependent on *all* definition files in the program
     const addDependency = loader.addDependency.bind(loader);
@@ -173,10 +173,10 @@ function getEmit(
         .concat(additionalDependencies)
         .map(defFilePath => defFilePath + '@' + (instance.files[defFilePath] || { version: '?' }).version);
 
-    const outputFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.jsJsx)).pop();
+    const outputFile = output.outputFiles.filter(outputFile => outputFile.name.match(constants.jsJsx)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;
 
-    const sourceMapFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.jsJsxMap)).pop();
+    const sourceMapFile = output.outputFiles.filter(outputFile => outputFile.name.match(constants.jsJsxMap)).pop();
     const sourceMapText = (sourceMapFile) ? sourceMapFile.text : undefined;
 
     return { outputText, sourceMapText };
