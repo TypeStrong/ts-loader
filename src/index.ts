@@ -18,14 +18,25 @@ function loader(this: interfaces.Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
     const options = getLoaderOptions(this);
-    const { instance, error } = instances.getTypeScriptInstance(options, this);
+    const instanceOrError = instances.getTypeScriptInstance(options, this);
 
-    if (error) {
-        callback(error);
+    if (instanceOrError.error) {
+        callback(instanceOrError.error);
         return;
     }
 
-    const rawFilePath = path.normalize(this.resourcePath);
+    return successLoader(this, contents, callback, options, instanceOrError.instance!);
+}
+
+function successLoader(
+    loader: interfaces.Webpack,
+    contents: string,
+    callback: interfaces.AsyncCallback,
+    options: interfaces.LoaderOptions,
+    instance: interfaces.TSInstance
+) {
+
+    const rawFilePath = path.normalize(loader.resourcePath);
 
     const filePath = options.appendTsSuffixTo.length > 0 || options.appendTsxSuffixTo.length > 0
         ? utils.appendSuffixesIfMatch({
@@ -34,11 +45,11 @@ function loader(this: interfaces.Webpack, contents: string) {
         }, rawFilePath)
         : rawFilePath;
 
-    const fileVersion = updateFileInCache(filePath, contents, instance!);
+    const fileVersion = updateFileInCache(filePath, contents, instance);
 
     const { outputText, sourceMapText } = options.transpileOnly
-        ? getTranspilationEmit(filePath, contents, instance!, this)
-        : getEmit(rawFilePath, filePath, instance!, this);
+        ? getTranspilationEmit(filePath, contents, instance, loader)
+        : getEmit(rawFilePath, filePath, instance, loader);
 
     if (outputText === null || outputText === undefined) {
         const additionalGuidance = filePath.indexOf('node_modules') !== -1
@@ -47,14 +58,14 @@ function loader(this: interfaces.Webpack, contents: string) {
         throw new Error(`Typescript emitted no output for ${filePath}.${additionalGuidance}`);
     }
 
-    const { sourceMap, output } = makeSourceMap(sourceMapText, outputText, filePath, contents, this);
+    const { sourceMap, output } = makeSourceMap(sourceMapText, outputText, filePath, contents, loader);
 
     // _module.meta is not available inside happypack
     if (!options.happyPackMode) {
         // Make sure webpack is aware that even though the emitted JavaScript may be the same as
         // a previously cached version the TypeScript may be different and therefore should be
         // treated as new
-        this._module.meta.tsLoaderFileVersion = fileVersion;
+        loader._module.meta.tsLoaderFileVersion = fileVersion;
     }
 
     callback(null, output, sourceMap);

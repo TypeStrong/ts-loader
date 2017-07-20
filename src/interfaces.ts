@@ -6,6 +6,10 @@ export interface SourceMap {
     sourcesContent: string[];
 }
 
+export interface AsyncCallback {
+    (err: Error | WebpackError | null, source?: string, map?: string): void;
+}
+
 /**
  * Details here: https://webpack.github.io/docs/loaders.html#loader-context
  */
@@ -35,7 +39,7 @@ export interface Webpack {
      * A data object shared between the pitch and the normal phase.
      */
     data: Object;
-    async: () => (err: Error | WebpackError | null, source?: string, map?: string) => void;
+    async: () => AsyncCallback;
     /**
      * The resource part of the request, including query.
      * eg: "/abc/resource.js?rrr"
