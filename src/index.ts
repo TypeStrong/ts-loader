@@ -20,7 +20,7 @@ function loader(this: interfaces.Webpack, contents: string) {
     const options = getLoaderOptions(this);
     const instanceOrError = instances.getTypeScriptInstance(options, this);
 
-    if (instanceOrError.error) {
+    if (instanceOrError.error !== undefined) {
         callback(instanceOrError.error);
         return;
     }
@@ -126,7 +126,7 @@ function getLoaderOptions(loader: interfaces.Webpack) {
 function updateFileInCache(filePath: string, contents: string, instance: interfaces.TSInstance) {
     // Update file contents
     let file = instance.files[filePath];
-    if (!file) {
+    if (file === undefined) {
         file = instance.files[filePath] = <interfaces.TSFile>{ version: 0 };
     }
 
@@ -163,8 +163,10 @@ function getEmit(
     allDefinitionFiles.forEach(addDependency);
 
     // Additionally make this file dependent on all imported files
-    const additionalDependencies = instance.dependencyGraph[filePath]
-        && instance.dependencyGraph[filePath].map(module => module.originalFileName);
+    const fileDependencies = instance.dependencyGraph[filePath];
+    const additionalDependencies = fileDependencies === undefined
+        ? []
+        : fileDependencies.map(module => module.originalFileName);
     if (additionalDependencies) {
         additionalDependencies.forEach(addDependency);
     }
@@ -218,7 +220,7 @@ function makeSourceMap(
     contents: string,
     loader: interfaces.Webpack
 ) {
-    if (!sourceMapText) {
+    if (sourceMapText === undefined) {
         return { output: outputText, sourceMap: undefined };
     }
 

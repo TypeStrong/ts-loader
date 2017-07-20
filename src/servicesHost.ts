@@ -37,7 +37,8 @@ function makeServicesHost(
         getScriptFileNames: () => Object.keys(files).filter(filePath => filePath.match(scriptRegex)),
         getScriptVersion: (fileName: string) => {
             fileName = path.normalize(fileName);
-            return files[fileName] && files[fileName].version.toString();
+            const file = files[fileName];
+            return file === undefined ? '' : file.version.toString();
         },
         getScriptSnapshot: (fileName: string) => {
             // This is called any time TypeScript needs a file's text
@@ -45,9 +46,9 @@ function makeServicesHost(
             fileName = path.normalize(fileName);
             let file = files[fileName];
 
-            if (!file) {
+            if (file === undefined) {
                 const text = utils.readFile(fileName);
-                if (!text) { return undefined; }
+                if (text === undefined) { return undefined; }
 
                 file = files[fileName] = { version: 0, text };
             }
@@ -136,7 +137,7 @@ function resolveModuleName(
 
     const tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
-    if (tsResolution.resolvedModule) {
+    if (tsResolution.resolvedModule !== undefined) {
         const resolvedFileName = path.normalize(tsResolution.resolvedModule.resolvedFileName);
         const tsResolutionResult: interfaces.ResolvedModule = {
             originalFileName: resolvedFileName,
@@ -165,10 +166,10 @@ function populateDependencyGraphs(
     instance.dependencyGraph[path.normalize(containingFile)] = resolvedModules;
 
     resolvedModules.forEach(resolvedModule => {
-        if (!instance.reverseDependencyGraph[resolvedModule.resolvedFileName]) {
+        if (instance.reverseDependencyGraph[resolvedModule.resolvedFileName] === undefined) {
             instance.reverseDependencyGraph[resolvedModule.resolvedFileName] = {};
         }
-        instance.reverseDependencyGraph[resolvedModule.resolvedFileName][path.normalize(containingFile)] = true;
+        instance.reverseDependencyGraph[resolvedModule.resolvedFileName]![path.normalize(containingFile)] = true;
     });
 }
 

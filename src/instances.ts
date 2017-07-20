@@ -51,7 +51,7 @@ function successfulTypeScriptInstance(
 ) {
     const configFileAndPath = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
 
-    if (configFileAndPath.configFileError) {
+    if (configFileAndPath.configFileError !== undefined) {
         return { error: configFileAndPath.configFileError };
     }
 
@@ -59,7 +59,7 @@ function successfulTypeScriptInstance(
 
     const configParseResult = config.getConfigParseResult(compiler, configFileAndPath.configFile, configFileAndPath.configFilePath!);
 
-    if (configParseResult.errors.length && !loaderOptions.happyPackMode) {
+    if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
         utils.registerWebpackErrors(
             loader._module.errors,
             utils.formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));

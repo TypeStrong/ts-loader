@@ -234,13 +234,13 @@ export interface TSInstances {
 }
 
 export interface DependencyGraph {
-    [file: string]: ResolvedModule[];
+    [file: string]: ResolvedModule[] | undefined;
 }
 
 export interface ReverseDependencyGraph {
     [file: string]: {
         [file: string]: boolean
-    };
+    } | undefined;
 }
 
 export type Partial<T> = {
@@ -271,7 +271,7 @@ export interface TSFile {
 }
 
 export interface TSFiles {
-    [fileName: string]: TSFile;
+    [fileName: string]: TSFile | undefined;
 }
 
 export interface ResolvedModule {

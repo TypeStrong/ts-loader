@@ -23,7 +23,7 @@ export function getConfigFile(
     let configFileError: interfaces.WebpackError | undefined;
     let configFile: ConfigFile;
 
-    if (configFilePath) {
+    if (configFilePath !== undefined) {
         if (compilerCompatible) {
             log.logInfo(green(`${compilerDetailsLogMessage} and ${configFilePath}`));
         } else {
@@ -37,7 +37,7 @@ export function getConfigFile(
             compiler.sys.readFile
         );
 
-        if (configFile.error) {
+        if (configFile.error !== undefined) {
             configFileError = utils.formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
         }
     } else {
@@ -51,7 +51,7 @@ export function getConfigFile(
         };
     }
 
-    if (!configFileError) {
+    if (configFileError === undefined) {
         configFile.config.compilerOptions = Object.assign({},
             configFile.config.compilerOptions,
             loaderOptions.compilerOptions);

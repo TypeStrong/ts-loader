@@ -23,7 +23,7 @@ export function getCompiler(
             : `Could not load TypeScript compiler with NPM package name \`${loaderOptions.compiler}\`. Are you sure it is correctly installed?`;
     }
 
-    if (!errorMessage) {
+    if (errorMessage === undefined) {
         compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler!.version}`;
         compilerCompatible = false;
         if (loaderOptions.compiler === 'typescript') {
@@ -52,7 +52,7 @@ export function getCompilerOptions(
     });
 
     // if `module` is not specified and not using ES6 target, default to CJS module output
-    if ((!compilerOptions.module) && compilerOptions.target !== constants.ScriptTargetES2015) {
+    if ((compilerOptions.module === undefined) && compilerOptions.target !== constants.ScriptTargetES2015) {
         compilerOptions.module = constants.ModuleKindCommonJs;
     } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === constants.ScriptTargetES2015) {
         // special handling for TS 1.6 and target: es6

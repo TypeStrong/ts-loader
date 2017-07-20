@@ -26,7 +26,7 @@ function makeWatchRun(
                 lastTimes[filePath] = times[filePath];
                 filePath = path.normalize(filePath);
                 const file = instance.files[filePath];
-                if (file) {
+                if (file !== undefined) {
                     file.text = utils.readFile(filePath) || '';
                     file.version++;
                     instance.version!++;

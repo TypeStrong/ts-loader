@@ -98,7 +98,7 @@ function determineFilesToCheckForErrors(
     if (checkAllFilesForErrors) {
         // check all files on initial run
         filesToCheckForErrors = files;
-    } else if (modifiedFiles) {
+    } else if (modifiedFiles !== null && modifiedFiles !== undefined) {
         // check all modified files, and all dependants
         Object.keys(modifiedFiles).forEach(modifiedFileName => {
             utils.collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
@@ -109,7 +109,7 @@ function determineFilesToCheckForErrors(
     }
 
     // re-check files with errors from previous build
-    if (filesWithErrors) {
+    if (filesWithErrors !== undefined) {
         Object.keys(filesWithErrors).forEach(fileWithErrorName =>
             filesToCheckForErrors[fileWithErrorName] = filesWithErrors[fileWithErrorName]
         );
@@ -169,7 +169,7 @@ function provideDeclarationFilesToWebpack(
         .forEach(filePath => {
             const output = languageService.getEmitOutput(filePath);
             const declarationFile = output.outputFiles.filter(outputFile => outputFile.name.match(constants.dtsDtsxRegex)).pop();
-            if (declarationFile) {
+            if (declarationFile !== undefined) {
                 const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                 compilation.assets[assetPath] = {
                     source: () => declarationFile.text,

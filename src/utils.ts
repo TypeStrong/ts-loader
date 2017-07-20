@@ -34,7 +34,7 @@ export function formatErrors(
 
                 const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
                 let error: interfaces.WebpackError;
-                if (diagnostic.file) {
+                if (diagnostic.file !== undefined) {
                     const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
                     let errorMessage = `${white('(')}${cyan((lineChar.line + 1).toString())},${cyan((lineChar.character + 1).toString())}): ${red(messageText)}`;
                     if (loaderOptions.visualStudioErrorFormat) {
@@ -131,7 +131,7 @@ export function collectAllDependencies(
     result[filePath] = true;
     collected[filePath] = true;
     let directDependencies = dependencyGraph[filePath];
-    if (directDependencies) {
+    if (directDependencies !== undefined) {
         directDependencies.forEach(dependencyModule => {
             if (!collected[dependencyModule.originalFileName]) {
                 collectAllDependencies(dependencyGraph, dependencyModule.resolvedFileName, collected)
