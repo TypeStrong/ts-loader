@@ -5,13 +5,20 @@ import fs = require('fs');
 import afterCompile = require('./after-compile');
 import config = require('./config');
 import compilerSetup = require('./compilerSetup');
-import interfaces = require('./interfaces');
 import utils = require('./utils');
 import logger = require('./logger');
 import makeServicesHost = require('./servicesHost');
 import watchRun = require('./watch-run');
+import { 
+    LoaderOptions,
+    TSFiles,
+    TSInstance,
+    TSInstances,
+    Webpack,
+    WebpackError
+} from './interfaces';
 
-const instances = <interfaces.TSInstances> {};
+const instances = <TSInstances> {};
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -21,9 +28,9 @@ const instances = <interfaces.TSInstances> {};
  * `instance` property.
  */
 export function getTypeScriptInstance(
-    loaderOptions: interfaces.LoaderOptions,
-    loader: interfaces.Webpack
-): { instance?: interfaces.TSInstance, error?: interfaces.WebpackError } {
+    loaderOptions: LoaderOptions,
+    loader: Webpack
+): { instance?: TSInstance, error?: WebpackError } {
     if (utils.hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }
@@ -42,8 +49,8 @@ export function getTypeScriptInstance(
 }
 
 function successfulTypeScriptInstance(
-    loaderOptions: interfaces.LoaderOptions,
-    loader: interfaces.Webpack,
+    loaderOptions: LoaderOptions,
+    loader: Webpack,
     log: logger.Logger,
     compiler: typeof typescript,
     compilerCompatible: boolean,
@@ -68,7 +75,7 @@ function successfulTypeScriptInstance(
     }
 
     const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler!, configParseResult);
-    const files: interfaces.TSFiles = {};
+    const files: TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
 
@@ -114,7 +121,7 @@ function successfulTypeScriptInstance(
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
-    const instance: interfaces.TSInstance = instances[loaderOptions.instance] = {
+    const instance: TSInstance = instances[loaderOptions.instance] = {
         compiler,
         compilerOptions,
         loaderOptions,

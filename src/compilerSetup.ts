@@ -1,13 +1,13 @@
 import typescript = require('typescript');
 const semver = require('semver');
 
-import interfaces = require('./interfaces');
 import constants = require('./constants');
 import logger = require('./logger');
 import { red, yellow } from 'chalk';
+import { LoaderOptions } from './interfaces';
 
 export function getCompiler(
-    loaderOptions: interfaces.LoaderOptions,
+    loaderOptions: LoaderOptions,
     log: logger.Logger
 ) {
     let compiler: typeof typescript | undefined;

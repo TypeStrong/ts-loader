@@ -1,10 +1,16 @@
 import typescript = require('typescript');
 import constants = require('./constants');
-import interfaces = require('./interfaces');
 import logger = require('./logger');
 import path = require('path');
 import makeResolver = require('./resolver');
 import utils = require('./utils');
+import { 
+    ModuleResolutionHost,
+    ResolvedModule,
+    ResolveSync,
+    TSInstance,
+    Webpack
+} from './interfaces';
 
 /**
  * Create the TypeScript language service
@@ -12,8 +18,8 @@ import utils = require('./utils');
 function makeServicesHost(
     scriptRegex: RegExp,
     log: logger.Logger,
-    loader: interfaces.Webpack,
-    instance: interfaces.TSInstance,
+    loader: Webpack,
+    instance: TSInstance,
     appendTsSuffixTo: RegExp[],
     appendTsxSuffixTo: RegExp[]
 ) {
@@ -27,7 +33,7 @@ function makeServicesHost(
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
 
-    const moduleResolutionHost: interfaces.ModuleResolutionHost = {
+    const moduleResolutionHost: ModuleResolutionHost = {
         fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
         readFile: (fileName: string) => utils.readFile(fileName)!,
     };
@@ -86,12 +92,12 @@ function makeServicesHost(
 }
 
 function resolveModuleNames(
-    resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    resolveSync: ResolveSync,
+    moduleResolutionHost: ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     appendTsxSuffixTo: RegExp[],
     scriptRegex: RegExp,
-    instance: interfaces.TSInstance,
+    instance: TSInstance,
     moduleNames: string[],
     containingFile: string
 ) {
@@ -106,19 +112,19 @@ function resolveModuleNames(
 }
 
 function resolveModuleName(
-    resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    resolveSync: ResolveSync,
+    moduleResolutionHost: ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     appendTsxSuffixTo: RegExp[],
     scriptRegex: RegExp,
-    instance: interfaces.TSInstance,
+    instance: TSInstance,
 
     moduleName: string,
     containingFile: string
 ) {
     const { compiler, compilerOptions } = instance;
 
-    let resolutionResult: interfaces.ResolvedModule;
+    let resolutionResult: ResolvedModule;
 
     try {
         const originalFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
@@ -139,7 +145,7 @@ function resolveModuleName(
 
     if (tsResolution.resolvedModule !== undefined) {
         const resolvedFileName = path.normalize(tsResolution.resolvedModule.resolvedFileName);
-        const tsResolutionResult: interfaces.ResolvedModule = {
+        const tsResolutionResult: ResolvedModule = {
             originalFileName: resolvedFileName,
             resolvedFileName,
             isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
@@ -156,8 +162,8 @@ function resolveModuleName(
 }
 
 function populateDependencyGraphs(
-    resolvedModules: interfaces.ResolvedModule[],
-    instance: interfaces.TSInstance,
+    resolvedModules: ResolvedModule[],
+    instance: TSInstance,
     containingFile: string
 ) {
     resolvedModules = resolvedModules

@@ -2,19 +2,27 @@ import path = require('path');
 import loaderUtils = require('loader-utils');
 
 import instances = require('./instances');
-import interfaces = require('./interfaces');
 import utils = require('./utils');
 import constants = require('./constants');
+import { 
+    AsyncCallback,
+    Compiler,
+    LoaderOptions,
+    LoaderOptionsCache,
+    TSFile,
+    TSInstance,
+    Webpack
+} from './interfaces';
 
-const webpackInstances: interfaces.Compiler[] = [];
-const loaderOptionsCache: interfaces.LoaderOptionsCache = {};
+const webpackInstances: Compiler[] = [];
+const loaderOptionsCache: LoaderOptionsCache = {};
 
-type PartialLoaderOptions = interfaces.Partial<interfaces.LoaderOptions>;
+type PartialLoaderOptions = Partial<LoaderOptions>;
 
 /**
  * The entry point for ts-loader
  */
-function loader(this: interfaces.Webpack, contents: string) {
+function loader(this: Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
     const options = getLoaderOptions(this);
@@ -29,11 +37,11 @@ function loader(this: interfaces.Webpack, contents: string) {
 }
 
 function successLoader(
-    loader: interfaces.Webpack,
+    loader: Webpack,
     contents: string,
-    callback: interfaces.AsyncCallback,
-    options: interfaces.LoaderOptions,
-    instance: interfaces.TSInstance
+    callback: AsyncCallback,
+    options: LoaderOptions,
+    instance: TSInstance
 ) {
 
     const rawFilePath = path.normalize(loader.resourcePath);
@@ -75,14 +83,14 @@ function successLoader(
  * either retrieves loader options from the cache
  * or creates them, adds them to the cache and returns
  */
-function getLoaderOptions(loader: interfaces.Webpack) {
+function getLoaderOptions(loader: Webpack) {
     // differentiate the TypeScript instance based on the webpack instance
     let webpackIndex = webpackInstances.indexOf(loader._compiler);
     if (webpackIndex === -1) {
         webpackIndex = webpackInstances.push(loader._compiler) - 1;
     }
 
-    const queryOptions = loaderUtils.getOptions<interfaces.LoaderOptions>(loader) || {} as interfaces.LoaderOptions;
+    const queryOptions = loaderUtils.getOptions<LoaderOptions>(loader) || {} as LoaderOptions;
     const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
 
     const instanceName = webpackIndex + '_' + (queryOptions.instance || configFileOptions.instance || 'default');
@@ -123,11 +131,11 @@ function getLoaderOptions(loader: interfaces.Webpack) {
  * Either add file to the overall files cache or update it in the cache when the file contents have changed
  * Also add the file to the modified files
  */
-function updateFileInCache(filePath: string, contents: string, instance: interfaces.TSInstance) {
+function updateFileInCache(filePath: string, contents: string, instance: TSInstance) {
     // Update file contents
     let file = instance.files[filePath];
     if (file === undefined) {
-        file = instance.files[filePath] = <interfaces.TSFile>{ version: 0 };
+        file = instance.files[filePath] = <TSFile>{ version: 0 };
     }
 
     if (file.text !== contents) {
@@ -147,8 +155,8 @@ function updateFileInCache(filePath: string, contents: string, instance: interfa
 function getEmit(
     rawFilePath: string,
     filePath: string,
-    instance: interfaces.TSInstance,
-    loader: interfaces.Webpack
+    instance: TSInstance,
+    loader: Webpack
 ) {
     // Emit Javascript
     const output = instance.languageService!.getEmitOutput(filePath);
@@ -190,8 +198,8 @@ function getEmit(
 function getTranspilationEmit(
     filePath: string,
     contents: string,
-    instance: interfaces.TSInstance,
-    loader: interfaces.Webpack
+    instance: TSInstance,
+    loader: Webpack
 ) {
     const fileName = path.basename(filePath);
 
@@ -218,7 +226,7 @@ function makeSourceMap(
     outputText: string,
     filePath: string,
     contents: string,
-    loader: interfaces.Webpack
+    loader: Webpack
 ) {
     if (sourceMapText === undefined) {
         return { output: outputText, sourceMap: undefined };

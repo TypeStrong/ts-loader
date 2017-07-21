@@ -1,17 +1,23 @@
-import interfaces = require('./interfaces');
 import path = require('path');
 import typescript = require('typescript');
 import utils = require('./utils');
 import constants = require('./constants');
+import { 
+    TSFiles,
+    TSInstance,
+    WebpackCompilation,
+    WebpackError,
+    WebpackModule
+} from './interfaces';
 
 function makeAfterCompile(
-    instance: interfaces.TSInstance,
+    instance: TSInstance,
     configFilePath: string | undefined
 ) {
     let getCompilerOptionDiagnostics = true;
     let checkAllFilesForErrors = true;
 
-    return (compilation: interfaces.WebpackCompilation, callback: () => void) => {
+    return (compilation: WebpackCompilation, callback: () => void) => {
         // Don't add errors for child compilations
         if (compilation.compiler.isChild()) {
             callback();
@@ -28,7 +34,7 @@ function makeAfterCompile(
         const filesToCheckForErrors = determineFilesToCheckForErrors(checkAllFilesForErrors, instance);
         checkAllFilesForErrors = false;
 
-        const filesWithErrors: interfaces.TSFiles = {};
+        const filesWithErrors: TSFiles = {};
         provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
 
         provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService!, compilation);
@@ -40,7 +46,7 @@ function makeAfterCompile(
 }
 
 interface Modules {
-    [modulePath: string]: interfaces.WebpackModule[];
+    [modulePath: string]: WebpackModule[];
 }
 
 /**
@@ -48,8 +54,8 @@ interface Modules {
  */
 function provideCompilerOptionDiagnosticErrorsToWebpack(
     getCompilerOptionDiagnostics: boolean,
-    compilation: interfaces.WebpackCompilation,
-    instance: interfaces.TSInstance,
+    compilation: WebpackCompilation,
+    instance: TSInstance,
     configFilePath: string | undefined
 ) {
     if (getCompilerOptionDiagnostics) {
@@ -69,7 +75,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  * based on filepath
  */
 function determineModules(
-    compilation: interfaces.WebpackCompilation
+    compilation: WebpackCompilation
 ) {
     const modules: Modules = {};
     compilation.modules.forEach(module => {
@@ -90,11 +96,11 @@ function determineModules(
 
 function determineFilesToCheckForErrors(
     checkAllFilesForErrors: boolean,
-    instance: interfaces.TSInstance
+    instance: TSInstance
 ) {
     const { files, modifiedFiles, filesWithErrors } = instance
     // calculate array of files to check
-    let filesToCheckForErrors: interfaces.TSFiles = {};
+    let filesToCheckForErrors: TSFiles = {};
     if (checkAllFilesForErrors) {
         // check all files on initial run
         filesToCheckForErrors = files;
@@ -118,11 +124,11 @@ function determineFilesToCheckForErrors(
 }
 
 function provideErrorsToWebpack(
-    filesToCheckForErrors: interfaces.TSFiles,
-    filesWithErrors: interfaces.TSFiles,
-    compilation: interfaces.WebpackCompilation,
+    filesToCheckForErrors: TSFiles,
+    filesWithErrors: TSFiles,
+    compilation: WebpackCompilation,
     modules: Modules,
-    instance: interfaces.TSInstance
+    instance: TSInstance
 ) {
     const { compiler, languageService, files, loaderOptions, compilerOptions } = instance;
 
@@ -160,9 +166,9 @@ function provideErrorsToWebpack(
  * gather all declaration files from TypeScript and output them to webpack
  */
 function provideDeclarationFilesToWebpack(
-    filesToCheckForErrors: interfaces.TSFiles,
+    filesToCheckForErrors: TSFiles,
     languageService: typescript.LanguageService,
-    compilation: interfaces.WebpackCompilation
+    compilation: WebpackCompilation
 ) {
     Object.keys(filesToCheckForErrors)
         .filter(filePath => filePath.match(constants.tsTsxRegex))
@@ -186,7 +192,7 @@ function provideDeclarationFilesToWebpack(
  * compilation-to-compilation, and since not every module always runs through
  * the loader, we need to detect and remove any pre-existing errors.
  */
-function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
+function removeTSLoaderErrors(errors: WebpackError[]) {
     let index = -1;
     let length = errors.length;
     while (++index < length) {

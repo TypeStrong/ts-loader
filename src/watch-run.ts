@@ -1,17 +1,20 @@
 import path = require('path');
 import utils = require('./utils');
-import interfaces = require('./interfaces');
 import constants = require('./constants');
+import { 
+    TSInstance,
+    WebpackWatching
+} from './interfaces';
 
 /**
  * Make function which will manually update changed files
  */
 function makeWatchRun(
-    instance: interfaces.TSInstance
+    instance: TSInstance
 ) {
     const lastTimes = {};
     let startTime : number | null = null;
-    return (watching: interfaces.WebpackWatching, cb: () => void) => {
+    return (watching: WebpackWatching, cb: () => void) => {
         if (null === instance.modifiedFiles) {
             instance.modifiedFiles = {};
         }

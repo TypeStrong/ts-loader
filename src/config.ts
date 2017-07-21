@@ -1,9 +1,14 @@
 import typescript = require('typescript');
 import path = require('path');
 
-import interfaces = require('./interfaces');
 import logger = require('./logger');
 import utils = require('./utils');
+import { 
+    LoaderOptions,
+    TSCompatibleCompiler,
+    Webpack,
+    WebpackError
+} from './interfaces';
 import { green } from 'chalk';
 
 interface ConfigFile {
@@ -13,14 +18,14 @@ interface ConfigFile {
 
 export function getConfigFile(
     compiler: typeof typescript,
-    loader: interfaces.Webpack,
-    loaderOptions: interfaces.LoaderOptions,
+    loader: Webpack,
+    loaderOptions: LoaderOptions,
     compilerCompatible: boolean,
     log: logger.Logger,
     compilerDetailsLogMessage: string
 ) {
     const configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
-    let configFileError: interfaces.WebpackError | undefined;
+    let configFileError: WebpackError | undefined;
     let configFile: ConfigFile;
 
     if (configFilePath !== undefined) {
@@ -32,7 +37,7 @@ export function getConfigFile(
 
         // HACK: relies on the fact that passing an extra argument won't break
         // the old API that has a single parameter
-        configFile = (<interfaces.TSCompatibleCompiler> <any> compiler).readConfigFile(
+        configFile = (<TSCompatibleCompiler> <any> compiler).readConfigFile(
             configFilePath,
             compiler.sys.readFile
         );
@@ -91,13 +96,13 @@ export function getConfigParseResult(
     let configParseResult: typescript.ParsedCommandLine;
     if (typeof (<any> compiler).parseJsonConfigFileContent === 'function') {
         // parseConfigFile was renamed between 1.6.2 and 1.7
-        configParseResult = (/*<interfaces.TSCompatibleCompiler>*/ <any> compiler).parseJsonConfigFileContent(
+        configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseJsonConfigFileContent(
             configFile.config,
             compiler.sys,
             path.dirname(configFilePath || '')
         );
     } else {
-        configParseResult = (/*<interfaces.TSCompatibleCompiler>*/ <any> compiler).parseConfigFile(
+        configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseConfigFile(
             configFile.config,
             compiler.sys,
             path.dirname(configFilePath || '')
