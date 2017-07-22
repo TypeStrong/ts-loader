@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as typescript from 'typescript';
 
-import * as utils from './utils';
+import { collectAllDependants, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
 import * as constants from './constants';
 import { 
     TSFiles,
@@ -61,9 +61,9 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
 ) {
     if (getCompilerOptionDiagnostics) {
         const { languageService, loaderOptions, compiler } = instance;
-        utils.registerWebpackErrors(
+        registerWebpackErrors(
             compilation.errors,
-            utils.formatErrors(
+            formatErrors(
                 languageService!.getCompilerOptionsDiagnostics(),
                 loaderOptions, compiler,
                 { file: configFilePath || 'tsconfig.json' }));
@@ -82,7 +82,7 @@ function determineModules(
     compilation.modules.forEach(module => {
         if (module.resource) {
             const modulePath = path.normalize(module.resource);
-            if (utils.hasOwnProperty(modules, modulePath)) {
+            if (hasOwnProperty(modules, modulePath)) {
                 const existingModules = modules[modulePath];
                 if (existingModules.indexOf(module) === -1) {
                     existingModules.push(module);
@@ -108,7 +108,7 @@ function determineFilesToCheckForErrors(
     } else if (modifiedFiles !== null && modifiedFiles !== undefined) {
         // check all modified files, and all dependants
         Object.keys(modifiedFiles).forEach(modifiedFileName => {
-            utils.collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
+            collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
                 .forEach(fileName => {
                     filesToCheckForErrors[fileName] = files[fileName];
                 });
@@ -144,7 +144,7 @@ function provideErrorsToWebpack(
             }
 
             // if we have access to a webpack module, use that
-            if (utils.hasOwnProperty(modules, filePath)) {
+            if (hasOwnProperty(modules, filePath)) {
                 const associatedModules = modules[filePath];
 
                 associatedModules.forEach(module => {
@@ -152,13 +152,13 @@ function provideErrorsToWebpack(
                     removeTSLoaderErrors(module.errors);
 
                     // append errors
-                    const formattedErrors = utils.formatErrors(errors, loaderOptions, compiler, { module });
-                    utils.registerWebpackErrors(module.errors, formattedErrors);
-                    utils.registerWebpackErrors(compilation.errors, formattedErrors);
+                    const formattedErrors = formatErrors(errors, loaderOptions, compiler, { module });
+                    registerWebpackErrors(module.errors, formattedErrors);
+                    registerWebpackErrors(compilation.errors, formattedErrors);
                 });
             } else {
                 // otherwise it's a more generic error
-                utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, loaderOptions, compiler, { file: filePath }));
+                registerWebpackErrors(compilation.errors, formatErrors(errors, loaderOptions, compiler, { file: filePath }));
             }
         });
 }

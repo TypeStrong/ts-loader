@@ -3,9 +3,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 import { makeAfterCompile } from './after-compile';
-import * as config from './config';
-import * as compilerSetup from './compilerSetup';
-import * as utils from './utils';
+import { getConfigFile, getConfigParseResult } from './config';
+import { getCompilerOptions, getCompiler } from './compilerSetup';
+import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
 import * as logger from './logger';
 import { makeServicesHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
@@ -31,15 +31,15 @@ export function getTypeScriptInstance(
     loaderOptions: LoaderOptions,
     loader: Webpack
 ): { instance?: TSInstance, error?: WebpackError } {
-    if (utils.hasOwnProperty(instances, loaderOptions.instance)) {
+    if (hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }
 
     const log = logger.makeLogger(loaderOptions);
-    const compiler = compilerSetup.getCompiler(loaderOptions, log);
+    const compiler = getCompiler(loaderOptions, log);
 
     if (compiler.errorMessage !== undefined) {
-        return { error: utils.makeError({ rawMessage: compiler.errorMessage }) };
+        return { error: makeError({ rawMessage: compiler.errorMessage }) };
     }
 
     return successfulTypeScriptInstance(
@@ -56,7 +56,7 @@ function successfulTypeScriptInstance(
     compilerCompatible: boolean,
     compilerDetailsLogMessage: string
 ) {
-    const configFileAndPath = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
+    const configFileAndPath = getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
 
     if (configFileAndPath.configFileError !== undefined) {
         return { error: configFileAndPath.configFileError };
@@ -64,17 +64,17 @@ function successfulTypeScriptInstance(
 
     const { configFilePath } = configFileAndPath;
 
-    const configParseResult = config.getConfigParseResult(compiler, configFileAndPath.configFile, configFileAndPath.configFilePath!);
+    const configParseResult = getConfigParseResult(compiler, configFileAndPath.configFile, configFileAndPath.configFilePath!);
 
     if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
-        utils.registerWebpackErrors(
+        registerWebpackErrors(
             loader._module.errors,
-            utils.formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
+            formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
 
-        return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
+        return { error: makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
     }
 
-    const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler!, configParseResult);
+    const compilerOptions = getCompilerOptions(compilerCompatible, compiler!, configParseResult);
     const files: TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
@@ -87,9 +87,9 @@ function successfulTypeScriptInstance(
 
         // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
         if (!loaderOptions.happyPackMode) {
-            utils.registerWebpackErrors(
+            registerWebpackErrors(
                 loader._module.errors,
-                utils.formatErrors(diagnostics, loaderOptions, compiler!, {file: configFilePath || 'tsconfig.json'}));
+                formatErrors(diagnostics, loaderOptions, compiler!, {file: configFilePath || 'tsconfig.json'}));
         }
 
         const instance = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() };
@@ -111,7 +111,7 @@ function successfulTypeScriptInstance(
             };
           });
     } catch (exc) {
-        return { error: utils.makeError({
+        return { error: makeError({
             rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`
         }) };
     }

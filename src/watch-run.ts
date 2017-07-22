@@ -1,5 +1,6 @@
 import * as path from 'path';
-import * as utils from './utils';
+
+import { readFile } from './utils';
 import * as constants from './constants';
 import { 
     TSInstance,
@@ -30,7 +31,7 @@ export function makeWatchRun(
                 filePath = path.normalize(filePath);
                 const file = instance.files[filePath];
                 if (file !== undefined) {
-                    file.text = utils.readFile(filePath) || '';
+                    file.text = readFile(filePath) || '';
                     file.version++;
                     instance.version!++;
                     instance.modifiedFiles![filePath] = file;

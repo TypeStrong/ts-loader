@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as constants from './constants';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import * as utils from './utils';
+import { appendSuffixesIfMatch, readFile } from './utils';
 import { 
     ModuleResolutionHost,
     ResolvedModule,
@@ -35,8 +35,8 @@ export function makeServicesHost(
     const resolveSync = makeResolver(loader.options);
 
     const moduleResolutionHost: ModuleResolutionHost = {
-        fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
-        readFile: (fileName: string) => utils.readFile(fileName)!,
+        fileExists: (fileName: string) => readFile(fileName) !== undefined,
+        readFile: (fileName: string) => readFile(fileName)!,
     };
 
     return {
@@ -54,7 +54,7 @@ export function makeServicesHost(
             let file = files[fileName];
 
             if (file === undefined) {
-                const text = utils.readFile(fileName);
+                const text = readFile(fileName);
                 if (text === undefined) { return undefined; }
 
                 file = files[fileName] = { version: 0, text };
@@ -131,7 +131,7 @@ function resolveModuleName(
         const originalFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
 
         const resolvedFileName = appendTsSuffixTo.length > 0 || appendTsxSuffixTo.length > 0
-            ? utils.appendSuffixesIfMatch({
+            ? appendSuffixesIfMatch({
                 '.ts': appendTsSuffixTo,
                 '.tsx': appendTsxSuffixTo,
             }, originalFileName)

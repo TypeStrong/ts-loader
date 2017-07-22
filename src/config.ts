@@ -2,7 +2,7 @@ import * as typescript from 'typescript';
 import * as path from 'path';
 
 import * as logger from './logger';
-import * as utils from './utils';
+import { formatErrors } from './utils';
 import { 
     LoaderOptions,
     TSCompatibleCompiler,
@@ -43,7 +43,7 @@ export function getConfigFile(
         );
 
         if (configFile.error !== undefined) {
-            configFileError = utils.formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
+            configFileError = formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
         }
     } else {
         if (compilerCompatible) { log.logInfo(green(compilerDetailsLogMessage)); }

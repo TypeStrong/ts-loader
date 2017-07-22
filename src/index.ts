@@ -1,8 +1,8 @@
 import * as path from 'path';
 import * as loaderUtils from 'loader-utils';
 
-import * as instances from './instances';
-import * as utils from './utils';
+import { getTypeScriptInstance } from './instances';
+import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
 import * as constants from './constants';
 import { 
     AsyncCallback,
@@ -26,7 +26,7 @@ function loader(this: Webpack, contents: string) {
     this.cacheable && this.cacheable();
     const callback = this.async();
     const options = getLoaderOptions(this);
-    const instanceOrError = instances.getTypeScriptInstance(options, this);
+    const instanceOrError = getTypeScriptInstance(options, this);
 
     if (instanceOrError.error !== undefined) {
         callback(instanceOrError.error);
@@ -47,7 +47,7 @@ function successLoader(
     const rawFilePath = path.normalize(loader.resourcePath);
 
     const filePath = options.appendTsSuffixTo.length > 0 || options.appendTsxSuffixTo.length > 0
-        ? utils.appendSuffixesIfMatch({
+        ? appendSuffixesIfMatch({
             '.ts': options.appendTsSuffixTo,
             '.tsx': options.appendTsxSuffixTo,
         }, rawFilePath)
@@ -95,7 +95,7 @@ function getLoaderOptions(loader: Webpack) {
 
     const instanceName = webpackIndex + '_' + (queryOptions.instance || configFileOptions.instance || 'default');
 
-    if (utils.hasOwnProperty(loaderOptionsCache, instanceName)) {
+    if (hasOwnProperty(loaderOptionsCache, instanceName)) {
         return loaderOptionsCache[instanceName];
     }
 
@@ -115,7 +115,7 @@ function getLoaderOptions(loader: Webpack) {
         happyPackMode: false,
     }, configFileOptions, queryOptions);
 
-    options.ignoreDiagnostics = utils.arrify(options.ignoreDiagnostics).map(Number);
+    options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
     options.instance = instanceName;
 
@@ -212,9 +212,9 @@ function getTranspilationEmit(
 
     // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!instance.loaderOptions.happyPackMode) {
-        utils.registerWebpackErrors(
+        registerWebpackErrors(
             loader._module.errors,
-            utils.formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
+            formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
         );
     }
 
