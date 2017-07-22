@@ -1,7 +1,8 @@
-import path = require('path');
-import typescript = require('typescript');
-import utils = require('./utils');
-import constants = require('./constants');
+import * as path from 'path';
+import * as typescript from 'typescript';
+
+import * as utils from './utils';
+import * as constants from './constants';
 import { 
     TSFiles,
     TSInstance,
@@ -10,7 +11,7 @@ import {
     WebpackModule
 } from './interfaces';
 
-function makeAfterCompile(
+export function makeAfterCompile(
     instance: TSInstance,
     configFilePath: string | undefined
 ) {
@@ -202,5 +203,3 @@ function removeTSLoaderErrors(errors: WebpackError[]) {
         }
     }
 }
-
-export = makeAfterCompile;

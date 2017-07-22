@@ -1,8 +1,8 @@
-import typescript = require('typescript');
+import * as typescript from 'typescript';
 const semver = require('semver');
 
-import constants = require('./constants');
-import logger = require('./logger');
+import * as constants from './constants';
+import * as logger from './logger';
 import { red, yellow } from 'chalk';
 import { LoaderOptions } from './interfaces';
 

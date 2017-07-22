@@ -1,4 +1,4 @@
-var Console = require('console').Console;
+const Console = require('console').Console;
 import { LoaderOptions } from './interfaces';
 
 const stderrConsole = new Console(process.stderr);

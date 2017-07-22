@@ -1,6 +1,6 @@
-import path = require('path');
-import utils = require('./utils');
-import constants = require('./constants');
+import * as path from 'path';
+import * as utils from './utils';
+import * as constants from './constants';
 import { 
     TSInstance,
     WebpackWatching
@@ -9,7 +9,7 @@ import {
 /**
  * Make function which will manually update changed files
  */
-function makeWatchRun(
+export function makeWatchRun(
     instance: TSInstance
 ) {
     const lastTimes = {};
@@ -39,5 +39,3 @@ function makeWatchRun(
         cb();
     };
 }
-
-export = makeWatchRun;

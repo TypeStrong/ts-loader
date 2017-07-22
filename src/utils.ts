@@ -1,6 +1,6 @@
-import typescript = require('typescript');
-import path = require('path');
-import fs = require('fs');
+import * as typescript from 'typescript';
+import * as path from 'path';
+import * as fs from 'fs';
 import { white, red, cyan } from 'chalk';
 
 import constants = require('./constants');

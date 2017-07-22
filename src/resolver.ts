@@ -5,8 +5,7 @@ import {
 
 const node = require("enhanced-resolve/lib/node");
 
-function makeResolver(options: { resolve: Resolve }): ResolveSync {
+export function makeResolver(options: { resolve: Resolve }): ResolveSync {
     return node.create.sync(options.resolve);
 }
 
-export = makeResolver;

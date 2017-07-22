@@ -1,9 +1,9 @@
-import path = require('path');
-import loaderUtils = require('loader-utils');
+import * as path from 'path';
+import * as loaderUtils from 'loader-utils';
 
-import instances = require('./instances');
-import utils = require('./utils');
-import constants = require('./constants');
+import * as instances from './instances';
+import * as utils from './utils';
+import * as constants from './constants';
 import { 
     AsyncCallback,
     Compiler,

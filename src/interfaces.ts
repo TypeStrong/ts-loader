@@ -1,4 +1,4 @@
-import typescript = require('typescript');
+import * as typescript from 'typescript';
 
 export interface SourceMap {
     sources: any[];

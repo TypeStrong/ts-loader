@@ -1,8 +1,8 @@
-import typescript = require('typescript');
-import path = require('path');
+import * as typescript from 'typescript';
+import * as path from 'path';
 
-import logger = require('./logger');
-import utils = require('./utils');
+import * as logger from './logger';
+import * as utils from './utils';
 import { 
     LoaderOptions,
     TSCompatibleCompiler,

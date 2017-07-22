@@ -1,14 +1,14 @@
-import typescript = require('typescript');
-import path = require('path');
-import fs = require('fs');
+import * as typescript from 'typescript';
+import * as path from 'path';
+import * as fs from 'fs';
 
-import afterCompile = require('./after-compile');
-import config = require('./config');
-import compilerSetup = require('./compilerSetup');
-import utils = require('./utils');
-import logger = require('./logger');
-import makeServicesHost = require('./servicesHost');
-import watchRun = require('./watch-run');
+import { makeAfterCompile } from './after-compile';
+import * as config from './config';
+import * as compilerSetup from './compilerSetup';
+import * as utils from './utils';
+import * as logger from './logger';
+import { makeServicesHost } from './servicesHost';
+import { makeWatchRun } from './watch-run';
 import { 
     LoaderOptions,
     TSFiles,
@@ -137,8 +137,8 @@ function successfulTypeScriptInstance(
     const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
-    loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));
-    loader._compiler.plugin("watch-run", watchRun(instance));
+    loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
+    loader._compiler.plugin("watch-run", makeWatchRun(instance));
 
     return { instance };
 }

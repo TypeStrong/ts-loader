@@ -1,9 +1,10 @@
-import typescript = require('typescript');
-import constants = require('./constants');
-import logger = require('./logger');
-import path = require('path');
-import makeResolver = require('./resolver');
-import utils = require('./utils');
+import * as typescript from 'typescript';
+import * as path from 'path';
+
+import * as constants from './constants';
+import * as logger from './logger';
+import { makeResolver } from './resolver';
+import * as utils from './utils';
 import { 
     ModuleResolutionHost,
     ResolvedModule,
@@ -15,7 +16,7 @@ import {
 /**
  * Create the TypeScript language service
  */
-function makeServicesHost(
+export function makeServicesHost(
     scriptRegex: RegExp,
     log: logger.Logger,
     loader: Webpack,
@@ -178,5 +179,3 @@ function populateDependencyGraphs(
         instance.reverseDependencyGraph[resolvedModule.resolvedFileName]![path.normalize(containingFile)] = true;
     });
 }
-
-export = makeServicesHost;
