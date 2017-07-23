@@ -36,7 +36,7 @@ export function makeServicesHost(
 
     const moduleResolutionHost: ModuleResolutionHost = {
         fileExists: (fileName: string) => readFile(fileName) !== undefined,
-        readFile: (fileName: string) => readFile(fileName)!,
+        readFile: (fileName: string) => readFile(fileName) || '',
     };
 
     return {
