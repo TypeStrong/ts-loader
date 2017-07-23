@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.2 - NOT RELEASED YET
+
+- [Move to use strictNullChecks](https://github.com/TypeStrong/ts-loader/pull/589)
+
 ## v2.3.1
 
 - [Fix undefined watcher in watch-run causes error](https://github.com/TypeStrong/ts-loader/pull/587) (#585) - thanks @zinserjan and @sokra! 
