@@ -1,9 +1,14 @@
-import typescript = require('typescript');
-import path = require('path');
+import * as typescript from 'typescript';
+import * as path from 'path';
 
-import interfaces = require('./interfaces');
-import logger = require('./logger');
-import utils = require('./utils');
+import * as logger from './logger';
+import { formatErrors } from './utils';
+import { 
+    LoaderOptions,
+    TSCompatibleCompiler,
+    Webpack,
+    WebpackError
+} from './interfaces';
 import { green } from 'chalk';
 
 interface ConfigFile {
@@ -13,17 +18,17 @@ interface ConfigFile {
 
 export function getConfigFile(
     compiler: typeof typescript,
-    loader: interfaces.Webpack,
-    loaderOptions: interfaces.LoaderOptions,
+    loader: Webpack,
+    loaderOptions: LoaderOptions,
     compilerCompatible: boolean,
     log: logger.Logger,
     compilerDetailsLogMessage: string
 ) {
     const configFilePath = findConfigFile(compiler, path.dirname(loader.resourcePath), loaderOptions.configFileName);
-    let configFileError: interfaces.WebpackError;
+    let configFileError: WebpackError | undefined;
     let configFile: ConfigFile;
 
-    if (configFilePath) {
+    if (configFilePath !== undefined) {
         if (compilerCompatible) {
             log.logInfo(green(`${compilerDetailsLogMessage} and ${configFilePath}`));
         } else {
@@ -32,13 +37,13 @@ export function getConfigFile(
 
         // HACK: relies on the fact that passing an extra argument won't break
         // the old API that has a single parameter
-        configFile = (<interfaces.TSCompatibleCompiler> <any> compiler).readConfigFile(
+        configFile = (<TSCompatibleCompiler> <any> compiler).readConfigFile(
             configFilePath,
             compiler.sys.readFile
         );
 
-        if (configFile.error) {
-            configFileError = utils.formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
+        if (configFile.error !== undefined) {
+            configFileError = formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
         }
     } else {
         if (compilerCompatible) { log.logInfo(green(compilerDetailsLogMessage)); }
@@ -51,7 +56,7 @@ export function getConfigFile(
         };
     }
 
-    if (!configFileError) {
+    if (configFileError === undefined) {
         configFile.config.compilerOptions = Object.assign({},
             configFile.config.compilerOptions,
             loaderOptions.compilerOptions);
@@ -68,7 +73,7 @@ export function getConfigFile(
  * The tsconfig.json is found using the same method as `tsc`, starting in the current directory
  * and continuing up the parent directory chain.
  */
-function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string {
+function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string | undefined {
     while (true) {
         const fileName = path.join(searchPath, configFileName);
         if (compiler.sys.fileExists(fileName)) {
@@ -91,13 +96,13 @@ export function getConfigParseResult(
     let configParseResult: typescript.ParsedCommandLine;
     if (typeof (<any> compiler).parseJsonConfigFileContent === 'function') {
         // parseConfigFile was renamed between 1.6.2 and 1.7
-        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseJsonConfigFileContent(
+        configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseJsonConfigFileContent(
             configFile.config,
             compiler.sys,
             path.dirname(configFilePath || '')
         );
     } else {
-        configParseResult = (<interfaces.TSCompatibleCompiler> <any> compiler).parseConfigFile(
+        configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseConfigFile(
             configFile.config,
             compiler.sys,
             path.dirname(configFilePath || '')

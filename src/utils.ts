@@ -1,13 +1,19 @@
-import typescript = require('typescript');
-import path = require('path');
-import fs = require('fs');
+import * as typescript from 'typescript';
+import * as path from 'path';
+import * as fs from 'fs';
 import { white, red, cyan } from 'chalk';
 
 import constants = require('./constants');
-import interfaces = require('./interfaces');
+import { 
+    DependencyGraph,
+    LoaderOptions,
+    ReverseDependencyGraph,
+    WebpackError,
+    WebpackModule
+} from './interfaces';
 
-export function registerWebpackErrors(existingErrors: interfaces.WebpackError[], errorsToPush: interfaces.WebpackError[]) {
-    Array.prototype.splice.apply(existingErrors, (<(number | interfaces.WebpackError)[]>[0, 0]).concat(errorsToPush));
+export function registerWebpackErrors(existingErrors: WebpackError[], errorsToPush: WebpackError[]) {
+    Array.prototype.splice.apply(existingErrors, (<(number | WebpackError)[]>[0, 0]).concat(errorsToPush));
 }
 
 export function hasOwnProperty<T extends {}>(obj: T, property: string) {
@@ -19,36 +25,38 @@ export function hasOwnProperty<T extends {}>(obj: T, property: string) {
  * Optionally adds a file name
  */
 export function formatErrors(
-    diagnostics: typescript.Diagnostic[],
-    loaderOptions: interfaces.LoaderOptions,
+    diagnostics: typescript.Diagnostic[] | undefined,
+    loaderOptions: LoaderOptions,
     compiler: typeof typescript,
-    merge?: { file?: string; module?: interfaces.WebpackModule }
-): interfaces.WebpackError[] {
+    merge?: { file?: string; module?: WebpackModule }
+): WebpackError[] {
 
     return diagnostics
-        .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
-        .map<interfaces.WebpackError>(diagnostic => {
-            const errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
-            const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
+        ? diagnostics
+            .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
+            .map<WebpackError>(diagnostic => {
+                const errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
+                const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
 
-            const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
-            let error: interfaces.WebpackError;
-            if (diagnostic.file) {
-                const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-                let errorMessage = `${white('(')}${cyan((lineChar.line + 1).toString())},${cyan((lineChar.character + 1).toString())}): ${red(messageText)}`;
-                if (loaderOptions.visualStudioErrorFormat) {
-                    errorMessage = red(path.normalize(diagnostic.file.fileName)) + errorMessage;
+                const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
+                let error: WebpackError;
+                if (diagnostic.file !== undefined) {
+                    const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
+                    let errorMessage = `${white('(')}${cyan((lineChar.line + 1).toString())},${cyan((lineChar.character + 1).toString())}): ${red(messageText)}`;
+                    if (loaderOptions.visualStudioErrorFormat) {
+                        errorMessage = red(path.normalize(diagnostic.file.fileName)) + errorMessage;
+                    }
+                    error = makeError({
+                        message: errorMessage,
+                        rawMessage: messageText,
+                        location: { line: lineChar.line + 1, character: lineChar.character + 1 }
+                    });
+                } else {
+                    error = makeError({ rawMessage: messageText });
                 }
-                error = makeError({
-                    message: errorMessage,
-                    rawMessage: messageText,
-                    location: { line: lineChar.line + 1, character: lineChar.character + 1 }
-                });
-            } else {
-                error = makeError({ rawMessage: messageText });
-            }
-            return <interfaces.WebpackError>Object.assign(error, merge);
-        });
+                return <WebpackError>Object.assign(error, merge);
+            })
+        : [];
 }
 
 export function readFile(fileName: string) {
@@ -67,14 +75,14 @@ interface MakeError {
     file?: string;
 }
 
-export function makeError({ rawMessage, message, location, file }: MakeError): interfaces.WebpackError {
+export function makeError({ rawMessage, message, location, file }: MakeError): WebpackError {
     const error = {
         rawMessage,
         message: message || `${red(rawMessage)}`,
         loaderSource: 'ts-loader'
     };
 
-    return <interfaces.WebpackError>Object.assign(error, { location, file });
+    return <WebpackError>Object.assign(error, { location, file });
 }
 
 export function appendSuffixIfMatch(patterns: RegExp[], path: string, suffix: string): string {
@@ -99,9 +107,9 @@ export function appendSuffixesIfMatch(suffixDict: {[suffix: string]: RegExp[]}, 
  * Recursively collect all possible dependants of passed file
  */
 export function collectAllDependants(
-    reverseDependencyGraph: interfaces.ReverseDependencyGraph,
+    reverseDependencyGraph: ReverseDependencyGraph,
     fileName: string,
-    collected: {[file:string]: boolean} = {}
+    collected: { [file: string]: boolean } = {}
 ): string[] {
     const result = {};
     result[fileName] = true;
@@ -121,15 +129,15 @@ export function collectAllDependants(
  * Recursively collect all possible dependencies of passed file
  */
 export function collectAllDependencies(
-    dependencyGraph: interfaces.DependencyGraph,
+    dependencyGraph: DependencyGraph,
     filePath: string,
-    collected: {[file:string]: boolean} = {}
+    collected: { [file: string]: boolean } = {}
 ): string[] {
     const result = {};
     result[filePath] = true;
     collected[filePath] = true;
-    let directDependencies = dependencyGraph[filePath]; 
-    if (directDependencies) {
+    let directDependencies = dependencyGraph[filePath];
+    if (directDependencies !== undefined) {
         directDependencies.forEach(dependencyModule => {
             if (!collected[dependencyModule.originalFileName]) {
                 collectAllDependencies(dependencyGraph, dependencyModule.resolvedFileName, collected)
@@ -141,9 +149,9 @@ export function collectAllDependencies(
 }
 
 export function arrify<T>(val: T | T[]) {
-	if (val === null || val === undefined) {
-		return [];
-	}
+    if (val === null || val === undefined) {
+        return [];
+    }
 
-	return Array.isArray(val) ? val : [val];
+    return Array.isArray(val) ? val : [val];
 };

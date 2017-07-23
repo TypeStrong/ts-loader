@@ -1,17 +1,24 @@
-import interfaces = require('./interfaces');
-import path = require('path');
-import typescript = require('typescript');
-import utils = require('./utils');
-import constants = require('./constants');
+import * as path from 'path';
+import * as typescript from 'typescript';
 
-function makeAfterCompile(
-    instance: interfaces.TSInstance,
-    configFilePath: string
+import { collectAllDependants, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
+import * as constants from './constants';
+import { 
+    TSFiles,
+    TSInstance,
+    WebpackCompilation,
+    WebpackError,
+    WebpackModule
+} from './interfaces';
+
+export function makeAfterCompile(
+    instance: TSInstance,
+    configFilePath: string | undefined
 ) {
     let getCompilerOptionDiagnostics = true;
     let checkAllFilesForErrors = true;
 
-    return (compilation: interfaces.WebpackCompilation, callback: () => void) => {
+    return (compilation: WebpackCompilation, callback: () => void) => {
         // Don't add errors for child compilations
         if (compilation.compiler.isChild()) {
             callback();
@@ -28,10 +35,10 @@ function makeAfterCompile(
         const filesToCheckForErrors = determineFilesToCheckForErrors(checkAllFilesForErrors, instance);
         checkAllFilesForErrors = false;
 
-        const filesWithErrors: interfaces.TSFiles = {};
+        const filesWithErrors: TSFiles = {};
         provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
 
-        provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService, compilation);
+        provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService!, compilation);
 
         instance.filesWithErrors = filesWithErrors;
         instance.modifiedFiles = null;
@@ -40,7 +47,7 @@ function makeAfterCompile(
 }
 
 interface Modules {
-    [modulePath: string]: interfaces.WebpackModule[];
+    [modulePath: string]: WebpackModule[];
 }
 
 /**
@@ -48,16 +55,16 @@ interface Modules {
  */
 function provideCompilerOptionDiagnosticErrorsToWebpack(
     getCompilerOptionDiagnostics: boolean,
-    compilation: interfaces.WebpackCompilation,
-    instance: interfaces.TSInstance,
-    configFilePath: string
+    compilation: WebpackCompilation,
+    instance: TSInstance,
+    configFilePath: string | undefined
 ) {
     if (getCompilerOptionDiagnostics) {
         const { languageService, loaderOptions, compiler } = instance;
-        utils.registerWebpackErrors(
+        registerWebpackErrors(
             compilation.errors,
-            utils.formatErrors(
-                languageService.getCompilerOptionsDiagnostics(),
+            formatErrors(
+                languageService!.getCompilerOptionsDiagnostics(),
                 loaderOptions, compiler,
                 { file: configFilePath || 'tsconfig.json' }));
     }
@@ -69,13 +76,13 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  * based on filepath
  */
 function determineModules(
-    compilation: interfaces.WebpackCompilation
+    compilation: WebpackCompilation
 ) {
     const modules: Modules = {};
     compilation.modules.forEach(module => {
         if (module.resource) {
             const modulePath = path.normalize(module.resource);
-            if (utils.hasOwnProperty(modules, modulePath)) {
+            if (hasOwnProperty(modules, modulePath)) {
                 const existingModules = modules[modulePath];
                 if (existingModules.indexOf(module) === -1) {
                     existingModules.push(module);
@@ -90,18 +97,18 @@ function determineModules(
 
 function determineFilesToCheckForErrors(
     checkAllFilesForErrors: boolean,
-    instance: interfaces.TSInstance
+    instance: TSInstance
 ) {
     const { files, modifiedFiles, filesWithErrors } = instance
     // calculate array of files to check
-    let filesToCheckForErrors: interfaces.TSFiles = {};
+    let filesToCheckForErrors: TSFiles = {};
     if (checkAllFilesForErrors) {
         // check all files on initial run
         filesToCheckForErrors = files;
-    } else if (modifiedFiles) {
+    } else if (modifiedFiles !== null && modifiedFiles !== undefined) {
         // check all modified files, and all dependants
         Object.keys(modifiedFiles).forEach(modifiedFileName => {
-            utils.collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
+            collectAllDependants(instance.reverseDependencyGraph, modifiedFileName)
                 .forEach(fileName => {
                     filesToCheckForErrors[fileName] = files[fileName];
                 });
@@ -109,7 +116,7 @@ function determineFilesToCheckForErrors(
     }
 
     // re-check files with errors from previous build
-    if (filesWithErrors) {
+    if (filesWithErrors !== undefined) {
         Object.keys(filesWithErrors).forEach(fileWithErrorName =>
             filesToCheckForErrors[fileWithErrorName] = filesWithErrors[fileWithErrorName]
         );
@@ -118,26 +125,26 @@ function determineFilesToCheckForErrors(
 }
 
 function provideErrorsToWebpack(
-    filesToCheckForErrors: interfaces.TSFiles,
-    filesWithErrors: interfaces.TSFiles,
-    compilation: interfaces.WebpackCompilation,
+    filesToCheckForErrors: TSFiles,
+    filesWithErrors: TSFiles,
+    compilation: WebpackCompilation,
     modules: Modules,
-    instance: interfaces.TSInstance
+    instance: TSInstance
 ) {
     const { compiler, languageService, files, loaderOptions, compilerOptions } = instance;
 
     let filePathRegex = !!compilerOptions.checkJs ? constants.dtsTsTsxJsJsxRegex : constants.dtsTsTsxRegex;
 
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => !!filePath.match(filePathRegex))
+        .filter(filePath => filePath.match(filePathRegex))
         .forEach(filePath => {
-            const errors = languageService.getSyntacticDiagnostics(filePath).concat(languageService.getSemanticDiagnostics(filePath));
+            const errors = languageService!.getSyntacticDiagnostics(filePath).concat(languageService!.getSemanticDiagnostics(filePath));
             if (errors.length > 0) {
                 filesWithErrors[filePath] = files[filePath];
             }
 
             // if we have access to a webpack module, use that
-            if (utils.hasOwnProperty(modules, filePath)) {
+            if (hasOwnProperty(modules, filePath)) {
                 const associatedModules = modules[filePath];
 
                 associatedModules.forEach(module => {
@@ -145,13 +152,13 @@ function provideErrorsToWebpack(
                     removeTSLoaderErrors(module.errors);
 
                     // append errors
-                    const formattedErrors = utils.formatErrors(errors, loaderOptions, compiler, { module });
-                    utils.registerWebpackErrors(module.errors, formattedErrors);
-                    utils.registerWebpackErrors(compilation.errors, formattedErrors);
+                    const formattedErrors = formatErrors(errors, loaderOptions, compiler, { module });
+                    registerWebpackErrors(module.errors, formattedErrors);
+                    registerWebpackErrors(compilation.errors, formattedErrors);
                 });
             } else {
                 // otherwise it's a more generic error
-                utils.registerWebpackErrors(compilation.errors, utils.formatErrors(errors, loaderOptions, compiler, { file: filePath }));
+                registerWebpackErrors(compilation.errors, formatErrors(errors, loaderOptions, compiler, { file: filePath }));
             }
         });
 }
@@ -160,16 +167,16 @@ function provideErrorsToWebpack(
  * gather all declaration files from TypeScript and output them to webpack
  */
 function provideDeclarationFilesToWebpack(
-    filesToCheckForErrors: interfaces.TSFiles,
+    filesToCheckForErrors: TSFiles,
     languageService: typescript.LanguageService,
-    compilation: interfaces.WebpackCompilation
+    compilation: WebpackCompilation
 ) {
     Object.keys(filesToCheckForErrors)
-        .filter(filePath => !!filePath.match(constants.tsTsxRegex))
+        .filter(filePath => filePath.match(constants.tsTsxRegex))
         .forEach(filePath => {
             const output = languageService.getEmitOutput(filePath);
-            const declarationFile = output.outputFiles.filter(outputFile => !!outputFile.name.match(constants.dtsDtsxRegex)).pop();
-            if (declarationFile) {
+            const declarationFile = output.outputFiles.filter(outputFile => outputFile.name.match(constants.dtsDtsxRegex)).pop();
+            if (declarationFile !== undefined) {
                 const assetPath = path.relative(compilation.compiler.context, declarationFile.name);
                 compilation.assets[assetPath] = {
                     source: () => declarationFile.text,
@@ -186,7 +193,7 @@ function provideDeclarationFilesToWebpack(
  * compilation-to-compilation, and since not every module always runs through
  * the loader, we need to detect and remove any pre-existing errors.
  */
-function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
+function removeTSLoaderErrors(errors: WebpackError[]) {
     let index = -1;
     let length = errors.length;
     while (++index < length) {
@@ -196,5 +203,3 @@ function removeTSLoaderErrors(errors: interfaces.WebpackError[]) {
         }
     }
 }
-
-export = makeAfterCompile;

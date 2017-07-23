@@ -1,17 +1,21 @@
-import path = require('path');
-import utils = require('./utils');
-import interfaces = require('./interfaces');
-import constants = require('./constants');
+import * as path from 'path';
+
+import { readFile } from './utils';
+import * as constants from './constants';
+import { 
+    TSInstance,
+    WebpackWatching
+} from './interfaces';
 
 /**
  * Make function which will manually update changed files
  */
-function makeWatchRun(
-    instance: interfaces.TSInstance
+export function makeWatchRun(
+    instance: TSInstance
 ) {
     const lastTimes = {};
-    let startTime : number = null;
-    return (watching: interfaces.WebpackWatching, cb: () => void) => {
+    let startTime : number | null = null;
+    return (watching: WebpackWatching, cb: () => void) => {
         if (null === instance.modifiedFiles) {
             instance.modifiedFiles = {};
         }
@@ -20,21 +24,19 @@ function makeWatchRun(
         Object.keys(times)
             .filter(filePath =>
                 times[filePath] > (lastTimes[filePath] || startTime)
-                && !!filePath.match(constants.tsTsxJsJsxRegex)
+                && filePath.match(constants.tsTsxJsJsxRegex)
             )
             .forEach(filePath => {
                 lastTimes[filePath] = times[filePath];
                 filePath = path.normalize(filePath);
                 const file = instance.files[filePath];
-                if (file) {
-                    file.text = utils.readFile(filePath) || '';
+                if (file !== undefined) {
+                    file.text = readFile(filePath) || '';
                     file.version++;
-                    instance.version++;
-                    instance.modifiedFiles[filePath] = file;
+                    instance.version!++;
+                    instance.modifiedFiles![filePath] = file;
                 }
             });
         cb();
     };
 }
-
-export = makeWatchRun;

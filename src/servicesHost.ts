@@ -1,19 +1,26 @@
-import typescript = require('typescript');
-import constants = require('./constants');
-import interfaces = require('./interfaces');
-import logger = require('./logger');
-import path = require('path');
-import makeResolver = require('./resolver');
-import utils = require('./utils');
+import * as typescript from 'typescript';
+import * as path from 'path';
+
+import * as constants from './constants';
+import * as logger from './logger';
+import { makeResolver } from './resolver';
+import { appendSuffixesIfMatch, readFile } from './utils';
+import { 
+    ModuleResolutionHost,
+    ResolvedModule,
+    ResolveSync,
+    TSInstance,
+    Webpack
+} from './interfaces';
 
 /**
  * Create the TypeScript language service
  */
-function makeServicesHost(
+export function makeServicesHost(
     scriptRegex: RegExp,
     log: logger.Logger,
-    loader: interfaces.Webpack,
-    instance: interfaces.TSInstance,
+    loader: Webpack,
+    instance: TSInstance,
     appendTsSuffixTo: RegExp[],
     appendTsxSuffixTo: RegExp[]
 ) {
@@ -21,23 +28,24 @@ function makeServicesHost(
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
-            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
-                constants.EOL;
+        compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+        constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
 
-    const moduleResolutionHost = {
-        fileExists: (fileName: string) => utils.readFile(fileName) !== undefined,
-        readFile: (fileName: string) => utils.readFile(fileName),
+    const moduleResolutionHost: ModuleResolutionHost = {
+        fileExists: (fileName: string) => readFile(fileName) !== undefined,
+        readFile: (fileName: string) => readFile(fileName) || '',
     };
 
     return {
         getProjectVersion: () => `${instance.version}`,
-        getScriptFileNames: () => Object.keys(files).filter(filePath => !!filePath.match(scriptRegex)),
+        getScriptFileNames: () => Object.keys(files).filter(filePath => filePath.match(scriptRegex)),
         getScriptVersion: (fileName: string) => {
             fileName = path.normalize(fileName);
-            return files[fileName] && files[fileName].version.toString();
+            const file = files[fileName];
+            return file === undefined ? '' : file.version.toString();
         },
         getScriptSnapshot: (fileName: string) => {
             // This is called any time TypeScript needs a file's text
@@ -45,9 +53,9 @@ function makeServicesHost(
             fileName = path.normalize(fileName);
             let file = files[fileName];
 
-            if (!file) {
-                const text = utils.readFile(fileName);
-                if (!text) { return undefined; }
+            if (file === undefined) {
+                const text = readFile(fileName);
+                if (text === undefined) { return undefined; }
 
                 file = files[fileName] = { version: 0, text };
             }
@@ -85,12 +93,12 @@ function makeServicesHost(
 }
 
 function resolveModuleNames(
-    resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    resolveSync: ResolveSync,
+    moduleResolutionHost: ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     appendTsxSuffixTo: RegExp[],
     scriptRegex: RegExp,
-    instance: interfaces.TSInstance,
+    instance: TSInstance,
     moduleNames: string[],
     containingFile: string
 ) {
@@ -105,25 +113,25 @@ function resolveModuleNames(
 }
 
 function resolveModuleName(
-    resolveSync: interfaces.ResolveSync,
-    moduleResolutionHost: interfaces.ModuleResolutionHost,
+    resolveSync: ResolveSync,
+    moduleResolutionHost: ModuleResolutionHost,
     appendTsSuffixTo: RegExp[],
     appendTsxSuffixTo: RegExp[],
     scriptRegex: RegExp,
-    instance: interfaces.TSInstance,
+    instance: TSInstance,
 
     moduleName: string,
     containingFile: string
 ) {
     const { compiler, compilerOptions } = instance;
 
-    let resolutionResult: interfaces.ResolvedModule;
+    let resolutionResult: ResolvedModule;
 
     try {
         const originalFileName = resolveSync(undefined, path.normalize(path.dirname(containingFile)), moduleName);
 
         const resolvedFileName = appendTsSuffixTo.length > 0 || appendTsxSuffixTo.length > 0
-            ? utils.appendSuffixesIfMatch({
+            ? appendSuffixesIfMatch({
                 '.ts': appendTsSuffixTo,
                 '.tsx': appendTsxSuffixTo,
             }, originalFileName)
@@ -136,27 +144,27 @@ function resolveModuleName(
 
     const tsResolution = compiler.resolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
-    if (tsResolution.resolvedModule) {
+    if (tsResolution.resolvedModule !== undefined) {
         const resolvedFileName = path.normalize(tsResolution.resolvedModule.resolvedFileName);
-        const tsResolutionResult: interfaces.ResolvedModule = {
+        const tsResolutionResult: ResolvedModule = {
             originalFileName: resolvedFileName,
             resolvedFileName,
             isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
         };
-        if (resolutionResult) {
-            if (resolutionResult.resolvedFileName === tsResolutionResult.resolvedFileName) {
-                resolutionResult.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
+        if (resolutionResult!) {
+            if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName) {
+                resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
             }
         } else {
             resolutionResult = tsResolutionResult;
         }
     }
-    return resolutionResult;
+    return resolutionResult!;
 }
 
 function populateDependencyGraphs(
-    resolvedModules: interfaces.ResolvedModule[],
-    instance: interfaces.TSInstance,
+    resolvedModules: ResolvedModule[],
+    instance: TSInstance,
     containingFile: string
 ) {
     resolvedModules = resolvedModules
@@ -165,11 +173,9 @@ function populateDependencyGraphs(
     instance.dependencyGraph[path.normalize(containingFile)] = resolvedModules;
 
     resolvedModules.forEach(resolvedModule => {
-        if (!instance.reverseDependencyGraph[resolvedModule.resolvedFileName]) {
+        if (instance.reverseDependencyGraph[resolvedModule.resolvedFileName] === undefined) {
             instance.reverseDependencyGraph[resolvedModule.resolvedFileName] = {};
         }
-        instance.reverseDependencyGraph[resolvedModule.resolvedFileName][path.normalize(containingFile)] = true;
+        instance.reverseDependencyGraph[resolvedModule.resolvedFileName]![path.normalize(containingFile)] = true;
     });
 }
-
-export = makeServicesHost;

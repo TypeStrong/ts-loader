@@ -1,9 +1,13 @@
-import typescript = require('typescript');
+import * as typescript from 'typescript';
 
 export interface SourceMap {
     sources: any[];
     file: string;
     sourcesContent: string[];
+}
+
+export interface AsyncCallback {
+    (err: Error | WebpackError | null, source?: string, map?: string): void;
 }
 
 /**
@@ -35,7 +39,7 @@ export interface Webpack {
      * A data object shared between the pitch and the normal phase.
      */
     data: Object;
-    async: () => (err: Error | WebpackError, source?: string, map?: string) => void;
+    async: () => AsyncCallback;
     /**
      * The resource part of the request, including query.
      * eg: "/abc/resource.js?rrr"
@@ -193,12 +197,12 @@ export interface Resolve {
 }
 
 export interface ResolveSync {
-    (context: string, path: string, moduleName: string): string;
+    (context: string | undefined, path: string, moduleName: string): string;
 }
 
 export interface ModuleResolutionHost {
     fileExists(fileName: string): boolean;
-    readFile(fileName: string): string
+    readFile(fileName: string): string;
 }
 
 export interface TSInstance {
@@ -212,8 +216,8 @@ export interface TSInstance {
     /**
      * contains the modified files - cleared each time after-compile is called
      */
-    modifiedFiles?: TSFiles;
-    languageService?: typescript.LanguageService;
+    modifiedFiles?: TSFiles | null;
+    languageService?: typescript.LanguageService | null;
     version?: number;
     dependencyGraph: DependencyGraph;
     reverseDependencyGraph: ReverseDependencyGraph;
@@ -230,13 +234,13 @@ export interface TSInstances {
 }
 
 export interface DependencyGraph {
-    [file: string]: ResolvedModule[];
+    [file: string]: ResolvedModule[] | undefined;
 }
 
 export interface ReverseDependencyGraph {
     [file: string]: {
         [file: string]: boolean
-    };
+    } | undefined;
 }
 
 export type Partial<T> = {
@@ -267,7 +271,7 @@ export interface TSFile {
 }
 
 export interface TSFiles {
-    [fileName: string]: TSFile;
+    [fileName: string]: TSFile | undefined;
 }
 
 export interface ResolvedModule {

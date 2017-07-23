@@ -1,16 +1,24 @@
-import path = require('path');
-import fs = require('fs');
+import * as typescript from 'typescript';
+import * as path from 'path';
+import * as fs from 'fs';
 
-import afterCompile = require('./after-compile');
-import config = require('./config');
-import compilerSetup = require('./compilerSetup');
-import interfaces = require('./interfaces');
-import utils = require('./utils');
-import logger = require('./logger');
-import makeServicesHost = require('./servicesHost');
-import watchRun = require('./watch-run');
+import { makeAfterCompile } from './after-compile';
+import { getConfigFile, getConfigParseResult } from './config';
+import { getCompilerOptions, getCompiler } from './compilerSetup';
+import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
+import * as logger from './logger';
+import { makeServicesHost } from './servicesHost';
+import { makeWatchRun } from './watch-run';
+import { 
+    LoaderOptions,
+    TSFiles,
+    TSInstance,
+    TSInstances,
+    Webpack,
+    WebpackError
+} from './interfaces';
 
-const instances = <interfaces.TSInstances> {};
+const instances = <TSInstances> {};
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -20,59 +28,75 @@ const instances = <interfaces.TSInstances> {};
  * `instance` property.
  */
 export function getTypeScriptInstance(
-    loaderOptions: interfaces.LoaderOptions,
-    loader: interfaces.Webpack
-): { instance?: interfaces.TSInstance, error?: interfaces.WebpackError } {
-    if (utils.hasOwnProperty(instances, loaderOptions.instance)) {
+    loaderOptions: LoaderOptions,
+    loader: Webpack
+): { instance?: TSInstance, error?: WebpackError } {
+    if (hasOwnProperty(instances, loaderOptions.instance)) {
         return { instance: instances[loaderOptions.instance] };
     }
 
     const log = logger.makeLogger(loaderOptions);
-    const { compiler, compilerCompatible, compilerDetailsLogMessage, errorMessage } = compilerSetup.getCompiler(loaderOptions, log);
+    const compiler = getCompiler(loaderOptions, log);
 
-    if (errorMessage) {
-        return { error: utils.makeError({ rawMessage: errorMessage }) };
+    if (compiler.errorMessage !== undefined) {
+        return { error: makeError({ rawMessage: compiler.errorMessage }) };
     }
 
-    const {
-        configFilePath,
-        configFile,
-        configFileError
-    } = config.getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage);
+    return successfulTypeScriptInstance(
+        loaderOptions, loader, log, 
+        compiler.compiler!, compiler.compilerCompatible!, compiler.compilerDetailsLogMessage!
+    );
+}
 
-    if (configFileError) {
-        return { error: configFileError };
+function successfulTypeScriptInstance(
+    loaderOptions: LoaderOptions,
+    loader: Webpack,
+    log: logger.Logger,
+    compiler: typeof typescript,
+    compilerCompatible: boolean,
+    compilerDetailsLogMessage: string
+) {
+    const configFileAndPath = getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
+
+    if (configFileAndPath.configFileError !== undefined) {
+        return { error: configFileAndPath.configFileError };
     }
 
-    const configParseResult = config.getConfigParseResult(compiler, configFile, configFilePath);
+    const { configFilePath } = configFileAndPath;
 
-    if (configParseResult.errors.length && !loaderOptions.happyPackMode) {
-        utils.registerWebpackErrors(
+    const configParseResult = getConfigParseResult(compiler, configFileAndPath.configFile, configFileAndPath.configFilePath!);
+
+    if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
+        registerWebpackErrors(
             loader._module.errors,
-            utils.formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
+            formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
 
-        return { error: utils.makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
+        return { error: makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
     }
 
-    const compilerOptions = compilerSetup.getCompilerOptions(compilerCompatible, compiler, configParseResult);
-    const files: interfaces.TSFiles = {};
+    const compilerOptions = getCompilerOptions(compilerCompatible, compiler!, configParseResult);
+    const files: TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
 
     if (loaderOptions.transpileOnly) {
         // quick return for transpiling
         // we do need to check for any issues with TS options though
-        const program = compiler.createProgram([], compilerOptions);
+        const program = compiler!.createProgram([], compilerOptions);
         const diagnostics = program.getOptionsDiagnostics();
 
         // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
         if (!loaderOptions.happyPackMode) {
-            utils.registerWebpackErrors(
+            registerWebpackErrors(
                 loader._module.errors,
-                utils.formatErrors(diagnostics, loaderOptions, compiler, {file: configFilePath || 'tsconfig.json'}));
+                formatErrors(diagnostics, loaderOptions, compiler!, {file: configFilePath || 'tsconfig.json'}));
         }
 
-        return { instance: instances[loaderOptions.instance] = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() }};
+        const instance = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() };
+
+        instances[loaderOptions.instance] = instance;
+
+        return { instance };
     }
 
     // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -87,8 +111,8 @@ export function getTypeScriptInstance(
             };
           });
     } catch (exc) {
-        return { error: utils.makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath }`
+        return { error: makeError({
+            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`
         }) };
     }
 
@@ -97,7 +121,7 @@ export function getTypeScriptInstance(
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
-    const instance: interfaces.TSInstance = instances[loaderOptions.instance] = {
+    const instance: TSInstance = instances[loaderOptions.instance] = {
         compiler,
         compilerOptions,
         loaderOptions,
@@ -113,8 +137,8 @@ export function getTypeScriptInstance(
     const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
-    loader._compiler.plugin("after-compile", afterCompile(instance, configFilePath));
-    loader._compiler.plugin("watch-run", watchRun(instance));
+    loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
+    loader._compiler.plugin("watch-run", makeWatchRun(instance));
 
     return { instance };
 }

@@ -1,18 +1,18 @@
-import typescript = require('typescript');
+import * as typescript from 'typescript';
 const semver = require('semver');
 
-import interfaces = require('./interfaces');
-import constants = require('./constants');
-import logger = require('./logger');
+import * as constants from './constants';
+import * as logger from './logger';
 import { red, yellow } from 'chalk';
+import { LoaderOptions } from './interfaces';
 
 export function getCompiler(
-    loaderOptions: interfaces.LoaderOptions,
+    loaderOptions: LoaderOptions,
     log: logger.Logger
 ) {
-    let compiler: typeof typescript;
-    let errorMessage: string;
-    let compilerDetailsLogMessage: string;
+    let compiler: typeof typescript | undefined;
+    let errorMessage: string | undefined;
+    let compilerDetailsLogMessage: string | undefined;
     let compilerCompatible = false;
 
     try {
@@ -23,11 +23,11 @@ export function getCompiler(
             : `Could not load TypeScript compiler with NPM package name \`${loaderOptions.compiler}\`. Are you sure it is correctly installed?`;
     }
 
-    if (!errorMessage) {
-        compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler.version}`;
+    if (errorMessage === undefined) {
+        compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler!.version}`;
         compilerCompatible = false;
         if (loaderOptions.compiler === 'typescript') {
-            if (compiler.version && semver.gte(compiler.version, '1.6.2-0')) {
+            if (compiler!.version && semver.gte(compiler!.version, '1.6.2-0')) {
                 // don't log yet in this case, if a tsconfig.json exists we want to combine the message
                 compilerCompatible = true;
             } else {
@@ -52,7 +52,7 @@ export function getCompilerOptions(
     });
 
     // if `module` is not specified and not using ES6 target, default to CJS module output
-    if ((!compilerOptions.module) && compilerOptions.target !== constants.ScriptTargetES2015) {
+    if ((compilerOptions.module === undefined) && compilerOptions.target !== constants.ScriptTargetES2015) {
         compilerOptions.module = constants.ModuleKindCommonJs;
     } else if (compilerCompatible && semver.lt(compiler.version, '1.7.3-0') && compilerOptions.target === constants.ScriptTargetES2015) {
         // special handling for TS 1.6 and target: es6

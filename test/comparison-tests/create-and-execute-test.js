@@ -12,9 +12,6 @@ var glob = require('glob');
 var pathExists = require('../pathExists');
 var aliasLoader = require('../aliasLoader');
 
-// force colors on for tests since expected output has colors
-require('colors').enabled = true;
-
 var saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 
 var indexOfTestToRun = process.argv.indexOf('--test-to-run');
@@ -389,9 +386,9 @@ function normaliseString(platformSpecificContent) {
     return platformSpecificContent
         .replace(/\r\n/g, '\n')
         // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/, 'ts-loader')
+        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/g, 'ts-loader')
         // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/, '(ts-loader)')
+        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)')
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
