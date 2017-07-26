@@ -3,6 +3,7 @@
 ## v2.3.2 - NOT RELEASED YET
 
 - [Move to use strictNullChecks](https://github.com/TypeStrong/ts-loader/pull/589)
+- [`allowJs` supports importing types from external libraries](https://github.com/TypeStrong/ts-loader/pull/590) (#586, #577)
 
 ## v2.3.1
 
