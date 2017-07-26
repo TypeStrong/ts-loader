@@ -153,7 +153,7 @@ function resolveModuleName(
         };
         if (resolutionResult!) {
             if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
-                /node_modules\/.*\.d\.ts/.test(tsResolutionResult.resolvedFileName)) {
+                /node_modules(\\|\/).*\.d\.ts$/.test(tsResolutionResult.resolvedFileName)) {
                 resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
             }
         } else {
