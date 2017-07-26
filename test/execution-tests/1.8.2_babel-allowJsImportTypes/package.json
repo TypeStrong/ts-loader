@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
-    "@types/jasmine": "^2.5.35",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
