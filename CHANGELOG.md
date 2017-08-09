@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.3
+
+- [fix(tsconfig): stop passing rootDir option to TypeScript compiler](https://github.com/TypeStrong/ts-loader/pull/598) (#597) - thanks @Brooooooklyn
+
 ## v2.3.2
 
 - [Move to use strictNullChecks](https://github.com/TypeStrong/ts-loader/pull/589) - thanks @johnnyreilly
