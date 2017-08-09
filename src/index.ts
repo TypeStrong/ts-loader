@@ -4,7 +4,7 @@ import * as loaderUtils from 'loader-utils';
 import { getTypeScriptInstance } from './instances';
 import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
 import * as constants from './constants';
-import { 
+import {
     AsyncCallback,
     Compiler,
     LoaderOptions,
@@ -204,7 +204,7 @@ function getTranspilationEmit(
     const fileName = path.basename(filePath);
 
     const { outputText, sourceMapText, diagnostics } = instance.compiler.transpileModule(contents, {
-        compilerOptions: instance.compilerOptions,
+        compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
         transformers: instance.transformers,
         reportDiagnostics: true,
         fileName,
