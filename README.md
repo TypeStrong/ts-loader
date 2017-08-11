@@ -122,6 +122,10 @@ don't directly use them. Instead you require them at [split points](http://webpa
 
 [TypeScript 2.4 provides support for ECMAScript's new `import()` calls. These calls import a module and return a promise to that module.](https://blogs.msdn.microsoft.com/typescript/2017/06/12/announcing-typescript-2-4-rc/)  This is also supported in webpack - details on usage can be found [here](https://webpack.js.org/guides/code-splitting-async/#dynamic-import-import-).  Happy code splitting!
 
+### Declarations (.d.ts)
+
+To output a built .d.ts file, you can set "declaration": true in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
+
 ### Compatibility
 
 #### TypeScript / Webpack
@@ -136,7 +140,7 @@ If you become aware of issues not caught by the test suite then please let us kn
 
 ### Failing the build on TypeScript compilation error
 
-When the build fails (i.e. at least one typescript compile error occured), ts-loader does **not** propagate the build failure to webpack.  The upshot of this is you can fail to notice an erroring build. This is inconvenient; particularly in continuous integration scenarios.  If you want to ensure that the build failure is propogated it is advised that you make use of the [webpack-fail-plugin](https://www.npmjs.com/package/webpack-fail-plugin).  This plugin that will make the process return status code 1 when it finishes with errors in single-run mode. Et voilà! Build failure.
+The build **should** fail on TypeScript compilation errors as of webpack 2. If for some reason it does not, you can use the [webpack-fail-plugin](https://www.npmjs.com/package/webpack-fail-plugin). 
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
 
