@@ -74,6 +74,9 @@ export function getConfigFile(
  * and continuing up the parent directory chain.
  */
 function findConfigFile(compiler: typeof typescript, searchPath: string, configFileName: string): string | undefined {
+    // Remove path.root from configFileName to fix windows specific issue. #604
+    configFileName = configFileName.substr(path.parse(configFileName).root.length)
+
     while (true) {
         const fileName = path.join(searchPath, configFileName);
         if (compiler.sys.fileExists(fileName)) {
