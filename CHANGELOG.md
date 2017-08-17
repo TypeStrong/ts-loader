@@ -3,6 +3,7 @@
 ## v2.3.3
 
 - [fix(tsconfig): stop passing rootDir option to TypeScript compiler](https://github.com/TypeStrong/ts-loader/pull/598) (#597) - thanks @Brooooooklyn
+- [Fix findConfigFile in Windows](https://github.com/TypeStrong/ts-loader/pull/605) (#604) - thanks @mengxy
 
 ## v2.3.2
 
