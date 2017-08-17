@@ -1,6 +1,4 @@
 
-const x: number = 1;
-
-const array = [{} {}];
+const x: number = '1';
 
 export = x;
