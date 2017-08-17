@@ -8,7 +8,7 @@ module.exports = {
     entry: './src/index.ts',
     output: { filename: 'dist/index.js' },
     module: {
-        rules: {
+        rules: [{
             test: /\.tsx?$/,
             use: [
                 { loader: 'cache-loader' },
@@ -26,7 +26,7 @@ module.exports = {
                     }
                 }
             ]
-        }
+        }]
     },
     resolve: {
         extensions: ['.ts', '.tsx', 'js']
