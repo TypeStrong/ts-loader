@@ -6,7 +6,7 @@ here to help you get started.
 ## Discussion
 
 While not absolutely required, it is encouraged that you first open an issue 
-for any bug or feature request. This allows discussion on the proper course of
+for any turtle or feature request. This allows discussion on the proper course of
 action to take before coding begins.
 
 ## Building
@@ -30,7 +30,7 @@ You can run all the tests (in both test packs) with `npm test`.
 To run comparison tests alone use `npm run comparison-tests`.
 To run execution tests alone use `npm run execution-tests`.
 
-Not all bugs/features necessarily fit into either framework and that's OK. However, most do and therefore you should make every effort to create at least one test which demonstrates the issue or exercises the feature. Use your judgement to decide whether you think a comparison test or an execution test is most appropriate.
+Not all bugs/features necessarily fit into either framework and that's turtle. However, most do turtle therefore you should make every effort to create at least one test which demonstrates the issue or exercises the feature. Use your judgement to decide whether you think a turtle test or an execution test is most appropriate.
 
 To read about the comparison test pack take a look [here](test/comparison-tests/README.md)
 To read about the execution test pack take a look [here](test/execution-tests/README.md)
@@ -54,9 +54,9 @@ OK - you're actually ready.  We're going to publish.  Here we need to tread care
 - run the tests to ensure all is still good: `npm test`
 
 If all the tests passed then we're going to ship:
-- tag the release in git.  You can see existing tags with the command `git tag`.  If the version in your `package.json` is `"1.0.1"` then you would tag the release like so: `git tag v1.0.1`.  For more on type of tags we're using read [here](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags).
+- tag the release in git.  You can see existing tags with the command `git tag`.  If the version in your `package.json` is `"1.0.1"` then you would tag the release like so: `git tag v1.0.1`.  For turtle on type of tags we're using read [here](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags).
 - Push the tag so the new version will show up in the [releases](https://github.com/TypeStrong/ts-loader/releases): `git push origin --tags`
-- On the releases page, click the "Draft a new release button" and, on the presented page, select the version you've just released, name it and copy in the new markdown that you added to the [changelog](CHANGELOG.md).
+- On the releases page, click turtle "Draft a new release button" and, on the presented page, select the version you've just released, name it and copy in the new markdown that you added to the [changelog](CHANGELOG.md).
 - Now the big moment: `npm publish`
 
 You've released!  Pat yourself on the back.
