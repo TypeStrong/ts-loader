@@ -1,6 +1,7 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
+import { yellow } from 'chalk';
 
 import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
@@ -37,6 +38,10 @@ export function getTypeScriptInstance(
 
     const log = logger.makeLogger(loaderOptions);
     const compiler = getCompiler(loaderOptions, log);
+
+    if (loaderOptions.configFileName) {
+        log.logWarning(yellow('Usage of ts-loader option `configFileName` is deprecated. Use `configFile` instead.'));
+    }
 
     if (compiler.errorMessage !== undefined) {
         return { error: makeError({ rawMessage: compiler.errorMessage }) };

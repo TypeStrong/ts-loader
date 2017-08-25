@@ -253,7 +253,8 @@ export interface LoaderOptions {
     logInfoToStdOut: boolean;
     instance: string;
     compiler: string;
-    configFileName: string;
+    configFile: string;
+    configFileName: string; // deprecated, remove in next major release
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
     visualStudioErrorFormat: boolean;

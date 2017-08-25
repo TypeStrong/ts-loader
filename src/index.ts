@@ -104,7 +104,7 @@ function getLoaderOptions(loader: Webpack) {
         logLevel: 'INFO',
         logInfoToStdOut: false,
         compiler: 'typescript',
-        configFileName: 'tsconfig.json',
+        configFile: 'tsconfig.json',
         transpileOnly: false,
         visualStudioErrorFormat: false,
         compilerOptions: {},
@@ -114,6 +114,15 @@ function getLoaderOptions(loader: Webpack) {
         entryFileIsJs: false,
         happyPackMode: false,
     }, configFileOptions, queryOptions);
+
+    // Use deprecated `configFileName` as fallback for `configFile`
+    if (queryOptions.configFileName) {
+        if (queryOptions.configFile) {
+            throw new Error('ts-loader options `configFile` and `configFileName` are mutually exclusive');
+        } else {
+            options.configFile = queryOptions.configFileName;
+        }
+    }
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
