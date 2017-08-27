@@ -5,7 +5,7 @@ var webpackConfig = require('./webpack.config.js');
 module.exports = function(config) {
   // Documentation: https://karma-runner.github.io/0.13/config/configuration-file.html
   config.set({
-    browsers: [ 'PhantomJS' ],
+    browsers: [ 'ChromeHeadless' ],
 
     files: [
       // This ensures we have the es6 shims in place and then loads all the tests

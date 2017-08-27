@@ -4,7 +4,7 @@ var webpackConfig = require('./webpack.config.js');
 
 module.exports = function(config) {
   config.set({
-    browsers: [ 'PhantomJS' ],
+    browsers: [ 'ChromeHeadless' ],
 
     files: [
       // This ensures we have the es6 shims in place from babel and then loads all the tests

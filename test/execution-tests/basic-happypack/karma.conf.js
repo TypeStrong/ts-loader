@@ -6,7 +6,7 @@ var webpackConfig = require('./webpack.config.js');
 
 module.exports = function(config) {
   config.set({
-    browsers: [ 'PhantomJS' ],
+    browsers: [ 'ChromeHeadless' ],
 
     files: [
       // This loads all the tests
