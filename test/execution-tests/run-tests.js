@@ -92,7 +92,7 @@ function runTests(testName) {
 
     try {
         var singleRunOrWatch = watch ? '' : ' --single-run';
-        execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers PhantomJS', { cwd: testPath, stdio: 'inherit' });
+        execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadless', { cwd: testPath, stdio: 'inherit' });
 
         passingTests.push(testName);
     }
