@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.4
+
+- [Add `configFile` option](https://github.com/TypeStrong/ts-loader/pull/607) - thanks @Loilo!
+
 ## v2.3.3
 
 - [fix(tsconfig): stop passing rootDir option to TypeScript compiler](https://github.com/TypeStrong/ts-loader/pull/598) (#597) - thanks @Brooooooklyn
