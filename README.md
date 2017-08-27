@@ -232,7 +232,17 @@ set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basar
 
 #### configFileName *(string) (default='tsconfig.json')*
 
-Allows you to specify a custom configuration file.
+This option has been deprecated in favor of [`configFile`](#user-content-configfile-string-defaulttsconfigjson).
+
+#### configFile *(string) (default='tsconfig.json')*
+
+Allows you to specify where to find the TypeScript configuration file.
+
+You may provide
+
+* just a file name. The loader then will search for the config file of each entry point in the respective entry point's containing folder. If a config file cannot be found there, it will travel up the parent directory chain and look for the config file in those folders.
+* a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
+* an absolute path to the configuration file.
 
 #### visualStudioErrorFormat *(boolean) (default=false)*
 
