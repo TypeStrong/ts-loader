@@ -32,6 +32,6 @@ module.exports = {
         extensions: ['.ts', '.tsx', 'js']
     },
     plugins: [
-        new ForkTsCheckerWebpackPlugin()
+        new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
     ]
 };
