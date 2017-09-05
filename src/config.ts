@@ -93,7 +93,7 @@ function findConfigFile(compiler: typeof typescript, requestDirPath: string, con
     // We define a relative path as: starts with
     // one or two dots + a common directory delimiter
     if (configFile.match(/^\.\.?(\/|\\)/)) {
-        const resolvedPath = path.resolve(configFile);
+        const resolvedPath = path.resolve(requestDirPath, configFile);
         return compiler.sys.fileExists(resolvedPath)
             ? resolvedPath
             : undefined;
