@@ -121,19 +121,40 @@ export function getConfigParseResult(
     configFile: ConfigFile,
     configFilePath: string
 ) {
+    let basePath: string
+    const configDir = path.dirname(configFilePath || '')
+
+    // check for `compilerOptions.rootDir`
+    if (configFile.config.compilerOptions && typeof configFile.config.compilerOptions.rootDir === 'string') {
+        const configuredRootDir = configFile.config.compilerOptions.rootDir
+
+        // `rootDir` is absolute -> use it as `basePath`
+        if (path.isAbsolute(configuredRootDir)) {
+            basePath = configuredRootDir
+        
+        // `rootDir` is relative -> resolve it relative to config dir
+        } else {
+            basePath = path.resolve(configDir, configuredRootDir)
+        }
+
+    // no `rootDir` -> use config directory as `basePath`
+    } else {
+        basePath = configDir
+    }
+
     let configParseResult: typescript.ParsedCommandLine;
     if (typeof (<any> compiler).parseJsonConfigFileContent === 'function') {
         // parseConfigFile was renamed between 1.6.2 and 1.7
         configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseJsonConfigFileContent(
             configFile.config,
             compiler.sys,
-            path.dirname(configFilePath || '')
+            basePath
         );
     } else {
         configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseConfigFile(
             configFile.config,
             compiler.sys,
-            path.dirname(configFilePath || '')
+            basePath
         );
     }
 
