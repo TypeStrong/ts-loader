@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.5 - NOT RELEASED YET
+
+- [Fix relative configFile path](https://github.com/TypeStrong/ts-loader/pull/618) (#617) - thanks @Loilo!
+
 ## v2.3.4
 
 - [Add `configFile` option](https://github.com/TypeStrong/ts-loader/pull/607) - thanks @Loilo!
