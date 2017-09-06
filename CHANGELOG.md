@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.3.5 - NOT RELEASED YET
+## v2.3.5
 
 - [Add an additional check for js files before reusing isExternalLibaryImport](https://github.com/TypeStrong/ts-loader/pull/622) (#620) - thanks @WillMartin
 - [Make TypeScript `basePath` configurable](https://github.com/TypeStrong/ts-loader/pull/621) (#618) - thanks @Loilo!

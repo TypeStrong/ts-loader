@@ -134,7 +134,7 @@ ts-loader supports the latest and greatest version of TypeScript right back to v
 
 ts-loader supports webpack 2.  It may well still work with webpack 1 but it does not officially support webpack 1 any longer.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
 
-A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against each major release of TypeScript from the latest right back to 1.6.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
+A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against major releases of TypeScript.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 
