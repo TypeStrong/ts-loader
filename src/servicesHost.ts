@@ -112,6 +112,14 @@ function resolveModuleNames(
     return resolvedModules;
 }
 
+function isJsImplementationOfTypings(
+    resolvedModule: ResolvedModule,
+    tsResolution: ResolvedModule
+) {
+    return resolvedModule.resolvedFileName.endsWith('js') && 
+            /node_modules(\\|\/).*\.d\.ts$/.test(tsResolution.resolvedFileName);
+}
+
 function resolveModuleName(
     resolveSync: ResolveSync,
     moduleResolutionHost: ModuleResolutionHost,
@@ -153,7 +161,7 @@ function resolveModuleName(
         };
         if (resolutionResult!) {
             if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
-                /node_modules(\\|\/).*\.d\.ts$/.test(tsResolutionResult.resolvedFileName)) {
+                isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)) {
                 resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
             }
         } else {

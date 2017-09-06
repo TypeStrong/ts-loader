@@ -1,0 +1,8 @@
+{
+	"compilerOptions": {
+		
+	},
+	"include": [
+		"app.ts"
+	]
+}
