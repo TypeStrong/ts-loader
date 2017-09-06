@@ -13,8 +13,9 @@ install:
   - npm run build
   - npm install $TYPESCRIPT
 env:
-  - TYPESCRIPT=typescript@2.4.1
+  - TYPESCRIPT=typescript@2.5.2
   - TYPESCRIPT=typescript@next
+  - TYPESCRIPT=typescript@2.4.1
   - TYPESCRIPT=typescript@2.3.1
   - TYPESCRIPT=typescript@2.2.1
   - TYPESCRIPT=typescript@2.1.5
