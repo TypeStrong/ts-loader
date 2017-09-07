@@ -1,9 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  2.73 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 94 bytes [entry] [rendered]
-    [0] ./.test/configureRoot/index.ts 94 bytes {0} [built] [failed] [2 errors]
-
-ERROR in [31merror TS18002: The 'files' list in config file 'tsconfig.json' is empty.[39m
-
-ERROR in ./.test/configureRoot/index.ts
-Module build failed: [31merror while parsing tsconfig.json[39m
