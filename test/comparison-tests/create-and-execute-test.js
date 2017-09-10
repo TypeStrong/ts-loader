@@ -374,6 +374,10 @@ function getNormalisedFileContent(file, location, test) {
                 .replace(/(\(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(match, openingBracketPathAndColon, lineNumber, colon, columnNumber, closingBracket){
                     return openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
                 })
+                // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
+                .replace(/at .*(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, openingBracketPathAndColon, lineNumber, colon, columnNumber, closingBracket){
+                    return 'at ' + openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
+                })
             : normaliseString(originalContent);
     }
     catch (e) {
