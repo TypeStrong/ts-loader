@@ -117,16 +117,18 @@ const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfo
  * @param loaderOptions 
  */
 function validateLoaderOptions(loaderOptions: LoaderOptions) {
-    Object.keys(loaderOptions).forEach(option => {
+    const loaderOptionKeys = Object.keys(loaderOptions);
+    for (let i = 0; i < loaderOptionKeys.length; i++) {
+        const option = loaderOptionKeys[i];
         const isUnexpectedOption = (validLoaderOptions as string[]).indexOf(option) === -1;
         if (isUnexpectedOption) {
             throw new Error(`ts-loader was supplied with an unexpected loader option: ${option}
 
 Please take a look at the options you are supplying; the following are valid options:
-${ validLoaderOptions.join(' / ') }
+${ validLoaderOptions.join(' / ')}
 `);
         }
-    });
+    }
 }
 
 function makeLoaderOptions(instanceName: string, configFileOptions: Partial<LoaderOptions>, loaderOptions: LoaderOptions) {
