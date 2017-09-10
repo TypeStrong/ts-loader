@@ -362,7 +362,7 @@ function getNormalisedFileContent(file, location, test) {
     var filePath = path.join(location, file);
     try {
         var originalContent = fs.readFileSync(filePath).toString();
-        fileContent = (file.indexOf('output.') === 0)
+        fileContent = (file.indexOf('output.') === 0
             ? normaliseString(originalContent)
                 // We don't want a difference in the number of kilobytes to fail the build
                 .replace(/[\d]+[.][\d]* kB/g, ' A-NUMBER-OF kB')
@@ -374,10 +374,13 @@ function getNormalisedFileContent(file, location, test) {
                 .replace(/(\(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(match, openingBracketPathAndColon, lineNumber, colon, columnNumber, closingBracket){
                     return openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
                 })
-            : normaliseString(originalContent);
-    }
-    catch (e) {
-        fileContent = '!!!' + filePath + ' doesnt exist!!!';
+            : normaliseString(originalContent))
+            // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
+            .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
+                return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
+            });
+    } catch (e) {
+        fileContent = '!!!' + filePath + ' doePsnt exist!!!';
     }
     return fileContent;
 }

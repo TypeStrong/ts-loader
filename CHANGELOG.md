@@ -1,5 +1,9 @@
 # Changelog
 
+## v2.3.7
+
+- [Start validating the options supplied to the loader](https://github.com/TypeStrong/ts-loader/pull/630) (#629) - thanks @johnnyreilly!
+
 ## v2.3.6
 
 - [Fix kills ts-loader dependant builds issue](https://github.com/TypeStrong/ts-loader/pull/627) (#626) - thanks @Loilo!
