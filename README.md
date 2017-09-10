@@ -134,7 +134,7 @@ ts-loader supports the latest and greatest version of TypeScript right back to v
 
 ts-loader supports webpack 2.  It may well still work with webpack 1 but it does not officially support webpack 1 any longer.  Our continuous integration test suites run against webpack 2; **not** webpack 1. 
 
-A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against each major release of TypeScript from the latest right back to 1.6.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
+A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against major releases of TypeScript.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 
@@ -191,15 +191,21 @@ For a full breakdown of the power of query syntax have a read of [this](https://
 
 If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between
-different dependencies in your application will be lost. You should also
-set the `isolatedModules` TypeScript option if you plan to ever make use
-of this.
+different dependencies in your application will be lost. 
+
+It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/fork-ts-checker). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-fork-ts-checker).
 
 #### happyPackMode *(boolean) (default=false)*
 
-Enables [`happypack`](https://github.com/amireh/happypack) compatibility mode. This implicitly sets `*transpileOnly*` to `true`. **WARNING!** Some errors will be silently ignored in `happypack` mode (`tsconfig.json` parsing errors, dependency resolution errors, etc.). 
+If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallise your builds then you'll need to set this to `true`.  This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering ***all*** errors to webpack. 
 
-It's advisable to use happypack alongside [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/happypack). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
+It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple HappyPack example](examples/happypack) / [our simple thread-loader example](examples/thread-loader). For a more complex setup take a look at our [more involved HappyPack example](examples/react-babel-karma-gulp-happypack) /  [more involved thread-loader example](examples/react-babel-karma-gulp-thread-loader).  ***IMPORTANT***: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `checkSyntacticErrors` option like so:
+
+```
+        new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
+```
+
+This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`).  By default the plugin only checks for semantic errors (as when used with ts-loader in `transpileOnly` mode, ts-loader will still report syntactic errors).
 
 #### getCustomTransformers *( () => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[];  } )*
 
@@ -232,7 +238,17 @@ set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basar
 
 #### configFileName *(string) (default='tsconfig.json')*
 
-Allows you to specify a custom configuration file.
+This option has been deprecated in favor of [`configFile`](#user-content-configfile-string-defaulttsconfigjson).
+
+#### configFile *(string) (default='tsconfig.json')*
+
+Allows you to specify where to find the TypeScript configuration file.
+
+You may provide
+
+* just a file name. The loader then will search for the config file of each entry point in the respective entry point's containing folder. If a config file cannot be found there, it will travel up the parent directory chain and look for the config file in those folders.
+* a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
+* an absolute path to the configuration file.
 
 #### visualStudioErrorFormat *(boolean) (default=false)*
 

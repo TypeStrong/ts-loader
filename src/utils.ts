@@ -114,8 +114,9 @@ export function collectAllDependants(
     const result = {};
     result[fileName] = true;
     collected[fileName] = true;
-    if (reverseDependencyGraph[fileName]) {
-        Object.keys(reverseDependencyGraph[fileName]).forEach(dependantFileName => {
+    const dependants = reverseDependencyGraph[fileName];
+    if (dependants !== undefined) {
+        Object.keys(dependants).forEach(dependantFileName => {
             if (!collected[dependantFileName]) {
                 collectAllDependants(reverseDependencyGraph, dependantFileName, collected)
                     .forEach(fName => result[fName] = true);

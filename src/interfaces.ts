@@ -253,7 +253,8 @@ export interface LoaderOptions {
     logInfoToStdOut: boolean;
     instance: string;
     compiler: string;
-    configFileName: string;
+    configFile: string;
+    configFileName: string; // deprecated, remove in next major release
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
     visualStudioErrorFormat: boolean;
@@ -283,7 +284,7 @@ export interface ResolvedModule {
 
 export interface TSCompatibleCompiler {
     // typescript@next 1.7+
-    readConfigFile(fileName: string, readFile: (path: string) => string): {
+    readConfigFile(fileName: string, readFile: (path: string, encoding?: string | undefined) => string | undefined): {
         config?: any;
         error?: typescript.Diagnostic;
     };

@@ -1,8 +1,27 @@
 # Changelog
 
+## v2.3.7
+
+- [Start validating the options supplied to the loader](https://github.com/TypeStrong/ts-loader/pull/630) (#629) - thanks @johnnyreilly!
+
+## v2.3.6
+
+- [Fix kills ts-loader dependant builds issue](https://github.com/TypeStrong/ts-loader/pull/627) (#626) - thanks @Loilo!
+
+## v2.3.5
+
+- [Add an additional check for js files before reusing isExternalLibaryImport](https://github.com/TypeStrong/ts-loader/pull/622) (#620) - thanks @WillMartin!
+- [Make TypeScript `basePath` configurable](https://github.com/TypeStrong/ts-loader/pull/621) (#618) - thanks @Loilo!
+- [Fix relative configFile path](https://github.com/TypeStrong/ts-loader/pull/618) (#617) - thanks @Loilo!
+
+## v2.3.4
+
+- [Add `configFile` option](https://github.com/TypeStrong/ts-loader/pull/607) - thanks @Loilo!
+
 ## v2.3.3
 
 - [fix(tsconfig): stop passing rootDir option to TypeScript compiler](https://github.com/TypeStrong/ts-loader/pull/598) (#597) - thanks @Brooooooklyn
+- [Fix findConfigFile in Windows](https://github.com/TypeStrong/ts-loader/pull/605) (#604) - thanks @mengxy
 
 ## v2.3.2
 

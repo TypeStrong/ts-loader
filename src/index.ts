@@ -61,8 +61,8 @@ function successLoader(
 
     if (outputText === null || outputText === undefined) {
         const additionalGuidance = filePath.indexOf('node_modules') !== -1
-            ? "\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358"
-            : "";
+            ? '\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358'
+            : '';
         throw new Error(`Typescript emitted no output for ${filePath}.${additionalGuidance}`);
     }
 
@@ -90,21 +90,54 @@ function getLoaderOptions(loader: Webpack) {
         webpackIndex = webpackInstances.push(loader._compiler) - 1;
     }
 
-    const queryOptions = loaderUtils.getOptions<LoaderOptions>(loader) || {} as LoaderOptions;
+    const loaderOptions = loaderUtils.getOptions<LoaderOptions>(loader) || {} as LoaderOptions;
     const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
 
-    const instanceName = webpackIndex + '_' + (queryOptions.instance || configFileOptions.instance || 'default');
+    const instanceName = webpackIndex + '_' + (loaderOptions.instance || configFileOptions.instance || 'default');
 
     if (hasOwnProperty(loaderOptionsCache, instanceName)) {
         return loaderOptionsCache[instanceName];
     }
 
+    validateLoaderOptions(loaderOptions);
+
+    const options = makeLoaderOptions(instanceName, configFileOptions, loaderOptions);
+
+    loaderOptionsCache[instanceName] = options;
+
+    return options;
+}
+
+type ValidLoaderOptions = keyof LoaderOptions;
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'configFileName' /*DEPRECATED*/, 'transpileOnly', 'ignoreDiagnostics', 'visualStudioErrorFormat', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
+
+/**
+ * Validate the supplied loader options.
+ * At present this validates the option names only; in future we may look at validating the values too
+ * @param loaderOptions 
+ */
+function validateLoaderOptions(loaderOptions: LoaderOptions) {
+    const loaderOptionKeys = Object.keys(loaderOptions);
+    for (let i = 0; i < loaderOptionKeys.length; i++) {
+        const option = loaderOptionKeys[i];
+        const isUnexpectedOption = (validLoaderOptions as string[]).indexOf(option) === -1;
+        if (isUnexpectedOption) {
+            throw new Error(`ts-loader was supplied with an unexpected loader option: ${option}
+
+Please take a look at the options you are supplying; the following are valid options:
+${ validLoaderOptions.join(' / ')}
+`);
+        }
+    }
+}
+
+function makeLoaderOptions(instanceName: string, configFileOptions: Partial<LoaderOptions>, loaderOptions: LoaderOptions) {
     const options = Object.assign({}, {
         silent: false,
         logLevel: 'INFO',
         logInfoToStdOut: false,
         compiler: 'typescript',
-        configFileName: 'tsconfig.json',
+        configFile: 'tsconfig.json',
         transpileOnly: false,
         visualStudioErrorFormat: false,
         compilerOptions: {},
@@ -113,7 +146,16 @@ function getLoaderOptions(loader: Webpack) {
         transformers: {},
         entryFileIsJs: false,
         happyPackMode: false,
-    }, configFileOptions, queryOptions);
+    }, configFileOptions, loaderOptions);
+
+    // Use deprecated `configFileName` as fallback for `configFile`
+    if (loaderOptions.configFileName) {
+        if (loaderOptions.configFile) {
+            throw new Error('ts-loader options `configFile` and `configFileName` are mutually exclusive');
+        } else {
+            options.configFile = loaderOptions.configFileName;
+        }
+    }
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase();
@@ -121,8 +163,6 @@ function getLoaderOptions(loader: Webpack) {
 
     // happypack can be used only together with transpileOnly mode
     options.transpileOnly = options.happyPackMode ? true : options.transpileOnly;
-
-    loaderOptionsCache[instanceName] = options;
 
     return options;
 }
