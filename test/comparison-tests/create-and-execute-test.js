@@ -362,8 +362,6 @@ function getNormalisedFileContent(file, location, test) {
     var filePath = path.join(location, file);
     try {
         var originalContent = fs.readFileSync(filePath).toString();
-        console.warn(originalContent)
-        console.warn('------------------------------------------------')
         fileContent = (file.indexOf('output.') === 0)
             ? normaliseString(originalContent)
                 // We don't want a difference in the number of kilobytes to fail the build
@@ -378,10 +376,9 @@ function getNormalisedFileContent(file, location, test) {
                 })
                 // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
                 .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
-                    console.warn('match')
-                    console.warn(match)
-                    console.warn(spaceAndStartOfPath)
-                    console.warn(remainingPathAndColon)
+                    console.warn('match', match)
+                    console.warn('spaceAndStartOfPath', spaceAndStartOfPath)
+                    console.warn('remainingPathAndColon', remainingPathAndColon)
                     console.warn(lineNumber)
                     console.warn(colon)
                     console.warn(columnNumber)
