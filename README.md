@@ -124,7 +124,19 @@ don't directly use them. Instead you require them at [split points](http://webpa
 
 ### Declarations (.d.ts)
 
-To output a built .d.ts file, you can set "declaration": true in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
+To output a built .d.ts file, you can set "declaration": true in your tsconfig, and do this in your webpack config:
+```
+{
+  test: /\.ts$/,
+    loader: 'ts-loader',
+    options: {
+      declarationBundle: {
+        out: 'dist/bundle.d.ts',
+        moduleName: 'MyApp'
+      }
+    }
+  }
+```
 
 ### Compatibility
 
@@ -268,6 +280,14 @@ of your code.
 #### entryFileIsJs *(boolean) (default=false)*
 
 To be used in concert with the `allowJs` compiler option. If your entry file is JS then you'll need to set this option to true.  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.
+
+#### declarationBundle *(object)*
+
+If declarationBundle is set, the .d.ts files will be combined into a single .d.ts file.
+
+For an example see the Declaration section. You can set the properties:
+moduleName - the name of the internal module to generate
+out - the path where the combined declaration file should be saved
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
 #### appendTsxSuffixTo *(RegExp[]) (default=[])*

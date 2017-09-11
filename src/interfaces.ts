@@ -264,6 +264,12 @@ export interface LoaderOptions {
     entryFileIsJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;
+    declarationBundle?: DeclarationBundleOptions;
+}
+
+export interface DeclarationBundleOptions {
+    moduleName: string;
+    out?: string;
 }
 
 export interface TSFile {

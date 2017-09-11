@@ -10,6 +10,7 @@ import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from '
 import * as logger from './logger';
 import { makeServicesHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
+import DeclarationBundlerPlugin from './DeclarationBundlerPlugin';
 import { 
     LoaderOptions,
     TSFiles,
@@ -144,6 +145,11 @@ function successfulTypeScriptInstance(
 
     loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
     loader._compiler.plugin("watch-run", makeWatchRun(instance));
+
+    if (loaderOptions.declarationBundle) {
+        var declarationBundler = new DeclarationBundlerPlugin(loaderOptions.declarationBundle);
+        declarationBundler.apply(loader._compiler);
+    }    
 
     return { instance };
 }

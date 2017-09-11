@@ -50,6 +50,7 @@ if (fs.statSync(testPath).isDirectory() &&
         if (testToRun === 'declarationOutput' ||
             testToRun === 'importsWatch' ||
             testToRun === 'declarationWatch' ||
+            testToRun === 'declarationBundle' || // declarations can't be created with transpile
             testToRun === 'issue71' ||
             testToRun === 'appendSuffixToWatch') { return; }
 
@@ -120,7 +121,9 @@ function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
 
         mkdirp.sync(paths.originalExpectedOutput);
     } else {
-        assert.ok(pathExists(paths.originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + paths.originalExpectedOutput)
+        assert.ok(pathExists(paths.originalExpectedOutput),
+            'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: '
+            + paths.originalExpectedOutput)
     }
 }
 
@@ -380,7 +383,7 @@ function getNormalisedFileContent(file, location, test) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             });
     } catch (e) {
-        fileContent = '!!!' + filePath + ' doePsnt exist!!!';
+        fileContent = '!!!' + filePath + ' does not exist!!!';
     }
     return fileContent;
 }

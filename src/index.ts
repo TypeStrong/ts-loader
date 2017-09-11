@@ -109,7 +109,12 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'configFileName' /*DEPRECATED*/, 'transpileOnly', 'ignoreDiagnostics', 'visualStudioErrorFormat', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = [
+    'silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile',
+    'configFileName' /*DEPRECATED*/, 'transpileOnly', 'ignoreDiagnostics', 'visualStudioErrorFormat',
+    'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode',
+    'getCustomTransformers', 'declarationBundle'
+];
 
 /**
  * Validate the supplied loader options.
