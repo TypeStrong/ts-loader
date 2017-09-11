@@ -1,7 +1,7 @@
 module.exports = {
     entry: './src/app.ts',
     output: {
-        filename: 'dist/bundle.js'
+        filename: 'out1/bundle.js'
     },
     resolve: {
         extensions: ['.ts', '.js']
@@ -13,7 +13,7 @@ module.exports = {
                 loader: 'ts-loader',
                 options: {
                     declarationBundle: {
-                        out: 'dist/bundle.d.ts',
+                        out: 'out1/bundle.d.ts',
                         moduleName: 'MyApp'
                     }           
                 }                
