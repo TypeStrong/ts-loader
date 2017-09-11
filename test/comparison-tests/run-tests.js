@@ -63,10 +63,7 @@ function runTestAsChildProcess(testName) {
 
         var mocha = 'node_modules/mocha/bin/mocha';
         
-        var cmd = mocha + ' --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run '
-            + testName + saveOutput;
-                
-        var testOutput = execSync(cmd, { stdio: 'inherit' });
+        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + saveOutput, { stdio: 'inherit' });
 
         passingTests.push(testName);
     }
