@@ -66,6 +66,19 @@ function isHighEnoughTypeScriptVersion (testName) {
     return true;
 }
 
+function getKarmaPath(fromDir) {    
+    fromDir = fromDir || __dirname;
+    var karmaPath = 'node_modules/karma/bin/karma';
+    for (var i = 0; i < 5; i++) {
+        if (pathExists(fromDir + '/' + karmaPath)) {
+            return karmaPath;
+        }
+        karmaPath = '../' + karmaPath;
+    }
+    
+    return 'karma';
+}
+
 function runTests(testName) {
     console.log('\n-------------------------------------------------------------------------\n');
     console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
@@ -92,7 +105,8 @@ function runTests(testName) {
 
     try {
         var singleRunOrWatch = watch ? '' : ' --single-run';
-        execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadless', { cwd: testPath, stdio: 'inherit' });
+        var karma = getKarmaPath(testPath);
+        execSync(karma + ' start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadless', { cwd: testPath, stdio: 'inherit' });
 
         passingTests.push(testName);
     }

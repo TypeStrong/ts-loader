@@ -1,6 +1,7 @@
 /* eslint-disable no-var, strict */
 'use strict';
 var webpackConfig = require('./webpack.config.js');
+var reporterOptions = require('../../reporterOptions');
 
 module.exports = function(config) {
   // Documentation: https://karma-runner.github.io/0.13/config/configuration-file.html
@@ -39,13 +40,6 @@ module.exports = function(config) {
     },
 
     // reporter options
-    mochaReporter: {
-      colors: {
-        success: 'bgGreen',
-        info: 'cyan',
-        warning: 'bgBlue',
-        error: 'bgRed'
-      }
-    }
+    mochaReporter: reporterOptions
   });
 };

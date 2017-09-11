@@ -60,8 +60,13 @@ else {
 function runTestAsChildProcess(testName) {
     try {
         var saveOutput = saveOutputMode ? ' --save-output' : '';
-
-        var testOutput = execSync('mocha --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run ' + testName + saveOutput, { stdio: 'inherit' });
+        
+        var mocha = 'node_modules/mocha/bin/mocha';
+        
+        var cmd = mocha + ' --reporter spec test/comparison-tests/create-and-execute-test.js --test-to-run '
+            + testName + saveOutput;
+                
+        var testOutput = execSync(cmd, { stdio: 'inherit' });
 
         passingTests.push(testName);
     }

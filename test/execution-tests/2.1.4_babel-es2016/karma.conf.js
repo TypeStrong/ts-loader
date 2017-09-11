@@ -1,6 +1,7 @@
 /* eslint-disable no-var, strict */
 'use strict';
 var webpackConfig = require('./webpack.config.js');
+var reporterOptions = require('../../reporterOptions');
 
 module.exports = function(config) {
   config.set({
@@ -38,13 +39,6 @@ module.exports = function(config) {
     },
 
     // reporter options
-    mochaReporter: {
-      colors: {
-        success: 'bgGreen',
-        info: 'cyan',
-        warning: 'bgBlue',
-        error: 'bgRed'
-      }
-    }
+    mochaReporter: reporterOptions,
   });
 };
