@@ -1,0 +1,8 @@
+           Asset       Size  Chunks             Chunk Names
+  out1/bundle.js    5.16 kB       0  [emitted]  main
+out1/bundle.d.ts  589 bytes          [emitted]  
+chunk    {0} out1/bundle.js (main) 2.25 kB [entry] [rendered]
+    [0] ./.test/declarationBundle/src/Shape.ts 322 bytes {0} [built]
+    [1] ./.test/declarationBundle/src/Circle.ts 821 bytes {0} [built]
+    [2] ./.test/declarationBundle/src/Square.ts 833 bytes {0} [built]
+    [3] ./.test/declarationBundle/src/app.ts 278 bytes {0} [built]

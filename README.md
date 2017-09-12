@@ -122,9 +122,6 @@ don't directly use them. Instead you require them at [split points](http://webpa
 
 [TypeScript 2.4 provides support for ECMAScript's new `import()` calls. These calls import a module and return a promise to that module.](https://blogs.msdn.microsoft.com/typescript/2017/06/12/announcing-typescript-2-4-rc/)  This is also supported in webpack - details on usage can be found [here](https://webpack.js.org/guides/code-splitting-async/#dynamic-import-import-).  Happy code splitting!
 
-### Declarations (.d.ts)
-
-To output a built .d.ts file, you can set "declaration": true in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
 
 ### Compatibility
 
@@ -268,6 +265,30 @@ of your code.
 #### entryFileIsJs *(boolean) (default=false)*
 
 To be used in concert with the `allowJs` compiler option. If your entry file is JS then you'll need to set this option to true.  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.
+
+#### declarationBundle *(object)*
+
+If declarationBundle is set, the output .d.ts files will be combined into a single .d.ts file.
+
+Properties:
+moduleName - the name of the internal module to generate
+out - the path where the combined declaration file should be saved
+
+Set compilerOptions.declaration: true in your tsconfig, and ts-loader will output a .d.ts for every .ts file you had, and they will be linked. This may work fine! Or, you may want to bundle them together. To bundle them, you probably can't be using something like ES6 modules with named exports since the bundler only does simple concatenation. Also, your exported names do matter and will be used in the .d.ts. 
+
+Example webpack config:
+```
+{
+  test: /\.ts$/,
+    loader: 'ts-loader',
+    options: {
+      declarationBundle: {
+        out: 'dist/bundle.d.ts',
+        moduleName: 'MyApp'
+      }
+    }
+  }
+```
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
 #### appendTsxSuffixTo *(RegExp[]) (default=[])*
