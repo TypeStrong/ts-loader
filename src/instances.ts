@@ -11,7 +11,7 @@ import * as logger from './logger';
 import { makeServicesHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
 import DeclarationBundlerPlugin from './DeclarationBundlerPlugin';
-import { 
+import {
     LoaderOptions,
     TSFiles,
     TSInstance,
@@ -20,7 +20,7 @@ import {
     WebpackError
 } from './interfaces';
 
-const instances = <TSInstances> {};
+const instances = <TSInstances>{};
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -49,7 +49,7 @@ export function getTypeScriptInstance(
     }
 
     return successfulTypeScriptInstance(
-        loaderOptions, loader, log, 
+        loaderOptions, loader, log,
         compiler.compiler!, compiler.compilerCompatible!, compiler.compilerDetailsLogMessage!
     );
 }
@@ -95,7 +95,7 @@ function successfulTypeScriptInstance(
         if (!loaderOptions.happyPackMode) {
             registerWebpackErrors(
                 loader._module.errors,
-                formatErrors(diagnostics, loaderOptions, compiler!, {file: configFilePath || 'tsconfig.json'}));
+                formatErrors(diagnostics, loaderOptions, compiler!, { file: configFilePath || 'tsconfig.json' }));
         }
 
         const instance = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() };
@@ -115,11 +115,13 @@ function successfulTypeScriptInstance(
                 text: fs.readFileSync(normalizedFilePath, 'utf-8'),
                 version: 0
             };
-          });
+        });
     } catch (exc) {
-        return { error: makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`
-        }) };
+        return {
+            error: makeError({
+                rawMessage: `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
+            })
+        };
     }
 
     // if allowJs is set then we should accept js(x) files
@@ -146,10 +148,10 @@ function successfulTypeScriptInstance(
     loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
     loader._compiler.plugin("watch-run", makeWatchRun(instance));
 
-    if (loaderOptions.declarationBundle) {
+    if (loaderOptions.declarationBundle && compilerOptions.declaration) {
         var declarationBundler = new DeclarationBundlerPlugin(loaderOptions.declarationBundle);
         declarationBundler.apply(loader._compiler);
-    }    
+    }
 
     return { instance };
 }

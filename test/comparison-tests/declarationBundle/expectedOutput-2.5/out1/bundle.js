@@ -153,9 +153,14 @@ module.exports = Square;
 
 var Circle = __webpack_require__(1);
 var Square = __webpack_require__(2);
-module.exports = {
+// const c = new Circle(100, 200, 60);
+// c.moveTo(150, 250);
+// const s = new Square(100, 200, 60);
+// s.moveTo(150, 250);
+var App = {
     Circle: Circle, Square: Square
 };
+module.exports = App;
 
 
 /***/ })

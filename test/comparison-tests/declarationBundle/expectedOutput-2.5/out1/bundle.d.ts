@@ -1,6 +1,6 @@
 declare module MyApp
 {
-	const _default: {
+	var App: {
 	    Circle: typeof Circle;
 	    Square: typeof Square;
 	};
