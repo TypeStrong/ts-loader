@@ -2,7 +2,6 @@
 'use strict';
 
 var webpackConfig = require('./webpack.config.base.js');
-var reporterOptions = require('../../reporterOptions');
 
 module.exports = function (config) {
 
@@ -46,7 +45,14 @@ module.exports = function (config) {
     },
 
     // reporter options
-    mochaReporter: reporterOptions,
+    mochaReporter: {
+      colors: {
+        success: 'bgGreen',
+        info: 'cyan',
+        warning: 'bgBlue',
+        error: 'bgRed'
+      }
+    },
 
     notifyReporter: {
       reportSuccess: false // Default: true, Will notify when a suite was successful
