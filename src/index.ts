@@ -11,7 +11,8 @@ import {
     LoaderOptionsCache,
     TSFile,
     TSInstance,
-    Webpack
+    Webpack,
+    LogLevel
 } from './interfaces';
 
 const webpackInstances: Compiler[] = [];
@@ -134,7 +135,7 @@ ${ validLoaderOptions.join(' / ')}
 function makeLoaderOptions(instanceName: string, configFileOptions: Partial<LoaderOptions>, loaderOptions: LoaderOptions) {
     const options = Object.assign({}, {
         silent: false,
-        logLevel: 'INFO',
+        logLevel: 'WARN',
         logInfoToStdOut: false,
         compiler: 'typescript',
         configFile: 'tsconfig.json',
@@ -158,7 +159,7 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
     }
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
-    options.logLevel = options.logLevel.toUpperCase();
+    options.logLevel = options.logLevel.toUpperCase() as LogLevel;
     options.instance = instanceName;
 
     // happypack can be used only together with transpileOnly mode

@@ -247,9 +247,11 @@ export type Partial<T> = {
     [P in keyof T]?: T[P];
 };
 
+export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
+
 export interface LoaderOptions {
     silent: boolean;
-    logLevel: string;
+    logLevel: LogLevel;
     logInfoToStdOut: boolean;
     instance: string;
     compiler: string;
