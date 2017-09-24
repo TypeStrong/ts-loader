@@ -1,0 +1,14 @@
+{
+  "name": "vanilla-jsts",
+  "main": "index.js",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch"
+  },
+  "devDependencies": {
+    "ts-loader": "^2.0.0",
+    "typescript": "^2.3.4",
+    "webpack": "^2.2.0"
+  }
+}
