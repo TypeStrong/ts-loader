@@ -256,7 +256,6 @@ export interface LoaderOptions {
     instance: string;
     compiler: string;
     configFile: string;
-    configFileName: string; // deprecated, remove in next major release
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
     visualStudioErrorFormat: boolean;

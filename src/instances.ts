@@ -39,10 +39,6 @@ export function getTypeScriptInstance(
     const log = logger.makeLogger(loaderOptions);
     const compiler = getCompiler(loaderOptions, log);
 
-    if (loaderOptions.configFileName) {
-        log.logWarning(yellow('Usage of ts-loader option `configFileName` is deprecated. Use `configFile` instead.'));
-    }
-
     if (compiler.errorMessage !== undefined) {
         return { error: makeError({ rawMessage: compiler.errorMessage }) };
     }

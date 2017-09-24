@@ -110,7 +110,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'configFileName' /*DEPRECATED*/, 'transpileOnly', 'ignoreDiagnostics', 'visualStudioErrorFormat', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'visualStudioErrorFormat', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
 
 /**
  * Validate the supplied loader options.
@@ -148,15 +148,6 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         entryFileIsJs: false,
         happyPackMode: false,
     }, configFileOptions, loaderOptions);
-
-    // Use deprecated `configFileName` as fallback for `configFile`
-    if (loaderOptions.configFileName) {
-        if (loaderOptions.configFile) {
-            throw new Error('ts-loader options `configFile` and `configFileName` are mutually exclusive');
-        } else {
-            options.configFile = loaderOptions.configFileName;
-        }
-    }
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase() as LogLevel;

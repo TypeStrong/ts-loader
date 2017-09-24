@@ -238,10 +238,6 @@ codes to ignore.
 Allows use of TypeScript compilers other than the official one. Should be
 set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basarat/ntypescript).
 
-#### configFileName *(string) (default='tsconfig.json')*
-
-This option has been deprecated in favor of [`configFile`](#user-content-configfile-string-defaulttsconfigjson).
-
 #### configFile *(string) (default='tsconfig.json')*
 
 Allows you to specify where to find the TypeScript configuration file.
