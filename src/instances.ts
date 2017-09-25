@@ -74,7 +74,7 @@ function successfulTypeScriptInstance(
         return { error: makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
     }
 
-    const compilerOptions = getCompilerOptions(compilerCompatible, compiler!, configParseResult);
+    const compilerOptions = getCompilerOptions(configParseResult);
     const files: TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
