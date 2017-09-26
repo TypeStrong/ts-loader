@@ -289,13 +289,6 @@ export interface TSCompatibleCompiler {
         config?: any;
         error?: typescript.Diagnostic;
     };
-    // typescript@latest 1.6.2
-    readConfigFile(fileName: string): {
-        config?: any;
-        error?: typescript.Diagnostic;
-    };
     // typescript@next 1.8+
     parseJsonConfigFileContent?(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
-    // typescript@latest 1.6.2
-    parseConfigFile?(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
 }

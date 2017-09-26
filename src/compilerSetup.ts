@@ -1,5 +1,5 @@
 import * as typescript from 'typescript';
-const semver = require('semver');
+import * as semver from 'semver';
 
 import * as constants from './constants';
 import * as logger from './logger';
@@ -27,7 +27,7 @@ export function getCompiler(
         compilerDetailsLogMessage = `ts-loader: Using ${loaderOptions.compiler}@${compiler!.version}`;
         compilerCompatible = false;
         if (loaderOptions.compiler === 'typescript') {
-            if (compiler!.version && semver.gte(compiler!.version, '1.6.2-0')) {
+            if (compiler!.version && semver.gte(compiler!.version, '2.0.0')) {
                 // don't log yet in this case, if a tsconfig.json exists we want to combine the message
                 compilerCompatible = true;
             } else {
