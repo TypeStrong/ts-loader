@@ -8,4 +8,5 @@ Use NoEmitOnErrorsPlugin instead.
 
 
 ERROR in ./.test/noErrorsPlugin/app.ts
-[37m([39m[36m4[39m,[36m1[39m): [31merror TS2322: Type 'string' is not assignable to type 'number'.[39m
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m/.test/noErrorsPlugin/app.ts(4,1)[39m[22m
+[1m[31m      TS2322: Type 'string' is not assignable to type 'number'.[39m[22m

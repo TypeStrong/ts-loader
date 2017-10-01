@@ -257,11 +257,11 @@ If `false`, disables built-in colors in logger messages.
 By default ts-loader formats TypeScript compiler output for an error or a warning in the style:
 
 ```
-error in myFile.ts(3,14):
-TS4711: you did something very wrong
+[tsl] ERROR in myFile.ts(3,14)
+      TS4711: you did something very wrong
 ```
 
-If that format is not to your taste you can supply your own formatter with this option. Below is a template for a custom error formatter.  Please note that the `colors` parameter is an instance of [`chalk`](https://github.com/chalk/chalk) which you can use to color your output. (This instance will respect the `colors` option.)
+If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter.  Please note that the `colors` parameter is an instance of [`chalk`](https://github.com/chalk/chalk) which you can use to color your output. (This instance will respect the `colors` option.)
 
 ```js
 function customErrorFormatter(error, colors) {
@@ -283,11 +283,13 @@ If the above formatter received an error like this:
 }
 ```  
 
-It would produce output like this: 
+It would produce that said: 
 
 ```
 Does not compute.... code: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: /.test/errorFormatter/app.ts,line: 2,character: 31
 ```
+
+And the bit after "Does not compute.... " would be red.
 
 #### compilerOptions *(object) (default={})*
 

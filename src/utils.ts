@@ -29,20 +29,15 @@ export function hasOwnProperty<T extends {}>(obj: T, property: string) {
  */
 function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
     const messageColor = error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
-    const fileAndNumberColor = colors.bold.cyan;
-    const codeColor = colors.grey;
 
-    return [
-        messageColor(error.severity.toUpperCase()) +
+    return colors.grey('[tsl] ') + messageColor(error.severity.toUpperCase()) +
         (
             error.file === ''
                 ? ''
-                : messageColor(' in ') + fileAndNumberColor(`${error.file}(${error.line},${error.character})`)
-        ) +
-        messageColor(':'),
+                : messageColor(' in ') + colors.bold.cyan(`${error.file}(${error.line},${error.character})`)
+        ) + constants.EOL +
 
-        codeColor(`TS${error.code}: `) + messageColor(error.content)
-    ].join(constants.EOL);
+        messageColor(`      TS${error.code}: ${error.content}`);
 }
 
 /**
@@ -79,8 +74,8 @@ export function formatErrors(
                 const error = makeError(
                     message,
                     merge === undefined ? undefined : merge.file,
-                    position === undefined 
-                        ? undefined 
+                    position === undefined
+                        ? undefined
                         : { line: errorInfo.line, character: errorInfo.character }
                 );
 

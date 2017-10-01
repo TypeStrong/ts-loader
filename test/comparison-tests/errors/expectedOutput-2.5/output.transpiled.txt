@@ -4,7 +4,8 @@ chunk    {0} bundle.js (main) 242 bytes [entry] [rendered]
     [0] ./.test/errors/app.ts 242 bytes {0} [built] [failed] [2 errors]
 
 ERROR in ./.test/errors/app.ts
-[37m([39m[36m1[39m,[36m7[39m): [31merror TS1005: '=' expected.[39m
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,7)[39m[22m
+[1m[31m      TS1005: '=' expected.[39m[22m
 
 ERROR in ./.test/errors/app.ts
 Module parse failed: index.js??ref--0!app.ts Unexpected token (1:9)
