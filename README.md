@@ -248,9 +248,46 @@ You may provide
 * a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
 * an absolute path to the configuration file.
 
-#### visualStudioErrorFormat *(boolean) (default=false)*
+#### colors *(boolean) (default=true)*
 
-If `true`, the TypeScript compiler output for an error or a warning, e.g. `(3,14): error TS4711: you did something very wrong`, in file `myFile` will instead be `myFile(3,14): error TS4711: you did something very wrong` (notice the file name at the beginning). This way Visual Studio will interpret this line and show any errors or warnings in the *error list*. This enables navigation to the file/line/column through double click.
+If `false`, disables built-in colors in logger messages.
+
+#### errorFormatter *((message: ErrorInfo, colors: boolean) => string) (default=undefined)*
+
+By default ts-loader formats TypeScript compiler output for an error or a warning in the style:
+
+```
+error in myFile.ts(3,14):
+TS4711: you did something very wrong
+```
+
+If that format is not to your taste you can supply your own formatter with this option. Below is a template for a custom error formatter.  Please note that the `colors` parameter is an instance of [`chalk`](https://github.com/chalk/chalk) which you can use to color your output. (This instance will respect the `colors` option.)
+
+```js
+function customErrorFormatter(error, colors) {
+    const messageColor = error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
+    return 'Does not compute.... ' + messageColor(Object.keys(error).map(key => `${key}: ${error[key]}`));
+}
+```
+
+If the above formatter received an error like this:
+
+```
+{
+  "code":2307,
+  "severity": "error",
+  "content": "Cannot find module 'components/myComponent2'.",
+  "file":"/.test/errorFormatter/app.ts",
+  "line":2,
+  "character":31
+}
+```  
+
+It would produce output like this: 
+
+```
+Does not compute.... code: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: /.test/errorFormatter/app.ts,line: 2,character: 31
+```
 
 #### compilerOptions *(object) (default={})*
 

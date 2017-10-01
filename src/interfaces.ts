@@ -1,9 +1,19 @@
 import * as typescript from 'typescript';
+import { Chalk } from 'chalk';
 
 export interface SourceMap {
     sources: any[];
     file: string;
     sourcesContent: string[];
+}
+
+export interface ErrorInfo {
+    code: number;
+    severity: Severity;
+    content: string;
+    file: string;
+    line: number;
+    character: number;
 }
 
 export interface AsyncCallback {
@@ -104,7 +114,6 @@ export interface WebpackError {
     module?: any;
     file?: string;
     message: string;
-    rawMessage: string;
     location?: { line: number, character: number };
     loaderSource: string;
 }
@@ -223,6 +232,7 @@ export interface TSInstance {
     reverseDependencyGraph: ReverseDependencyGraph;
     filesWithErrors?: TSFiles;
     transformers: typescript.CustomTransformers;
+    colors: Chalk;
 }
 
 export interface LoaderOptionsCache {
@@ -258,7 +268,8 @@ export interface LoaderOptions {
     configFile: string;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
-    visualStudioErrorFormat: boolean;
+    errorFormatter: (message: ErrorInfo, colors: Chalk) => string;
+    colors: boolean;
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
     appendTsxSuffixTo: RegExp[];
@@ -283,12 +294,4 @@ export interface ResolvedModule {
     isExternalLibraryImport?: boolean;
 }
 
-export interface TSCompatibleCompiler {
-    // typescript@next 1.7+
-    readConfigFile(fileName: string, readFile: (path: string, encoding?: string | undefined) => string | undefined): {
-        config?: any;
-        error?: typescript.Diagnostic;
-    };
-    // typescript@next 1.8+
-    parseJsonConfigFileContent?(json: any, host: typescript.ParseConfigHost, basePath: string): typescript.ParsedCommandLine;
-}
+export type Severity = 'error' | 'warning';

@@ -8,6 +8,7 @@
     "comparison-tests": "npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
     "execution-tests": "node test/execution-tests/run-tests.js",
+    "pretest": "npm run build",
     "test": "node test/run-tests.js"
   },
   "repository": {

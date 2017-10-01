@@ -110,7 +110,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'visualStudioErrorFormat', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
 
 /**
  * Validate the supplied loader options.
@@ -140,13 +140,13 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         compiler: 'typescript',
         configFile: 'tsconfig.json',
         transpileOnly: false,
-        visualStudioErrorFormat: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
         appendTsxSuffixTo: [],
         transformers: {},
         entryFileIsJs: false,
         happyPackMode: false,
+        colors: true
     }, configFileOptions, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
@@ -246,7 +246,7 @@ function getTranspilationEmit(
     if (!instance.loaderOptions.happyPackMode) {
         registerWebpackErrors(
             loader._module.errors,
-            formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
+            formatErrors(diagnostics, instance.loaderOptions, instance.colors, instance.compiler, { module: loader._module })
         );
     }
 

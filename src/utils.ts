@@ -1,23 +1,48 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
-import { white, red, cyan } from 'chalk';
+import { Chalk } from 'chalk';
 
 import constants = require('./constants');
-import { 
+import {
     DependencyGraph,
     LoaderOptions,
     ReverseDependencyGraph,
+    Severity,
     WebpackError,
-    WebpackModule
+    WebpackModule,
+    ErrorInfo
 } from './interfaces';
 
+type ErrorOrNumber = WebpackError | number;
+
 export function registerWebpackErrors(existingErrors: WebpackError[], errorsToPush: WebpackError[]) {
-    Array.prototype.splice.apply(existingErrors, (<(number | WebpackError)[]>[0, 0]).concat(errorsToPush));
+    Array.prototype.splice.apply(existingErrors, (<ErrorOrNumber[]>[0, 0]).concat(errorsToPush));
 }
 
 export function hasOwnProperty<T extends {}>(obj: T, property: string) {
     return Object.prototype.hasOwnProperty.call(obj, property);
+}
+
+/**
+ * The default error formatter.
+ */
+function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
+    const messageColor = error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
+    const fileAndNumberColor = colors.bold.cyan;
+    const codeColor = colors.grey;
+
+    return [
+        messageColor(error.severity.toUpperCase()) +
+        (
+            error.file === ''
+                ? ''
+                : messageColor(' in ') + fileAndNumberColor(`${error.file}(${error.line},${error.character})`)
+        ) +
+        messageColor(':'),
+
+        codeColor(`TS${error.code}: `) + messageColor(error.content)
+    ].join(constants.EOL);
 }
 
 /**
@@ -27,6 +52,7 @@ export function hasOwnProperty<T extends {}>(obj: T, property: string) {
 export function formatErrors(
     diagnostics: typescript.Diagnostic[] | undefined,
     loaderOptions: LoaderOptions,
+    colors: Chalk,
     compiler: typeof typescript,
     merge?: { file?: string; module?: WebpackModule }
 ): WebpackError[] {
@@ -35,25 +61,29 @@ export function formatErrors(
         ? diagnostics
             .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
             .map<WebpackError>(diagnostic => {
-                const errorCategory = compiler.DiagnosticCategory[diagnostic.category].toLowerCase();
-                const errorCategoryAndCode = errorCategory + ' TS' + diagnostic.code + ': ';
+                const file = diagnostic.file;
+                const position = file === undefined ? undefined : file.getLineAndCharacterOfPosition(diagnostic.start!);
+                const errorInfo = {
+                    code: diagnostic.code,
+                    severity: compiler.DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
+                    content: compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL),
+                    file: file === undefined ? '' : file.fileName,
+                    line: position === undefined ? 0 : position.line + 1,
+                    character: position === undefined ? 0 : position.character + 1
+                };
 
-                const messageText = errorCategoryAndCode + compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL);
-                let error: WebpackError;
-                if (diagnostic.file !== undefined) {
-                    const lineChar = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
-                    let errorMessage = `${white('(')}${cyan((lineChar.line + 1).toString())},${cyan((lineChar.character + 1).toString())}): ${red(messageText)}`;
-                    if (loaderOptions.visualStudioErrorFormat) {
-                        errorMessage = red(path.normalize(diagnostic.file.fileName)) + errorMessage;
-                    }
-                    error = makeError({
-                        message: errorMessage,
-                        rawMessage: messageText,
-                        location: { line: lineChar.line + 1, character: lineChar.character + 1 }
-                    });
-                } else {
-                    error = makeError({ rawMessage: messageText });
-                }
+                const message = loaderOptions.errorFormatter === undefined
+                    ? defaultErrorFormatter(errorInfo, colors)
+                    : loaderOptions.errorFormatter(errorInfo, colors);
+
+                const error = makeError(
+                    message,
+                    merge === undefined ? undefined : merge.file,
+                    position === undefined 
+                        ? undefined 
+                        : { line: errorInfo.line, character: errorInfo.character }
+                );
+
                 return <WebpackError>Object.assign(error, merge);
             })
         : [];
@@ -68,21 +98,11 @@ export function readFile(fileName: string) {
     }
 }
 
-interface MakeError {
-    rawMessage: string;
-    message?: string;
-    location?: { line: number, character: number };
-    file?: string;
-}
-
-export function makeError({ rawMessage, message, location, file }: MakeError): WebpackError {
-    const error = {
-        rawMessage,
-        message: message || `${red(rawMessage)}`,
+export function makeError(message: string, file?: string, location?: { line: number, character: number }): WebpackError {
+    return {
+        message, location, file,
         loaderSource: 'ts-loader'
     };
-
-    return <WebpackError>Object.assign(error, { location, file });
 }
 
 export function appendSuffixIfMatch(patterns: RegExp[], path: string, suffix: string): string {
@@ -96,8 +116,8 @@ export function appendSuffixIfMatch(patterns: RegExp[], path: string, suffix: st
     return path;
 }
 
-export function appendSuffixesIfMatch(suffixDict: {[suffix: string]: RegExp[]}, path: string): string {
-    for(let suffix in suffixDict) {
+export function appendSuffixesIfMatch(suffixDict: { [suffix: string]: RegExp[] }, path: string): string {
+    for (let suffix in suffixDict) {
         path = appendSuffixIfMatch(suffixDict[suffix], path, suffix);
     }
     return path;

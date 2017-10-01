@@ -1,0 +1,8 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.89 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 166 bytes [entry] [rendered]
+    [0] ./.test/errorFormatter/common/components/myComponent.ts 46 bytes {0} [built]
+    [1] ./.test/errorFormatter/app.ts 120 bytes {0} [built] [1 error]
+
+ERROR in ./.test/errorFormatter/app.ts
+Does not compute.... [1m[31mcode: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: /.test/errorFormatter/app.ts,line: 2,character: 31[39m[22m

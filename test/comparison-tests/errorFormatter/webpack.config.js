@@ -15,7 +15,10 @@ module.exports = {
         rules: [
             {
                 test: /\.ts$/, loader: 'ts-loader', options: {
-                    visualStudioErrorFormat: true
+                    errorFormatter: function customErrorFormatter(error, colors) {
+                        const messageColor = error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
+                        return 'Does not compute.... ' + messageColor(Object.keys(error).map(key => `${key}: ${error[key]}`));
+                    }
                 }
             }
         ]

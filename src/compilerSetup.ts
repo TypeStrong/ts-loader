@@ -3,7 +3,6 @@ import * as semver from 'semver';
 
 import * as constants from './constants';
 import * as logger from './logger';
-import { red, yellow } from 'chalk';
 import { LoaderOptions } from './interfaces';
 
 export function getCompiler(
@@ -31,10 +30,10 @@ export function getCompiler(
                 // don't log yet in this case, if a tsconfig.json exists we want to combine the message
                 compilerCompatible = true;
             } else {
-                log.logError(red(`${compilerDetailsLogMessage}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`));
+                log.logError(`${compilerDetailsLogMessage}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`);
             }
         } else {
-            log.logWarning(yellow(`${compilerDetailsLogMessage}. This version may or may not be compatible with ts-loader.`));
+            log.logWarning(`${compilerDetailsLogMessage}. This version may or may not be compatible with ts-loader.`);
         }
     }
 
