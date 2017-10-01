@@ -5,6 +5,7 @@ import { constructor as ChalkConstructor, Chalk } from 'chalk';
 
 import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
+import { EOL } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
 import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
 import * as logger from './logger';
@@ -62,17 +63,20 @@ function successfulTypeScriptInstance(
     const configFileAndPath = getConfigFile(compiler, colors, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
 
     if (configFileAndPath.configFileError !== undefined) {
-        return { error: configFileAndPath.configFileError };
+        const { message, file } = configFileAndPath.configFileError;
+        return { 
+            error: makeError(colors.red('error while reading tsconfig.json:' + EOL + message), file) 
+        };
     }
 
-    const { configFilePath } = configFileAndPath;
+    const { configFilePath, configFile } = configFileAndPath;
 
-    const configParseResult = getConfigParseResult(compiler, configFileAndPath.configFile, configFileAndPath.configFilePath!);
+    const configParseResult = getConfigParseResult(compiler, configFile, configFilePath!);
 
     if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
-        registerWebpackErrors(
-            loader._module.errors,
-            formatErrors(configParseResult.errors, loaderOptions, colors, compiler, { file: configFilePath }));
+        const errors = formatErrors(configParseResult.errors, loaderOptions, colors, compiler, { file: configFilePath });
+
+        registerWebpackErrors(loader._module.errors, errors);
 
         return { error: makeError(colors.red('error while parsing tsconfig.json'), configFilePath) };
     }
