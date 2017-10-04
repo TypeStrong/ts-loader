@@ -8,10 +8,9 @@ node_js:
   - "8"
 sudo: false
 install:
-  - npm install npm -g
-  - npm install
-  - npm run build
-  - npm install $TYPESCRIPT
+  - yarn install
+  - yarn run build
+  - yarn install $TYPESCRIPT
 env:
   - TYPESCRIPT=typescript@2.5.2
   - TYPESCRIPT=typescript@next

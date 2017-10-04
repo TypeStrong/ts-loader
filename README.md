@@ -36,10 +36,22 @@ To read more on this look at this [webpack Medium post](https://medium.com/webpa
 ### Installation
 
 ```
+yarn add ts-loader
+```
+
+or
+
+```
 npm install ts-loader
 ```
 
 You will also need to install TypeScript if you have not already.
+
+```
+yarn add typescript
+```
+
+or
 
 ```
 npm install typescript

@@ -18,7 +18,7 @@ export function getCompiler(
         compiler = require(loaderOptions.compiler);
     } catch (e) {
         errorMessage = loaderOptions.compiler === 'typescript'
-            ? 'Could not load TypeScript. Try installing with `npm install typescript`. If TypeScript is installed globally, try using `npm link typescript`.'
+            ? 'Could not load TypeScript. Try installing with `yarn add typescript` or `npm install typescript`. If TypeScript is installed globally, try using `yarn link typescript` or `npm link typescript`.'
             : `Could not load TypeScript compiler with NPM package name \`${loaderOptions.compiler}\`. Are you sure it is correctly installed?`;
     }
 

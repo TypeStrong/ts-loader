@@ -12,11 +12,11 @@ environment:
   - TYPESCRIPT: typescript@2.0.9
 install:
   - ps: Install-Product node $env:nodejs_version
-  - npm install
-  - npm run build
-  - npm install %TYPESCRIPT%
+  - yarn install
+  - yarn run build
+  - yarn install %TYPESCRIPT%
 test_script:
   - node --version
-  - npm --version
-  - npm test
+  - yarn --version
+  - yarn test
 build: off
