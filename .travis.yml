@@ -10,7 +10,7 @@ sudo: false
 install:
   - yarn install
   - yarn run build
-  - yarn install $TYPESCRIPT
+  - yarn add $TYPESCRIPT
 env:
   - TYPESCRIPT=typescript@2.5.2
   - TYPESCRIPT=typescript@next

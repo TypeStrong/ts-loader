@@ -14,7 +14,7 @@ install:
   - ps: Install-Product node $env:nodejs_version
   - yarn install
   - yarn run build
-  - yarn install %TYPESCRIPT%
+  - yarn add %TYPESCRIPT%
 test_script:
   - node --version
   - yarn --version
