@@ -62,7 +62,7 @@ export function formatErrors(
                     code: diagnostic.code,
                     severity: compiler.DiagnosticCategory[diagnostic.category].toLowerCase() as Severity,
                     content: compiler.flattenDiagnosticMessageText(diagnostic.messageText, constants.EOL),
-                    file: file === undefined ? '' : file.fileName,
+                    file: file === undefined ? '' : path.normalize(file.fileName),
                     line: position === undefined ? 0 : position.line + 1,
                     character: position === undefined ? 0 : position.character + 1
                 };

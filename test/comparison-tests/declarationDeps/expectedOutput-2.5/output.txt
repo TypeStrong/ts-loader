@@ -4,5 +4,5 @@ chunk    {0} bundle.js (main) 41 bytes [entry] [rendered]
     [0] ./.test/declarationDeps/app.ts 41 bytes {0} [built] [1 error]
 
 ERROR in ./.test/declarationDeps/app.ts
-[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m/.test/declarationDeps/app.ts(2,7)[39m[22m
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(2,7)[39m[22m
 [1m[31m      TS2339: Property 'sayHi' does not exist on type 'typeof Hello'.[39m[22m
