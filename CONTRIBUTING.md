@@ -13,7 +13,7 @@ action to take before coding begins.
 
 ```shell
 yarn install
-yarn run build
+yarn build
 ```
 
 ## Changing
@@ -50,7 +50,7 @@ OK - you're actually ready.  We're going to publish.  Here we need to tread care
 - clone ts-loader from the main repo with this command: `git clone https://github.com/TypeStrong/ts-loader.git`
 - [Login to npm](https://docs.npmjs.com/cli/adduser) if you need to: `yarn login`
 - install ts-loaders packages with `yarn install`
-- build ts-loader with `yarn run build`
+- build ts-loader with `yarn build`
 - run the tests to ensure all is still good: `yarn test`
 
 If all the tests passed then we're going to ship:
