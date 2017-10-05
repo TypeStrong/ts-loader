@@ -70,7 +70,7 @@
 /* 0 */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: Error: ts-loader was supplied with an unexpected loader option: notRealOption\n\nPlease take a look at the options you are supplying; the following are valid options:\nsilent / logLevel / logInfoToStdOut / instance / compiler / configFile / transpileOnly / ignoreDiagnostics / errorFormatter / colors / compilerOptions / appendTsSuffixTo / appendTsxSuffixTo / entryFileIsJs / happyPackMode / getCustomTransformers\n\n    at validateLoaderOptions (C:/source/ts-loader/dist/index.js:92:19)\n    at getLoaderOptions (C:/source/ts-loader/dist/index.js:75:5)\n    at Object.loader (C:/source/ts-loader/dist/index.js:23:19)");
+throw new Error("Module build failed: Error: ts-loader was supplied with an unexpected loader option: notRealOption\n\nPlease take a look at the options you are supplying; the following are valid options:\nsilent / logLevel / logInfoToStdOut / instance / compiler / configFile / transpileOnly / ignoreDiagnostics / errorFormatter / colors / compilerOptions / appendTsSuffixTo / appendTsxSuffixTo / entryFileCannotBeJs / happyPackMode / getCustomTransformers\n\n    at validateLoaderOptions (C:/source/ts-loader/dist/index.js:92:19)\n    at getLoaderOptions (C:/source/ts-loader/dist/index.js:75:5)\n    at Object.loader (C:/source/ts-loader/dist/index.js:23:19)");
 
 /***/ })
 /******/ ]);

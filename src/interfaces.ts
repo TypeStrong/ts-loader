@@ -273,7 +273,7 @@ export interface LoaderOptions {
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
     appendTsxSuffixTo: RegExp[];
-    entryFileIsJs: boolean;
+    entryFileCannotBeJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;
 }

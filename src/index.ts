@@ -110,7 +110,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs', 'happyPackMode', 'getCustomTransformers'];
 
 /**
  * Validate the supplied loader options.
@@ -144,10 +144,10 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         appendTsSuffixTo: [],
         appendTsxSuffixTo: [],
         transformers: {},
-        entryFileIsJs: false,
+        entryFileCannotBeJs: false,
         happyPackMode: false,
         colors: true
-    }, configFileOptions, loaderOptions);
+    } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase() as LogLevel;

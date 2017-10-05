@@ -133,7 +133,7 @@ function successfulTypeScriptInstance(
     }
 
     // if allowJs is set then we should accept js(x) files
-    const scriptRegex = configParseResult.options.allowJs && loaderOptions.entryFileIsJs
+    const scriptRegex = configParseResult.options.allowJs && !loaderOptions.entryFileCannotBeJs
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 

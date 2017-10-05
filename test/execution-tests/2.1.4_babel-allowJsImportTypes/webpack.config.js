@@ -30,8 +30,7 @@ module.exports = {
           options: babelOptions
         },
         {
-          loader: 'ts-loader', 
-          options: { entryFileIsJs: true }
+          loader: 'ts-loader'
         }
       ]
     }, {
