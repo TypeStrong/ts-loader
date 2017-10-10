@@ -112,9 +112,6 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 /******/
-/******/ 	// identity function for calling harmony imports with the correct context
-/******/ 	__webpack_require__.i = function(value) { return value; };
-/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -145,7 +142,7 @@
 /******/ 	__webpack_require__.oe = function(err) { console.error(err); throw err; };
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 4);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -157,28 +154,8 @@
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = 'a';
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = 'b';
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var a_1 = __webpack_require__(2);
-var b_1 = __webpack_require__(3);
+var a_1 = __webpack_require__(3);
+var b_1 = __webpack_require__(4);
 console.log(a_1.default);
 console.log(b_1.default);
 __webpack_require__.e/* require.ensure */(0).then((function (require) {
@@ -198,6 +175,26 @@ __webpack_require__.e/* require.ensure */(0).then((function (require) {
     console.log(cDefault);
     console.log(dModule["default"]);
 }).bind(null, __webpack_require__)).catch(__webpack_require__.oe);
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = 'a';
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.default = 'b';
 
 
 /***/ })

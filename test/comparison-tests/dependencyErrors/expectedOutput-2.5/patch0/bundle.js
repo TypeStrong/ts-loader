@@ -33,9 +33,6 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 /******/
-/******/ 	// identity function for calling harmony imports with the correct context
-/******/ 	__webpack_require__.i = function(value) { return value; };
-/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -63,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -72,9 +69,11 @@
 
 "use strict";
 
-function doSomething(input) {
-}
-module.exports = doSomething;
+exports.__esModule = true;
+var dep1 = __webpack_require__(1);
+var dep2 = __webpack_require__(2);
+dep1('');
+dep2('');
 
 
 /***/ }),
@@ -94,11 +93,9 @@ module.exports = doSomething;
 
 "use strict";
 
-exports.__esModule = true;
-var dep1 = __webpack_require__(0);
-var dep2 = __webpack_require__(1);
-dep1('');
-dep2('');
+function doSomething(input) {
+}
+module.exports = doSomething;
 
 
 /***/ })

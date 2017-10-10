@@ -42,20 +42,20 @@ Without this, the test won't be able to resolve ts-loader and webpack won't find
 ## What sort of tests can be included?
 
 It's pretty much your choice what goes in testwise.  At present there are only Jasmine tests in place; it should be possible to put any test in place that Karma is compatible with. The test pack also expects a `typings.json` file and calls `typings install` in each. **Be warned, type definitions are not installed until the test framework has been run.**  So if you're wanting to refactor a test you'll need to `typings install` if the requisite typings have not yet been installed. It's possible / probably that this may changed in the future; 
-particularly to cater for situations where types should be acquired via npm etc.
+particularly to cater for situations where types should be acquired via yarn etc.
 
 ## Running / debugging the tests
 
 To run all the tests use:
 
-`npm run execution-tests`.
+`yarn run execution-tests`.
 
 If you would like to run just a single test then:
 
-`npm run execution-tests -- --single-test nameOfTest`
+`yarn run execution-tests -- --single-test nameOfTest`
 
 It's pretty handy to be able to debug tests; for that reason you can run a single test in watch mode like this:
 
-`npm run execution-tests -- --single-test nameOfTest --watch`
+`yarn run execution-tests -- --single-test nameOfTest --watch`
 
 Then you can fire up http://localhost:9876/ and the world's your oyster.

@@ -1,7 +1,6 @@
        Asset       Size  Chunks             Chunk Names
-   bundle.js    3.74 kB       0  [emitted]  main
+   bundle.js    3.58 kB       0  [emitted]  main
     app.d.ts  110 bytes          [emitted]  
 sub/dep.d.ts   63 bytes          [emitted]  
-chunk    {0} bundle.js (main) 1 kB [entry] [rendered]
-    [0] ./.test/declarationOutput/sub/dep.ts 182 bytes {0} [built]
-    [1] ./.test/declarationOutput/app.ts 818 bytes {0} [built]
+   [0] ./.test/declarationOutput/app.ts 818 bytes {0} [built]
+   [1] ./.test/declarationOutput/sub/dep.ts 182 bytes {0} [built]

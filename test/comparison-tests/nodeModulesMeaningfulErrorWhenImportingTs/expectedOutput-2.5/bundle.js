@@ -33,9 +33,6 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 /******/
-/******/ 	// identity function for calling harmony imports with the correct context
-/******/ 	__webpack_require__.i = function(value) { return value; };
-/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -63,25 +60,25 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
-
-throw new Error("Module build failed: Error: Typescript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts.\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358\n    at successLoader (C:/source/ts-loader/dist/index.js:47:15)\n    at Object.loader (C:/source/ts-loader/dist/index.js:29:12)");
-
-/***/ }),
-/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 exports.__esModule = true;
-var a = __webpack_require__(0);
+var a = __webpack_require__(1);
 console.log(a);
 
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports) {
+
+throw new Error("Module build failed: Error: Typescript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts.\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358\n    at successLoader (C:/source/ts-loader/dist/index.js:47:15)\n    at Object.loader (C:/source/ts-loader/dist/index.js:29:12)");
 
 /***/ })
 /******/ ]);

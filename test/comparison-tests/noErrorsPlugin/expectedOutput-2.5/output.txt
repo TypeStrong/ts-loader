@@ -1,7 +1,6 @@
-    Asset     Size  Chunks  Chunk Names
-bundle.js  2.66 kB       0  main
-chunk    {0} bundle.js (main) 27 bytes [entry] [rendered]
-    [0] ./.test/noErrorsPlugin/app.ts 27 bytes {0} [built] [1 error]
+    Asset    Size  Chunks  Chunk Names
+bundle.js  2.5 kB       0  main
+   [0] ./.test/noErrorsPlugin/app.ts 27 bytes {0} [built] [1 error]
 
 WARNING in webpack: Using NoErrorsPlugin is deprecated.
 Use NoEmitOnErrorsPlugin instead.
