@@ -26,6 +26,10 @@
     "node": ">=4.3.0 <5.0.0 || >=5.10"
   },
   "author": "James Brantly <james@jbrantly.com> (http://www.jbrantly.com/)",
+  "contributors": [
+    "John Reilly <johnny_reilly@hotmail.com> (https://blog.johnnyreilly.com)",
+    "James Brantly <james@jbrantly.com> (http://www.jbrantly.com/)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/TypeStrong/ts-loader/issues"
