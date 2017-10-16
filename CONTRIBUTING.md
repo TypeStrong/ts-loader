@@ -57,6 +57,6 @@ If all the tests passed then we're going to ship:
 - tag the release in git.  You can see existing tags with the command `git tag`.  If the version in your `package.json` is `"1.0.1"` then you would tag the release like so: `git tag v1.0.1`.  For more on type of tags we're using read [here](https://git-scm.com/book/en/v2/Git-Basics-Tagging#Lightweight-Tags).
 - Push the tag so the new version will show up in the [releases](https://github.com/TypeStrong/ts-loader/releases): `git push origin --tags`
 - On the releases page, click the "Draft a new release button" and, on the presented page, select the version you've just released, name it and copy in the new markdown that you added to the [changelog](CHANGELOG.md).
-- Now the big moment: `yarn publish`
+- Now the big moment: `npm publish` ([alas `yarn publish` doesn't seem to publish all the js to npm](https://github.com/TypeStrong/ts-loader/issues/654))
 
 You've released!  Pat yourself on the back.

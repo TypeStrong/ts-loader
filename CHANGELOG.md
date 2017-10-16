@@ -4,6 +4,8 @@
 
 All changes were made with this [PR](https://github.com/TypeStrong/ts-loader/pull/643) - thanks @johnnyreilly
 
+([Published to npm as v3.0.2 due to npm publishing issues](https://github.com/TypeStrong/ts-loader/issues/654)) thanks @mattlewis92 for noticing!
+
 - drop support for typescript < 2.0 (no-one seems to be using it and we can simplify the code) **BREAKING CHANGE**
 - remove `entryFileIsJs` option; it can be inferred from whether the `allowJs` TypeScript compiler option has been set.
 - move to webpack 3.0 for test harness
