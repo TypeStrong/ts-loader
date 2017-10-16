@@ -1,12 +1,13 @@
-    Asset    Size  Chunks             Chunk Names
-bundle.js  3.1 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 273 bytes [entry] [rendered]
-    [0] ./.test/dependencyErrors/dep1.ts 76 bytes {0} [built]
-    [1] ./.test/dependencyErrors/dep2.ts 76 bytes {0} [built]
-    [2] ./.test/dependencyErrors/app.ts 121 bytes {0} [built] [2 errors]
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.93 kB       0  [emitted]  main
+   [0] ./.test/dependencyErrors/app.ts 121 bytes {0} [built] [2 errors]
+   [1] ./.test/dependencyErrors/dep1.ts 76 bytes {0} [built]
+   [2] ./.test/dependencyErrors/dep2.ts 76 bytes {0} [built]
 
 ERROR in ./.test/dependencyErrors/app.ts
-[37m([39m[36m4[39m,[36m6[39m): [31merror TS2345: Argument of type '""' is not assignable to parameter of type 'number'.[39m
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(4,6)[39m[22m
+[1m[31m      TS2345: Argument of type '""' is not assignable to parameter of type 'number'.[39m[22m
 
 ERROR in ./.test/dependencyErrors/app.ts
-[37m([39m[36m5[39m,[36m6[39m): [31merror TS2345: Argument of type '""' is not assignable to parameter of type 'number'.[39m
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(5,6)[39m[22m
+[1m[31m      TS2345: Argument of type '""' is not assignable to parameter of type 'number'.[39m[22m

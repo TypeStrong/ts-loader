@@ -11,7 +11,8 @@ import {
     LoaderOptionsCache,
     TSFile,
     TSInstance,
-    Webpack
+    Webpack,
+    LogLevel
 } from './interfaces';
 
 const webpackInstances: Compiler[] = [];
@@ -109,7 +110,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'configFileName' /*DEPRECATED*/, 'transpileOnly', 'ignoreDiagnostics', 'visualStudioErrorFormat', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileIsJs', 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs', 'happyPackMode', 'getCustomTransformers'];
 
 /**
  * Validate the supplied loader options.
@@ -134,31 +135,22 @@ ${ validLoaderOptions.join(' / ')}
 function makeLoaderOptions(instanceName: string, configFileOptions: Partial<LoaderOptions>, loaderOptions: LoaderOptions) {
     const options = Object.assign({}, {
         silent: false,
-        logLevel: 'INFO',
+        logLevel: 'WARN',
         logInfoToStdOut: false,
         compiler: 'typescript',
         configFile: 'tsconfig.json',
         transpileOnly: false,
-        visualStudioErrorFormat: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
         appendTsxSuffixTo: [],
         transformers: {},
-        entryFileIsJs: false,
+        entryFileCannotBeJs: false,
         happyPackMode: false,
-    }, configFileOptions, loaderOptions);
-
-    // Use deprecated `configFileName` as fallback for `configFile`
-    if (loaderOptions.configFileName) {
-        if (loaderOptions.configFile) {
-            throw new Error('ts-loader options `configFile` and `configFileName` are mutually exclusive');
-        } else {
-            options.configFile = loaderOptions.configFileName;
-        }
-    }
+        colors: true
+    } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
-    options.logLevel = options.logLevel.toUpperCase();
+    options.logLevel = options.logLevel.toUpperCase() as LogLevel;
     options.instance = instanceName;
 
     // happypack can be used only together with transpileOnly mode
@@ -254,7 +246,7 @@ function getTranspilationEmit(
     if (!instance.loaderOptions.happyPackMode) {
         registerWebpackErrors(
             loader._module.errors,
-            formatErrors(diagnostics, instance.loaderOptions, instance.compiler, { module: loader._module })
+            formatErrors(diagnostics, instance.loaderOptions, instance.colors, instance.compiler, { module: loader._module })
         );
     }
 

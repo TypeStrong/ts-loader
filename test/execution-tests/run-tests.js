@@ -86,8 +86,8 @@ function runTests(testName) {
     }
 
     if (pathExists(path.join(testPath, 'package.json'))) {
-        console.log('npm install into ' + testPath);
-        execSync('npm install', { cwd: testPath, stdio: 'inherit' });
+        console.log('yarn install into ' + testPath);
+        execSync('yarn install', { cwd: testPath, stdio: 'inherit' });
     }
 
     try {

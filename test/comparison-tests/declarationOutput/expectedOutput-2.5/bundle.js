@@ -33,9 +33,6 @@
 /******/ 	// expose the module cache
 /******/ 	__webpack_require__.c = installedModules;
 /******/
-/******/ 	// identity function for calling harmony imports with the correct context
-/******/ 	__webpack_require__.i = function(value) { return value; };
-/******/
 /******/ 	// define getter function for harmony exports
 /******/ 	__webpack_require__.d = function(exports, name, getter) {
 /******/ 		if(!__webpack_require__.o(exports, name)) {
@@ -63,27 +60,11 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 0);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var Test = /** @class */ (function () {
-    function Test() {
-    }
-    Test.prototype.doSomething = function () {
-    };
-    return Test;
-}());
-module.exports = Test;
-
-
-/***/ }),
-/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -98,7 +79,7 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var dep = __webpack_require__(0);
+var dep = __webpack_require__(1);
 var Test = /** @class */ (function (_super) {
     __extends(Test, _super);
     function Test() {
@@ -108,6 +89,22 @@ var Test = /** @class */ (function (_super) {
     };
     return Test;
 }(dep));
+module.exports = Test;
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var Test = /** @class */ (function () {
+    function Test() {
+    }
+    Test.prototype.doSomething = function () {
+    };
+    return Test;
+}());
 module.exports = Test;
 
 

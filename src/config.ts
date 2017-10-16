@@ -1,15 +1,13 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
-
+import { Chalk } from 'chalk';
 import * as logger from './logger';
 import { formatErrors } from './utils';
-import { 
+import {
     LoaderOptions,
-    TSCompatibleCompiler,
     Webpack,
     WebpackError
 } from './interfaces';
-import { green } from 'chalk';
 
 interface ConfigFile {
     config?: any;
@@ -18,6 +16,7 @@ interface ConfigFile {
 
 export function getConfigFile(
     compiler: typeof typescript,
+    colors: Chalk,
     loader: Webpack,
     loaderOptions: LoaderOptions,
     compilerCompatible: boolean,
@@ -30,23 +29,21 @@ export function getConfigFile(
 
     if (configFilePath !== undefined) {
         if (compilerCompatible) {
-            log.logInfo(green(`${compilerDetailsLogMessage} and ${configFilePath}`));
+            log.logInfo(`${compilerDetailsLogMessage} and ${configFilePath}`);
         } else {
-            log.logInfo(green(`ts-loader: Using config file at ${configFilePath}`));
+            log.logInfo(`ts-loader: Using config file at ${configFilePath}`);
         }
 
-        // HACK: relies on the fact that passing an extra argument won't break
-        // the old API that has a single parameter
-        configFile = (<TSCompatibleCompiler> <any> compiler).readConfigFile(
+        configFile = compiler.readConfigFile(
             configFilePath,
             compiler.sys.readFile
         );
 
         if (configFile.error !== undefined) {
-            configFileError = formatErrors([configFile.error], loaderOptions, compiler, { file: configFilePath })[0];
+            configFileError = formatErrors([configFile.error], loaderOptions, colors, compiler, { file: configFilePath })[0];
         }
     } else {
-        if (compilerCompatible) { log.logInfo(green(compilerDetailsLogMessage)); }
+        if (compilerCompatible) { log.logInfo(compilerDetailsLogMessage); }
 
         configFile = {
             config: {
@@ -98,7 +95,7 @@ function findConfigFile(compiler: typeof typescript, requestDirPath: string, con
             ? resolvedPath
             : undefined;
 
-    // If `configFile` is a file name, find it in the directory tree
+        // If `configFile` is a file name, find it in the directory tree
     } else {
         while (true) {
             const fileName = path.join(requestDirPath, configFile);
@@ -121,21 +118,11 @@ export function getConfigParseResult(
     configFile: ConfigFile,
     configFilePath: string
 ) {
-    let configParseResult: typescript.ParsedCommandLine;
-    if (typeof (<any> compiler).parseJsonConfigFileContent === 'function') {
-        // parseConfigFile was renamed between 1.6.2 and 1.7
-        configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseJsonConfigFileContent(
-            configFile.config,
-            compiler.sys,
-            path.dirname(configFilePath || '')
-        );
-    } else {
-        configParseResult = (/*<TSCompatibleCompiler>*/ <any> compiler).parseConfigFile(
-            configFile.config,
-            compiler.sys,
-            path.dirname(configFilePath || '')
-        );
-    }
+    const configParseResult = compiler.parseJsonConfigFileContent(
+        configFile.config,
+        compiler.sys,
+        path.dirname(configFilePath || '')
+    );
 
     return configParseResult;
 }

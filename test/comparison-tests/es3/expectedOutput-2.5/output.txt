@@ -1,7 +1,7 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  2.66 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 29 bytes [entry] [rendered]
-    [0] ./.test/es3/app.ts 29 bytes {0} [built] [1 error]
+    Asset    Size  Chunks             Chunk Names
+bundle.js  2.5 kB       0  [emitted]  main
+   [0] ./.test/es3/app.ts 29 bytes {0} [built] [1 error]
 
 ERROR in ./.test/es3/app.ts
-[37m([39m[36m1[39m,[36m7[39m): [31merror TS1056: Accessors are only available when targeting ECMAScript 5 and higher.[39m
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,7)[39m[22m
+[1m[31m      TS1056: Accessors are only available when targeting ECMAScript 5 and higher.[39m[22m

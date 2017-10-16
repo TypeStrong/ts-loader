@@ -388,6 +388,7 @@ function getNormalisedFileContent(file, location, test) {
 function normaliseString(platformSpecificContent) {
     return platformSpecificContent
         .replace(/\r\n/g, '\n')
+        .replace(/\\r\\n/g, '\\n') // bundle.js output needs this; tsConfigNotReadable for instance
         // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
         .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/g, 'ts-loader')
         // replace (C:/source/ts-loader/dist/index.js with (ts-loader)

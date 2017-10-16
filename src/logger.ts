@@ -1,53 +1,10 @@
-const Console = require('console').Console;
+import { Console } from 'console';
 import { LoaderOptions } from './interfaces';
+import { Chalk, ChalkChain } from 'chalk';
 
-const stderrConsole = new Console(process.stderr);
-const stdoutConsole = new Console(process.stdout);
+type InternalLoggerFunc = (whereToLog: any, message: string) => void;
 
-enum LogLevel {
-    INFO = 1,
-    WARN = 2,
-    ERROR = 3
-}
-
-interface InternalLoggerFunc {
-    (whereToLog: any, messages: string[]): void;
-}
-
-const doNothingLogger = (..._messages: string[]) => {};
-
-function makeLoggerFunc(loaderOptions: LoaderOptions) {
-    return loaderOptions.silent 
-        ? (_whereToLog: any, _messages: string[]) => {}
-        : (whereToLog: any, messages: string[]) => console.log.apply(whereToLog, messages);
-}
-
-function makeExternalLogger(loaderOptions: LoaderOptions, logger: InternalLoggerFunc) {
-    const output = loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole;
-    return (...messages: string[]) => logger(output, messages);
-}
-
-function makeLogInfo(loaderOptions: LoaderOptions, logger: InternalLoggerFunc) {
-    return LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
-        ? (...messages: string[]) => logger(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, messages)
-        : doNothingLogger
-}
-
-function makeLogError(loaderOptions: LoaderOptions, logger: InternalLoggerFunc) {
-    return LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
-        ? (...messages: string[]) => logger(stderrConsole, messages)
-        : doNothingLogger
-}
-
-function makeLogWarning(loaderOptions: LoaderOptions, logger: InternalLoggerFunc) {
-    return LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
-        ? (...messages: string[]) => logger(stderrConsole, messages)
-        : doNothingLogger
-}
-
-interface LoggerFunc {
-    (...messages: string[]): void;
-}
+type LoggerFunc = (message: string) => void;
 
 export interface Logger {
     log: LoggerFunc;
@@ -56,12 +13,48 @@ export interface Logger {
     logError: LoggerFunc;
 }
 
-export function makeLogger(loaderOptions: LoaderOptions): Logger {
+enum LogLevel {
+    INFO = 1,
+    WARN = 2,
+    ERROR = 3
+}
+
+const stderrConsole = new Console(process.stderr);
+const stdoutConsole = new Console(process.stdout);
+
+const doNothingLogger = (_message: string) => { };
+
+const makeLoggerFunc = (loaderOptions: LoaderOptions): InternalLoggerFunc =>
+    loaderOptions.silent
+        ? (_whereToLog: any, _message: string) => { }
+        : (whereToLog: any, message: string) => console.log.call(whereToLog, message);
+
+const makeExternalLogger = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc) =>
+    (message: string) =>
+        logger(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, message);
+
+const makeLogInfo = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, green: ChalkChain) =>
+    LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
+        ? (message: string) =>
+            logger(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, green(message))
+        : doNothingLogger;
+
+const makeLogError = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, red: ChalkChain) =>
+    LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
+        ? (message: string) => logger(stderrConsole, red(message))
+        : doNothingLogger;
+
+const makeLogWarning = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, yellow: ChalkChain) =>
+    LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
+        ? (message: string) => logger(stderrConsole, yellow(message))
+        : doNothingLogger;
+
+export function makeLogger(loaderOptions: LoaderOptions, colors: Chalk): Logger {
     const logger = makeLoggerFunc(loaderOptions);
     return {
         log: makeExternalLogger(loaderOptions, logger),
-        logInfo: makeLogInfo(loaderOptions, logger),
-        logWarning: makeLogWarning(loaderOptions, logger),
-        logError: makeLogError(loaderOptions, logger)
+        logInfo: makeLogInfo(loaderOptions, logger, colors.green),
+        logWarning: makeLogWarning(loaderOptions, logger, colors.yellow),
+        logError: makeLogError(loaderOptions, logger, colors.red)
     }
 }

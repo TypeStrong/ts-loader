@@ -36,10 +36,22 @@ To read more on this look at this [webpack Medium post](https://medium.com/webpa
 ### Installation
 
 ```
+yarn add ts-loader
+```
+
+or
+
+```
 npm install ts-loader
 ```
 
 You will also need to install TypeScript if you have not already.
+
+```
+yarn add typescript
+```
+
+or
 
 ```
 npm install typescript
@@ -148,7 +160,7 @@ For more background have a read of [this issue](https://github.com/TypeStrong/ts
 
 ### Options
 
-There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be set either using a query when specifying the loader or through the `options` property in the webpack configuration:
+There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be specified through the `options` property in the webpack configuration:
 
 ```javascript
 module.exports = {
@@ -157,35 +169,19 @@ module.exports = {
     rules: [
       { 
         test: /\.tsx?$/, 
-        loader: 'ts-loader', 
-        options: {
-          transpileOnly: true
-        } 
+        use: [
+          {
+            loader: 'ts-loader', 
+            options: {
+              transpileOnly: true
+            }
+          }
+        ]
       }
     ]
   }
 }
 ```
-
-Alternatively this can be configured using a query:
-
-```javascript
-module.exports = {
-  ...
-  module: {
-    loaders: [
-      // specify option using query
-      { 
-        test: /\.tsx?$/,
-        loader: 'ts-loader?' + JSON.stringify({
-          transpileOnly: true
-        }) }
-    ]
-  }
-}
-```
-
-For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#getoptions).
 
 ### Loader Options
 
@@ -238,10 +234,6 @@ codes to ignore.
 Allows use of TypeScript compilers other than the official one. Should be
 set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basarat/ntypescript).
 
-#### configFileName *(string) (default='tsconfig.json')*
-
-This option has been deprecated in favor of [`configFile`](#user-content-configfile-string-defaulttsconfigjson).
-
 #### configFile *(string) (default='tsconfig.json')*
 
 Allows you to specify where to find the TypeScript configuration file.
@@ -252,9 +244,48 @@ You may provide
 * a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
 * an absolute path to the configuration file.
 
-#### visualStudioErrorFormat *(boolean) (default=false)*
+#### colors *(boolean) (default=true)*
 
-If `true`, the TypeScript compiler output for an error or a warning, e.g. `(3,14): error TS4711: you did something very wrong`, in file `myFile` will instead be `myFile(3,14): error TS4711: you did something very wrong` (notice the file name at the beginning). This way Visual Studio will interpret this line and show any errors or warnings in the *error list*. This enables navigation to the file/line/column through double click.
+If `false`, disables built-in colors in logger messages.
+
+#### errorFormatter *((message: ErrorInfo, colors: boolean) => string) (default=undefined)*
+
+By default ts-loader formats TypeScript compiler output for an error or a warning in the style:
+
+```
+[tsl] ERROR in myFile.ts(3,14)
+      TS4711: you did something very wrong
+```
+
+If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter.  Please note that the `colors` parameter is an instance of [`chalk`](https://github.com/chalk/chalk) which you can use to color your output. (This instance will respect the `colors` option.)
+
+```js
+function customErrorFormatter(error, colors) {
+    const messageColor = error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
+    return 'Does not compute.... ' + messageColor(Object.keys(error).map(key => `${key}: ${error[key]}`));
+}
+```
+
+If the above formatter received an error like this:
+
+```
+{
+  "code":2307,
+  "severity": "error",
+  "content": "Cannot find module 'components/myComponent2'.",
+  "file":"/.test/errorFormatter/app.ts",
+  "line":2,
+  "character":31
+}
+```  
+
+It would produce an error message that said: 
+
+```
+Does not compute.... code: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: /.test/errorFormatter/app.ts,line: 2,character: 31
+```
+
+And the bit after "Does not compute.... " would be red.
 
 #### compilerOptions *(object) (default={})*
 
@@ -267,9 +298,9 @@ Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
 
-#### entryFileIsJs *(boolean) (default=false)*
+#### entryFileCannotBeJs *(boolean) (default=false)*
 
-To be used in concert with the `allowJs` compiler option. If your entry file is JS then you'll need to set this option to true.  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.
+If the `allowJs` compiler option is `true` then it's possible for your entry files to be JS. Since people have reported occasional problems with this the `entryFileCannotBeJs` setting exists to disable this functionality (if set then your entry file cannot be JS).  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.  This option may be removed in a future version of ts-loader if it appears to be unused (likely).
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
 #### appendTsxSuffixTo *(RegExp[]) (default=[])*

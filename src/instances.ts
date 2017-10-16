@@ -1,10 +1,11 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
-import { yellow } from 'chalk';
+import { constructor as ChalkConstructor, Chalk } from 'chalk';
 
 import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
+import { EOL } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
 import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
 import * as logger from './logger';
@@ -36,19 +37,16 @@ export function getTypeScriptInstance(
         return { instance: instances[loaderOptions.instance] };
     }
 
-    const log = logger.makeLogger(loaderOptions);
+    const colors = new ChalkConstructor({ enabled: loaderOptions.colors });
+    const log = logger.makeLogger(loaderOptions, colors);
     const compiler = getCompiler(loaderOptions, log);
 
-    if (loaderOptions.configFileName) {
-        log.logWarning(yellow('Usage of ts-loader option `configFileName` is deprecated. Use `configFile` instead.'));
-    }
-
     if (compiler.errorMessage !== undefined) {
-        return { error: makeError({ rawMessage: compiler.errorMessage }) };
+        return { error: makeError(colors.red(compiler.errorMessage)) };
     }
 
     return successfulTypeScriptInstance(
-        loaderOptions, loader, log, 
+        loaderOptions, loader, log, colors,
         compiler.compiler!, compiler.compilerCompatible!, compiler.compilerDetailsLogMessage!
     );
 }
@@ -57,29 +55,33 @@ function successfulTypeScriptInstance(
     loaderOptions: LoaderOptions,
     loader: Webpack,
     log: logger.Logger,
+    colors: Chalk,
     compiler: typeof typescript,
     compilerCompatible: boolean,
     compilerDetailsLogMessage: string
 ) {
-    const configFileAndPath = getConfigFile(compiler, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
+    const configFileAndPath = getConfigFile(compiler, colors, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
 
     if (configFileAndPath.configFileError !== undefined) {
-        return { error: configFileAndPath.configFileError };
+        const { message, file } = configFileAndPath.configFileError;
+        return { 
+            error: makeError(colors.red('error while reading tsconfig.json:' + EOL + message), file) 
+        };
     }
 
-    const { configFilePath } = configFileAndPath;
+    const { configFilePath, configFile } = configFileAndPath;
 
-    const configParseResult = getConfigParseResult(compiler, configFileAndPath.configFile, configFileAndPath.configFilePath!);
+    const configParseResult = getConfigParseResult(compiler, configFile, configFilePath!);
 
     if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
-        registerWebpackErrors(
-            loader._module.errors,
-            formatErrors(configParseResult.errors, loaderOptions, compiler, { file: configFilePath }));
+        const errors = formatErrors(configParseResult.errors, loaderOptions, colors, compiler, { file: configFilePath });
 
-        return { error: makeError({ rawMessage: 'error while parsing tsconfig.json', file: configFilePath }) };
+        registerWebpackErrors(loader._module.errors, errors);
+
+        return { error: makeError(colors.red('error while parsing tsconfig.json'), configFilePath) };
     }
 
-    const compilerOptions = getCompilerOptions(compilerCompatible, compiler!, configParseResult);
+    const compilerOptions = getCompilerOptions(configParseResult);
     const files: TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
@@ -94,10 +96,19 @@ function successfulTypeScriptInstance(
         if (!loaderOptions.happyPackMode) {
             registerWebpackErrors(
                 loader._module.errors,
-                formatErrors(diagnostics, loaderOptions, compiler!, {file: configFilePath || 'tsconfig.json'}));
+                formatErrors(diagnostics, loaderOptions, colors, compiler!, {file: configFilePath || 'tsconfig.json'}));
         }
 
-        const instance = { compiler, compilerOptions, loaderOptions, files, dependencyGraph: {}, reverseDependencyGraph: {}, transformers: getCustomTransformers() };
+        const instance = { 
+            compiler, 
+            compilerOptions, 
+            loaderOptions, 
+            files, 
+            dependencyGraph: {}, 
+            reverseDependencyGraph: {}, 
+            transformers: getCustomTransformers(),
+            colors
+        };
 
         instances[loaderOptions.instance] = instance;
 
@@ -116,13 +127,13 @@ function successfulTypeScriptInstance(
             };
           });
     } catch (exc) {
-        return { error: makeError({
-            rawMessage: `A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`
-        }) };
+        return { 
+            error: makeError(colors.red(`A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`)) 
+        };
     }
 
     // if allowJs is set then we should accept js(x) files
-    const scriptRegex = configParseResult.options.allowJs && loaderOptions.entryFileIsJs
+    const scriptRegex = configParseResult.options.allowJs && !loaderOptions.entryFileCannotBeJs
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
@@ -137,6 +148,7 @@ function successfulTypeScriptInstance(
         dependencyGraph: {},
         reverseDependencyGraph: {},
         modifiedFiles: null,
+        colors
     };
 
     const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);

@@ -10,10 +10,7 @@ module.exports = {
     loaders: [
       {
         test: /\.js$/,
-        loader: 'ts-loader',
-        options: {
-          entryFileIsJs: true
-        }
+        loader: 'ts-loader'
       }
     ]
   }

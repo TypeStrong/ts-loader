@@ -1,8 +1,8 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.85 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 212 bytes [entry] [rendered]
-    [0] ./.test/typeSystemWatch/app.ts 212 bytes {0} [built] [1 error]
+bundle.js  2.69 kB       0  [emitted]  main
+   [0] ./.test/typeSystemWatch/app.ts 212 bytes {0} [built] [1 error]
 
 ERROR in ./.test/typeSystemWatch/app.ts
-[37m([39m[36m11[39m,[36m5[39m): [31merror TS2322: Type 'AType' is not assignable to type 'BType'.[39m
-[31m  Property 'b' is missing in type 'AType'.[39m
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(11,5)[39m[22m
+[1m[31m      TS2322: Type 'AType' is not assignable to type 'BType'.[39m[22m
+[1m[31m  Property 'b' is missing in type 'AType'.[39m[22m
