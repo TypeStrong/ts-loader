@@ -160,7 +160,7 @@ For more background have a read of [this issue](https://github.com/TypeStrong/ts
 
 ### Options
 
-There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be set either using a query when specifying the loader or through the `options` property in the webpack configuration:
+There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be specified through the `options` property in the webpack configuration:
 
 ```javascript
 module.exports = {
@@ -169,35 +169,19 @@ module.exports = {
     rules: [
       { 
         test: /\.tsx?$/, 
-        loader: 'ts-loader', 
-        options: {
-          transpileOnly: true
-        } 
+        use: [
+          {
+            loader: 'ts-loader', 
+            options: {
+              transpileOnly: true
+            }
+          }
+        ]
       }
     ]
   }
 }
 ```
-
-Alternatively this can be configured using a query:
-
-```javascript
-module.exports = {
-  ...
-  module: {
-    loaders: [
-      // specify option using query
-      { 
-        test: /\.tsx?$/,
-        loader: 'ts-loader?' + JSON.stringify({
-          transpileOnly: true
-        }) }
-    ]
-  }
-}
-```
-
-For a full breakdown of the power of query syntax have a read of [this](https://github.com/webpack/loader-utils#getoptions).
 
 ### Loader Options
 
@@ -295,7 +279,7 @@ If the above formatter received an error like this:
 }
 ```  
 
-It would produce that said: 
+It would produce an error message that said: 
 
 ```
 Does not compute.... code: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: /.test/errorFormatter/app.ts,line: 2,character: 31
