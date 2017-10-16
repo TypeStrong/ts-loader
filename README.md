@@ -66,7 +66,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 #### TypeScript / Webpack
 
-ts-loader supports the latest and greatest version of TypeScript right back to v2.0. ts-loader supports webpack 3.  Our continuous integration test suites run against webpack 3; **not** webpack 2. That said, ts-loader works fine with webpack 2 when we last checked.
+ts-loader supports the latest and greatest version of TypeScript right back to v2.0. ts-loader supports webpack 3.  Our continuous integration test suites run against webpack 3; **not** webpack 2. That said, ts-loader worked fine with webpack 2 when we last checked.
 
 A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against major releases of TypeScript.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
