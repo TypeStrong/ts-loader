@@ -9,9 +9,9 @@ All changes were made with this [PR](https://github.com/TypeStrong/ts-loader/pul
 - move to webpack 3.0 for test harness
 - drop `configFileName` support [(replaced by `configFile`)](https://github.com/TypeStrong/ts-loader/pull/607) **BREAKING CHANGE**
 - add support for a custom formatter for output - drop visual studio format (this can be added back if there's clamour for it and people can supply their own formatters in the interim) **BREAKING CHANGE**
-- make loglevel warn by default (stop outputting typescript version number by default). Fixes #488
-- fix [tsc has "module" default to  "es2015"when targetting es2015+, but ts-loader does not](https://github.com/TypeStrong/ts-loader/issues/570)
-- [switch to yarn](https://github.com/TypeStrong/ts-loader/issues/369) because of [this](https://stackoverflow.com/questions/45022048/why-does-npm-install-rewrite-package-lock-json/45566871#45566871)
+- make loglevel warn by default (stop outputting typescript version number by default). Fixes [#488](https://github.com/TypeStrong/ts-loader/issues/488)
+- fix [tsc has "module" default to  "es2015"when targetting es2015+, but ts-loader does not](https://github.com/TypeStrong/ts-loader/issues/570) - thanks [@Venryx](https://github.com/Venryx) for the suggestion! 
+- [switch to build ts-loader / run tests with yarn](https://github.com/TypeStrong/ts-loader/issues/369) because of [this](https://stackoverflow.com/questions/45022048/why-does-npm-install-rewrite-package-lock-json/45566871#45566871)
 - allow controlling whether the output can contain colours
 
 ## v2.3.7
