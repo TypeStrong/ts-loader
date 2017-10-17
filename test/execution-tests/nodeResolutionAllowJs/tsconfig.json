@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"module": "esnext",
+		"moduleResolution": "node",
+		"allowJs": true,
+	    "strict": true
+	}
+}
