@@ -211,7 +211,7 @@ export interface ResolveSync {
 
 export interface ModuleResolutionHost {
     fileExists(fileName: string): boolean;
-    readFile(fileName: string): string;
+    readFile(fileName: string, encoding?: string | undefined): string | undefined;
 }
 
 export interface TSInstance {

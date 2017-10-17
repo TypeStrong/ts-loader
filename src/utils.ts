@@ -84,10 +84,10 @@ export function formatErrors(
         : [];
 }
 
-export function readFile(fileName: string) {
+export function readFile(fileName: string, encoding: string | undefined = 'utf8') {
     fileName = path.normalize(fileName);
     try {
-        return fs.readFileSync(fileName, 'utf8');
+        return fs.readFileSync(fileName, encoding);
     } catch (e) {
         return undefined;
     }
