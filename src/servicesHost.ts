@@ -34,10 +34,13 @@ export function makeServicesHost(
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
 
-    const readFileWithFallback = (path: string, encoding?: string | undefined): string | undefined => 
-        compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+    const readFileWithFallback = compiler.sys === undefined || compiler.sys.readFile === undefined
+        ? readFile
+        : (path: string, encoding?: string | undefined): string | undefined => compiler.sys.readFile(path, encoding) || readFile(path, encoding);
 
-    const fileExists = (path: string) => compiler.sys.fileExists(path) || readFile(path) !== undefined;
+    const fileExists = compiler.sys === undefined || compiler.sys.fileExists === undefined
+        ? (path: string) => readFile(path) !== undefined
+        : (path: string) => compiler.sys.fileExists(path) || readFile(path) !== undefined;
 
     const moduleResolutionHost: ModuleResolutionHost = {
         fileExists,
@@ -74,19 +77,21 @@ export function makeServicesHost(
          * getDirectories is also required for full import and type reference completions.
          * Without it defined, certain completions will not be provided
          */
-        getDirectories: compiler.sys ? (<any> compiler.sys).getDirectories : undefined,
+        getDirectories: compiler.sys ? compiler.sys.getDirectories : undefined,
 
         /**
          * For @types expansion, these two functions are needed.
          */
-        directoryExists: compiler.sys ? (<any> compiler.sys).directoryExists : undefined,
+        directoryExists: compiler.sys ? compiler.sys.directoryExists : undefined,
 
-        useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
+        useCaseSensitiveFileNames: compiler.sys 
+            ? () => compiler.sys.useCaseSensitiveFileNames 
+            : undefined,
 
         // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
-        fileExists: compiler.sys ? (<any> compiler.sys).fileExists : undefined,
-        readFile: compiler.sys ? (<any> compiler.sys).readFile : undefined,
-        readDirectory: compiler.sys ? (<any> compiler.sys).readDirectory : undefined,
+        fileExists: compiler.sys ? compiler.sys.fileExists : undefined,
+        readFile: compiler.sys ? compiler.sys.readFile : undefined,
+        readDirectory: compiler.sys ? compiler.sys.readDirectory : undefined,
 
         getCurrentDirectory: () => loader.context,
 
