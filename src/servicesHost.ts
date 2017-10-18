@@ -48,6 +48,11 @@ export function makeServicesHost(
         readFile: readFileWithFallback
     };
 
+    // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
+    const getCurrentDirectory = (compiler!.version && semver.gte(compiler!.version, '2.3.0'))
+        ? () => loader.context
+        : () => process.cwd();
+
     const resolutionStrategy = (compiler!.version && semver.gte(compiler!.version, '2.4.0'))
         ? resolutionStrategyTS24AndAbove
         : resolutionStrategyTS23AndBelow;
@@ -98,7 +103,7 @@ export function makeServicesHost(
         readFile: compiler.sys ? compiler.sys.readFile : undefined,
         readDirectory: compiler.sys ? compiler.sys.readDirectory : undefined,
 
-        getCurrentDirectory: () => loader.context,
+        getCurrentDirectory,
 
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
