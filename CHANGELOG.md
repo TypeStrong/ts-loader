@@ -4,7 +4,7 @@
 
 - [Fix allowJs @types resolution error](https://github.com/TypeStrong/ts-loader/pull/658) (#657, #655) - thanks @johnnyreilly and @roddypratt + @ldrick for providing minimal repro repos which allowed me to fix this long standing bug!
 
-This fix resolves the issue for TypeScript 2.4+ (which is likely 95% of users).  For those people stuck on 2.4 and impacted by this issue, you should be able to workaround this by setting `entryFileCannotBeJs: true` in your ts-loader options.  This option should be considered deprecated as of this release.  The option will likely disappear with the next major version of ts-loader which will drop support for TypeScript 2.3 and below, thus removing the need for this option.
+This fix resolves the issue for TypeScript 2.4+ (which is likely 95% of users).  For those people stuck on 2.3 or below and impacted by this issue, you should be able to workaround this by setting `entryFileCannotBeJs: true` in your ts-loader options.  This option should be considered deprecated as of this release.  The option will likely disappear with the next major version of ts-loader which will drop support for TypeScript 2.3 and below, thus removing the need for this option.
 
 ## v3.0.0
 
