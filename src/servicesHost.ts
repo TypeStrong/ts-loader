@@ -100,9 +100,11 @@ export function makeServicesHost(
         getNewLine: () => newLine,
         log: log.log,
 
+        /* Unclear if this is useful
         resolveTypeReferenceDirectives: (typeDirectiveNames: string[], containingFile: string) =>
             typeDirectiveNames.map(directive =>
                 compiler.resolveTypeReferenceDirective(directive, containingFile, compilerOptions, moduleResolutionHost).resolvedTypeReferenceDirective),
+*/
 
         resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
