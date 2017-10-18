@@ -211,7 +211,7 @@ export interface ResolveSync {
 
 export interface ModuleResolutionHost {
     fileExists(fileName: string): boolean;
-    readFile(fileName: string): string;
+    readFile(fileName: string, encoding?: string | undefined): string | undefined;
 }
 
 export interface TSInstance {
@@ -273,6 +273,7 @@ export interface LoaderOptions {
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
     appendTsxSuffixTo: RegExp[];
+    /** DEPRECATED */
     entryFileCannotBeJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;

@@ -1,11 +1,12 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
+import * as semver from 'semver';
 
 import * as constants from './constants';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
 import { appendSuffixesIfMatch, readFile } from './utils';
-import { 
+import {
     ModuleResolutionHost,
     ResolvedModule,
     ResolveSync,
@@ -28,25 +29,45 @@ export function makeServicesHost(
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
-        compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
-        constants.EOL;
+            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+                constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
 
+    const readFileWithFallback = compiler.sys === undefined || compiler.sys.readFile === undefined
+        ? readFile
+        : (path: string, encoding?: string | undefined): string | undefined => compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+
+    const fileExists = compiler.sys === undefined || compiler.sys.fileExists === undefined
+        ? (path: string) => readFile(path) !== undefined
+        : (path: string) => compiler.sys.fileExists(path) || readFile(path) !== undefined;
+
     const moduleResolutionHost: ModuleResolutionHost = {
-        fileExists: (fileName: string) => readFile(fileName) !== undefined,
-        readFile: (fileName: string) => readFile(fileName) || '',
+        fileExists,
+        readFile: readFileWithFallback
     };
 
-    return {
+    // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
+    const getCurrentDirectory = (compiler!.version && semver.gte(compiler!.version, '2.3.0'))
+        ? () => loader.context
+        : () => process.cwd();
+
+    const resolutionStrategy = (compiler!.version && semver.gte(compiler!.version, '2.4.0'))
+        ? resolutionStrategyTS24AndAbove
+        : resolutionStrategyTS23AndBelow;
+
+    const servicesHost: typescript.LanguageServiceHost = {
         getProjectVersion: () => `${instance.version}`,
+
         getScriptFileNames: () => Object.keys(files).filter(filePath => filePath.match(scriptRegex)),
+
         getScriptVersion: (fileName: string) => {
             fileName = path.normalize(fileName);
             const file = files[fileName];
             return file === undefined ? '' : file.version.toString();
         },
+
         getScriptSnapshot: (fileName: string) => {
             // This is called any time TypeScript needs a file's text
             // We either load from memory or from disk
@@ -66,30 +87,44 @@ export function makeServicesHost(
          * getDirectories is also required for full import and type reference completions.
          * Without it defined, certain completions will not be provided
          */
-        getDirectories: compiler.sys ? (<any> compiler.sys).getDirectories : undefined,
+        getDirectories: compiler.sys ? compiler.sys.getDirectories : undefined,
 
         /**
          * For @types expansion, these two functions are needed.
          */
-        directoryExists: compiler.sys ? (<any> compiler.sys).directoryExists : undefined,
+        directoryExists: compiler.sys ? compiler.sys.directoryExists : undefined,
+
+        useCaseSensitiveFileNames: compiler.sys
+            ? () => compiler.sys.useCaseSensitiveFileNames
+            : undefined,
 
         // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
-        fileExists: compiler.sys ? (<any> compiler.sys).fileExists : undefined,
-        readFile: compiler.sys ? (<any> compiler.sys).readFile : undefined,
-        readDirectory: compiler.sys ? (<any> compiler.sys).readDirectory : undefined,
+        fileExists: compiler.sys ? compiler.sys.fileExists : undefined,
+        readFile: compiler.sys ? compiler.sys.readFile : undefined,
+        readDirectory: compiler.sys ? compiler.sys.readDirectory : undefined,
 
-        getCurrentDirectory: () => process.cwd(),
+        getCurrentDirectory,
 
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
         log: log.log,
+
+        /* Unclear if this is useful
+        resolveTypeReferenceDirectives: (typeDirectiveNames: string[], containingFile: string) =>
+            typeDirectiveNames.map(directive =>
+                compiler.resolveTypeReferenceDirective(directive, containingFile, compilerOptions, moduleResolutionHost).resolvedTypeReferenceDirective),
+        */
+
         resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
-                moduleNames, containingFile),
+                moduleNames, containingFile, resolutionStrategy),
+
         getCustomTransformers: () => instance.transformers
     };
+
+    return servicesHost;
 }
 
 function resolveModuleNames(
@@ -100,12 +135,12 @@ function resolveModuleNames(
     scriptRegex: RegExp,
     instance: TSInstance,
     moduleNames: string[],
-    containingFile: string
+    containingFile: string,
+    resolutionStrategy: ResolutionStrategy
 ) {
     const resolvedModules = moduleNames.map(moduleName =>
         resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
-            moduleName, containingFile)
-    );
+            moduleName, containingFile, resolutionStrategy));
 
     populateDependencyGraphs(resolvedModules, instance, containingFile);
 
@@ -116,9 +151,11 @@ function isJsImplementationOfTypings(
     resolvedModule: ResolvedModule,
     tsResolution: ResolvedModule
 ) {
-    return resolvedModule.resolvedFileName.endsWith('js') && 
-            /node_modules(\\|\/).*\.d\.ts$/.test(tsResolution.resolvedFileName);
+    return resolvedModule.resolvedFileName.endsWith('js') &&
+        /node_modules(\\|\/).*\.d\.ts$/.test(tsResolution.resolvedFileName);
 }
+
+type ResolutionStrategy = (resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule) => ResolvedModule;
 
 function resolveModuleName(
     resolveSync: ResolveSync,
@@ -129,7 +166,9 @@ function resolveModuleName(
     instance: TSInstance,
 
     moduleName: string,
-    containingFile: string
+    containingFile: string,
+
+    resolutionStrategy: ResolutionStrategy
 ) {
     const { compiler, compilerOptions } = instance;
 
@@ -159,16 +198,31 @@ function resolveModuleName(
             resolvedFileName,
             isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
         };
-        if (resolutionResult!) {
-            if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
-                isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)) {
-                resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
-            }
-        } else {
-            resolutionResult = tsResolutionResult;
-        }
+
+        return resolutionStrategy(resolutionResult!, tsResolutionResult);
     }
     return resolutionResult!;
+}
+
+function resolutionStrategyTS23AndBelow(resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule): ResolvedModule {
+    if (resolutionResult! !== undefined) {
+        if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
+            isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)) {
+            resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
+        }
+    } else {
+        return tsResolutionResult;
+    }
+    return resolutionResult!;
+}
+
+function resolutionStrategyTS24AndAbove(resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule): ResolvedModule {
+    return (resolutionResult! === undefined ||
+        resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
+        isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)
+    )
+        ? tsResolutionResult
+        : resolutionResult!;
 }
 
 function populateDependencyGraphs(
@@ -177,7 +231,7 @@ function populateDependencyGraphs(
     containingFile: string
 ) {
     resolvedModules = resolvedModules
-        .filter(m => m !== null && m !== undefined);
+        .filter(mod => mod !== null && mod !== undefined);
 
     instance.dependencyGraph[path.normalize(containingFile)] = resolvedModules;
 
