@@ -296,9 +296,11 @@ Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
 
-#### entryFileCannotBeJs *(boolean) (default=false)*
+#### entryFileCannotBeJs *(boolean) (default=false) DEPRECATED*
 
-If the `allowJs` compiler option is `true` then it's possible for your entry files to be JS. Since people have reported occasional problems with this the `entryFileCannotBeJs` setting exists to disable this functionality (if set then your entry file cannot be JS).  Please note that this is rather unusual and will generally not be necessary when using `allowJs`.  This option may be removed in a future version of ts-loader if it appears to be unused (likely).
+If the `allowJs` compiler option is `true` then it's possible for your entry files to be JS. There is a [known issue using ts-loader with TypeScript 2.3 and below](https://github.com/TypeStrong/ts-loader/issues/655).  This option exists to work around that issue if you are using ts-loader with TypeScript 2.3 or below.
+
+This option will be removed in a future version of ts-loader.
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
 #### appendTsxSuffixTo *(RegExp[]) (default=[])*
