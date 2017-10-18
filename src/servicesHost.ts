@@ -104,7 +104,7 @@ export function makeServicesHost(
         resolveTypeReferenceDirectives: (typeDirectiveNames: string[], containingFile: string) =>
             typeDirectiveNames.map(directive =>
                 compiler.resolveTypeReferenceDirective(directive, containingFile, compilerOptions, moduleResolutionHost).resolvedTypeReferenceDirective),
-*/
+        */
 
         resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
@@ -184,12 +184,24 @@ function resolveModuleName(
             isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
         };
 
+        // Old strategy
+        if (resolutionResult!) {
+            if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
+                isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)) {
+                resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
+            }
+        } else {
+            resolutionResult = tsResolutionResult;
+        }
+
+        /* New strategy
         if (resolutionResult! === undefined ||
             resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
             isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)
         ) {
             resolutionResult = tsResolutionResult;
         }
+        */
     }
     return resolutionResult!;
 }
