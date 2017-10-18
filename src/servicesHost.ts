@@ -1,11 +1,12 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
+import * as semver from 'semver';
 
 import * as constants from './constants';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
 import { appendSuffixesIfMatch, readFile } from './utils';
-import { 
+import {
     ModuleResolutionHost,
     ResolvedModule,
     ResolveSync,
@@ -28,8 +29,8 @@ export function makeServicesHost(
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
-        compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
-        constants.EOL;
+            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+                constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
     const resolveSync = makeResolver(loader.options);
@@ -46,6 +47,10 @@ export function makeServicesHost(
         fileExists,
         readFile: readFileWithFallback
     };
+
+    const resolutionStrategy = (compiler!.version && semver.gte(compiler!.version, '2.4.0'))
+        ? resolutionStrategyTS24AndAbove
+        : resolutionStrategyTS23AndBelow;
 
     const servicesHost: typescript.LanguageServiceHost = {
         getProjectVersion: () => `${instance.version}`,
@@ -84,8 +89,8 @@ export function makeServicesHost(
          */
         directoryExists: compiler.sys ? compiler.sys.directoryExists : undefined,
 
-        useCaseSensitiveFileNames: compiler.sys 
-            ? () => compiler.sys.useCaseSensitiveFileNames 
+        useCaseSensitiveFileNames: compiler.sys
+            ? () => compiler.sys.useCaseSensitiveFileNames
             : undefined,
 
         // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
@@ -109,8 +114,8 @@ export function makeServicesHost(
         resolveModuleNames: (moduleNames: string[], containingFile: string) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
-                moduleNames, containingFile),
-        
+                moduleNames, containingFile, resolutionStrategy),
+
         getCustomTransformers: () => instance.transformers
     };
 
@@ -125,12 +130,13 @@ function resolveModuleNames(
     scriptRegex: RegExp,
     instance: TSInstance,
     moduleNames: string[],
-    containingFile: string
+    containingFile: string,
+    resolutionStrategy: ResolutionStrategy
 ) {
     const resolvedModules = moduleNames.map(moduleName =>
         resolveModuleName(resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
-            moduleName, containingFile));
-    
+            moduleName, containingFile, resolutionStrategy));
+
     populateDependencyGraphs(resolvedModules, instance, containingFile);
 
     return resolvedModules;
@@ -140,9 +146,11 @@ function isJsImplementationOfTypings(
     resolvedModule: ResolvedModule,
     tsResolution: ResolvedModule
 ) {
-    return resolvedModule.resolvedFileName.endsWith('js') && 
-            /node_modules(\\|\/).*\.d\.ts$/.test(tsResolution.resolvedFileName);
+    return resolvedModule.resolvedFileName.endsWith('js') &&
+        /node_modules(\\|\/).*\.d\.ts$/.test(tsResolution.resolvedFileName);
 }
+
+type ResolutionStrategy = (resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule) => ResolvedModule;
 
 function resolveModuleName(
     resolveSync: ResolveSync,
@@ -153,7 +161,9 @@ function resolveModuleName(
     instance: TSInstance,
 
     moduleName: string,
-    containingFile: string
+    containingFile: string,
+
+    resolutionStrategy: ResolutionStrategy
 ) {
     const { compiler, compilerOptions } = instance;
 
@@ -184,26 +194,30 @@ function resolveModuleName(
             isExternalLibraryImport: tsResolution.resolvedModule.isExternalLibraryImport
         };
 
-        // Old strategy
-        if (resolutionResult!) {
-            if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
-                isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)) {
-                resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
-            }
-        } else {
-            resolutionResult = tsResolutionResult;
-        }
-
-        /* New strategy
-        if (resolutionResult! === undefined ||
-            resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
-            isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)
-        ) {
-            resolutionResult = tsResolutionResult;
-        }
-        */
+        return resolutionStrategy(resolutionResult!, tsResolutionResult);
     }
     return resolutionResult!;
+}
+
+function resolutionStrategyTS23AndBelow(resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule): ResolvedModule {
+    if (resolutionResult! !== undefined) {
+        if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
+            isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)) {
+            resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
+        }
+    } else {
+        return tsResolutionResult;
+    }
+    return resolutionResult!;
+}
+
+function resolutionStrategyTS24AndAbove(resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule): ResolvedModule {
+    return (resolutionResult! === undefined ||
+        resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
+        isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)
+    )
+        ? tsResolutionResult
+        : resolutionResult!;
 }
 
 function populateDependencyGraphs(
