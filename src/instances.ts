@@ -1,7 +1,7 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
-import { constructor as ChalkConstructor, Chalk } from 'chalk';
+import chalk from 'chalk';
 
 import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
@@ -37,7 +37,7 @@ export function getTypeScriptInstance(
         return { instance: instances[loaderOptions.instance] };
     }
 
-    const colors = new ChalkConstructor({ enabled: loaderOptions.colors });
+    const colors = new chalk.constructor({ enabled: loaderOptions.colors });
     const log = logger.makeLogger(loaderOptions, colors);
     const compiler = getCompiler(loaderOptions, log);
 
@@ -55,7 +55,7 @@ function successfulTypeScriptInstance(
     loaderOptions: LoaderOptions,
     loader: Webpack,
     log: logger.Logger,
-    colors: Chalk,
+    colors: typeof chalk,
     compiler: typeof typescript,
     compilerCompatible: boolean,
     compilerDetailsLogMessage: string

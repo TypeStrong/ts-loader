@@ -42,7 +42,6 @@
     "semver": "^5.0.1"
   },
   "devDependencies": {
-    "@types/chalk": "^0.4.31",
     "@types/semver": "^5.4.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
