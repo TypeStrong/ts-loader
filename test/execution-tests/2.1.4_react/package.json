@@ -1,5 +1,6 @@
 {
   "name": "es6-babel-react",
+  "license": "MIT",
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {

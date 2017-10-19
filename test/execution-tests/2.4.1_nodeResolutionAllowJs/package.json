@@ -1,5 +1,6 @@
 {
-  "name": "import-code-splitting",
+  "name": "node-resolution-allow-js",
+  "license": "MIT",
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
