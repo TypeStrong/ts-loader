@@ -29,11 +29,10 @@
     "@types/fbemitter": "^2.0.32",
     "@types/flux": "0.0.32",
     "@types/jasmine": "^2.5.35",
-    "@types/react": "^0.14.41",
-    "@types/react-addons-test-utils": "^0.14.15",
-    "@types/react-bootstrap": "0.0.33",
-    "@types/react-dom": "^0.14.18",
-    "@types/react-test-renderer": "^15.5.0",
+    "@types/react": "^16.0.0",
+    "@types/react-test-renderer": "^16.0.0",
+    "@types/react-bootstrap": "0.31.6",
+    "@types/react-dom": "^16.0.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
@@ -67,13 +66,12 @@
     "karma-sourcemap-loader": "^0.3.6",
     "karma-webpack": "^2.0.1",
     "phantomjs-prebuilt": "^2.1.4",
-    "react-addons-test-utils": "^15.3.1",
-    "react-test-renderer": "^15.5.4",
-    "ts-loader": "^2.0.0",
+    "react-test-renderer": "^16.0.0",
+    "ts-loader": "^3.0.3",
     "tslint": "^5.1.0",
     "tslint-react": "^3.0.0",
     "typescript": "^2.1.4",
-    "webpack": "^2.2.0",
+    "webpack": "^3.8.1",
     "webpack-fail-plugin": "^1.0.4",
     "webpack-notifier": "^1.2.1"
   },
@@ -81,7 +79,7 @@
     "babel-polyfill": "^6.0.0",
     "flux": "^2.0.3",
     "fbemitter": "^2.0.2",
-    "react": "^15.4.1",
-    "react-dom": "^15.4.1"
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
   }
 }

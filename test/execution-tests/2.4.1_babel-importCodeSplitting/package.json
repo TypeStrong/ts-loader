@@ -1,5 +1,6 @@
 {
   "name": "import-code-splitting",
+  "license": "MIT",
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {

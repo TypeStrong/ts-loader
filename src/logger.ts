@@ -1,6 +1,6 @@
 import { Console } from 'console';
 import { LoaderOptions } from './interfaces';
-import { Chalk, ChalkChain } from 'chalk';
+import chalk from 'chalk';
 
 type InternalLoggerFunc = (whereToLog: any, message: string) => void;
 
@@ -33,23 +33,23 @@ const makeExternalLogger = (loaderOptions: LoaderOptions, logger: InternalLogger
     (message: string) =>
         logger(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, message);
 
-const makeLogInfo = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, green: ChalkChain) =>
+const makeLogInfo = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, green: typeof chalk) =>
     LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
         ? (message: string) =>
             logger(loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole, green(message))
         : doNothingLogger;
 
-const makeLogError = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, red: ChalkChain) =>
+const makeLogError = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, red: typeof chalk) =>
     LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
         ? (message: string) => logger(stderrConsole, red(message))
         : doNothingLogger;
 
-const makeLogWarning = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, yellow: ChalkChain) =>
+const makeLogWarning = (loaderOptions: LoaderOptions, logger: InternalLoggerFunc, yellow: typeof chalk) =>
     LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
         ? (message: string) => logger(stderrConsole, yellow(message))
         : doNothingLogger;
 
-export function makeLogger(loaderOptions: LoaderOptions, colors: Chalk): Logger {
+export function makeLogger(loaderOptions: LoaderOptions, colors: typeof chalk): Logger {
     const logger = makeLoggerFunc(loaderOptions);
     return {
         log: makeExternalLogger(loaderOptions, logger),

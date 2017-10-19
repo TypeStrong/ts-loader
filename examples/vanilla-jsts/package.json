@@ -7,8 +7,8 @@
     "watch": "webpack --watch"
   },
   "devDependencies": {
-    "ts-loader": "^2.0.0",
+    "ts-loader": "^3.0.3",
     "typescript": "^2.3.4",
-    "webpack": "^2.2.0"
+    "webpack": "^3.8.1"
   }
 }

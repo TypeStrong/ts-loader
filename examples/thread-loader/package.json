@@ -9,8 +9,8 @@
     "cache-loader": "^1.0.3",
     "fork-ts-checker-webpack-plugin": "^0.2.0",
     "thread-loader": "^1.1.0",
-    "ts-loader": "^2.0.3",
+    "ts-loader": "^3.0.3",
     "typescript": "^2.2.2",
-    "webpack": "^2.2.0"
+    "webpack": "^3.8.1"
   }
 }
