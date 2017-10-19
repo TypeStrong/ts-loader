@@ -80,11 +80,6 @@ function runTests(testName) {
 
     var karmaConfPath = path.join(testPath, 'karma.conf.js');
 
-    if (pathExists(path.join(testPath, 'typings.json'))) {
-        console.log('Installing typings into ' + testPath);
-        execSync('typings install', { cwd: testPath, stdio: 'inherit' });
-    }
-
     if (pathExists(path.join(testPath, 'package.json'))) {
         console.log('yarn install into ' + testPath);
         execSync('yarn install', { cwd: testPath, stdio: 'inherit' });

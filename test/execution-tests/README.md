@@ -41,8 +41,7 @@ Without this, the test won't be able to resolve ts-loader and webpack won't find
 
 ## What sort of tests can be included?
 
-It's pretty much your choice what goes in testwise.  At present there are only Jasmine tests in place; it should be possible to put any test in place that Karma is compatible with. The test pack also expects a `typings.json` file and calls `typings install` in each. **Be warned, type definitions are not installed until the test framework has been run.**  So if you're wanting to refactor a test you'll need to `typings install` if the requisite typings have not yet been installed. It's possible / probably that this may changed in the future; 
-particularly to cater for situations where types should be acquired via yarn etc.
+It's pretty much your choice what goes in testwise.  At present there are only Jasmine tests in place; it should be possible to put any test in place that Karma is compatible with. You can specify dependencies (include @types dependencies) using `package.json`.  As a first step before tests are executed, `yarn install` is called to install dependencies.
 
 ## Running / debugging the tests
 
