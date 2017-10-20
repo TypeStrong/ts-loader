@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.0.4
+
+- [Chore release; upgraded chalk dependency.](https://github.com/TypeStrong/ts-loader/pull/662) - thanks @johnnyreilly
+
 ## v3.0.3
 
 - [Fix allowJs @types resolution error](https://github.com/TypeStrong/ts-loader/pull/658) (#657, #655) - thanks @johnnyreilly and @roddypratt + @ldrick for providing minimal repro repos which allowed me to fix this long standing bug!
