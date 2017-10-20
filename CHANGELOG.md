@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.0.5
+
+- [Chore release; upgraded chalk dependency in `package.json` to 2.2, as 2.2 appears to be a breaking changes release.](https://github.com/TypeStrong/ts-loader/issues/664) - thanks @lmk123 for reporting
+
 ## v3.0.4
 
 - [Chore release; upgraded chalk dependency.](https://github.com/TypeStrong/ts-loader/pull/662) - thanks @johnnyreilly

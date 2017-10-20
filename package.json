@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "scripts": {
@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
-    "chalk": "^2.0.1",
+    "chalk": "^2.2.0",
     "enhanced-resolve": "^3.0.0",
     "loader-utils": "^1.0.2",
     "semver": "^5.0.1"
