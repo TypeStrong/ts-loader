@@ -27,9 +27,9 @@ function formatterForLineAndColumnUrlClicking(message, useColors) {
 
 const shared = require('./shared');
 const main = [
+    'react-hot-loader/patch',
     'core-js',
     'whatwg-fetch',
-    'react-hot-loader/patch',
     './src/index.tsx'
 ];
 const vendor = shared.makeVendorEntry({ mainModules: main, modulesToExclude: ['semantic-ui-css'] })
@@ -71,15 +71,7 @@ module.exports = {
                 test: /.tsx?$/,
                 use: [
                     { loader: 'react-hot-loader/webpack' },
-                    { loader: 'cache-loader' },
-                    {
-                        loader: 'thread-loader',
-                        options: {
-                            // there should be 1 cpu for the fork-ts-checker-webpack-plugin
-                            workers: require('os').cpus().length - 1,
-                        },
-                    },
-                    { loader: 'ts-loader', options: { happyPackMode: true, silent: true } }
+                    { loader: 'ts-loader', options: { happyPackMode: true } }
                 ],
                 exclude: path.resolve(process.cwd(), 'node_modules'),
                 include: path.resolve(process.cwd(), "src"),
@@ -101,15 +93,6 @@ module.exports = {
                 ]
             },
             {
-                test: /\.svg/,
-                use: {
-                    loader: 'svg-url-loader',
-                    options: {
-                        noquotes: false
-                    }
-                }
-            },
-            {
                 test: /\.css$/,
                 use: [
                     { loader: 'style-loader' },
@@ -129,7 +112,7 @@ module.exports = {
     },
     devtool: 'inline-source-map',
     devServer: {
-        clientLogLevel: 'warning',
+        // clientLogLevel: 'warning',
         open: true,
         hot: true,
         historyApiFallback: true,

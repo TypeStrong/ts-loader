@@ -15,22 +15,12 @@ function renderApp() {
         </AppContainer>,
         rootEl
     );
-
-    const anyModule: any = module;
-
-    // Hot Module Replacement API
-    if (anyModule.hot) {
-        anyModule.hot.accept('./components/app', () => {
-            const makeNextApp = require('./components/app').default;
-            const nextApp = makeNextApp(['app']);
-            ReactDOM.render(
-                <AppContainer>
-                    {nextApp.App}
-                </AppContainer>,
-                rootEl
-            );
-        });
-    }
 }
 
 renderApp();
+
+// Hot Module Replacement API
+const anyModule: any = module;
+if (anyModule.hot) {
+    anyModule.hot.accept('./components/app', () => renderApp());
+}
