@@ -1,26 +1,21 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
-import { App } from './components/app';
-import './styles/styles.scss';
+import { App } from './app';
 
-/**
- * Render the app
- */
-function renderApp() {
-    const rootEl = document.getElementById('root');
-    ReactDOM.render(
-        <AppContainer>
-            <App />
-        </AppContainer>,
-        rootEl
-    );
-}
+const rootEl = document.getElementById('root');
+const render = (Component: React.SFC) =>
+  ReactDOM.render(
+    <AppContainer>
+      <Component />
+    </AppContainer>,
+    rootEl
+  );
 
-renderApp();
+render(App);
 
 // Hot Module Replacement API
 const anyModule: any = module;
 if (anyModule.hot) {
-    anyModule.hot.accept('./components/app', () => renderApp());
+    anyModule.hot.accept('./app', () => render(App));
 }

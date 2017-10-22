@@ -64,36 +64,6 @@ module.exports = {
                     { loader: 'ts-loader', options: { happyPackMode: true } }
                 ],
                 exclude: /node_modules/
-            },
-            {
-                test: /\.scss$/,
-                use: [
-                    { loader: 'style-loader' },
-                    {
-                        loader: 'css-loader',
-                        options: {
-                            modules: false,
-                            camelCase: true,
-                            importLoaders: 2,
-                            minimize: true
-                        }
-                    },
-                    { loader: 'resolve-url-loader' },
-                    { loader: "sass-loader?sourceMap" }
-                ]
-            },
-            {
-            test: /\.css$/,
-                use: [
-                    { loader: 'style-loader' },
-                    {
-                        loader: 'css-loader',
-                    },
-                ]
-            },
-            {
-                test: /\.jpe?g$|\.ico$|\.gif$|\.png$|\.svg$|\.woff$|\.woff2$|\.eot$|\.ttf$|\.wav$|\.mp3$/,
-                loader: 'file-loader?name=[name].[hash].[ext]'
             }
         ]
     },

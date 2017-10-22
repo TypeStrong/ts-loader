@@ -1,7 +1,8 @@
 import * as React from 'react';
+import { Layout } from './components/layout';
 
 export const App: React.SFC<{}> = _props => (
     <div className="ui container">
-        <h1>Heya, heya, heya!</h1>
+        <Layout />
     </div>
 );

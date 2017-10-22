@@ -28,6 +28,8 @@ function formatterForLineAndColumnUrlClicking(message, useColors) {
 const shared = require('./shared');
 const main = [
     'react-hot-loader/patch',
+    'webpack-dev-server/client?http://localhost:8080',
+    'webpack/hot/only-dev-server',
     'core-js',
     'whatwg-fetch',
     './src/index.tsx'
@@ -70,40 +72,10 @@ module.exports = {
             {
                 test: /.tsx?$/,
                 use: [
-                    { loader: 'react-hot-loader/webpack' },
                     { loader: 'ts-loader', options: { happyPackMode: true } }
                 ],
                 exclude: path.resolve(process.cwd(), 'node_modules'),
                 include: path.resolve(process.cwd(), "src"),
-            },
-            {
-                test: /\.scss$/,
-                use: [
-                    { loader: 'style-loader' },
-                    {
-                        loader: 'css-loader',
-                        options: {
-                            modules: false,
-                            camelCase: true,
-                            importLoaders: 2
-                        }
-                    },
-                    { loader: 'resolve-url-loader' },
-                    { loader: "sass-loader?sourceMap" }
-                ]
-            },
-            {
-                test: /\.css$/,
-                use: [
-                    { loader: 'style-loader' },
-                    {
-                        loader: 'css-loader',
-                    },
-                ]
-            },
-            {
-                test: /\.jpe?g$|\.ico$|\.gif$|\.png$|\.svg$|\.woff$|\.woff2$|\.eot$|\.ttf$|\.wav$|\.mp3$/,
-                loader: 'file-loader?name=[name].[hash].[ext]'
             }
         ]
     },
@@ -112,7 +84,6 @@ module.exports = {
     },
     devtool: 'inline-source-map',
     devServer: {
-        // clientLogLevel: 'warning',
         open: true,
         hot: true,
         historyApiFallback: true,
