@@ -4,7 +4,7 @@ export default class Counter extends React.Component<{}, { counter: number }> {
   interval: number;
   constructor(props: {}) {
     super(props);
-    this.state = { counter: 1080 };
+    this.state = { counter: 0 };
   }
 
   componentDidMount() {

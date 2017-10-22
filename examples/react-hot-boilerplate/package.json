@@ -4,7 +4,6 @@
   "description": "Boilerplate for ReactJS project with hot code reloading",
   "scripts": {
     "start": "webpack-dev-server",
-    "lint": "eslint src",
     "prebuild": "rimraf dist",
     "build": "cross-env NODE_ENV=production webpack -p --config webpack.config.production.js",
     "postbuild": "copyfiles index.html dist"
@@ -44,11 +43,11 @@
     "tslint": "^5.8.0",
     "tslint-react": "^3.2.0",
     "typescript": "^2.5.3",
-    "webpack": "^2.2.0",
+    "webpack": "^3.0.0",
     "webpack-dev-server": "^2.2.0"
   },
   "dependencies": {
-    "react": "^15.4.2",
-    "react-dom": "^15.4.2"
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
   }
 }
