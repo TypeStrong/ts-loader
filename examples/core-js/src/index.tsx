@@ -15,7 +15,6 @@ const render = (Component: React.SFC) =>
 render(App);
 
 // Hot Module Replacement API
-const anyModule: any = module;
-if (anyModule.hot) {
-    anyModule.hot.accept('./app', () => render(App));
+if ((module as any).hot) {
+  (module as any).hot.accept('./app', () => render(App));
 }
