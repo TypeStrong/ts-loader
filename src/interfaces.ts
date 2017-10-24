@@ -269,6 +269,7 @@ export interface LoaderOptions {
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
     errorFormatter: (message: ErrorInfo, colors: Chalk) => string;
+    onlyCompileBundledFiles: boolean;
     colors: boolean;
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];

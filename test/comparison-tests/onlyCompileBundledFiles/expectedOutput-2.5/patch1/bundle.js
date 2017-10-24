@@ -60,14 +60,40 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: Error: ts-loader was supplied with an unexpected loader option: notRealOption\n\nPlease take a look at the options you are supplying; the following are valid options:\nsilent / logLevel / logInfoToStdOut / instance / compiler / configFile / transpileOnly / ignoreDiagnostics / errorFormatter / colors / compilerOptions / appendTsSuffixTo / appendTsxSuffixTo / entryFileCannotBeJs / onlyCompileBundledFiles / happyPackMode / getCustomTransformers\n\n    at validateLoaderOptions (C:/source/ts-loader/dist/index.js:92:19)\n    at getLoaderOptions (C:/source/ts-loader/dist/index.js:75:5)\n    at Object.loader (C:/source/ts-loader/dist/index.js:23:19)");
+module.exports = {
+    doSomething: function() { }   
+}
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+exports.__esModule = true;
+var submodule = __webpack_require__(2);
+var externalLib = __webpack_require__(0);
+externalLib.doSomething(submodule);
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var externalLib = __webpack_require__(0);
+externalLib.doSomething("");
+var message = "Hello from submodule";
+module.exports = message;
+
 
 /***/ })
 /******/ ]);
