@@ -1,7 +1,7 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
-import chalk from 'chalk';
+import chalk, { Chalk } from 'chalk';
 
 import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
@@ -55,7 +55,7 @@ function successfulTypeScriptInstance(
     loaderOptions: LoaderOptions,
     loader: Webpack,
     log: logger.Logger,
-    colors: typeof chalk,
+    colors: Chalk,
     compiler: typeof typescript,
     compilerCompatible: boolean,
     compilerDetailsLogMessage: string

@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
-    "chalk": "^2.2.0",
+    "chalk": "^2.3.0",
     "enhanced-resolve": "^3.0.0",
     "loader-utils": "^1.0.2",
     "semver": "^5.0.1"
