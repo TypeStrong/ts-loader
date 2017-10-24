@@ -415,6 +415,19 @@ Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
    }		
  })		
  ```
+ 
+### Usage with Webpack watch
+ 
+Because TS will generated .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using Webpack, you may wish to add this to your webpack.conf.js file:
+ 
+ ```js
+  plugins: [
+    new webpack.WatchIgnorePlugin([
+      /\.js$/,
+      /\.d\.ts$/
+    ])
+  ],
+  ```
 
 It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/).  You may want to look at removing it entirely.
 
