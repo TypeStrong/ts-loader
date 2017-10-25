@@ -147,7 +147,7 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         entryFileCannotBeJs: false,
         happyPackMode: false,
         colors: true,
-		onlyCompileBundledFiles: false
+        onlyCompileBundledFiles: false
     } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
