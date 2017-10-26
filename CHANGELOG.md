@@ -1,6 +1,6 @@
 # Changelog
 
-## v3.1.0 - NOT RELEASED YET
+## v3.1.0
 
 - [Add `onlyCompileBundledFiles` option which modifies behaviour to load only those files that are actually bundled by webpack](https://github.com/TypeStrong/ts-loader/pull/671) #267 - thanks @maier49!
 - [Chore release; upgraded chalk dependency in `package.json` to 2.3, as 2.3 is another breaking changes release (from a TypeScript perspective).](https://github.com/TypeStrong/ts-loader/issues/664), see [here](https://github.com/chalk/chalk/issues/215) for context - thanks @johnnyreilly
