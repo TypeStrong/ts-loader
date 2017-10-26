@@ -401,6 +401,15 @@ Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
             { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/\.vue$/] } }
 ```
 
+#### onlyCompileBundledFiles *(boolean) (default=false)*
+
+The default behavior of ts-loader is to act as a drop-in replacement for the `tsc` command,
+so it respects the `include`, `files`, and `exclude` options in your `tsconfig.json`, loading
+any files specified by those options. The `onlyCompileBundledFiles` option modifies this behavior,
+loading only those files that are actually bundled by webpack, as well as any `.d.ts` files included
+by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
+compilation without being explicitly imported, and therefore not picked up by webpack.
+
 ### `LoaderOptionsPlugin`
 
 [There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)

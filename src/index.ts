@@ -110,7 +110,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers'];
 
 /**
  * Validate the supplied loader options.
@@ -146,7 +146,8 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         transformers: {},
         entryFileCannotBeJs: false,
         happyPackMode: false,
-        colors: true
+        colors: true,
+        onlyCompileBundledFiles: false
     } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);

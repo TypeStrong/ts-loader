@@ -5,7 +5,7 @@ import chalk, { Chalk } from 'chalk';
 
 import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
-import { EOL } from './constants';
+import { EOL, dtsDtsxRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
 import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
 import * as logger from './logger';
@@ -118,7 +118,7 @@ function successfulTypeScriptInstance(
     // Load initial files (core lib files, any files specified in tsconfig.json)
     let normalizedFilePath: string;
     try {
-        const filesToLoad = configParseResult.fileNames;
+        const filesToLoad = loaderOptions.onlyCompileBundledFiles ? configParseResult.fileNames.filter(fileName => dtsDtsxRegex.test(fileName)) : configParseResult.fileNames;
         filesToLoad.forEach(filePath => {
             normalizedFilePath = path.normalize(filePath);
             files[normalizedFilePath] = {
