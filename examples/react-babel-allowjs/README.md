@@ -1,4 +1,3 @@
-
 # TypeScript, Babel, React with `allowJs` for mixed codebases
 
 This setup is mostly intended for people who want to migrate old codebases from JS to TypeScript without doing everything at once, and who might be reliant on some code absolutely having to go through Babel every time before being handed over to TypeScript.
