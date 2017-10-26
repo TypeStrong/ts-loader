@@ -152,7 +152,7 @@ function isJsImplementationOfTypings(
     tsResolution: ResolvedModule
 ) {
     return resolvedModule.resolvedFileName.endsWith('js') &&
-        /node_modules(\\|\/).*\.d\.ts$/.test(tsResolution.resolvedFileName);
+        /\.d\.ts$/.test(tsResolution.resolvedFileName);
 }
 
 type ResolutionStrategy = (resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule) => ResolvedModule;
