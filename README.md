@@ -427,7 +427,7 @@ compilation without being explicitly imported, and therefore not picked up by we
  
 ### Usage with Webpack watch
  
-Because TS will generated .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using Webpack, you may wish to add this to your webpack.conf.js file:
+Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using Webpack, you may wish to add this to your webpack.conf.js file:
  
  ```js
   plugins: [
