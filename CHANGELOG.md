@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.1.1 - NOT RELEASED YET
+
+- [Fix error importing buildt ts files with allowJs](https://github.com/TypeStrong/ts-loader/pull/674) (#667) - thanks @Pajn!
+
 ## v3.1.0
 
 - [Add `onlyCompileBundledFiles` option which modifies behaviour to load only those files that are actually bundled by webpack](https://github.com/TypeStrong/ts-loader/pull/671) #267 - thanks @maier49!
