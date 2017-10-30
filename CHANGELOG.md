@@ -1,6 +1,6 @@
 # Changelog
 
-## v3.1.1 - NOT RELEASED YET
+## v3.1.1
 
 - [Fix error importing buildt ts files with allowJs](https://github.com/TypeStrong/ts-loader/pull/674) (#667) - thanks @Pajn!
 
