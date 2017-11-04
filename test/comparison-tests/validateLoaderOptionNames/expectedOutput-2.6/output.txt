@@ -1,6 +1,6 @@
     Asset     Size  Chunks             Chunk Names
-bundle.js  3.15 kB       0  [emitted]  main
-   [0] ./.test/validateLoaderOptionNames/app.ts 676 bytes {0} [built] [failed] [1 error]
+bundle.js  3.17 kB       0  [emitted]  main
+   [0] ./.test/validateLoaderOptionNames/app.ts 702 bytes {0} [built] [failed] [1 error]
 
 ERROR in ./.test/validateLoaderOptionNames/app.ts
 Module build failed: Error: ts-loader was supplied with an unexpected loader option: notRealOption
