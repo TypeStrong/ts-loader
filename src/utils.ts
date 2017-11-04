@@ -45,7 +45,7 @@ function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
  * Optionally adds a file name
  */
 export function formatErrors(
-    diagnostics: typescript.Diagnostic[] | undefined,
+    diagnostics: ReadonlyArray<typescript.Diagnostic> | undefined,
     loaderOptions: LoaderOptions,
     colors: Chalk,
     compiler: typeof typescript,

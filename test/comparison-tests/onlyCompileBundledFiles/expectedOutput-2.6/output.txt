@@ -1,0 +1,5 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.99 kB       0  [emitted]  main
+   [0] ./.test/onlyCompileBundledFiles/lib/externalLib.js 55 bytes {0} [built]
+   [1] ./.test/onlyCompileBundledFiles/app.ts 169 bytes {0} [built]
+   [2] ./.test/onlyCompileBundledFiles/submodule/submodule.ts 149 bytes {0} [built]
