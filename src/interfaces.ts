@@ -241,12 +241,9 @@ export interface TSInstance {
     colors: Chalk;
 
     otherFiles: TSFiles;
-
     watchHost?: WatchHost;
     watchMode?: typescript.WatchOfFilesAndCompilerOptions;
     program?: typescript.Program;
-    builderState?: typescript.BuilderState;
-
     changedFilesList?: boolean;
 }
 

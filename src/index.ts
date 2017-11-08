@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as loaderUtils from 'loader-utils';
 import * as typescript from 'typescript';
 
-import { getTypeScriptInstance } from './instances';
+import { getTypeScriptInstance, getEmitOutput } from './instances';
 import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
 import * as constants from './constants';
 import {
@@ -214,18 +214,7 @@ function getEmit(
     instance: TSInstance,
     loader: Webpack
 ) {
-    let outputFiles: typescript.OutputFile[];
-    if (instance.program) {
-        outputFiles = [];
-        const writeFile = (fileName: string, text: string, writeByteOrderMark: boolean) =>
-            outputFiles.push({ name: fileName, writeByteOrderMark, text });
-        const sourceFile = instance.program.getSourceFile(rawFilePath);
-        instance.program.emit(sourceFile, writeFile, /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ false, instance.transformers);
-    }
-    else {
-        // Emit Javascript
-        ({ outputFiles } = instance.languageService!.getEmitOutput(filePath));
-    }
+    const outputFiles = getEmitOutput(instance, filePath);
 
     loader.clearDependencies();
     loader.addDependency(rawFilePath);

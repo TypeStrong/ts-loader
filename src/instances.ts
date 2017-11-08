@@ -178,3 +178,18 @@ function successfulTypeScriptInstance(
 
     return { instance };
 }
+
+export function getEmitOutput(instance: TSInstance, filePath: string) {
+    if (instance.program) {
+        const outputFiles: typescript.OutputFile[] = [];
+        const writeFile = (fileName: string, text: string, writeByteOrderMark: boolean) =>
+            outputFiles.push({ name: fileName, writeByteOrderMark, text });
+        const sourceFile = instance.program.getSourceFile(filePath);
+        instance.program.emit(sourceFile, writeFile, /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ false, instance.transformers);
+        return outputFiles;
+    }
+    else {
+        // Emit Javascript
+        return instance.languageService!.getEmitOutput(filePath).outputFiles;
+    }
+}

@@ -203,10 +203,6 @@ export function makeWatchHost(
 
     };
 
-    const builderOptions: typescript.BuilderOptions = {
-        computeHash: s => createHash(s),
-        getCanonicalFileName: system.useCaseSensitiveFileNames ? (s => s) : (s => s.toLowerCase())
-    };
     const watchHost: WatchHost = {
         rootFiles: getRootFileNames(),
         options: compilerOptions,
@@ -218,7 +214,6 @@ export function makeWatchHost(
         beforeProgramCreate: noop,
         afterProgramCreate: (_host, program) => {
             instance.program = program;
-            instance.builderState = compiler.createBuilderState(program, builderOptions, instance.builderState);
         },
         invokeFileWatcher,
         invokeDirectoryWatcher,

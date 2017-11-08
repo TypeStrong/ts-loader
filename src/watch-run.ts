@@ -13,6 +13,7 @@ import {
 export function makeWatchRun(
     instance: TSInstance
 ) {
+    // Called Before starting compilation after watch
     const lastTimes = {};
     let startTime : number | null = null;
     return (watching: WebpackWatching, cb: () => void) => {
