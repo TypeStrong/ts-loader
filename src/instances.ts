@@ -9,7 +9,7 @@ import { EOL, dtsDtsxRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
 import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
 import * as logger from './logger';
-import { makeServicesHost } from './servicesHost';
+import { makeServicesHost, makeWatchHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
 import { 
     LoaderOptions,
@@ -90,10 +90,10 @@ function successfulTypeScriptInstance(
         // quick return for transpiling
         // we do need to check for any issues with TS options though
         const program = compiler!.createProgram([], compilerOptions);
-        const diagnostics = program.getOptionsDiagnostics();
 
         // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
         if (!loaderOptions.happyPackMode) {
+            const diagnostics = program.getOptionsDiagnostics();
             registerWebpackErrors(
                 loader._module.errors,
                 formatErrors(diagnostics, loaderOptions, colors, compiler!, {file: configFilePath || 'tsconfig.json'}));
@@ -151,8 +151,15 @@ function successfulTypeScriptInstance(
         colors
     };
 
-    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
-    instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
+    if (compiler.createWatch) {
+        // If there is api available for watch, use it instead of language service
+        const watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
+        instance.watchMode = compiler.createWatch(watchHost);
+    }
+    //else {
+        const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
+        instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
+    //}
 
     loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
     loader._compiler.plugin("watch-run", makeWatchRun(instance));

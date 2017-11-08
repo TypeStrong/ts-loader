@@ -118,6 +118,15 @@ export function appendSuffixesIfMatch(suffixDict: { [suffix: string]: RegExp[] }
     return path;
 }
 
+/** Does nothing. */
+export function noop(_?: {} | null | undefined): void { } // tslint:disable-line no-empty
+/** Throws an error because a function is not implemented. */
+export function notImplemented(): never {
+    throw new Error("Not implemented");
+}
+
+export const emptyArray: never[] = [] as never[];
+
 /**
  * Recursively collect all possible dependants of passed file
  */

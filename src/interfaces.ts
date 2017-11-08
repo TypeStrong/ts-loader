@@ -233,6 +233,10 @@ export interface TSInstance {
     filesWithErrors?: TSFiles;
     transformers: typescript.CustomTransformers;
     colors: Chalk;
+
+    watchMode?: typescript.WatchOfFilesAndCompilerOptions;
+    builderState?: typescript.BuilderState;
+    program?: typescript.Program;
 }
 
 export interface LoaderOptionsCache {

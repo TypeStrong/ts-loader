@@ -5,7 +5,7 @@ import * as semver from 'semver';
 import * as constants from './constants';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import { appendSuffixesIfMatch, readFile } from './utils';
+import { appendSuffixesIfMatch, readFile, noop, notImplemented } from './utils';
 import {
     ModuleResolutionHost,
     ResolvedModule,
@@ -116,7 +116,7 @@ export function makeServicesHost(
                 compiler.resolveTypeReferenceDirective(directive, containingFile, compilerOptions, moduleResolutionHost).resolvedTypeReferenceDirective),
         */
 
-        resolveModuleNames: (moduleNames: string[], containingFile: string) =>
+        resolveModuleNames: (moduleNames, containingFile) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
                 moduleNames, containingFile, resolutionStrategy),
@@ -125,6 +125,118 @@ export function makeServicesHost(
     };
 
     return servicesHost;
+}
+
+/**
+ * Create the TypeScript Watch host
+ */
+export function makeWatchHost(
+    scriptRegex: RegExp,
+    log: logger.Logger,
+    loader: Webpack,
+    instance: TSInstance,
+    appendTsSuffixTo: RegExp[],
+    appendTsxSuffixTo: RegExp[]
+): typescript.WatchOfFilesAndCompilerOptionsHost {
+    const { compiler, compilerOptions, files } = instance;
+
+    const newLine =
+        compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
+            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+                constants.EOL;
+
+    // make a (sync) resolver that follows webpack's rules
+    const resolveSync = makeResolver(loader.options);
+
+    const readFileWithFallback = compiler.sys === undefined || compiler.sys.readFile === undefined
+        ? readFile
+        : (path: string, encoding?: string | undefined): string | undefined => compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+
+    const moduleResolutionHost: ModuleResolutionHost = {
+        fileExists,
+        readFile: readFileWithFallback
+    };
+
+    // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
+    const getCurrentDirectory = (compiler!.version && semver.gte(compiler!.version, '2.3.0'))
+        ? () => loader.context
+        : () => process.cwd();
+
+    const resolutionStrategy = (compiler!.version && semver.gte(compiler!.version, '2.4.0'))
+        ? resolutionStrategyTS24AndAbove
+        : resolutionStrategyTS23AndBelow;
+
+    const system: typescript.System = {
+        args: [],
+        newLine,
+        useCaseSensitiveFileNames: compiler.sys.useCaseSensitiveFileNames,
+
+        getCurrentDirectory,
+        getExecutingFilePath: () => compiler.sys.getExecutingFilePath(),
+
+        readFile: readFileWithFallback,
+        fileExists,
+        directoryExists: s => compiler.sys.directoryExists(path.normalize(s)),
+        getDirectories: s => compiler.sys.getDirectories(path.normalize(s)),
+        readDirectory: (s, extensions, exclude, include, depth) => compiler.sys.readDirectory(path.normalize(s), extensions, exclude, include, depth),
+
+        resolvePath: s => compiler.sys.resolvePath(path.normalize(s)),
+
+        write: s => log.logInfo(s),
+
+        // All write operations are noop and we will deal with them separately
+        createDirectory: notImplemented,
+        writeFile: notImplemented,
+
+        createHash,
+
+        exit: noop,
+
+        watchFile,
+        watchDirectory
+
+    };
+    //getCustomTransformers: () => instance.transformers
+
+    const builderOptions: typescript.BuilderOptions = {
+        computeHash: s => createHash(s),
+        getCanonicalFileName: system.useCaseSensitiveFileNames ? (s => s) : (s => s.toLowerCase())
+    };
+    const watchHost: typescript.WatchOfFilesAndCompilerOptionsHost = {
+        rootFiles: Object.keys(files).filter(filePath => filePath.match(scriptRegex)),
+        options: compilerOptions,
+        moduleNameResolver: (moduleNames, containingFile) =>
+            resolveModuleNames(
+                resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
+                moduleNames, containingFile, resolutionStrategy),
+        system,
+        beforeProgramCreate: noop,
+        afterProgramCreate: (_host, program) => {
+            instance.program = program;
+            instance.builderState = compiler.createBuilderState(program, builderOptions, instance.builderState);
+        }
+    };
+    return watchHost;
+
+    function fileExists(s: string) {
+        s = path.normalize(s);
+        return !!files.hasOwnProperty(s) || compiler.sys.fileExists(s);
+    }
+
+    function createHash(s: string) {
+        return compiler.sys.createHash ? compiler.sys.createHash(s) : s;
+    }
+
+    function watchFile(_path: string, _callback: typescript.FileWatcherCallback, _pollingInterval?: number): typescript.FileWatcher {
+        return {
+            close: noop
+        };
+    }
+    function watchDirectory(_path: string, _callback: typescript.DirectoryWatcherCallback, _recursive?: boolean): typescript.FileWatcher {
+        return {
+            close: noop
+        };
+    }
 }
 
 function resolveModuleNames(
