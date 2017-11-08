@@ -34,6 +34,15 @@ export function getTypeScriptInstance(
     loader: Webpack
 ): { instance?: TSInstance, error?: WebpackError } {
     if (hasOwnProperty(instances, loaderOptions.instance)) {
+        const instance = instances[loaderOptions.instance];
+        if (instance && instance.watchHost) {
+            if (instance.changedFilesList) {
+                instance.watchHost.updateRootFileNames();
+            }
+            else if (instance.watchMode) {
+                instance.watchMode.synchronizeProgram();
+            }
+        }
         return { instance: instances[loaderOptions.instance] };
     }
 
@@ -83,6 +92,7 @@ function successfulTypeScriptInstance(
 
     const compilerOptions = getCompilerOptions(configParseResult);
     const files: TSFiles = {};
+    const otherFiles: TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
 
@@ -99,11 +109,12 @@ function successfulTypeScriptInstance(
                 formatErrors(diagnostics, loaderOptions, colors, compiler!, {file: configFilePath || 'tsconfig.json'}));
         }
 
-        const instance = { 
+        const instance: TSInstance = {
             compiler, 
             compilerOptions, 
             loaderOptions, 
-            files, 
+            files,
+            otherFiles,
             dependencyGraph: {}, 
             reverseDependencyGraph: {}, 
             transformers: getCustomTransformers(),
@@ -142,6 +153,7 @@ function successfulTypeScriptInstance(
         compilerOptions,
         loaderOptions,
         files,
+        otherFiles,
         languageService: null,
         version: 0,
         transformers: getCustomTransformers(),

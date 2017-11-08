@@ -5,8 +5,9 @@ import * as semver from 'semver';
 import * as constants from './constants';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import { appendSuffixesIfMatch, readFile, noop, notImplemented } from './utils';
+import { appendSuffixesIfMatch, readFile, noop, notImplemented, unorderedRemoveItem } from './utils';
 import {
+    WatchHost,
     ModuleResolutionHost,
     ResolvedModule,
     ResolveSync,
@@ -137,8 +138,8 @@ export function makeWatchHost(
     instance: TSInstance,
     appendTsSuffixTo: RegExp[],
     appendTsxSuffixTo: RegExp[]
-): typescript.WatchOfFilesAndCompilerOptionsHost {
-    const { compiler, compilerOptions, files } = instance;
+) {
+    const { compiler, compilerOptions, files, otherFiles } = instance;
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
@@ -166,6 +167,11 @@ export function makeWatchHost(
         ? resolutionStrategyTS24AndAbove
         : resolutionStrategyTS23AndBelow;
 
+    type WatchCallbacks<T> = { [fileName: string]: T[] | undefined };
+    const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = {};
+    const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> = {};
+    const watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback> = {};
+
     const system: typescript.System = {
         args: [],
         newLine,
@@ -174,7 +180,7 @@ export function makeWatchHost(
         getCurrentDirectory,
         getExecutingFilePath: () => compiler.sys.getExecutingFilePath(),
 
-        readFile: readFileWithFallback,
+        readFile: readFileWithCachingText,
         fileExists,
         directoryExists: s => compiler.sys.directoryExists(path.normalize(s)),
         getDirectories: s => compiler.sys.getDirectories(path.normalize(s)),
@@ -196,14 +202,13 @@ export function makeWatchHost(
         watchDirectory
 
     };
-    //getCustomTransformers: () => instance.transformers
 
     const builderOptions: typescript.BuilderOptions = {
         computeHash: s => createHash(s),
         getCanonicalFileName: system.useCaseSensitiveFileNames ? (s => s) : (s => s.toLowerCase())
     };
-    const watchHost: typescript.WatchOfFilesAndCompilerOptionsHost = {
-        rootFiles: Object.keys(files).filter(filePath => filePath.match(scriptRegex)),
+    const watchHost: WatchHost = {
+        rootFiles: getRootFileNames(),
         options: compilerOptions,
         moduleNameResolver: (moduleNames, containingFile) =>
             resolveModuleNames(
@@ -214,9 +219,33 @@ export function makeWatchHost(
         afterProgramCreate: (_host, program) => {
             instance.program = program;
             instance.builderState = compiler.createBuilderState(program, builderOptions, instance.builderState);
+        },
+        invokeFileWatcher,
+        invokeDirectoryWatcher,
+        updateRootFileNames: () => {
+            instance.changedFilesList = false;
+            if (instance.watchMode) {
+                instance.watchMode.updateRootFileNames(getRootFileNames());
+            }
         }
     };
     return watchHost;
+
+    function getRootFileNames() {
+        return Object.keys(files).filter(filePath => filePath.match(scriptRegex));
+    }
+
+    function readFileWithCachingText(fileName: string, encoding?: string) {
+        fileName = path.normalize(fileName);
+        let file = files[fileName] || otherFiles[fileName];
+        if (file !== undefined) {
+            return file.text;
+        }
+        const text = readFileWithFallback(fileName, encoding);
+        if (text === undefined) { return undefined; }
+        otherFiles[fileName] = { version: 0, text };
+        return text;
+    }
 
     function fileExists(s: string) {
         s = path.normalize(s);
@@ -227,15 +256,64 @@ export function makeWatchHost(
         return compiler.sys.createHash ? compiler.sys.createHash(s) : s;
     }
 
-    function watchFile(_path: string, _callback: typescript.FileWatcherCallback, _pollingInterval?: number): typescript.FileWatcher {
+    function invokeWatcherCallbacks(callbacks: typescript.FileWatcherCallback[] | undefined, fileName: string, eventKind: typescript.FileWatcherEventKind): void;
+    function invokeWatcherCallbacks(callbacks: typescript.DirectoryWatcherCallback[] | undefined, fileName: string): void;
+    function invokeWatcherCallbacks(callbacks: typescript.FileWatcherCallback[] | typescript.DirectoryWatcherCallback[] | undefined, fileName: string, eventKind?: typescript.FileWatcherEventKind) {
+        if (callbacks) {
+            // The array copy is made to ensure that even if one of the callback removes the callbacks,
+            // we dont miss any callbacks following it
+            const cbs = callbacks.slice();
+            for (const cb of cbs) {
+                cb(fileName, eventKind as typescript.FileWatcherEventKind);
+            }
+        }
+    }
+
+    function invokeFileWatcher(fileName: string, eventKind: typescript.FileWatcherEventKind) {
+        fileName = path.normalize(fileName);
+        invokeWatcherCallbacks(watchedFiles[fileName], fileName, eventKind);
+    }
+
+    function invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string) {
+        directory = path.normalize(directory);
+        invokeWatcherCallbacks(watchedDirectories[directory], fileAddedOrRemoved);
+        invokeRecursiveDirectoryWatcher(directory, fileAddedOrRemoved);
+    }
+
+    function invokeRecursiveDirectoryWatcher(directory: string, fileAddedOrRemoved: string) {
+        directory = path.normalize(directory);
+        invokeWatcherCallbacks(watchedDirectoriesRecursive[directory], fileAddedOrRemoved);
+        const basePath = path.dirname(directory);
+        if (directory !== basePath) {
+            invokeRecursiveDirectoryWatcher(basePath, fileAddedOrRemoved);
+        }
+    }
+
+    function createWatcher<T>(file: string, callbacks: WatchCallbacks<T>, callback: T): typescript.FileWatcher {
+        file = path.normalize(file);
+        const existing = callbacks[file];
+        if (existing) {
+            existing.push(callback);
+        }
+        else {
+            callbacks[file] = [callback];
+        }
         return {
-            close: noop
+            close: () => {
+                const existing = callbacks[file];
+                if (existing) {
+                    unorderedRemoveItem(existing, callback);
+                }
+            }
         };
     }
-    function watchDirectory(_path: string, _callback: typescript.DirectoryWatcherCallback, _recursive?: boolean): typescript.FileWatcher {
-        return {
-            close: noop
-        };
+
+    function watchFile(fileName: string, callback: typescript.FileWatcherCallback, _pollingInterval?: number) {
+        return createWatcher(fileName, watchedFiles, callback);
+    }
+
+    function watchDirectory(fileName: string, callback: typescript.DirectoryWatcherCallback, recursive?: boolean) {
+        return createWatcher(fileName, recursive ? watchedDirectoriesRecursive : watchedDirectories, callback);
     }
 }
 

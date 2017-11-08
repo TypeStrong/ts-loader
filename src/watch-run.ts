@@ -29,12 +29,15 @@ export function makeWatchRun(
             .forEach(filePath => {
                 lastTimes[filePath] = times[filePath];
                 filePath = path.normalize(filePath);
-                const file = instance.files[filePath];
+                const file = instance.files[filePath] || instance.otherFiles[filePath];
                 if (file !== undefined) {
                     file.text = readFile(filePath) || '';
                     file.version++;
                     instance.version!++;
                     instance.modifiedFiles![filePath] = file;
+                    if (instance.watchHost) {
+                        instance.watchHost.invokeFileWatcher(filePath, instance.compiler.FileWatcherEventKind.Changed);
+                    }
                 }
             });
         cb();

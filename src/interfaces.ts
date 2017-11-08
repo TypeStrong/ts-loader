@@ -214,6 +214,12 @@ export interface ModuleResolutionHost {
     readFile(fileName: string, encoding?: string | undefined): string | undefined;
 }
 
+export interface WatchHost extends typescript.WatchOfFilesAndCompilerOptionsHost {
+    invokeFileWatcher(fileName: string, eventKind: typescript.FileWatcherEventKind): void;
+    invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
+    updateRootFileNames(): void;
+}
+
 export interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
@@ -234,9 +240,14 @@ export interface TSInstance {
     transformers: typescript.CustomTransformers;
     colors: Chalk;
 
+    otherFiles: TSFiles;
+
+    watchHost?: WatchHost;
     watchMode?: typescript.WatchOfFilesAndCompilerOptions;
-    builderState?: typescript.BuilderState;
     program?: typescript.Program;
+    builderState?: typescript.BuilderState;
+
+    changedFilesList?: boolean;
 }
 
 export interface LoaderOptionsCache {
