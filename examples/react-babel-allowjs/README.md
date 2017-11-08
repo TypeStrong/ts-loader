@@ -1,8 +1,10 @@
 # TypeScript, Babel, React with `allowJs` for mixed codebases
 
-This setup is mostly intended for people who want to migrate old codebases from JS to TypeScript without doing everything at once, and who might be reliant on some code absolutely having to go through Babel every time before being handed over to TypeScript.
+This setup is mostly intended for people who want to migrate old codebases from JS to TypeScript without having to migrate all of the files at once, and being able to keep a mix of JS and TS files for some time.
 
-This can be due to reliance on specific Babel plugins, or weird default exports behaviors on imported node modules which have only been tested with Babel for transpilation.
+Another issue this setup solves is related to the way some modules existent in the npm registry are created or exported. If you let TypeScript take care of the conversion of those modules to a format a browser can understand, some of these modules might end up unusable ([prop-types](https://www.npmjs.com/package/prop-types) is an example). Letting the modules reach webpack untouched (as ES2015 modules) will ensure this problem doesn't occur.
+
+Babel can be removed from this setup unless you're relying on any babel specific plugins.
 
 ## Getting started
 
