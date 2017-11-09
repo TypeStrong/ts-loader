@@ -219,8 +219,8 @@ export function makeWatchHost(
         invokeDirectoryWatcher,
         updateRootFileNames: () => {
             instance.changedFilesList = false;
-            if (instance.watchMode) {
-                instance.watchMode.updateRootFileNames(getRootFileNames());
+            if (instance.watchOfFilesAndCompilerOptions) {
+                instance.watchOfFilesAndCompilerOptions.updateRootFileNames(getRootFileNames());
             }
         }
     };

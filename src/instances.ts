@@ -39,8 +39,8 @@ export function getTypeScriptInstance(
             if (instance.changedFilesList) {
                 instance.watchHost.updateRootFileNames();
             }
-            else if (instance.watchMode) {
-                instance.watchMode.synchronizeProgram();
+            else if (instance.watchOfFilesAndCompilerOptions) {
+                instance.watchOfFilesAndCompilerOptions.synchronizeProgram();
             }
         }
         return { instance: instances[loaderOptions.instance] };
@@ -164,14 +164,15 @@ function successfulTypeScriptInstance(
     };
 
     if (compiler.createWatch) {
+        console.log("Using watch api");
         // If there is api available for watch, use it instead of language service
         const watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
-        instance.watchMode = compiler.createWatch(watchHost);
+        instance.watchOfFilesAndCompilerOptions = compiler.createWatch(watchHost);
     }
-    //else {
+    else {
         const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
         instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
-    //}
+    }
 
     loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
     loader._compiler.plugin("watch-run", makeWatchRun(instance));
