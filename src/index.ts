@@ -139,6 +139,7 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         logInfoToStdOut: false,
         compiler: 'typescript',
         configFile: 'tsconfig.json',
+        contextAsConfigBasePath: false,
         transpileOnly: false,
         compilerOptions: {},
         appendTsSuffixTo: [],

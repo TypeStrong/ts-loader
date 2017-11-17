@@ -116,12 +116,12 @@ function findConfigFile(compiler: typeof typescript, requestDirPath: string, con
 export function getConfigParseResult(
     compiler: typeof typescript,
     configFile: ConfigFile,
-    configFilePath: string
+    basePath: string
 ) {
     const configParseResult = compiler.parseJsonConfigFileContent(
         configFile.config,
         compiler.sys,
-        path.dirname(configFilePath || '')
+        basePath
     );
 
     return configParseResult;
