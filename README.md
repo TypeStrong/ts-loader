@@ -410,6 +410,39 @@ loading only those files that are actually bundled by webpack, as well as any `.
 by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
 compilation without being explicitly imported, and therefore not picked up by webpack.
 
+#### contextAsConfigBasePath *(boolean) (default=false)*
+
+If true, will parse the TypeScript configuration file with 
+[webpack.context](https://webpack.js.org/configuration/entry-context/#context) as base path.
+Per default the directory of the configuration file is used as base path. Relative paths in the configuration 
+file are resolved with respect to the base path when parsed. Option `contextAsConfigBasePath` allows to set option
+`configFile` to a path other than the project root (e.g. a NPM package) and the base path for `ts-loader` is [webpack.context](https://webpack.js.org/configuration/entry-context/#context) (which is most of the time the project root).
+
+Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `ts-loader` and `tsc`.
+When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file
+referenced in option `configFile`.
+
+Webpack:
+
+```javascript
+{
+  loader: require.resolve('ts-loader'),
+  options: {
+    contextAsConfigBasePath: true,
+    configFile: require.resolve('ts-config-react-app')
+  }
+}
+
+```
+
+Extending `tsconfig.json`:
+
+```json
+{ "extends": "./node_modules/ts-config-react-app/index" }
+```
+
+Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
+
 ### `LoaderOptionsPlugin`
 
 [There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`.  If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
