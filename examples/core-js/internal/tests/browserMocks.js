@@ -1,3 +1,5 @@
+require('core-js');
+
 var localStorageMock = (function() {
     var store = {};
 
