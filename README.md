@@ -420,7 +420,7 @@ file are resolved with respect to the base path when parsed. Option `contextAsCo
 
 Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `ts-loader` and `tsc`.
 When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file
-referenced in option `configFile`.
+referenced in option `configFile`. For more information [please read the PR](https://github.com/TypeStrong/ts-loader/pull/681) that contributed this option.
 
 Webpack:
 

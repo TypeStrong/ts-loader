@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.2.0
+
+- [Add new loader option `contextAsConfigBasePath`](https://github.com/TypeStrong/ts-loader/pull/681) - thanks @christiantinauer
+
 ## v3.1.1
 
 - [Fix error importing buildt ts files with allowJs](https://github.com/TypeStrong/ts-loader/pull/674) (#667) - thanks @Pajn!
