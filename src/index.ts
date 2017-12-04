@@ -97,6 +97,10 @@ function getLoaderOptions(loader: Webpack) {
     const instanceName = webpackIndex + '_' + (loaderOptions.instance || configFileOptions.instance || 'default');
 
     if (hasOwnProperty(loaderOptionsCache, instanceName)) {
+        // bypass the cache
+        let {appendTsSuffixTo=[], appendTsxSuffixTo=[]} = loaderOptions
+        Object.assign(loaderOptionsCache[instanceName], {appendTsSuffixTo, appendTsxSuffixTo})
+        
         return loaderOptionsCache[instanceName];
     }
 
