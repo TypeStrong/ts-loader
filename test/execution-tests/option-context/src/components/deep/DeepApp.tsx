@@ -1,14 +1,14 @@
 import React from 'react';
 import enhanceWithClickOutside from 'react-click-outside';
 
-const App: React.SFC<{ name: string }> = ({ name }) => 
+const DeepApp: React.SFC<{ name: string }> = ({ name }) => 
     <div className="container-fluid">
       <h1>Hello {name}!</h1>
     </div>;
 
-const COApp = enhanceWithClickOutside(App)
+const CODeepApp = enhanceWithClickOutside(DeepApp)
 
-export default App;
+export default DeepApp;
 export {
-  COApp
+  CODeepApp
 }

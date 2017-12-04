@@ -4,19 +4,6 @@
 var path = require('path');
 var webpack = require('webpack');
 
-var babelOptions = {
-  "presets": [
-    "react",
-    [
-      "es2015",
-      {
-        "modules": false
-      }
-    ],
-    "es2016"
-  ]
-};
-
 module.exports = {
   entry: './src/main.tsx',
   output: {
@@ -25,27 +12,32 @@ module.exports = {
   module: {
     rules: [{
       test: /\.ts(x?)$/,
-      exclude: /node_modules/,
       use: [
         {
           loader: 'babel-loader',
-          options: babelOptions
+          options: {
+            babelrc: false,
+            presets: [require.resolve('babel-preset-react-app')]
+          }
         },
         {
           loader: 'ts-loader',
           options: {
             context: __dirname,
+            onlyCompileBundledFiles: true,
             configFile: require.resolve('./tsconfig-container/tsconfig.json')
           }
         }
       ]
     }, {
       test: /\.js$/,
-      exclude: /node_modules/,
       use: [
         {
           loader: 'babel-loader',
-          options: babelOptions
+          options: {
+            babelrc: false,
+            presets: [require.resolve('babel-preset-react-app')]
+          }
         }
       ]
     }]
@@ -53,7 +45,7 @@ module.exports = {
   resolve: {
     // Add `.ts` and `.tsx` as a resolvable extension.
     extensions: ['.ts', '.tsx', '.js']
-  },
+  }
 };
 
 // for test harness purposes only, you would not need this in a normal project
