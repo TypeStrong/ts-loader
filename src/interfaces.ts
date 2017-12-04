@@ -266,7 +266,7 @@ export interface LoaderOptions {
     instance: string;
     compiler: string;
     configFile: string;
-    contextAsConfigBasePath: boolean;
+    context: string;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
     errorFormatter: (message: ErrorInfo, colors: Chalk) => string;

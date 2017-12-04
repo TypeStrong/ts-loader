@@ -110,7 +110,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'contextAsConfigBasePath', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'context', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers'];
 
 /**
  * Validate the supplied loader options.
@@ -130,6 +130,10 @@ ${ validLoaderOptions.join(' / ')}
 `);
         }
     }
+
+    if (loaderOptions.context && !path.isAbsolute(loaderOptions.context)) {
+        throw new Error(`Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`);
+    }
 }
 
 function makeLoaderOptions(instanceName: string, configFileOptions: Partial<LoaderOptions>, loaderOptions: LoaderOptions) {
@@ -139,7 +143,7 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         logInfoToStdOut: false,
         compiler: 'typescript',
         configFile: 'tsconfig.json',
-        contextAsConfigBasePath: false,
+        context: undefined,
         transpileOnly: false,
         compilerOptions: {},
         appendTsSuffixTo: [],

@@ -34,7 +34,7 @@ module.exports = {
         {
           loader: 'ts-loader',
           options: {
-            contextAsConfigBasePath: true,
+            context: __dirname,
             configFile: require.resolve('./tsconfig-container/tsconfig.json')
           }
         }
