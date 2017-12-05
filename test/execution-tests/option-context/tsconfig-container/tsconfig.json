@@ -1,21 +1,10 @@
 {
-    "compilerOptions": {
-        "target": "ES6",
-        "lib": [
-            "DOM",
-            "DOM.Iterable",
-            "ES2015.Collection",
-            "ES6",
-            "ScriptHost"
-        ],
-        "allowJs": true,
+{
+	"compilerOptions": {
+		"target": "es6",
         "jsx": "preserve",
-        "sourceMap": true,
-        "removeComments": true,
-        "strict": true,
-        "moduleResolution": "node",
-        "allowSyntheticDefaultImports": true
-    },
+        "moduleResolution": "node"
+	},
     "files": [
         "./src/app-shim.d.ts"
     ]
