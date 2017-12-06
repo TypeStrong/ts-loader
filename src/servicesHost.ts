@@ -5,7 +5,7 @@ import * as semver from 'semver';
 import * as constants from './constants';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import { appendSuffixesIfMatch, readFile, noop, notImplemented, unorderedRemoveItem } from './utils';
+import { appendSuffixesIfMatch, readFile, unorderedRemoveItem } from './utils';
 import {
     WatchHost,
     ModuleResolutionHost,
@@ -172,49 +172,31 @@ export function makeWatchHost(
     const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> = {};
     const watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback> = {};
 
-    const system: typescript.System = {
-        args: [],
-        newLine,
-        useCaseSensitiveFileNames: compiler.sys.useCaseSensitiveFileNames,
-
-        getCurrentDirectory,
-        getExecutingFilePath: () => compiler.sys.getExecutingFilePath(),
-
-        readFile: readFileWithCachingText,
-        fileExists,
-        directoryExists: s => compiler.sys.directoryExists(path.normalize(s)),
-        getDirectories: s => compiler.sys.getDirectories(path.normalize(s)),
-        readDirectory: (s, extensions, exclude, include, depth) => compiler.sys.readDirectory(path.normalize(s), extensions, exclude, include, depth),
-
-        resolvePath: s => compiler.sys.resolvePath(path.normalize(s)),
-
-        write: s => log.logInfo(s),
-
-        // All write operations are noop and we will deal with them separately
-        createDirectory: notImplemented,
-        writeFile: notImplemented,
-
-        createHash,
-
-        exit: noop,
-
-        watchFile,
-        watchDirectory
-
-    };
-
     const watchHost: WatchHost = {
         rootFiles: getRootFileNames(),
         options: compilerOptions,
-        moduleNameResolver: (moduleNames, containingFile) =>
+
+        useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
+        getNewLine: () => newLine,
+        getCurrentDirectory,
+        getDefaultLibFileName,
+
+        fileExists,
+        readFile: readFileWithCachingText,
+        directoryExists: s => compiler.sys.directoryExists(path.normalize(s)),
+        getDirectories: s => compiler.sys.getDirectories(path.normalize(s)),
+        readDirectory: (s, extensions, exclude, include, depth) => compiler.sys.readDirectory(path.normalize(s), extensions, exclude, include, depth),
+        realpath: s => compiler.sys.resolvePath(path.normalize(s)),
+        trace: s => log.logInfo(s),
+
+        watchFile,
+        watchDirectory,
+
+        resolveModuleNames: (moduleNames, containingFile) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
                 moduleNames, containingFile, resolutionStrategy),
-        system,
-        beforeProgramCreate: noop,
-        afterProgramCreate: (_host, program) => {
-            instance.program = program;
-        },
+
         invokeFileWatcher,
         invokeDirectoryWatcher,
         updateRootFileNames: () => {
@@ -225,6 +207,10 @@ export function makeWatchHost(
         }
     };
     return watchHost;
+
+    function getDefaultLibFileName(options: typescript.CompilerOptions) {
+        return path.join(path.dirname(compiler.sys.getExecutingFilePath()), compiler.getDefaultLibFileName(options));
+    }
 
     function getRootFileNames() {
         return Object.keys(files).filter(filePath => filePath.match(scriptRegex));
@@ -245,10 +231,6 @@ export function makeWatchHost(
     function fileExists(s: string) {
         s = path.normalize(s);
         return !!files.hasOwnProperty(s) || compiler.sys.fileExists(s);
-    }
-
-    function createHash(s: string) {
-        return compiler.sys.createHash ? compiler.sys.createHash(s) : s;
     }
 
     function invokeWatcherCallbacks(callbacks: typescript.FileWatcherCallback[] | undefined, fileName: string, eventKind: typescript.FileWatcherEventKind): void;

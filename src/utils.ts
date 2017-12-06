@@ -118,13 +118,6 @@ export function appendSuffixesIfMatch(suffixDict: { [suffix: string]: RegExp[] }
     return path;
 }
 
-/** Does nothing. */
-export function noop(_?: {} | null | undefined): void { } // tslint:disable-line no-empty
-/** Throws an error because a function is not implemented. */
-export function notImplemented(): never {
-    throw new Error("Not implemented");
-}
-
 export function unorderedRemoveItem<T>(array: T[], item: T): boolean {
     for (let i = 0; i < array.length; i++) {
         if (array[i] === item) {
