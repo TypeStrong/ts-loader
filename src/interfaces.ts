@@ -242,7 +242,7 @@ export interface TSInstance {
 
     otherFiles: TSFiles;
     watchHost?: WatchHost;
-    watchOfFilesAndCompilerOptions?: typescript.WatchOfFilesAndCompilerOptions;
+    watchOfFilesAndCompilerOptions?: typescript.WatchOfFilesAndCompilerOptions<typescript.Program>;
     program?: typescript.Program;
     changedFilesList?: boolean;
 }

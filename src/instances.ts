@@ -163,11 +163,11 @@ function successfulTypeScriptInstance(
         colors
     };
 
-    if (compiler.createWatch) {
+    if (compiler.createWatchProgram) {
         console.log("Using watch api");
         // If there is api available for watch, use it instead of language service
         const watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
-        instance.watchOfFilesAndCompilerOptions = compiler.createWatch(watchHost);
+        instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(watchHost);
         instance.program = instance.watchOfFilesAndCompilerOptions.getProgram();
     }
     else {
