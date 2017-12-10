@@ -156,6 +156,22 @@ The build **should** fail on TypeScript compilation errors as of webpack 2. If f
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
 
+### Tsconfig paths resolution
+
+If you want to resolve modules according to `baseUrl` and `paths` in tsconfig.json (new feature of TS 2.0) then please install the [tsconfig-paths-webpack-plugin](https://www.npmjs.com/package/tsconfig-paths-webpack-plugin) package. This feature requires webpack 2.1 or later. Use the config below or check the [readme](https://github.com/dividab/tsconfig-paths-webpack-plugin/blob/master/README.md) for more information.
+
+```js
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+
+module.exports = {
+  ...
+  resolve: {
+    plugins: [new TsconfigPathsPlugin({ /*configFile: "./path/to/tsconfig.json" */ })]
+  }
+  ...
+}
+```
+
 ### Options
 
 There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be specified through the `options` property in the webpack configuration:
