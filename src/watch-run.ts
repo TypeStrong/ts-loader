@@ -28,15 +28,28 @@ export function makeWatchRun(
             )
             .forEach(filePath => {
                 lastTimes[filePath] = times[filePath];
-                filePath = path.normalize(filePath);
-                const file = instance.files[filePath];
-                if (file !== undefined) {
-                    file.text = readFile(filePath) || '';
-                    file.version++;
-                    instance.version!++;
-                    instance.modifiedFiles![filePath] = file;
-                }
+                updateFile(instance, filePath);
+            });
+        // On watch update add all known dts files expect the ones in node_modules
+        // (skip @types/* and modules with typings)
+        Object.keys(instance.files)
+            .filter(filePath =>
+                filePath.match(constants.dtsDtsxRegex) && !filePath.match(constants.nodeModules)
+            )
+            .forEach(filePath => {
+                updateFile(instance, filePath);
             });
         cb();
     };
+}
+
+function updateFile(instance: TSInstance, filePath: string) {
+    filePath = path.normalize(filePath);
+    const file = instance.files[filePath];
+    if (file !== undefined) {
+        file.text = readFile(filePath) || '';
+        file.version++;
+        instance.version!++;
+        instance.modifiedFiles![filePath] = file;
+    }
 }
