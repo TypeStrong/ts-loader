@@ -50,20 +50,27 @@ export function formatErrors(
     loaderOptions: LoaderOptions,
     colors: Chalk,
     compiler: typeof typescript,
-    merge: { file?: string; module?: WebpackModule }
+    merge: { file?: string; module?: WebpackModule },
+    context: string
 ): WebpackError[] {
 
     return diagnostics
         ? diagnostics
-            .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
             .filter(diagnostic => {
-                if (loaderOptions.reportFiles.length === 0
-                    || diagnostic.file === undefined) {
-                    return true;
+                
+                if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
+                    return false;
                 }
-                const fileName = diagnostic.file.fileName;
-                const matchResult = micromatch([fileName], loaderOptions.reportFiles);
-                return matchResult.length > 0;
+
+                if (loaderOptions.reportFiles.length > 0 && diagnostic.file) {
+                    const relativeFileName = path.relative(context, diagnostic.file.fileName);
+                    const matchResult = micromatch([relativeFileName], loaderOptions.reportFiles);
+                    if (matchResult.length === 0) {
+                        return false;
+                    }
+                }
+
+                return true;
             })
             .map<WebpackError>(diagnostic => {
                 const file = diagnostic.file;

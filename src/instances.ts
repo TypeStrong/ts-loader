@@ -78,7 +78,8 @@ function successfulTypeScriptInstance(
     const configParseResult = getConfigParseResult(compiler, configFile, basePath);
 
     if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
-        const errors = formatErrors(configParseResult.errors, loaderOptions, colors, compiler, { file: configFilePath });
+        const errors = formatErrors(configParseResult.errors, loaderOptions, colors,
+            compiler, { file: configFilePath }, loader.context);
 
         registerWebpackErrors(loader._module.errors, errors);
 
@@ -100,7 +101,8 @@ function successfulTypeScriptInstance(
         if (!loaderOptions.happyPackMode) {
             registerWebpackErrors(
                 loader._module.errors,
-                formatErrors(diagnostics, loaderOptions, colors, compiler!, {file: configFilePath || 'tsconfig.json'}));
+                formatErrors(diagnostics, loaderOptions, colors, compiler!,
+                    {file: configFilePath || 'tsconfig.json'}, loader.context));
         }
 
         const instance = { 

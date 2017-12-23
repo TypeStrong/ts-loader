@@ -10,7 +10,7 @@ module.exports = {
         rules: [
             { 
                 test: /\.tsx?$/, loader: 'ts-loader', options: {
-                    reportFiles: [ '/**/.test/**/app.ts' ]
+                    reportFiles: [ '**/*.ts', '!skip.ts' ]
                 }
             }
         ]

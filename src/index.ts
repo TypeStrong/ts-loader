@@ -249,7 +249,9 @@ function getTranspilationEmit(
     if (!instance.loaderOptions.happyPackMode) {
         registerWebpackErrors(
             loader._module.errors,
-            formatErrors(diagnostics, instance.loaderOptions, instance.colors, instance.compiler, { module: loader._module })
+            formatErrors(diagnostics, instance.loaderOptions, instance.colors,
+                instance.compiler, { module: loader._module },
+                loader.context)
         );
     }
 
