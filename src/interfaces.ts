@@ -269,6 +269,7 @@ export interface LoaderOptions {
     contextAsConfigBasePath: boolean;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
+    reportFiles: string[];
     errorFormatter: (message: ErrorInfo, colors: Chalk) => string;
     onlyCompileBundledFiles: boolean;
     colors: boolean;
