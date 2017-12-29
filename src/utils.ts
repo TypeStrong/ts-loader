@@ -57,11 +57,9 @@ export function formatErrors(
     return diagnostics
         ? diagnostics
             .filter(diagnostic => {
-                
                 if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
                     return false;
                 }
-
                 if (loaderOptions.reportFiles.length > 0 && diagnostic.file) {
                     const relativeFileName = path.relative(context, diagnostic.file.fileName);
                     const matchResult = micromatch([relativeFileName], loaderOptions.reportFiles);
@@ -69,7 +67,6 @@ export function formatErrors(
                         return false;
                     }
                 }
-
                 return true;
             })
             .map<WebpackError>(diagnostic => {
