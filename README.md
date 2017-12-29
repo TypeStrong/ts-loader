@@ -249,6 +249,17 @@ codes to ignore.
 
 Only report errors on files matching these glob patterns.
 
+```javascript
+  // in webpack.config.js
+  {
+    test: /\.ts$/,
+    loader: 'ts-loader',
+    options: { reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'] }
+  }
+```
+
+This can be useful when certain types definitions have errors that are not fatal to your application.
+
 #### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
