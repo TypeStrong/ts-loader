@@ -160,8 +160,8 @@ function successfulTypeScriptInstance(
 
     // loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
     // loader._compiler.plugin("watch-run", makeWatchRun(instance));
-    loader._compiler.hooks.afterCompile.tapAsync("ts-loader"), makeAfterCompile(instance, configFilePath);
-    loader._compiler.hooks.watchRun.tapAsync("ts-loader"), makeWatchRun(instance);
+    loader._compiler.hooks.afterCompile.tapAsync("ts-loader", makeAfterCompile(instance, configFilePath));
+    loader._compiler.hooks.watchRun.tapAsync("ts-loader", makeWatchRun(instance));
 
     return { instance };
 }
