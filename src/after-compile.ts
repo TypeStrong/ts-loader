@@ -24,24 +24,28 @@ export function makeAfterCompile(
             callback();
             return;
         }
+        try {
+            removeTSLoaderErrors(compilation.errors);
 
-        removeTSLoaderErrors(compilation.errors);
-
-        provideCompilerOptionDiagnosticErrorsToWebpack(getCompilerOptionDiagnostics, compilation, instance, configFilePath);
-        getCompilerOptionDiagnostics = false;
-
-        const modules = determineModules(compilation);
-
-        const filesToCheckForErrors = determineFilesToCheckForErrors(checkAllFilesForErrors, instance);
-        checkAllFilesForErrors = false;
-
-        const filesWithErrors: TSFiles = {};
-        provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
-
-        provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService!, compilation);
-
-        instance.filesWithErrors = filesWithErrors;
-        instance.modifiedFiles = null;
+            provideCompilerOptionDiagnosticErrorsToWebpack(getCompilerOptionDiagnostics, compilation, instance, configFilePath);
+            getCompilerOptionDiagnostics = false;
+    
+            const modules = determineModules(compilation);
+    
+            const filesToCheckForErrors = determineFilesToCheckForErrors(checkAllFilesForErrors, instance);
+            checkAllFilesForErrors = false;
+    
+            const filesWithErrors: TSFiles = {};
+            provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
+    
+            provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService!, compilation);
+    
+            instance.filesWithErrors = filesWithErrors;
+            instance.modifiedFiles = null;
+        } catch (error) {
+            // TODO: Replace with better logging
+            console.error('error in after-compile', error)
+        }
         callback();
     };
 }
