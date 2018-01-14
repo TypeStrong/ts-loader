@@ -18,8 +18,6 @@ import {
 const webpackInstances: Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
 
-type PartialLoaderOptions = Partial<LoaderOptions>;
-
 /**
  * The entry point for ts-loader
  */
@@ -74,7 +72,7 @@ function successLoader(
         // Make sure webpack is aware that even though the emitted JavaScript may be the same as
         // a previously cached version the TypeScript may be different and therefore should be
         // treated as new
-        loader._module.meta.tsLoaderFileVersion = fileVersion;
+        loader._module.buildMeta.tsLoaderFileVersion = fileVersion;
     }
 
     callback(null, output, sourceMap);
@@ -92,9 +90,8 @@ function getLoaderOptions(loader: Webpack) {
     }
 
     const loaderOptions = loaderUtils.getOptions<LoaderOptions>(loader) || {} as LoaderOptions;
-    const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
 
-    const instanceName = webpackIndex + '_' + (loaderOptions.instance || configFileOptions.instance || 'default');
+    const instanceName = webpackIndex + '_' + (loaderOptions.instance || 'default');
 
     if (hasOwnProperty(loaderOptionsCache, instanceName)) {
         return loaderOptionsCache[instanceName];
@@ -102,7 +99,7 @@ function getLoaderOptions(loader: Webpack) {
 
     validateLoaderOptions(loaderOptions);
 
-    const options = makeLoaderOptions(instanceName, configFileOptions, loaderOptions);
+    const options = makeLoaderOptions(instanceName, loaderOptions);
 
     loaderOptionsCache[instanceName] = options;
 
@@ -132,7 +129,7 @@ ${ validLoaderOptions.join(' / ')}
     }
 }
 
-function makeLoaderOptions(instanceName: string, configFileOptions: Partial<LoaderOptions>, loaderOptions: LoaderOptions) {
+function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
     const options = Object.assign({}, {
         silent: false,
         logLevel: 'WARN',
@@ -149,7 +146,7 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         happyPackMode: false,
         colors: true,
         onlyCompileBundledFiles: false
-    } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
+    } as Partial<LoaderOptions>, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase() as LogLevel;
@@ -213,7 +210,7 @@ function getEmit(
         additionalDependencies.forEach(addDependency);
     }
 
-    loader._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
+    loader._module.buildMeta.tsLoaderDefinitionFileVersions = allDefinitionFiles
         .concat(additionalDependencies)
         .map(defFilePath => defFilePath + '@' + (instance.files[defFilePath] || { version: '?' }).version);
 

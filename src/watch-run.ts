@@ -15,7 +15,8 @@ export function makeWatchRun(
 ) {
     const lastTimes = {};
     let startTime : number | null = null;
-    return (watching: WebpackWatching, cb: () => void) => {
+    
+    return (watching: WebpackWatching, callback: () => void) => {
         if (null === instance.modifiedFiles) {
             instance.modifiedFiles = {};
         }
@@ -37,6 +38,6 @@ export function makeWatchRun(
                     instance.modifiedFiles![filePath] = file;
                 }
             });
-        cb();
+        callback();
     };
 }

@@ -97,17 +97,19 @@ export interface Webpack {
      * Emit a file. This is webpack-specific
      */
     emitFile: (fileName: string, text: string) => void; // unused
-    /**
-     * The options passed to the Compiler.
-     */
-    options: {
-        ts: {},
-        resolve: Resolve;
-    };
 }
 
 export interface Compiler {
     plugin: (name: string, callback: Function) => void;
+
+    hooks: any; // TODO: Define this
+
+    /**
+     * The options passed to the Compiler.
+     */
+    options: {
+        resolve: Resolve;
+    };
 }
 
 export interface WebpackError {
@@ -146,7 +148,7 @@ export interface WebpackCompiler {
 export interface WebpackModule {
     resource: string;
     errors: WebpackError[];
-    meta: {
+    buildMeta: {
         tsLoaderFileVersion: number;
         tsLoaderDefinitionFileVersions: string[];
     };

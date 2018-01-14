@@ -155,11 +155,13 @@ function successfulTypeScriptInstance(
         colors
     };
 
-    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
+    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
-    loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
-    loader._compiler.plugin("watch-run", makeWatchRun(instance));
+    // loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
+    // loader._compiler.plugin("watch-run", makeWatchRun(instance));
+    loader._compiler.hooks.afterCompile.tapAsync("ts-loader"), makeAfterCompile(instance, configFilePath);
+    loader._compiler.hooks.watchRun.tapAsync("ts-loader"), makeWatchRun(instance);
 
     return { instance };
 }
