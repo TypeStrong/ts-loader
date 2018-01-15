@@ -24,28 +24,27 @@ export function makeAfterCompile(
             callback();
             return;
         }
-        try {
-            removeTSLoaderErrors(compilation.errors);
 
-            provideCompilerOptionDiagnosticErrorsToWebpack(getCompilerOptionDiagnostics, compilation, instance, configFilePath);
-            getCompilerOptionDiagnostics = false;
-    
-            const modules = determineModules(compilation);
-    
-            const filesToCheckForErrors = determineFilesToCheckForErrors(checkAllFilesForErrors, instance);
-            checkAllFilesForErrors = false;
-    
-            const filesWithErrors: TSFiles = {};
-            provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
-    
-            provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService!, compilation);
-    
-            instance.filesWithErrors = filesWithErrors;
-            instance.modifiedFiles = null;
-        } catch (error) {
-            // TODO: Replace with better logging
-            console.error('error in after-compile', error)
-        }
+        removeTSLoaderErrors(compilation.errors);
+
+        provideCompilerOptionDiagnosticErrorsToWebpack(getCompilerOptionDiagnostics, compilation, instance, configFilePath);
+        getCompilerOptionDiagnostics = false;
+
+        const modules = determineModules(compilation);
+        if (modules) {}
+
+        const filesToCheckForErrors = determineFilesToCheckForErrors(checkAllFilesForErrors, instance);
+        if (filesToCheckForErrors) {}
+        checkAllFilesForErrors = false;
+
+        const filesWithErrors: TSFiles = {};
+        provideErrorsToWebpack(filesToCheckForErrors, filesWithErrors, compilation, modules, instance);
+
+        provideDeclarationFilesToWebpack(filesToCheckForErrors, instance.languageService!, compilation);
+
+        instance.filesWithErrors = filesWithErrors;
+        instance.modifiedFiles = null;
+
         callback();
     };
 }
@@ -131,7 +130,7 @@ function determineFilesToCheckForErrors(
 function provideErrorsToWebpack(
     filesToCheckForErrors: TSFiles,
     filesWithErrors: TSFiles,
-    compilation: WebpackCompilation,
+    _compilation: WebpackCompilation,
     modules: Modules,
     instance: TSInstance
 ) {
@@ -157,12 +156,13 @@ function provideErrorsToWebpack(
 
                     // append errors
                     const formattedErrors = formatErrors(errors, loaderOptions, instance.colors, compiler, { module });
-                    registerWebpackErrors(module.errors, formattedErrors);
-                    registerWebpackErrors(compilation.errors, formattedErrors);
+                    if (formattedErrors) {}
+                    // registerWebpackErrors(module.errors, formattedErrors);
+                    // registerWebpackErrors(compilation.errors, formattedErrors);
                 });
             } else {
                 // otherwise it's a more generic error
-                registerWebpackErrors(compilation.errors, formatErrors(errors, loaderOptions, instance.colors, compiler, { file: filePath }));
+                // registerWebpackErrors(compilation.errors, formatErrors(errors, loaderOptions, instance.colors, compiler, { file: filePath }));
             }
         });
 }

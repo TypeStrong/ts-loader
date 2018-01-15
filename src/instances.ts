@@ -3,8 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import chalk, { Chalk } from 'chalk';
 
-// TODO: Add this back
-// import { makeAfterCompile } from './after-compile';
+import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
 import { EOL, dtsDtsxRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
@@ -159,12 +158,7 @@ function successfulTypeScriptInstance(
     const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
     instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
 
-    // loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
-    // loader._compiler.plugin("watch-run", makeWatchRun(instance));
-
-    // TODO: Add this back
-    // loader._compiler.hooks.afterCompile.tapAsync("ts-loader", makeAfterCompile(instance, configFilePath));
-
+    loader._compiler.hooks.afterCompile.tapAsync("ts-loader", makeAfterCompile(instance, configFilePath));
     loader._compiler.hooks.watchRun.tapAsync("ts-loader", makeWatchRun(instance));
 
     return { instance };
