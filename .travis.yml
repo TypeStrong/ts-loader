@@ -5,7 +5,7 @@ language: node_js
 node_js:
   - "6"
   - "8"
-sudo: false
+sudo: required
 install:
   - yarn install
   - yarn build
@@ -19,3 +19,4 @@ env:
   - TYPESCRIPT=typescript@2.2.1
   - TYPESCRIPT=typescript@2.1.5
   - TYPESCRIPT=typescript@2.0.9
+ 
