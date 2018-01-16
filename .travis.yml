@@ -3,10 +3,9 @@ addons:
   chrome: stable
 language: node_js
 node_js:
-  - "4"
   - "6"
   - "8"
-sudo: false
+sudo: required
 install:
   - yarn install
   - yarn build
