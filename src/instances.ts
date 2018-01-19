@@ -40,7 +40,7 @@ export function getTypeScriptInstance(
                 instance.watchHost.updateRootFileNames();
             }
             if (instance.watchOfFilesAndCompilerOptions) {
-                instance.program = instance.watchOfFilesAndCompilerOptions.getProgram();
+                instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
             }
         }
         return { instance: instances[loaderOptions.instance] };
@@ -168,7 +168,7 @@ function successfulTypeScriptInstance(
         // If there is api available for watch, use it instead of language service
         const watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
         instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(watchHost);
-        instance.program = instance.watchOfFilesAndCompilerOptions.getProgram();
+        instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
     }
     else {
         const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);

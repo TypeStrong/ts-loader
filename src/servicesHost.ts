@@ -204,7 +204,8 @@ export function makeWatchHost(
             if (instance.watchOfFilesAndCompilerOptions) {
                 instance.watchOfFilesAndCompilerOptions.updateRootFileNames(getRootFileNames());
             }
-        }
+        },
+        createProgram: compiler.createAbstractBuilder
     };
     return watchHost;
 
