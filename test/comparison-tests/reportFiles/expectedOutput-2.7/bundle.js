@@ -65,9 +65,24 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-throw new Error("Module build failed: Error: ts-loader was supplied with an unexpected loader option: notRealOption\n\nPlease take a look at the options you are supplying; the following are valid options:\nsilent / logLevel / logInfoToStdOut / instance / compiler / contextAsConfigBasePath / configFile / transpileOnly / ignoreDiagnostics / errorFormatter / colors / compilerOptions / appendTsSuffixTo / appendTsxSuffixTo / entryFileCannotBeJs / onlyCompileBundledFiles / happyPackMode / getCustomTransformers / reportFiles / experimentalWatchApi\n\n    at validateLoaderOptions (C:/source/ts-loader/dist/index.js:92:19)\n    at getLoaderOptions (C:/source/ts-loader/dist/index.js:75:5)\n    at Object.loader (C:/source/ts-loader/dist/index.js:23:19)");
+"use strict";
+
+exports.__esModule = true;
+__webpack_require__(1);
+exports.a = '10';
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+exports.__esModule = true;
+exports.a = '10';
+
 
 /***/ })
 /******/ ]);
