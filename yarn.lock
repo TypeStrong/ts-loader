@@ -3362,9 +3362,9 @@ type-is@~1.6.15:
     media-typer "0.3.0"
     mime-types "~2.1.15"
 
-typescript@^2.7.0-rc:
-  version "2.7.0-rc"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.7.0-rc.tgz#bf86a065a3a0be1e072c3fb7d64e8976f33b8365"
+typescript@^2.7.0-dev.20180120:
+  version "2.7.0-dev.20180120"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.7.0-dev.20180120.tgz#64470f65617bc9cdd95b23dcedf210f83aa73771"
 
 uglify-js@3.1.x:
   version "3.1.6"

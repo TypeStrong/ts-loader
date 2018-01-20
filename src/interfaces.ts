@@ -278,6 +278,7 @@ export interface LoaderOptions {
     instance: string;
     compiler: string;
     configFile: string;
+    /** DEPRECATED */
     contextAsConfigBasePath: boolean;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
@@ -291,6 +292,7 @@ export interface LoaderOptions {
     entryFileCannotBeJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;
+    experimentalWatchApi: boolean;
 }
 
 export interface TSFile {

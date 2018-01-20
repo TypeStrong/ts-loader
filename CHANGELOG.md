@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.3.0
+
+- [Added support for the new watch api of TypeScript compiler.](https://github.com/TypeStrong/ts-loader/pull/685)  nb This feature has been placed behind a new `experimentalWatchApi` option until it has been thoroughly tested. All being well it is likely to become the default behaviour for ts-loader in future - thanks @sheetalkamat!
+
 ## v3.2.0
 
 - [Add new loader option `contextAsConfigBasePath`](https://github.com/TypeStrong/ts-loader/pull/681) - thanks @christiantinauer

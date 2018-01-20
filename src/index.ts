@@ -111,7 +111,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'contextAsConfigBasePath', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'contextAsConfigBasePath', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'experimentalWatchApi'];
 
 /**
  * Validate the supplied loader options.
@@ -140,7 +140,6 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         logInfoToStdOut: false,
         compiler: 'typescript',
         configFile: 'tsconfig.json',
-        contextAsConfigBasePath: false,
         transpileOnly: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
@@ -149,7 +148,9 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         entryFileCannotBeJs: false,
         happyPackMode: false,
         colors: true,
-        onlyCompileBundledFiles: false
+        onlyCompileBundledFiles: false,
+        // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
+        experimentalWatchApi: false
     } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
