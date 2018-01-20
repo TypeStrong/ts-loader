@@ -1,0 +1,4 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.73 kB       0  [emitted]  main
+   [0] ./.test/aliasResolution/app.ts 120 bytes {0}
+   [1] ./.test/aliasResolution/common/components/myComponent.ts 45 bytes {0} [built]
