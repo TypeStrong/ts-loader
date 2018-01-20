@@ -178,14 +178,16 @@ function updateFileInCache(filePath: string, contents: string, instance: TSInsta
             instance.files[filePath] = file;
         }
         else {
-            fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
+            if (instance.watchHost) {
+                fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
+            }
             file = instance.files[filePath] = <TSFile>{ version: 0 };
         }
         instance.changedFilesList = true;
     }
 
-    if (contents === undefined) {
-        fileWatcherEventKind === instance.compiler.FileWatcherEventKind.Deleted;
+    if (instance.watchHost && contents === undefined) {
+        fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Deleted;
     }
 
     if (file.text !== contents) {
