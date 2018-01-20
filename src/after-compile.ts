@@ -68,7 +68,8 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
                     program.getOptionsDiagnostics() :
                     languageService!.getCompilerOptionsDiagnostics(),
                 loaderOptions, instance.colors, compiler,
-                { file: configFilePath || 'tsconfig.json' }));
+                { file: configFilePath || 'tsconfig.json' },
+                compilation.compiler.context));
     }
 }
 
@@ -162,13 +163,17 @@ function provideErrorsToWebpack(
                     removeTSLoaderErrors(module.errors);
 
                     // append errors
-                    const formattedErrors = formatErrors(errors, loaderOptions, instance.colors, compiler, { module });
+                    const formattedErrors = formatErrors(errors, loaderOptions,
+                        instance.colors, compiler, { module },
+                        compilation.compiler.context);
                     registerWebpackErrors(module.errors, formattedErrors);
                     registerWebpackErrors(compilation.errors, formattedErrors);
                 });
             } else {
                 // otherwise it's a more generic error
-                registerWebpackErrors(compilation.errors, formatErrors(errors, loaderOptions, instance.colors, compiler, { file: filePath }));
+                registerWebpackErrors(compilation.errors, formatErrors(errors,
+                    loaderOptions, instance.colors, compiler, { file: filePath },
+                    compilation.compiler.context));
             }
         });
 }

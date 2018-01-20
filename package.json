@@ -39,9 +39,11 @@
     "chalk": "^2.3.0",
     "enhanced-resolve": "^3.0.0",
     "loader-utils": "^1.0.2",
+    "micromatch": "^3.1.4",
     "semver": "^5.0.1"
   },
   "devDependencies": {
+    "@types/micromatch": "^3.1.0",
     "@types/semver": "^5.4.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",

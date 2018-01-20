@@ -2,6 +2,7 @@ import * as typescript from 'typescript';
 import * as path from 'path';
 import * as fs from 'fs';
 import { Chalk } from 'chalk';
+import * as micromatch from 'micromatch';
 
 import constants = require('./constants');
 import {
@@ -49,12 +50,25 @@ export function formatErrors(
     loaderOptions: LoaderOptions,
     colors: Chalk,
     compiler: typeof typescript,
-    merge?: { file?: string; module?: WebpackModule }
+    merge: { file?: string; module?: WebpackModule },
+    context: string
 ): WebpackError[] {
 
     return diagnostics
         ? diagnostics
-            .filter(diagnostic => loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1)
+            .filter(diagnostic => {
+                if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
+                    return false;
+                }
+                if (loaderOptions.reportFiles.length > 0 && diagnostic.file) {
+                    const relativeFileName = path.relative(context, diagnostic.file.fileName);
+                    const matchResult = micromatch([relativeFileName], loaderOptions.reportFiles);
+                    if (matchResult.length === 0) {
+                        return false;
+                    }
+                }
+                return true;
+            })
             .map<WebpackError>(diagnostic => {
                 const file = diagnostic.file;
                 const position = file === undefined ? undefined : file.getLineAndCharacterOfPosition(diagnostic.start!);

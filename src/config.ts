@@ -40,7 +40,8 @@ export function getConfigFile(
         );
 
         if (configFile.error !== undefined) {
-            configFileError = formatErrors([configFile.error], loaderOptions, colors, compiler, { file: configFilePath })[0];
+            configFileError = formatErrors([configFile.error], loaderOptions,
+                colors, compiler, { file: configFilePath }, loader.context)[0];
         }
     } else {
         if (compilerCompatible) { log.logInfo(compilerDetailsLogMessage); }

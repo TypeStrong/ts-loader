@@ -111,7 +111,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'contextAsConfigBasePath', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'experimentalWatchApi'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'contextAsConfigBasePath', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'reportFiles', 'experimentalWatchApi'];
 
 /**
  * Validate the supplied loader options.
@@ -149,6 +149,7 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         happyPackMode: false,
         colors: true,
         onlyCompileBundledFiles: false,
+        reportFiles: [],
         // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
         experimentalWatchApi: false
     } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
@@ -273,7 +274,9 @@ function getTranspilationEmit(
     if (!instance.loaderOptions.happyPackMode) {
         registerWebpackErrors(
             loader._module.errors,
-            formatErrors(diagnostics, instance.loaderOptions, instance.colors, instance.compiler, { module: loader._module })
+            formatErrors(diagnostics, instance.loaderOptions, instance.colors,
+                instance.compiler, { module: loader._module },
+                loader.context)
         );
     }
 

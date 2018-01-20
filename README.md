@@ -245,6 +245,21 @@ messages are emitted via webpack which is not affected by this flag.
 You can squelch certain TypeScript errors by specifying an array of diagnostic
 codes to ignore.
 
+#### reportFiles *(string[]) (default=[])*
+
+Only report errors on files matching these glob patterns.
+
+```javascript
+  // in webpack.config.js
+  {
+    test: /\.ts$/,
+    loader: 'ts-loader',
+    options: { reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'] }
+  }
+```
+
+This can be useful when certain types definitions have errors that are not fatal to your application.
+
 #### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
