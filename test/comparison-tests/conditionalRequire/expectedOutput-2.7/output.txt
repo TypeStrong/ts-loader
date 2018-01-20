@@ -1,0 +1,8 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  1.44 kB       0  [emitted]  main
+   [0] ./.test/conditionalRequire/app.ts 312 bytes {0} [built]
+
+WARNING in bundle.js from UglifyJs
+Condition always false [bundle.js:76,4]
+Dropping unreachable code [bundle.js:76,11]
+Declarations in unreachable code! [bundle.js:77,4]

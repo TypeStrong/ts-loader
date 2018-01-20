@@ -156,6 +156,24 @@ The build **should** fail on TypeScript compilation errors as of webpack 2. If f
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
 
+### `baseUrl` / `paths` module resolution
+
+If you want to resolve modules according to `baseUrl` and `paths` in your `tsconfig.json` then you can use the [tsconfig-paths-webpack-plugin](https://www.npmjs.com/package/tsconfig-paths-webpack-plugin) package. For details about this functionality, see the [module resolution documentation](https://www.typescriptlang.org/docs/handbook/module-resolution.html#base-url).
+
+This feature requires webpack 2.1+ and TypeScript 2.0+. Use the config below or check the [package](https://github.com/dividab/tsconfig-paths-webpack-plugin/blob/master/README.md) for more information on usage.
+
+```js
+const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
+
+module.exports = {
+  ...
+  resolve: {
+    plugins: [new TsconfigPathsPlugin({ /*configFile: "./path/to/tsconfig.json" */ })]
+  }
+  ...
+}
+```
+
 ### Options
 
 There are two types of options: TypeScript options (aka "compiler options") and loader options. TypeScript options should be set using a tsconfig.json file. Loader options can be specified through the `options` property in the webpack configuration:
@@ -226,6 +244,21 @@ messages are emitted via webpack which is not affected by this flag.
 
 You can squelch certain TypeScript errors by specifying an array of diagnostic
 codes to ignore.
+
+#### reportFiles *(string[]) (default=[])*
+
+Only report errors on files matching these glob patterns.
+
+```javascript
+  // in webpack.config.js
+  {
+    test: /\.ts$/,
+    loader: 'ts-loader',
+    options: { reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'] }
+  }
+```
+
+This can be useful when certain types definitions have errors that are not fatal to your application.
 
 #### compiler *(string) (default='typescript')*
 
