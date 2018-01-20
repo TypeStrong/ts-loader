@@ -1,0 +1,9 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.99 kB       0  [emitted]  main
+   [0] ./.test/onlyCompileBundledFiles/lib/externalLib.js 55 bytes {0}
+   [1] ./.test/onlyCompileBundledFiles/app.ts 170 bytes {0} [built] [1 error]
+   [2] ./.test/onlyCompileBundledFiles/submodule/submodule.ts 149 bytes {0}
+
+ERROR in ./.test/onlyCompileBundledFiles/app.ts
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,13)[39m[22m
+[1m[31m      TS2551: Property 'doSomething2' does not exist on type 'typeof externalLib'. Did you mean 'doSomething'?[39m[22m
