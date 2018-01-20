@@ -278,8 +278,7 @@ export interface LoaderOptions {
     instance: string;
     compiler: string;
     configFile: string;
-    /** DEPRECATED */
-    contextAsConfigBasePath: boolean;
+    context: string;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
     reportFiles: string[];

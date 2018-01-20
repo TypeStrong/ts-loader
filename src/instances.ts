@@ -79,11 +79,7 @@ function successfulTypeScriptInstance(
     }
 
     const { configFilePath, configFile } = configFileAndPath;
-
-    const basePath = loaderOptions.contextAsConfigBasePath
-        ? loader.context
-        : path.dirname(configFilePath || '');
-
+    const basePath = loaderOptions.context || path.dirname(configFilePath || '');
     const configParseResult = getConfigParseResult(compiler, configFile, basePath);
 
     if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
