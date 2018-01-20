@@ -3,8 +3,9 @@ environment:
   FORCE_COLOR: 1
   nodejs_version: "8"
   matrix:
-  - TYPESCRIPT: typescript@2.6.1
+  - TYPESCRIPT: typescript@2.7.0-rc
   - TYPESCRIPT: typescript@next
+  - TYPESCRIPT: typescript@2.6.1
   - TYPESCRIPT: typescript@2.5.2
   - TYPESCRIPT: typescript@2.4.1
   - TYPESCRIPT: typescript@2.3.1

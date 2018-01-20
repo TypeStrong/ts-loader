@@ -1,7 +1,8 @@
 import * as path from 'path';
 import * as loaderUtils from 'loader-utils';
+import * as typescript from 'typescript';
 
-import { getTypeScriptInstance } from './instances';
+import { getTypeScriptInstance, getEmitOutput } from './instances';
 import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
 import * as constants from './constants';
 import {
@@ -110,7 +111,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'contextAsConfigBasePath', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'reportFiles'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'contextAsConfigBasePath', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'reportFiles', 'experimentalWatchApi'];
 
 /**
  * Validate the supplied loader options.
@@ -139,7 +140,6 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         logInfoToStdOut: false,
         compiler: 'typescript',
         configFile: 'tsconfig.json',
-        contextAsConfigBasePath: false,
         transpileOnly: false,
         compilerOptions: {},
         appendTsSuffixTo: [],
@@ -150,6 +150,8 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         colors: true,
         onlyCompileBundledFiles: false,
         reportFiles: []
+        // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
+        experimentalWatchApi: false
     } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
@@ -167,16 +169,38 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
  * Also add the file to the modified files
  */
 function updateFileInCache(filePath: string, contents: string, instance: TSInstance) {
+    let fileWatcherEventKind: typescript.FileWatcherEventKind | undefined;
     // Update file contents
     let file = instance.files[filePath];
     if (file === undefined) {
-        file = instance.files[filePath] = <TSFile>{ version: 0 };
+        file = instance.otherFiles[filePath];
+        if (file !== undefined) {
+            delete instance.otherFiles[filePath];
+            instance.files[filePath] = file;
+        }
+        else {
+            fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
+            file = instance.files[filePath] = <TSFile>{ version: 0 };
+        }
+        instance.changedFilesList = true;
+    }
+
+    if (contents === undefined) {
+        fileWatcherEventKind === instance.compiler.FileWatcherEventKind.Deleted;
     }
 
     if (file.text !== contents) {
         file.version++;
         file.text = contents;
         instance.version!++;
+        if (instance.watchHost && fileWatcherEventKind === undefined) {
+            instance.watchHost.invokeFileWatcher(filePath, instance.compiler.FileWatcherEventKind.Changed);
+        }
+    }
+
+    if (instance.watchHost && fileWatcherEventKind !== undefined) {
+        instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind);
+        instance.watchHost.invokeDirectoryWatcher(path.dirname(filePath), filePath);
     }
 
     // push this file to modified files hash.
@@ -193,8 +217,7 @@ function getEmit(
     instance: TSInstance,
     loader: Webpack
 ) {
-    // Emit Javascript
-    const output = instance.languageService!.getEmitOutput(filePath);
+    const outputFiles = getEmitOutput(instance, filePath);
 
     loader.clearDependencies();
     loader.addDependency(rawFilePath);
@@ -218,10 +241,10 @@ function getEmit(
         .concat(additionalDependencies)
         .map(defFilePath => defFilePath + '@' + (instance.files[defFilePath] || { version: '?' }).version);
 
-    const outputFile = output.outputFiles.filter(outputFile => outputFile.name.match(constants.jsJsx)).pop();
+    const outputFile = outputFiles.filter(outputFile => outputFile.name.match(constants.jsJsx)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;
 
-    const sourceMapFile = output.outputFiles.filter(outputFile => outputFile.name.match(constants.jsJsxMap)).pop();
+    const sourceMapFile = outputFiles.filter(outputFile => outputFile.name.match(constants.jsJsxMap)).pop();
     const sourceMapText = (sourceMapFile) ? sourceMapFile.text : undefined;
 
     return { outputText, sourceMapText };

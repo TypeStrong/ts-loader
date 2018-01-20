@@ -132,6 +132,18 @@ export function appendSuffixesIfMatch(suffixDict: { [suffix: string]: RegExp[] }
     return path;
 }
 
+export function unorderedRemoveItem<T>(array: T[], item: T): boolean {
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] === item) {
+            // Fill in the "hole" left at `index`.
+            array[i] = array[array.length - 1];
+            array.pop();
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * Recursively collect all possible dependants of passed file
  */
