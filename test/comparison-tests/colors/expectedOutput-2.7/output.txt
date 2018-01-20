@@ -1,13 +1,14 @@
     Asset     Size  Chunks             Chunk Names
 bundle.js  2.62 kB       0  [emitted]  main
-   [0] ./.test/colors/app.ts 147 bytes {0} [built] [failed] [2 errors]
+   [0] ./.test/colors/app.ts 149 bytes {0} [built] [failed] [2 errors]
 
 ERROR in ./.test/colors/app.ts
 [tsl] ERROR in app.ts(1,7)
-      TS1005: '=' expected.
+      TS1005: ',' expected.
 
 ERROR in ./.test/colors/app.ts
-Module parse failed: Unexpected token (1:9)
+Module parse failed: Unexpected token (2:1)
 You may need an appropriate loader to handle this file type.
-| var a =  == 0;
+| var a;
+|  == 0;
 | 
