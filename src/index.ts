@@ -149,7 +149,7 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         happyPackMode: false,
         colors: true,
         onlyCompileBundledFiles: false,
-        reportFiles: []
+        reportFiles: [],
         // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
         experimentalWatchApi: false
     } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
