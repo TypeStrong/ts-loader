@@ -130,7 +130,7 @@ function determineFilesToCheckForErrors(
 function provideErrorsToWebpack(
     filesToCheckForErrors: TSFiles,
     filesWithErrors: TSFiles,
-    _compilation: WebpackCompilation,
+    compilation: WebpackCompilation,
     modules: Modules,
     instance: TSInstance
 ) {
@@ -157,12 +157,12 @@ function provideErrorsToWebpack(
                     // append errors
                     const formattedErrors = formatErrors(errors, loaderOptions, instance.colors, compiler, { module });
                     if (formattedErrors) {}
-                    // registerWebpackErrors(module.errors, formattedErrors);
-                    // registerWebpackErrors(compilation.errors, formattedErrors);
+                    registerWebpackErrors(module.errors, formattedErrors);
+                    registerWebpackErrors(compilation.errors, formattedErrors);
                 });
             } else {
                 // otherwise it's a more generic error
-                // registerWebpackErrors(compilation.errors, formatErrors(errors, loaderOptions, instance.colors, compiler, { file: filePath }));
+                registerWebpackErrors(compilation.errors, formatErrors(errors, loaderOptions, instance.colors, compiler, { file: filePath }));
             }
         });
 }
