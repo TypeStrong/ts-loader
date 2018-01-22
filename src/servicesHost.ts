@@ -145,7 +145,7 @@ export function makeWatchHost(
                 constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
-    const resolveSync = makeResolver(loader.options);
+    const resolveSync = makeResolver(loader._compiler.options);
 
     const readFileWithFallback = compiler.sys === undefined || compiler.sys.readFile === undefined
         ? readFile
