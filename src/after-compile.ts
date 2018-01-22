@@ -138,11 +138,11 @@ function determineFilesToCheckForErrors(
 function provideErrorsToWebpack(
     filesToCheckForErrors: TSFiles,
     filesWithErrors: TSFiles,
-    compilation: WebpackCompilation,
+    _compilation: WebpackCompilation,
     modules: Modules,
     instance: TSInstance
 ) {
-    const { compiler, program, languageService, files, loaderOptions, compilerOptions, otherFiles } = instance;
+    const { /*compiler,*/ program, languageService, files, /*loaderOptions,*/ compilerOptions, otherFiles } = instance;
 
     let filePathRegex = !!compilerOptions.checkJs ? constants.dtsTsTsxJsJsxRegex : constants.dtsTsTsxRegex;
 
@@ -166,17 +166,17 @@ function provideErrorsToWebpack(
                     removeTSLoaderErrors(module.errors);
 
                     // append errors
-                    const formattedErrors = formatErrors(errors, loaderOptions,
-                        instance.colors, compiler, { module },
-                        compilation.compiler.context);
-                    registerWebpackErrors(module.errors, formattedErrors);
-                    registerWebpackErrors(compilation.errors, formattedErrors);
+                    // const formattedErrors = formatErrors(errors, loaderOptions,
+                    //     instance.colors, compiler, { module },
+                    //     compilation.compiler.context);
+                    // registerWebpackErrors(module.errors, formattedErrors);
+                    // registerWebpackErrors(compilation.errors, formattedErrors);
                 });
             } else {
                 // otherwise it's a more generic error
-                registerWebpackErrors(compilation.errors, formatErrors(errors,
-                    loaderOptions, instance.colors, compiler, { file: filePath },
-                    compilation.compiler.context));
+                // registerWebpackErrors(compilation.errors, formatErrors(errors,
+                //     loaderOptions, instance.colors, compiler, { file: filePath },
+                //     compilation.compiler.context));
             }
         });
 }
