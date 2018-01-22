@@ -15,12 +15,6 @@ import {
     ErrorInfo
 } from './interfaces';
 
-type ErrorOrNumber = WebpackError | number;
-
-export function registerWebpackErrors(existingErrors: WebpackError[], errorsToPush: WebpackError[]) {
-    Array.prototype.splice.apply(existingErrors, (<ErrorOrNumber[]>[0, 0]).concat(errorsToPush));
-}
-
 export function hasOwnProperty<T extends {}>(obj: T, property: string) {
     return Object.prototype.hasOwnProperty.call(obj, property);
 }
@@ -87,7 +81,7 @@ export function formatErrors(
 
                 const error = makeError(
                     message,
-                    merge === undefined ? undefined : merge.file,
+                    merge.file === undefined ? errorInfo.file : merge.file,
                     position === undefined
                         ? undefined
                         : { line: errorInfo.line, character: errorInfo.character }
@@ -107,7 +101,10 @@ export function readFile(fileName: string, encoding: string | undefined = 'utf8'
     }
 }
 
-export function makeError(message: string, file?: string, location?: { line: number, character: number }): WebpackError {
+export function makeError(
+    message: string,
+    file: string | undefined,
+    location?: { line: number, character: number }): WebpackError {
     return {
         message, location, file,
         loaderSource: 'ts-loader'

@@ -112,11 +112,13 @@ export interface Compiler {
     };
 }
 
+export type FileLocation = { line: number, character: number }
+
 export interface WebpackError {
     module?: any;
     file?: string;
     message: string;
-    location?: { line: number, character: number };
+    location?: FileLocation;
     loaderSource: string;
 }
 

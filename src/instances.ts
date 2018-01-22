@@ -7,7 +7,7 @@ import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
 import { EOL, dtsDtsxRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
-import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
+import { hasOwnProperty, makeError, formatErrors } from './utils';
 import * as logger from './logger';
 import { makeServicesHost, makeWatchHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
@@ -51,7 +51,7 @@ export function getTypeScriptInstance(
     const compiler = getCompiler(loaderOptions, log);
 
     if (compiler.errorMessage !== undefined) {
-        return { error: makeError(colors.red(compiler.errorMessage)) };
+        return { error: makeError(colors.red(compiler.errorMessage), undefined) };
     }
 
     return successfulTypeScriptInstance(
@@ -86,7 +86,7 @@ function successfulTypeScriptInstance(
         const errors = formatErrors(configParseResult.errors, loaderOptions, colors,
             compiler, { file: configFilePath }, loader.context);
 
-        registerWebpackErrors(loader._module.errors, errors);
+        loader._module.errors.push(...errors);
 
         return { error: makeError(colors.red('error while parsing tsconfig.json'), configFilePath) };
     }
@@ -105,10 +105,10 @@ function successfulTypeScriptInstance(
         // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
         if (!loaderOptions.happyPackMode) {
             const diagnostics = program.getOptionsDiagnostics();
-            registerWebpackErrors(
-                loader._module.errors,
-                formatErrors(diagnostics, loaderOptions, colors, compiler!,
-                    {file: configFilePath || 'tsconfig.json'}, loader.context));
+            const errors = formatErrors(diagnostics, loaderOptions, colors, compiler!,
+                {file: configFilePath || 'tsconfig.json'}, loader.context);
+
+            loader._module.errors.push(...errors);
         }
 
         const instance: TSInstance = {
@@ -141,7 +141,7 @@ function successfulTypeScriptInstance(
           });
     } catch (exc) {
         return { 
-            error: makeError(colors.red(`A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`)) 
+            error: makeError(colors.red(`A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`), normalizedFilePath!) 
         };
     }
 

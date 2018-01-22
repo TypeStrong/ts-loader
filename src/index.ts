@@ -3,7 +3,7 @@ import * as loaderUtils from 'loader-utils';
 import * as typescript from 'typescript';
 
 import { getTypeScriptInstance, getEmitOutput } from './instances';
-import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
+import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty } from './utils';
 import * as constants from './constants';
 import {
     AsyncCallback,
@@ -274,12 +274,11 @@ function getTranspilationEmit(
 
     // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!instance.loaderOptions.happyPackMode) {
-        registerWebpackErrors(
-            loader._module.errors,
-            formatErrors(diagnostics, instance.loaderOptions, instance.colors,
-                instance.compiler, { module: loader._module },
-                loader.context)
-        );
+        const errors = formatErrors(diagnostics, instance.loaderOptions, instance.colors,
+            instance.compiler, { module: loader._module },
+            loader.context);
+
+        loader._module.errors.push(...errors);
     }
 
     return { outputText, sourceMapText };
