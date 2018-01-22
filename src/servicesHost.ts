@@ -5,8 +5,9 @@ import * as semver from 'semver';
 import * as constants from './constants';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import { appendSuffixesIfMatch, readFile } from './utils';
+import { appendSuffixesIfMatch, readFile, unorderedRemoveItem } from './utils';
 import {
+    WatchHost,
     ModuleResolutionHost,
     ResolvedModule,
     ResolveSync,
@@ -114,7 +115,7 @@ export function makeServicesHost(
                 compiler.resolveTypeReferenceDirective(directive, containingFile, compilerOptions, moduleResolutionHost).resolvedTypeReferenceDirective),
         */
 
-        resolveModuleNames: (moduleNames: string[], containingFile: string) =>
+        resolveModuleNames: (moduleNames, containingFile) =>
             resolveModuleNames(
                 resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
                 moduleNames, containingFile, resolutionStrategy),
@@ -123,6 +124,173 @@ export function makeServicesHost(
     };
 
     return servicesHost;
+}
+
+/**
+ * Create the TypeScript Watch host
+ */
+export function makeWatchHost(
+    scriptRegex: RegExp,
+    log: logger.Logger,
+    loader: Webpack,
+    instance: TSInstance,
+    appendTsSuffixTo: RegExp[],
+    appendTsxSuffixTo: RegExp[]
+) {
+    const { compiler, compilerOptions, files, otherFiles } = instance;
+
+    const newLine =
+        compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
+            compilerOptions.newLine === constants.LineFeedCode ? constants.LineFeed :
+                constants.EOL;
+
+    // make a (sync) resolver that follows webpack's rules
+    const resolveSync = makeResolver(loader.options);
+
+    const readFileWithFallback = compiler.sys === undefined || compiler.sys.readFile === undefined
+        ? readFile
+        : (path: string, encoding?: string | undefined): string | undefined => compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+
+    const moduleResolutionHost: ModuleResolutionHost = {
+        fileExists,
+        readFile: readFileWithFallback
+    };
+
+    // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
+    const getCurrentDirectory = (compiler!.version && semver.gte(compiler!.version, '2.3.0'))
+        ? () => loader.context
+        : () => process.cwd();
+
+    const resolutionStrategy = (compiler!.version && semver.gte(compiler!.version, '2.4.0'))
+        ? resolutionStrategyTS24AndAbove
+        : resolutionStrategyTS23AndBelow;
+
+    type WatchCallbacks<T> = { [fileName: string]: T[] | undefined };
+    const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = {};
+    const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> = {};
+    const watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback> = {};
+
+    const watchHost: WatchHost = {
+        rootFiles: getRootFileNames(),
+        options: compilerOptions,
+
+        useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
+        getNewLine: () => newLine,
+        getCurrentDirectory,
+        getDefaultLibFileName,
+
+        fileExists,
+        readFile: readFileWithCachingText,
+        directoryExists: s => compiler.sys.directoryExists(path.normalize(s)),
+        getDirectories: s => compiler.sys.getDirectories(path.normalize(s)),
+        readDirectory: (s, extensions, exclude, include, depth) => compiler.sys.readDirectory(path.normalize(s), extensions, exclude, include, depth),
+        realpath: s => compiler.sys.resolvePath(path.normalize(s)),
+        trace: s => log.logInfo(s),
+
+        watchFile,
+        watchDirectory,
+
+        resolveModuleNames: (moduleNames, containingFile) =>
+            resolveModuleNames(
+                resolveSync, moduleResolutionHost, appendTsSuffixTo, appendTsxSuffixTo, scriptRegex, instance,
+                moduleNames, containingFile, resolutionStrategy),
+
+        invokeFileWatcher,
+        invokeDirectoryWatcher,
+        updateRootFileNames: () => {
+            instance.changedFilesList = false;
+            if (instance.watchOfFilesAndCompilerOptions) {
+                instance.watchOfFilesAndCompilerOptions.updateRootFileNames(getRootFileNames());
+            }
+        },
+        createProgram: compiler.createAbstractBuilder
+    };
+    return watchHost;
+
+    function getDefaultLibFileName(options: typescript.CompilerOptions) {
+        return path.join(path.dirname(compiler.sys.getExecutingFilePath()), compiler.getDefaultLibFileName(options));
+    }
+
+    function getRootFileNames() {
+        return Object.keys(files).filter(filePath => filePath.match(scriptRegex));
+    }
+
+    function readFileWithCachingText(fileName: string, encoding?: string) {
+        fileName = path.normalize(fileName);
+        let file = files[fileName] || otherFiles[fileName];
+        if (file !== undefined) {
+            return file.text;
+        }
+        const text = readFileWithFallback(fileName, encoding);
+        if (text === undefined) { return undefined; }
+        otherFiles[fileName] = { version: 0, text };
+        return text;
+    }
+
+    function fileExists(s: string) {
+        s = path.normalize(s);
+        return !!files.hasOwnProperty(s) || compiler.sys.fileExists(s);
+    }
+
+    function invokeWatcherCallbacks(callbacks: typescript.FileWatcherCallback[] | undefined, fileName: string, eventKind: typescript.FileWatcherEventKind): void;
+    function invokeWatcherCallbacks(callbacks: typescript.DirectoryWatcherCallback[] | undefined, fileName: string): void;
+    function invokeWatcherCallbacks(callbacks: typescript.FileWatcherCallback[] | typescript.DirectoryWatcherCallback[] | undefined, fileName: string, eventKind?: typescript.FileWatcherEventKind) {
+        if (callbacks) {
+            // The array copy is made to ensure that even if one of the callback removes the callbacks,
+            // we dont miss any callbacks following it
+            const cbs = callbacks.slice();
+            for (const cb of cbs) {
+                cb(fileName, eventKind as typescript.FileWatcherEventKind);
+            }
+        }
+    }
+
+    function invokeFileWatcher(fileName: string, eventKind: typescript.FileWatcherEventKind) {
+        fileName = path.normalize(fileName);
+        invokeWatcherCallbacks(watchedFiles[fileName], fileName, eventKind);
+    }
+
+    function invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string) {
+        directory = path.normalize(directory);
+        invokeWatcherCallbacks(watchedDirectories[directory], fileAddedOrRemoved);
+        invokeRecursiveDirectoryWatcher(directory, fileAddedOrRemoved);
+    }
+
+    function invokeRecursiveDirectoryWatcher(directory: string, fileAddedOrRemoved: string) {
+        directory = path.normalize(directory);
+        invokeWatcherCallbacks(watchedDirectoriesRecursive[directory], fileAddedOrRemoved);
+        const basePath = path.dirname(directory);
+        if (directory !== basePath) {
+            invokeRecursiveDirectoryWatcher(basePath, fileAddedOrRemoved);
+        }
+    }
+
+    function createWatcher<T>(file: string, callbacks: WatchCallbacks<T>, callback: T): typescript.FileWatcher {
+        file = path.normalize(file);
+        const existing = callbacks[file];
+        if (existing) {
+            existing.push(callback);
+        }
+        else {
+            callbacks[file] = [callback];
+        }
+        return {
+            close: () => {
+                const existing = callbacks[file];
+                if (existing) {
+                    unorderedRemoveItem(existing, callback);
+                }
+            }
+        };
+    }
+
+    function watchFile(fileName: string, callback: typescript.FileWatcherCallback, _pollingInterval?: number) {
+        return createWatcher(fileName, watchedFiles, callback);
+    }
+
+    function watchDirectory(fileName: string, callback: typescript.DirectoryWatcherCallback, recursive?: boolean) {
+        return createWatcher(fileName, recursive ? watchedDirectoriesRecursive : watchedDirectories, callback);
+    }
 }
 
 function resolveModuleNames(

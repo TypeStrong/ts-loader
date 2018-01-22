@@ -1,0 +1,7 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.75 kB       0  [emitted]  main
+   [0] ./.test/ignoreDiagnostics/app.ts 256 bytes {0} [built] [1 error]
+
+ERROR in ./.test/ignoreDiagnostics/app.ts
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(9,5)[39m[22m
+[1m[31m      TS2322: Type '"b"' is not assignable to type 'Number'.[39m[22m

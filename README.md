@@ -245,6 +245,21 @@ messages are emitted via webpack which is not affected by this flag.
 You can squelch certain TypeScript errors by specifying an array of diagnostic
 codes to ignore.
 
+#### reportFiles *(string[]) (default=[])*
+
+Only report errors on files matching these glob patterns.
+
+```javascript
+  // in webpack.config.js
+  {
+    test: /\.ts$/,
+    loader: 'ts-loader',
+    options: { reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'] }
+  }
+```
+
+This can be useful when certain types definitions have errors that are not fatal to your application.
+
 #### compiler *(string) (default='typescript')*
 
 Allows use of TypeScript compilers other than the official one. Should be
@@ -428,17 +443,18 @@ loading only those files that are actually bundled by webpack, as well as any `.
 by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
 compilation without being explicitly imported, and therefore not picked up by webpack.
 
-#### contextAsConfigBasePath *(boolean) (default=false)*
+#### context *(string) (default=undefined)*
 
-If true, will parse the TypeScript configuration file with 
-[webpack.context](https://webpack.js.org/configuration/entry-context/#context) as base path.
+If set, will parse the TypeScript configuration file with given **absolute path** as base path.
 Per default the directory of the configuration file is used as base path. Relative paths in the configuration 
-file are resolved with respect to the base path when parsed. Option `contextAsConfigBasePath` allows to set option
-`configFile` to a path other than the project root (e.g. a NPM package) and the base path for `ts-loader` is [webpack.context](https://webpack.js.org/configuration/entry-context/#context) (which is most of the time the project root).
+file are resolved with respect to the base path when parsed. Option `context` allows to set option
+`configFile` to a path other than the project root (e.g. a NPM package), while the base path for `ts-loader` 
+can remain the project root.
 
 Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `ts-loader` and `tsc`.
 When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file
-referenced in option `configFile`. For more information [please read the PR](https://github.com/TypeStrong/ts-loader/pull/681) that contributed this option.
+referenced in option `configFile`. For more information please [read the PR](https://github.com/TypeStrong/ts-loader/pull/681) that 
+is the base and [read the PR](https://github.com/TypeStrong/ts-loader/pull/688) that contributed this option.
 
 Webpack:
 
@@ -446,7 +462,7 @@ Webpack:
 {
   loader: require.resolve('ts-loader'),
   options: {
-    contextAsConfigBasePath: true,
+    context: __dirname,
     configFile: require.resolve('ts-config-react-app')
   }
 }

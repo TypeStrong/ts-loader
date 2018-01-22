@@ -8,6 +8,8 @@ var typescript = require('typescript');
 var semver = require('semver');
 var pathExists = require('../pathExists');
 
+process.env.NODE_ENV = 'test';
+
 // Parse command line arguments
 var indexOfSingleTest = process.argv.indexOf('--single-test');
 var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
