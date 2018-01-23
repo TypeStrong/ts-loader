@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.3.1
+
+- [Fixes to support watch api for compiling - lib support etc](https://github.com/TypeStrong/ts-loader/pull/715) - thanks @sheetalkamat!
+
 ## v3.3.0
 
 - [Report diagnostics only on certain files with `reportFiles` option](https://github.com/TypeStrong/ts-loader/pull/701) - thanks @freeman!
