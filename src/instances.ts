@@ -22,6 +22,18 @@ import {
 
 const instances = <TSInstances> {};
 
+function ensureProgram(instance: TSInstance) {
+    if (instance && instance.watchHost) {
+        if (instance.changedFilesList) {
+            instance.watchHost.updateRootFileNames();
+        }
+        if (instance.watchOfFilesAndCompilerOptions) {
+            instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
+        }
+        return instance.program;
+    }
+    return undefined;
+}
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
  * a persistent instance of TypeScript that contains all of the files in the program
@@ -35,14 +47,7 @@ export function getTypeScriptInstance(
 ): { instance?: TSInstance, error?: WebpackError } {
     if (hasOwnProperty(instances, loaderOptions.instance)) {
         const instance = instances[loaderOptions.instance];
-        if (instance && instance.watchHost) {
-            if (instance.changedFilesList) {
-                instance.watchHost.updateRootFileNames();
-            }
-            if (instance.watchOfFilesAndCompilerOptions) {
-                instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
-            }
-        }
+        ensureProgram(instance);
         return { instance: instances[loaderOptions.instance] };
     }
 
@@ -169,8 +174,8 @@ function successfulTypeScriptInstance(
         log.logInfo("Using watch api");
 
         // If there is api available for watch, use it instead of language service
-        const watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
-        instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(watchHost);
+        instance.watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
+        instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(instance.watchHost);
         instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
     }
     else {
@@ -185,12 +190,13 @@ function successfulTypeScriptInstance(
 }
 
 export function getEmitOutput(instance: TSInstance, filePath: string) {
-    if (instance.program) {
+    const program = ensureProgram(instance);
+    if (program) {
         const outputFiles: typescript.OutputFile[] = [];
         const writeFile = (fileName: string, text: string, writeByteOrderMark: boolean) =>
             outputFiles.push({ name: fileName, writeByteOrderMark, text });
-        const sourceFile = instance.program.getSourceFile(filePath);
-        instance.program.emit(sourceFile, writeFile, /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ false, instance.transformers);
+        const sourceFile = program.getSourceFile(filePath);
+        program.emit(sourceFile, writeFile, /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ false, instance.transformers);
         return outputFiles;
     }
     else {
