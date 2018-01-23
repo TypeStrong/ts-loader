@@ -1,4 +1,5 @@
 module.exports = {
+    mode: 'development',
     entry: { 
         a: './a.ts',
         b: './b.ts'

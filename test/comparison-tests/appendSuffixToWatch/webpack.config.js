@@ -1,4 +1,5 @@
 module.exports = {
+    mode: 'development',
     stats: "errors-only",
     entry: {
         entry1: './entry1.ts',

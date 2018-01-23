@@ -1,4 +1,5 @@
 module.exports = {
+    mode: 'development',
     entry: './index.vue',
     output: {
         filename: 'bundle.js'

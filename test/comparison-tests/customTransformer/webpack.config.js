@@ -3,6 +3,7 @@ var path = require('path')
 var uppercaseStringLiteralTransformer = require('./uppercaseStringLiteralTransformer').default;
 
 module.exports = {
+    mode: 'development',
     entry: './app.ts',
     output: {
         filename: 'bundle.js'
