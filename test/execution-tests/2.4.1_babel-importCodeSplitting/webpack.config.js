@@ -17,7 +17,8 @@ var babelOptions = {
 };
 
 module.exports = {
-    entry: './app.ts',
+  mode: 'development',
+  entry: './app.ts',
   output: {
       filename: 'bundle.js'
   },

@@ -2,6 +2,7 @@ var path = require('path');
 var HappyPack = require('happypack');
 
 module.exports = {
+    mode: 'development',
     entry: './src/app.ts',
     output: {
         filename: 'bundle.js'

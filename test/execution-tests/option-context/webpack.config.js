@@ -5,6 +5,7 @@ var path = require('path');
 var webpack = require('webpack');
 
 module.exports = {
+  mode: 'development',
   entry: './src/main.tsx',
   output: {
       filename: 'bundle.js'

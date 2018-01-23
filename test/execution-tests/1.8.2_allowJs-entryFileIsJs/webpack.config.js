@@ -2,6 +2,7 @@ var path = require('path');
 var aliasLoader = require('../../aliasLoader');
 
 var config = {
+    mode: 'development',
     entry: './src/app.ts',
     output: {
         filename: 'bundle.js'
