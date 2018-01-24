@@ -9,7 +9,7 @@ import { EOL, dtsDtsxRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
 import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
 import * as logger from './logger';
-import { makeServicesHost } from './servicesHost';
+import { makeServicesHost, makeWatchHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
 import { 
     LoaderOptions,
@@ -22,6 +22,18 @@ import {
 
 const instances = <TSInstances> {};
 
+function ensureProgram(instance: TSInstance) {
+    if (instance && instance.watchHost) {
+        if (instance.changedFilesList) {
+            instance.watchHost.updateRootFileNames();
+        }
+        if (instance.watchOfFilesAndCompilerOptions) {
+            instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
+        }
+        return instance.program;
+    }
+    return undefined;
+}
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
  * a persistent instance of TypeScript that contains all of the files in the program
@@ -34,6 +46,8 @@ export function getTypeScriptInstance(
     loader: Webpack
 ): { instance?: TSInstance, error?: WebpackError } {
     if (hasOwnProperty(instances, loaderOptions.instance)) {
+        const instance = instances[loaderOptions.instance];
+        ensureProgram(instance);
         return { instance: instances[loaderOptions.instance] };
     }
 
@@ -70,15 +84,12 @@ function successfulTypeScriptInstance(
     }
 
     const { configFilePath, configFile } = configFileAndPath;
-
-    const basePath = loaderOptions.contextAsConfigBasePath
-        ? loader.context
-        : path.dirname(configFilePath || '');
-
+    const basePath = loaderOptions.context || path.dirname(configFilePath || '');
     const configParseResult = getConfigParseResult(compiler, configFile, basePath);
 
     if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
-        const errors = formatErrors(configParseResult.errors, loaderOptions, colors, compiler, { file: configFilePath });
+        const errors = formatErrors(configParseResult.errors, loaderOptions, colors,
+            compiler, { file: configFilePath }, loader.context);
 
         registerWebpackErrors(loader._module.errors, errors);
 
@@ -87,6 +98,7 @@ function successfulTypeScriptInstance(
 
     const compilerOptions = getCompilerOptions(configParseResult);
     const files: TSFiles = {};
+    const otherFiles: TSFiles = {};
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
 
@@ -94,20 +106,22 @@ function successfulTypeScriptInstance(
         // quick return for transpiling
         // we do need to check for any issues with TS options though
         const program = compiler!.createProgram([], compilerOptions);
-        const diagnostics = program.getOptionsDiagnostics();
 
         // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
         if (!loaderOptions.happyPackMode) {
+            const diagnostics = program.getOptionsDiagnostics();
             registerWebpackErrors(
                 loader._module.errors,
-                formatErrors(diagnostics, loaderOptions, colors, compiler!, {file: configFilePath || 'tsconfig.json'}));
+                formatErrors(diagnostics, loaderOptions, colors, compiler!,
+                    {file: configFilePath || 'tsconfig.json'}, loader.context));
         }
 
-        const instance = { 
+        const instance: TSInstance = {
             compiler, 
             compilerOptions, 
             loaderOptions, 
-            files, 
+            files,
+            otherFiles,
             dependencyGraph: {}, 
             reverseDependencyGraph: {}, 
             transformers: getCustomTransformers(),
@@ -146,6 +160,7 @@ function successfulTypeScriptInstance(
         compilerOptions,
         loaderOptions,
         files,
+        otherFiles,
         languageService: null,
         version: 0,
         transformers: getCustomTransformers(),
@@ -155,11 +170,37 @@ function successfulTypeScriptInstance(
         colors
     };
 
-    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
-    instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
+    if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
+        log.logInfo("Using watch api");
+
+        // If there is api available for watch, use it instead of language service
+        instance.watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
+        instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(instance.watchHost);
+        instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
+    }
+    else {
+        const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
+        instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
+    }
 
     loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
     loader._compiler.plugin("watch-run", makeWatchRun(instance));
 
     return { instance };
+}
+
+export function getEmitOutput(instance: TSInstance, filePath: string) {
+    const program = ensureProgram(instance);
+    if (program) {
+        const outputFiles: typescript.OutputFile[] = [];
+        const writeFile = (fileName: string, text: string, writeByteOrderMark: boolean) =>
+            outputFiles.push({ name: fileName, writeByteOrderMark, text });
+        const sourceFile = program.getSourceFile(filePath);
+        program.emit(sourceFile, writeFile, /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ false, instance.transformers);
+        return outputFiles;
+    }
+    else {
+        // Emit Javascript
+        return instance.languageService!.getEmitOutput(filePath).outputFiles;
+    }
 }

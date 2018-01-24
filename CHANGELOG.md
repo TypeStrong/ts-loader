@@ -1,5 +1,15 @@
 # Changelog
 
+## v3.3.1
+
+- [Fixes to support watch api for compiling - lib support etc](https://github.com/TypeStrong/ts-loader/pull/715) - thanks @sheetalkamat!
+
+## v3.3.0
+
+- [Report diagnostics only on certain files with `reportFiles` option](https://github.com/TypeStrong/ts-loader/pull/701) - thanks @freeman!
+- [Replaced option `contextAsConfigBasePath` with `context` option.](https://github.com/TypeStrong/ts-loader/pull/688/) Strictly speaking a breaking change. However, given the original option was never able to fulfil its intended purpose I've decided to treat this as just a new feature; there seems no possibility that anyone can be using `contextAsConfigBasePath` - thanks @christiantinauer! 
+- [Added support for the new watch api of TypeScript compiler.](https://github.com/TypeStrong/ts-loader/pull/685)  nb This feature has been placed behind a new `experimentalWatchApi` option until it has been thoroughly tested. All being well it is likely to become the default behaviour for ts-loader in future - thanks @sheetalkamat!
+
 ## v3.2.0
 
 - [Add new loader option `contextAsConfigBasePath`](https://github.com/TypeStrong/ts-loader/pull/681) - thanks @christiantinauer

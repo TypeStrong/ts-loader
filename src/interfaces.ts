@@ -214,6 +214,12 @@ export interface ModuleResolutionHost {
     readFile(fileName: string, encoding?: string | undefined): string | undefined;
 }
 
+export interface WatchHost extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<typescript.BuilderProgram> {
+    invokeFileWatcher(fileName: string, eventKind: typescript.FileWatcherEventKind): void;
+    invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
+    updateRootFileNames(): void;
+}
+
 export interface TSInstance {
     compiler: typeof typescript;
     compilerOptions: typescript.CompilerOptions;
@@ -233,6 +239,12 @@ export interface TSInstance {
     filesWithErrors?: TSFiles;
     transformers: typescript.CustomTransformers;
     colors: Chalk;
+
+    otherFiles: TSFiles;
+    watchHost?: WatchHost;
+    watchOfFilesAndCompilerOptions?: typescript.WatchOfFilesAndCompilerOptions<typescript.BuilderProgram>;
+    program?: typescript.Program;
+    changedFilesList?: boolean;
 }
 
 export interface LoaderOptionsCache {
@@ -266,9 +278,10 @@ export interface LoaderOptions {
     instance: string;
     compiler: string;
     configFile: string;
-    contextAsConfigBasePath: boolean;
+    context: string;
     transpileOnly: boolean;
     ignoreDiagnostics: number[];
+    reportFiles: string[];
     errorFormatter: (message: ErrorInfo, colors: Chalk) => string;
     onlyCompileBundledFiles: boolean;
     colors: boolean;
@@ -279,6 +292,7 @@ export interface LoaderOptions {
     entryFileCannotBeJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;
+    experimentalWatchApi: boolean;
 }
 
 export interface TSFile {
