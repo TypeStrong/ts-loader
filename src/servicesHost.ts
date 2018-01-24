@@ -177,7 +177,7 @@ export function makeWatchHost(
         useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
         getNewLine: () => newLine,
         getCurrentDirectory,
-        getDefaultLibFileName,
+        getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
 
         fileExists,
         readFile: readFileWithCachingText,
@@ -206,10 +206,6 @@ export function makeWatchHost(
         createProgram: compiler.createAbstractBuilder
     };
     return watchHost;
-
-    function getDefaultLibFileName(options: typescript.CompilerOptions) {
-        return path.join(path.dirname(compiler.sys.getExecutingFilePath()), compiler.getDefaultLibFileName(options));
-    }
 
     function getRootFileNames() {
         return Object.keys(files).filter(filePath => filePath.match(scriptRegex));

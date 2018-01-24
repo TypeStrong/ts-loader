@@ -198,7 +198,7 @@ function updateFileInCache(filePath: string, contents: string, instance: TSInsta
         file.text = contents;
         instance.version!++;
         if (instance.watchHost && fileWatcherEventKind === undefined) {
-            instance.watchHost.invokeFileWatcher(filePath, instance.compiler.FileWatcherEventKind.Changed);
+            fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Changed;
         }
     }
 
