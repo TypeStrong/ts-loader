@@ -1,5 +1,14 @@
 {
-	"compilerOptions": {
-		
-	}
+    "compilerOptions": {
+        "allowSyntheticDefaultImports": true,
+        "lib": [
+            "dom",
+            "es2015"
+        ],
+        "target": "es2015",
+		"moduleResolution": "node",
+		"removeComments": false,
+        "sourceMap": true,
+        "skipLibCheck": true
+    }
 }
