@@ -59,11 +59,11 @@ export function makeServicesHost(
     const servicesHost: typescript.LanguageServiceHost = {
         getProjectVersion: () => `${instance.version}`,
 
-        getScriptFileNames: () => Object.keys(files).filter(filePath => filePath.match(scriptRegex)),
+        getScriptFileNames: () => [...files.keys()].filter(filePath => filePath.match(scriptRegex)),
 
         getScriptVersion: (fileName: string) => {
             fileName = path.normalize(fileName);
-            const file = files[fileName];
+            const file = files.get(fileName);
             return file === undefined ? '' : file.version.toString();
         },
 
@@ -71,16 +71,17 @@ export function makeServicesHost(
             // This is called any time TypeScript needs a file's text
             // We either load from memory or from disk
             fileName = path.normalize(fileName);
-            let file = files[fileName];
+            let file = files.get(fileName);
 
             if (file === undefined) {
                 const text = readFile(fileName);
                 if (text === undefined) { return undefined; }
 
-                file = files[fileName] = { version: 0, text };
+                file = { version: 0, text };
+                files.set(fileName, file);
             }
 
-            return compiler.ScriptSnapshot.fromString(file.text);
+            return compiler.ScriptSnapshot.fromString(file.text!);
         },
         /**
          * getDirectories is also required for full import and type reference completions.
@@ -208,24 +209,24 @@ export function makeWatchHost(
     return watchHost;
 
     function getRootFileNames() {
-        return Object.keys(files).filter(filePath => filePath.match(scriptRegex));
+        return [...files.keys()].filter(filePath => filePath.match(scriptRegex));
     }
 
     function readFileWithCachingText(fileName: string, encoding?: string) {
         fileName = path.normalize(fileName);
-        let file = files[fileName] || otherFiles[fileName];
+        const file = files.get(fileName) || otherFiles.get(fileName);
         if (file !== undefined) {
             return file.text;
         }
         const text = readFileWithFallback(fileName, encoding);
         if (text === undefined) { return undefined; }
-        otherFiles[fileName] = { version: 0, text };
+        otherFiles.set(fileName, { version: 0, text });
         return text;
     }
 
-    function fileExists(s: string) {
-        s = path.normalize(s);
-        return !!files.hasOwnProperty(s) || compiler.sys.fileExists(s);
+    function fileExists(fileName: string) {
+        const filePath = path.normalize(fileName);
+        return files.has(filePath) || compiler.sys.fileExists(filePath);
     }
 
     function invokeWatcherCallbacks(callbacks: typescript.FileWatcherCallback[] | undefined, fileName: string, eventKind: typescript.FileWatcherEventKind): void;

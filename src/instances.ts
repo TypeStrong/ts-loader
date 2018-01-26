@@ -7,7 +7,7 @@ import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
 import { EOL, dtsDtsxRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
-import { hasOwnProperty, makeError, formatErrors } from './utils';
+import { makeError, formatErrors } from './utils';
 import * as logger from './logger';
 import { makeServicesHost, makeWatchHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
@@ -17,7 +17,8 @@ import {
     TSInstance,
     TSInstances,
     Webpack,
-    WebpackError
+    WebpackError,
+    TSFile
 } from './interfaces';
 
 const instances = <TSInstances> {};
@@ -45,7 +46,7 @@ export function getTypeScriptInstance(
     loaderOptions: LoaderOptions,
     loader: Webpack
 ): { instance?: TSInstance, error?: WebpackError } {
-    if (hasOwnProperty(instances, loaderOptions.instance)) {
+    if (instances.hasOwnProperty(loaderOptions.instance)) {
         const instance = instances[loaderOptions.instance];
         ensureProgram(instance);
         return { instance: instances[loaderOptions.instance] };
@@ -97,8 +98,8 @@ function successfulTypeScriptInstance(
     }
 
     const compilerOptions = getCompilerOptions(configParseResult);
-    const files: TSFiles = {};
-    const otherFiles: TSFiles = {};
+    const files: TSFiles = new Map<string, TSFile>();
+    const otherFiles: TSFiles = new Map<string, TSFile>();
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
 

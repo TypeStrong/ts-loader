@@ -15,10 +15,6 @@ import {
     ErrorInfo
 } from './interfaces';
 
-export function hasOwnProperty<T extends {}>(obj: T, property: string) {
-    return Object.prototype.hasOwnProperty.call(obj, property);
-}
-
 /**
  * The default error formatter.
  */

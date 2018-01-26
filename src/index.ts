@@ -3,7 +3,7 @@ import * as loaderUtils from 'loader-utils';
 import * as typescript from 'typescript';
 
 import { getTypeScriptInstance, getEmitOutput } from './instances';
-import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty } from './utils';
+import { appendSuffixesIfMatch, arrify, formatErrors } from './utils';
 import * as constants from './constants';
 import {
     AsyncCallback,
@@ -94,7 +94,7 @@ function getLoaderOptions(loader: Webpack) {
 
     const instanceName = webpackIndex + '_' + (loaderOptions.instance || 'default');
 
-    if (hasOwnProperty(loaderOptionsCache, instanceName)) {
+    if (loaderOptionsCache.hasOwnProperty(instanceName)) {
         return loaderOptionsCache[instanceName];
     }
 
@@ -173,18 +173,19 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
 function updateFileInCache(filePath: string, contents: string, instance: TSInstance) {
     let fileWatcherEventKind: typescript.FileWatcherEventKind | undefined;
     // Update file contents
-    let file = instance.files[filePath];
+    let file = instance.files.get(filePath);
     if (file === undefined) {
-        file = instance.otherFiles[filePath];
+        file = instance.otherFiles.get(filePath);
         if (file !== undefined) {
-            delete instance.otherFiles[filePath];
-            instance.files[filePath] = file;
+            instance.otherFiles.delete(filePath);
+            instance.files.set(filePath, file);
         }
         else {
             if (instance.watchHost) {
                 fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
             }
-            file = instance.files[filePath] = <TSFile>{ version: 0 };
+            file = { version: 0 };
+            instance.files.set(filePath, file);
         }
         instance.changedFilesList = true;
     }
@@ -208,10 +209,10 @@ function updateFileInCache(filePath: string, contents: string, instance: TSInsta
     }
 
     // push this file to modified files hash.
-    if (!instance.modifiedFiles) {
-        instance.modifiedFiles = {};
+    if (instance.modifiedFiles === null || instance.modifiedFiles === undefined) {
+        instance.modifiedFiles = new Map<string, TSFile>();
     }
-    instance.modifiedFiles[filePath] = file;
+    instance.modifiedFiles.set(filePath, file);
     return file.version;
 }
 
@@ -226,7 +227,7 @@ function getEmit(
     loader.clearDependencies();
     loader.addDependency(rawFilePath);
 
-    const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => defFilePath.match(constants.dtsDtsxRegex));
+    const allDefinitionFiles = [...instance.files.keys()].filter(defFilePath => defFilePath.match(constants.dtsDtsxRegex));
 
     // Make this file dependent on *all* definition files in the program
     const addDependency = loader.addDependency.bind(loader);

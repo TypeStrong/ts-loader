@@ -144,7 +144,8 @@ export interface WebpackCompiler {
     isChild(): boolean;
     context: string; // a guess
     watchFileSystem: WebpackNodeWatchFileSystem;
-    fileTimestamps: {[key: string]: number};
+    /** key is filepath and value is Date as a number */
+    fileTimestamps: Map<string, number>;
 }
 
 export interface WebpackModule {
@@ -165,11 +166,6 @@ export interface WebpackNodeWatchFileSystem {
     wfs?: {
         watcher: Watcher;
     }
-}
-
-export interface WebpackWatching {
-    compiler: WebpackCompiler; // a guess
-    startTime: number;
 }
 
 export interface Resolve {
@@ -269,10 +265,6 @@ export interface ReverseDependencyGraph {
     } | undefined;
 }
 
-export type Partial<T> = {
-    [P in keyof T]?: T[P];
-};
-
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
 
 export interface LoaderOptions {
@@ -300,13 +292,12 @@ export interface LoaderOptions {
 }
 
 export interface TSFile {
-    text: string;
+    text?: string;
     version: number;
 }
 
-export interface TSFiles {
-    [fileName: string]: TSFile | undefined;
-}
+/** where key is filepath */
+export type TSFiles = Map<string, TSFile>;
 
 export interface ResolvedModule {
     originalFileName: string;
