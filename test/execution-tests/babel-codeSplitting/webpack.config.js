@@ -1,3 +1,7 @@
+'use strict';
+
+var path = require('path');
+
 var babelOptions = {
   "presets": [
     [
@@ -14,9 +18,6 @@ module.exports = {
     entry: './app.ts',
     output: {
         filename: 'bundle.js'
-    },
-    resolve: {
-        extensions: ['.ts', '.js']
     },
     module: {
         rules: [{
@@ -41,8 +42,11 @@ module.exports = {
                 }
             ]
         }]
-    }
-}
+    },
+    resolve: {
+        extensions: ['.ts', '.js']
+    },
+};
 
 // for test harness purposes only, you would not need this in a normal project
-module.exports.resolveLoader = { alias: { 'ts-loader': require('path').join(__dirname, "../../../index.js") } }
+module.exports.resolveLoader = { alias: { 'ts-loader': path.join(__dirname, "../../../index.js") } }
