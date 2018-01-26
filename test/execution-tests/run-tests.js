@@ -31,6 +31,7 @@ else {
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
         .filter(isHighEnoughTypeScriptVersion)
+        .filter(isNotHappyPackTest)
         // .filter(isNotBabelTest)
         .forEach(runTests);
 }
@@ -65,6 +66,16 @@ function isHighEnoughTypeScriptVersion (testName) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
             return false;
         }
+    }
+    return true;
+}
+
+/** Temporarily exclude HappyPack dependent tests */
+function isNotHappyPackTest (testName) {
+    var isHappyPackTest = testName.includes('happypack');
+    if (isHappyPackTest) {
+        console.log('Skipping test ' + testName + ' as it requires happypack.  Dropping these tests until happypack support for webpack for is in place.');
+        return false;
     }
     return true;
 }
