@@ -31,6 +31,7 @@ else {
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
         .filter(isHighEnoughTypeScriptVersion)
+        .filter(isNotBabelTest)
         .forEach(runTests);
 }
 
@@ -64,6 +65,16 @@ function isHighEnoughTypeScriptVersion (testName) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
             return false;
         }
+    }
+    return true;
+}
+
+/** Temporarily exclude Babel dependent tests */
+function isNotBabelTest (testName) {
+    var isBabelTest = testName.includes('babel');
+    if (isBabelTest) {
+        console.log('Skipping test ' + testName + ' as it requires babel.  Dropping these tests until babel-loader support for webpack for is in place.');
+        return false;
     }
     return true;
 }
