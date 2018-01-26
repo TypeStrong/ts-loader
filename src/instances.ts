@@ -140,10 +140,10 @@ function successfulTypeScriptInstance(
         const filesToLoad = loaderOptions.onlyCompileBundledFiles ? configParseResult.fileNames.filter(fileName => dtsDtsxRegex.test(fileName)) : configParseResult.fileNames;
         filesToLoad.forEach(filePath => {
             normalizedFilePath = path.normalize(filePath);
-            files[normalizedFilePath] = {
+            files.set(normalizedFilePath, {
                 text: fs.readFileSync(normalizedFilePath, 'utf-8'),
                 version: 0
-            };
+            });
           });
     } catch (exc) {
         return { 
@@ -165,8 +165,8 @@ function successfulTypeScriptInstance(
         languageService: null,
         version: 0,
         transformers: getCustomTransformers(),
-        dependencyGraph: {},
-        reverseDependencyGraph: {},
+        dependencyGraph: {}, 
+        reverseDependencyGraph: {}, 
         modifiedFiles: null,
         colors
     };
