@@ -31,7 +31,7 @@ else {
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
         .filter(isHighEnoughTypeScriptVersion)
-        .filter(isNotBabelTest)
+        // .filter(isNotBabelTest)
         .forEach(runTests);
 }
 
