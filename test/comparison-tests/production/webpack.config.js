@@ -1,7 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
-    mode: 'development',
+    mode: 'production',
     entry: './app.ts',
     output: {
         filename: 'bundle.js'
@@ -13,8 +13,5 @@ module.exports = {
         rules: [
             { test: /\.ts$/, loader: 'ts-loader' }
         ]
-    },
-    plugins: [new webpack.NoErrorsPlugin()]
+    }
 }
-
-
