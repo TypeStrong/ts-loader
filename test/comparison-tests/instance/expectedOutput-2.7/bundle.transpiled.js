@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,16 +64,22 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./a.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */,
-/* 1 */
+/******/ ({
+
+/***/ "./a.ts":
+/*!**************!*\
+  !*** ./a.ts ***!
+  \**************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: \u001b[31mA file specified in tsconfig.json could not be found: /instance.transpile/i-dont-exist\u001b[39m");
+eval("throw new Error(\"Module build failed: /u001b[31mA file specified in tsconfig.json could not be found: C://source//ts-loader//.test//instance.transpile//i-dont-exist/u001b[39m\");\n\n//////////////////\n// WEBPACK FOOTER\n// ./a.ts\n// module id = ./a.ts\n// module chunks = a\n\n//# sourceURL=webpack:///./a.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,37 +64,46 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var a = __webpack_require__(1);
-var b = __webpack_require__(2);
-console.log(a);
-console.log(b);
-
+eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nvar b = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a);\nconsole.log(b);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./b.ts":
+/*!**************!*\
+  !*** ./b.ts ***!
+  \**************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nmodule.exports = 'b';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./b.ts\n// module id = ./b.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./b.ts?");
+
+/***/ }),
+
+/***/ "./node_modules/a/index.js":
+/*!*********************************!*\
+  !*** ./node_modules/a/index.js ***!
+  \*********************************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = 'a';
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-module.exports = 'b';
-
+eval("module.exports = 'a';\n\n//////////////////\n// WEBPACK FOOTER\n// ./node_modules/a/index.js\n// module id = ./node_modules/a/index.js\n// module chunks = main\n\n//# sourceURL=webpack:///./node_modules/a/index.js?");
 
 /***/ })
-/******/ ]);
+
+/******/ });
