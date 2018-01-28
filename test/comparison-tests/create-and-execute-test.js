@@ -360,12 +360,13 @@ function cleanHashFromOutput(stats, webpackOutput) {
 function getNormalisedFileContent(file, location, test) {
     var fileContent;
     var filePath = path.join(location, file);
+
     try {
         var originalContent = fs.readFileSync(filePath).toString();
         fileContent = (file.indexOf('output.') === 0
             ? normaliseString(originalContent)
                 // We don't want a difference in the number of kilobytes to fail the build
-                .replace(/[\d]+[.][\d]* kB/g, ' A-NUMBER-OF kB')
+                .replace(/[\d]+[.][\d]* KiB/g, ' A-NUMBER-OF KiB')
                 // We also don't want a difference in the number of bytes to fail the build
                 .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
@@ -378,9 +379,10 @@ function getNormalisedFileContent(file, location, test) {
             // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
             .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
-            });
+            })
+            .replace(/C:\/source\/ts-loader\/.test/g, '');
     } catch (e) {
-        fileContent = '!!!' + filePath + ' doePsnt exist!!!';
+        fileContent = '!!!' + filePath + ' doesn\'t exist!!!';
     }
     return fileContent;
 }
@@ -389,14 +391,15 @@ function normaliseString(platformSpecificContent) {
     return platformSpecificContent
         .replace(/\r\n/g, '\n')
         .replace(/\\r\\n/g, '\\n') // bundle.js output needs this; tsConfigNotReadable for instance
-        // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/g, 'ts-loader')
-        // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)')
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
-        .replace(new RegExp(regexEscape('\\'), 'g'), '/');
+        .replace(new RegExp(regexEscape('\\'), 'g'), '/')
+        .replace(new RegExp(regexEscape('//'), 'g'), '/')
+        // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
+        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/g, 'ts-loader')
+        // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
+        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
 }
 
 /**
