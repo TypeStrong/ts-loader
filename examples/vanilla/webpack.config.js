@@ -3,7 +3,6 @@
 module.exports = {
     devtool: 'inline-source-map',
     entry: './src/index.ts',
-    output: { filename: 'dist/index.js' },
     module: {
         rules: [
             {
