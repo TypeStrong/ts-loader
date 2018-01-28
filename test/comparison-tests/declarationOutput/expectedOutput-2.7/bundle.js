@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,54 +64,35 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-var dep = __webpack_require__(1);
-var Test = /** @class */ (function (_super) {
-    __extends(Test, _super);
-    function Test() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    Test.prototype.doSomething = function () {
-    };
-    return Test;
-}(dep));
-module.exports = Test;
-
+eval("\nvar __extends = (this && this.__extends) || (function () {\n    var extendStatics = Object.setPrototypeOf ||\n        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||\n        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };\n    return function (d, b) {\n        extendStatics(d, b);\n        function __() { this.constructor = d; }\n        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());\n    };\n})();\nvar dep = __webpack_require__(/*! ./sub/dep */ \"./sub/dep.ts\");\nvar Test = /** @class */ (function (_super) {\n    __extends(Test, _super);\n    function Test() {\n        return _super !== null && _super.apply(this, arguments) || this;\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}(dep));\nmodule.exports = Test;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./sub/dep.ts":
+/*!********************!*\
+  !*** ./sub/dep.ts ***!
+  \********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-var Test = /** @class */ (function () {
-    function Test() {
-    }
-    Test.prototype.doSomething = function () {
-    };
-    return Test;
-}());
-module.exports = Test;
-
+eval("\nvar Test = /** @class */ (function () {\n    function Test() {\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}());\nmodule.exports = Test;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./sub/dep.ts\n// module id = ./sub/dep.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./sub/dep.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });
