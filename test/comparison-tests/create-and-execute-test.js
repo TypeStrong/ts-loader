@@ -380,7 +380,10 @@ function getNormalisedFileContent(file, location, test) {
             .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
-            .replace(/C:\/source\/ts-loader\/.test/g, '');
+            .replace(/C:\/source\/ts-loader\/.test/g, '')
+            .replace(/([ |\/\/])[\w|\/|\:]*\/source\/ts-loader\/test/g, function(match, spaceOr2ForwardSlashes) {
+                return spaceOr2ForwardSlashes;
+            });
     } catch (e) {
         fileContent = '!!!' + filePath + ' doesn\'t exist!!!';
     }
