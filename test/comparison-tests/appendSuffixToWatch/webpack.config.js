@@ -12,7 +12,7 @@ module.exports = {
         extensions: ['.js', '.ts', '.vue']
     },
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.ts$|\.vue$/,
           loader: 'ts-loader',

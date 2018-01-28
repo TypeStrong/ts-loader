@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,31 +64,35 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./entry2.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */,
-/* 1 */
+/******/ ({
+
+/***/ "./component.vue":
+/*!***********************!*\
+  !*** ./component.vue ***!
+  \***********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var component_vue_1 = __webpack_require__(2);
-console.log(component_vue_1["default"]);
-
+eval("\nexports.__esModule = true;\nexports[\"default\"] = \"some value\";\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./component.vue\n// module id = ./component.vue\n// module chunks = entry2\n\n//# sourceURL=webpack:///./component.vue?");
 
 /***/ }),
-/* 2 */
+
+/***/ "./entry2.ts":
+/*!*******************!*\
+  !*** ./entry2.ts ***!
+  \*******************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-exports["default"] = "some value";
-
+eval("\nexports.__esModule = true;\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nconsole.log(component_vue_1[\"default\"]);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./entry2.ts\n// module id = ./entry2.ts\n// module chunks = entry2\n\n//# sourceURL=webpack:///./entry2.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

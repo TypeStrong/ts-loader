@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,16 +64,22 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./entry1.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./entry1.ts":
+/*!*******************!*\
+  !*** ./entry1.ts ***!
+  \*******************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-console.log('banana');
-
+eval("console.log('banana');\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./entry1.ts\n// module id = ./entry1.ts\n// module chunks = entry1\n\n//# sourceURL=webpack:///./entry1.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

@@ -8,7 +8,7 @@ module.exports = {
         extensions: ['.ts', '.vue']
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.ts$|\.vue$/,
                 loader: 'ts-loader',
