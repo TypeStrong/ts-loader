@@ -366,7 +366,7 @@ function getNormalisedFileContent(file, location, test) {
         fileContent = (file.indexOf('output.') === 0
             ? normaliseString(originalContent)
                 // We don't want a difference in the number of kilobytes to fail the build
-                .replace(/[\d]+[.][\d]* KiB/g, ' A-NUMBER-OF KiB')
+                .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
                 // We also don't want a difference in the number of bytes to fail the build
                 .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
