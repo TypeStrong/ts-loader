@@ -25,7 +25,7 @@ if (saveOutputMode) {
 
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 var FLAKY = '_FLAKY_';
-var IGNORED = '_IGNORED_';
+var IGNORE = '_IGNORE_';
 
 // set up new paths
 var rootPath = path.resolve(__dirname, '../../');
@@ -34,7 +34,7 @@ var stagingPath = path.resolve(rootPath, '.test');
 
 var testPath = path.join(__dirname, testToRun);
 var testIsFlaky = pathExists(path.join(testPath, FLAKY));
-var testIsIgnored = pathExists(path.join(testPath, IGNORED));
+var testIsIgnored = pathExists(path.join(testPath, IGNORE));
 
 if (testIsIgnored) {
     console.log(testPath + ' is ignored... Not running test.');
