@@ -381,8 +381,8 @@ function getNormalisedFileContent(file, location, test) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/([ |\/\/])[\w|\/|\:]*\/ts-loader\/\.test/g, ' ')
-            .replace(/ [\w|\/|\:]*\/test\/comparison-tests\//g, ' test/comparison-tests/')
+            .replace(/ (C\:)?[\w|\/]*\/ts-loader\/\.test/g, ' ')
+            .replace(/ (C\:)?[\w|\/]*\/test\/comparison-tests\//g, ' test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********')
             // Ignore Windows vs Linux paths
