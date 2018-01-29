@@ -380,9 +380,12 @@ function getNormalisedFileContent(file, location, test) {
             .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
-            .replace(/C:\/source\/ts-loader\/.test/g, '')
-            .replace(/ \/test\/comparison-tests\//g, ' test/comparison-tests/')
+            // strip C:/projects/ts-loader/.test/
+            .replace(/([ |\/\/])[\w|\/|\:]*\/ts-loader\/\.test/g, ' ')
+            .replace(/ [\w|\/|\:]*\/test\/comparison-tests\//g, ' test/comparison-tests/')
+            // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********')
+            // Ignore Windows vs Linux paths
             .replace(/([ |\/\/])[\w|\/|\:]*\/(source)|(TypeStrong)\/ts-loader\/test/g, function(match, spaceOr2ForwardSlashes) {
                 return spaceOr2ForwardSlashes;
             });
