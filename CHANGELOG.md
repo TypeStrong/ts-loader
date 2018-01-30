@@ -2,7 +2,7 @@
 
 ## v3.4.0
 
-- [feat: add depending .d.ts files as changed when watch is triggered](https://github.com/TypeStrong/ts-loader/pull/698) - thanks @KnisterPeter!
+- [local .d.ts files now marked as changed when watch is triggered](https://github.com/TypeStrong/ts-loader/pull/698) - thanks @KnisterPeter!
 
 ## v3.3.1
 
