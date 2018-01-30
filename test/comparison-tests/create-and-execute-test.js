@@ -383,14 +383,10 @@ function getNormalisedFileContent(file, location, test) {
             // strip C:/projects/ts-loader/.test/
             .replace(/ (C\:\/)?[\w|\/]*\/ts-loader\/\.test/g, ' ')
             .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'webpack://comparison-tests/')
-            .replace(/WEBPACK FOOTER\/n\/ [\w|\/|-]*\/comparison-tests\//, 'WEBPACK FOOTER/n/ /comparison-tests/')
-            .replace(/!\** [\w|\/|-]*\/comparison-tests\//, '!*** /comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ [\w|\/|-]*\/comparison-tests\//, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** [\w|\/|-]*\/comparison-tests\//, '!*** /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
-            .replace(/\*{10}\**/g, '**********')
-            // Ignore Windows vs Linux paths
-            .replace(/([ |\/\/])[\w|\/|\:]*\/(source)|(TypeStrong)\/ts-loader\/test/g, function(match, spaceOr2ForwardSlashes) {
-                return spaceOr2ForwardSlashes;
-            });
+            .replace(/\*{10}\**/g, '**********');
     } catch (e) {
         fileContent = '!!!' + filePath + ' doesn\'t exist!!!';
     }
