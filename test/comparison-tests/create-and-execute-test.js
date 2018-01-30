@@ -128,6 +128,7 @@ function createWebpackConfig(paths, transpile) {
     var config = require(path.join(paths.testStagingPath, 'webpack.config'));
 
     var options = {
+        // colors: false,
         silent: true,
         compilerOptions: {
             newLine: 'LF'
@@ -382,10 +383,10 @@ function getNormalisedFileContent(file, location, test) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/ (C\:\/)?[\w|\/]*\/ts-loader\/\.test/g, ' ')
+            .replace(/(C\:\/)?[\w|\/]*\/ts-loader\/\.test/g, '')
             .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'webpack://comparison-tests/')
-            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
-            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '!*** /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********');
     } catch (e) {
