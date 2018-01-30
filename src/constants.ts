@@ -19,3 +19,4 @@ export const dtsTsTsxJsJsxRegex = /((\.d)?\.ts(x?)|js(x?))$/i;
 export const tsTsxJsJsxRegex = /\.tsx?$|\.jsx?$/i;
 export const jsJsx = /\.js(x?)$/i;
 export const jsJsxMap = /\.js(x?)\.map$/i;
+export const nodeModules = /node_modules/i;

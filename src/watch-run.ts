@@ -22,6 +22,7 @@ export function makeWatchRun(
         if (null === instance.modifiedFiles) {
             instance.modifiedFiles = new Map<string, TSFile>();
         }
+
         // startTime = startTime || watching.startTime;
         const times = compiler.fileTimestamps;
         for (const [filePath, date] of times) {
@@ -32,19 +33,31 @@ export function makeWatchRun(
 
             lastTimes.set(filePath, date);
 
-            const nFilePath = path.normalize(filePath);
-            const file = instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
-            if (file !== undefined) {
-                file.text = readFile(nFilePath) || '';
-                file.version++;
-                instance.version!++;
-                instance.modifiedFiles!.set(nFilePath, file);
-                if (instance.watchHost) {
-                    instance.watchHost.invokeFileWatcher(nFilePath, instance.compiler.FileWatcherEventKind.Changed);
-                }
+            updateFile(instance, filePath);
+        }
+
+        // On watch update add all known dts files expect the ones in node_modules
+        // (skip @types/* and modules with typings)
+        for (const filePath of instance.files.keys()) {
+            if (filePath.match(constants.dtsDtsxRegex) && !filePath.match(constants.nodeModules)) {
+                updateFile(instance, filePath);
             }
         }
 
         callback();
     };
+}
+
+function updateFile(instance: TSInstance, filePath: string) {
+    const nFilePath = path.normalize(filePath);
+    const file = instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
+    if (file !== undefined) {
+        file.text = readFile(nFilePath) || '';
+        file.version++;
+        instance.version!++;
+        instance.modifiedFiles!.set(nFilePath, file);
+        if (instance.watchHost) {
+            instance.watchHost.invokeFileWatcher(nFilePath, instance.compiler.FileWatcherEventKind.Changed);
+        }
+    }
 }
