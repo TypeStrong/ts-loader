@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.4.0
+
+- [feat: add depending .d.ts files as changed when watch is triggered](https://github.com/TypeStrong/ts-loader/pull/698) - thanks @KnisterPeter!
+
 ## v3.3.1
 
 - [Fixes to support watch api for compiling - lib support etc](https://github.com/TypeStrong/ts-loader/pull/715) - thanks @sheetalkamat!
