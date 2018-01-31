@@ -5,10 +5,10 @@ Entrypoint b =
 [./a.ts] 177 bytes {a} [built] [failed] [1 error]
 [./b.ts] 177 bytes {b} [built] [failed] [1 error]
 
-ERROR in ./a.ts
+ERROR in ./b.ts
 Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
 
-ERROR in ./b.ts
+ERROR in ./a.ts
 Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
 
 ERROR in chunk b [entry]
