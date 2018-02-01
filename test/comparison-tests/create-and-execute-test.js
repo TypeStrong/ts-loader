@@ -397,6 +397,8 @@ function getNormalisedFileContent(file, location, test) {
 
 function normaliseString(platformSpecificContent) {
     return platformSpecificContent
+        // SOMETHING TO TRY - https://stackoverflow.com/a/20023647/761388
+        // .replace(/(?:\\[rn]|[\r\n]+)+/g, '\n')
         .replace(/\r\n/g, '\\n')
         .replace(/\/r\/n/g, '\\n')
         .replace(/\\r\\n/g, '\\n') // bundle.js output needs this; tsConfigNotReadable for instance
