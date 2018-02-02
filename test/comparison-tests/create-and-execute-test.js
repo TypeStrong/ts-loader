@@ -387,6 +387,7 @@ function getNormalisedFileContent(file, location, test) {
             .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'webpack://comparison-tests/')
             .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
             .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '/ /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********');
     } catch (e) {
