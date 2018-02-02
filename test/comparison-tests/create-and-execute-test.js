@@ -397,10 +397,8 @@ function getNormalisedFileContent(file, location, test) {
 
 function normaliseString(platformSpecificContent) {
     return platformSpecificContent
-        // SOMETHING TO TRY - https://stackoverflow.com/a/20023647/761388
-        // .replace(/(?:\\[rn]|[\r\n]+)+/g, '\n')
-        .replace(/\r\n/g, '\\n')
-        .replace(/\/r\/n/g, '\\n')
+        .replace(/(?:\\[rn]|[\r\n]+)+/g, '\n') // https://stackoverflow.com/a/20023647/761388
+        .replace(/\/r\/n/g, '/n')
         .replace(/\\r\\n/g, '\\n') // bundle.js output needs this; tsConfigNotReadable for instance
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
