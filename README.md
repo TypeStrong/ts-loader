@@ -64,7 +64,7 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 ### Compatibility
 
-- TypeScript: 2.x+
+- TypeScript: 2.4.1+
 - webpack: 4.x+ (please use ts-loader 3.x if you need webpack 2 or 3 support)
 - node: 6.11.5 minimum (aligned with webpack 4)
 
@@ -329,12 +329,6 @@ as you would do for the `compilerOptions` property in tsconfig.json.
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
-
-#### entryFileCannotBeJs *(boolean) (default=false) DEPRECATED*
-
-If the `allowJs` compiler option is `true` then it's possible for your entry files to be JS. There is a [known issue using ts-loader with TypeScript 2.3 and below](https://github.com/TypeStrong/ts-loader/issues/655).  This option exists to work around that issue if you are using ts-loader with TypeScript 2.3 or below.
-
-This option will be removed in a future version of ts-loader.
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
 #### appendTsxSuffixTo *(RegExp[]) (default=[])*

@@ -108,7 +108,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'context', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'reportFiles', 'experimentalWatchApi'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'context', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'reportFiles', 'experimentalWatchApi'];
 
 /**
  * Validate the supplied loader options.
@@ -147,7 +147,6 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
         appendTsSuffixTo: [],
         appendTsxSuffixTo: [],
         transformers: {},
-        entryFileCannotBeJs: false,
         happyPackMode: false,
         colors: true,
         onlyCompileBundledFiles: false,

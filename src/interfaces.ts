@@ -284,8 +284,6 @@ export interface LoaderOptions {
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
     appendTsxSuffixTo: RegExp[];
-    /** DEPRECATED */
-    entryFileCannotBeJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;
     experimentalWatchApi: boolean;

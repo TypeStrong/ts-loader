@@ -1,5 +1,12 @@
 # Changelog
 
+## v4.0.0
+
+- Support webpack 4
+- Drop support for webpack 2/3 **BREAKING CHANGE**
+- Minimum TypeScript version: 2.4.1 **BREAKING CHANGE**
+- Deprecated option `entryFileCannotBeJs` removed' **BREAKING CHANGE**
+
 ## v3.4.0
 
 - [local .d.ts files now marked as changed when watch is triggered](https://github.com/TypeStrong/ts-loader/pull/698) - thanks @KnisterPeter!
