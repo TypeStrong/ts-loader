@@ -109,6 +109,7 @@ export function makeServicesHost(
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
+        trace: log.log,
         log: log.log,
 
         /* Unclear if this is useful
