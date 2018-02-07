@@ -1,5 +1,9 @@
 # Changelog
 
+## v3.5.0
+
+- [Add trace for traceResolution](https://github.com/TypeStrong/ts-loader/pull/721) - thanks @onigoetz!
+
 ## v3.4.0
 
 - [local .d.ts files now marked as changed when watch is triggered](https://github.com/TypeStrong/ts-loader/pull/698) - thanks @KnisterPeter!
