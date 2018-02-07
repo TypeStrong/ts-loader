@@ -96,6 +96,7 @@ export function makeServicesHost(
         getCompilationSettings: () => compilerOptions,
         getDefaultLibFileName: (options: typescript.CompilerOptions) => compiler.getDefaultLibFilePath(options),
         getNewLine: () => newLine,
+        trace: log.log,
         log: log.log,
 
         /* Unclear if this is useful
@@ -167,7 +168,7 @@ export function makeWatchHost(
         getDirectories: path => compiler.sys.getDirectories(path.normalize(path)),
         readDirectory: (path, extensions, exclude, include, depth) => compiler.sys.readDirectory(path.normalize(path), extensions, exclude, include, depth),
         realpath: path => compiler.sys.resolvePath(path.normalize(path)),
-        trace: logData => log.logInfo(logData),
+        trace: logData => log.log(logData),
 
         watchFile,
         watchDirectory,

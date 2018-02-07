@@ -6,6 +6,9 @@
 - Drop support for webpack 2/3 **BREAKING CHANGE**
 - Minimum TypeScript version: 2.4.1 **BREAKING CHANGE**
 - Deprecated option `entryFileCannotBeJs` removed' **BREAKING CHANGE**
+## v3.5.0
+
+- [Add trace for traceResolution](https://github.com/TypeStrong/ts-loader/pull/721) - thanks @onigoetz!
 
 ## v3.4.0
 
