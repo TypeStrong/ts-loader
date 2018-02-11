@@ -366,6 +366,8 @@ function getNormalisedFileContent(file, location, test) {
         var originalContent = fs.readFileSync(filePath).toString();
         fileContent = (file.indexOf('output.') === 0
             ? normaliseString(originalContent)
+                // Built at: 2018-2-11 17:50:52 (any time is fine for us)
+                .replace(/^Built at: [0-9-: ]+$/gm, 'Built at: AN-ISO8601-DATETIME')
                 // We don't want a difference in the number of kilobytes to fail the build
                 .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
                 // We also don't want a difference in the number of bytes to fail the build
