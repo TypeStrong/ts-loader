@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./foo.ts\");\nvar foo;\nfoo.bar = 'foobar_patch0' + foo_1.s;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./foo.ts\");\nvar foo;\nfoo.bar = 'foobar_patch0' + foo_1.s;\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! ./foo */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar sString = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nexports.s = sString;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./foo.ts\n// module id = ./foo.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./foo.ts?");
+eval("\nexports.__esModule = true;\nvar sString = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nexports.s = sString;\n\n\n//# sourceURL=webpack:///./foo.ts?");
 
 /***/ }),
 
@@ -102,7 +102,7 @@ eval("\nexports.__esModule = true;\nvar sString = __webpack_require__(/*! a */ \
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("module.exports = 'a';\n\n//////////////////\n// WEBPACK FOOTER\n// ./node_modules/a/index.js\n// module id = ./node_modules/a/index.js\n// module chunks = main\n\n//# sourceURL=webpack:///./node_modules/a/index.js?");
+eval("module.exports = 'a';\n\n//# sourceURL=webpack:///./node_modules/a/index.js?");
 
 /***/ })
 

@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nconsole.log('do something');\n// The DEBUG constant will be inlined by webpack's DefinePlugin (see config)\n// The whole if-statement can then be removed by UglifyJS\nif (false) { var debug; }\nconsole.log('do something else');\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nconsole.log('do something');\n// The DEBUG constant will be inlined by webpack's DefinePlugin (see config)\n// The whole if-statement can then be removed by UglifyJS\nif (false) { var debug; }\nconsole.log('do something else');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\nconsole.log(dep);\nThing.doSomething();\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\nconsole.log(dep);\nThing.doSomething();\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nvar dep = __webpack_require__(/*! ./dep */ \
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nThing.doSomething();\nmodule.exports = 'dep';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./dep.ts\n// module id = ./dep.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./dep.ts?");
+eval("\nThing.doSomething();\nmodule.exports = 'dep';\n\n\n//# sourceURL=webpack:///./dep.ts?");
 
 /***/ })
 

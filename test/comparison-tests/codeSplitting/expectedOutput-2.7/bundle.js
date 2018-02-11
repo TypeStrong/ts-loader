@@ -182,7 +182,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nmodule.exports = 'a';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./a.ts\n// module id = ./a.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./a.ts?");
+eval("\nmodule.exports = 'a';\n\n\n//# sourceURL=webpack:///./a.ts?");
 
 /***/ }),
 
@@ -194,7 +194,7 @@ eval("\nmodule.exports = 'a';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./a
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a);\nconsole.log(b);\n__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... require` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    var cModule = __webpack_require__(/*! ./c */ \"./c.ts\");\n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    // cModule and dModule will typed as strings\n    console.log(cModule);\n    console.log(dModule);\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a);\nconsole.log(b);\n__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... require` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    var cModule = __webpack_require__(/*! ./c */ \"./c.ts\");\n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    // cModule and dModule will typed as strings\n    console.log(cModule);\n    console.log(dModule);\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -206,7 +206,7 @@ eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! ./a */ \"./a
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nmodule.exports = 'b';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./b.ts\n// module id = ./b.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./b.ts?");
+eval("\nmodule.exports = 'b';\n\n\n//# sourceURL=webpack:///./b.ts?");
 
 /***/ })
 

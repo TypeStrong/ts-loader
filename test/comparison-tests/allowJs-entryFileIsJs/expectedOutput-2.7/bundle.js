@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("console.log('working');\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./src/index.js\n// module id = ./src/index.js\n// module chunks = main\n\n//# sourceURL=webpack:///./src/index.js?");
+eval("console.log('working');\n\n\n//# sourceURL=webpack:///./src/index.js?");
 
 /***/ })
 

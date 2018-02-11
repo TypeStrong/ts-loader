@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n//////////////////\n// WEBPACK FOOTER\n// C:/source/ts-loader/test/comparison-tests/testLib/foo.ts\n// module id = ../../test/comparison-tests/testLib/foo.ts\n// module chunks = main\n\n//# sourceURL=webpack:///C:/source/ts-loader/test/comparison-tests/testLib/foo.ts?");
+eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///C:/source/ts-loader/test/comparison-tests/testLib/foo.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n/////////
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1[\"default\"]);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1[\"default\"]);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

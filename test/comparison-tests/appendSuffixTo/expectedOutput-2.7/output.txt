@@ -1,5 +1,6 @@
+Built at: 2018-2-11 17:50:57
     Asset      Size  Chunks             Chunk Names
-bundle.js  4.37 KiB    main  [emitted]  main
+bundle.js  4.04 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
 [./component.vue] 154 bytes {main} [built]
 [./helper.ts] 127 bytes {main} [built]

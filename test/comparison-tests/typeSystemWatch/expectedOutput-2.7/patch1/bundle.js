@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("var Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    Foo.prototype.getSomething = function () {\n        return null;\n    };\n    return Foo;\n}());\nvar foo = new Foo();\nvar x = foo.getSomething();\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("var Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    Foo.prototype.getSomething = function () {\n        return null;\n    };\n    return Foo;\n}());\nvar foo = new Foo();\nvar x = foo.getSomething();\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

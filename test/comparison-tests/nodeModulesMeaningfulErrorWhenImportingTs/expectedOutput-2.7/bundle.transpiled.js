@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.ts\");\nconsole.log(a);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.ts\");\nconsole.log(a);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./nod
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar elephant = \"In the room\";\nmodule.exports = elephant;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./node_modules/a/index.ts\n// module id = ./node_modules/a/index.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./node_modules/a/index.ts?");
+eval("\nvar elephant = \"In the room\";\nmodule.exports = elephant;\n\n\n//# sourceURL=webpack:///./node_modules/a/index.ts?");
 
 /***/ })
 

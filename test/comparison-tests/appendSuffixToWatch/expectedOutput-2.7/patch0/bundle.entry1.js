@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("console.log('something!');\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./entry1.ts\n// module id = ./entry1.ts\n// module chunks = entry1\n\n//# sourceURL=webpack:///./entry1.ts?");
+eval("console.log('something!');\n\n\n//# sourceURL=webpack:///./entry1.ts?");
 
 /***/ })
 

@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed: /u001b[31mA file specified in tsconfig.json could not be found: C://source//ts-loader//.test//tsconfigInvalidFile//i-am-a-file-what-does-not-exist.ts/u001b[39m\");\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("throw new Error(\"Module build failed: /u001b[31mA file specified in tsconfig.json could not be found: C://source//ts-loader//.test//tsconfigInvalidFile//i-am-a-file-what-does-not-exist.ts/u001b[39m\");\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

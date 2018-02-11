@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar __extends = (this && this.__extends) || (function () {\n    var extendStatics = Object.setPrototypeOf ||\n        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||\n        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };\n    return function (d, b) {\n        extendStatics(d, b);\n        function __() { this.constructor = d; }\n        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());\n    };\n})();\nvar dep = __webpack_require__(/*! ./sub/dep */ \"./sub/dep.ts\");\nvar Test = /** @class */ (function (_super) {\n    __extends(Test, _super);\n    function Test() {\n        return _super !== null && _super.apply(this, arguments) || this;\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}(dep));\nmodule.exports = Test;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nvar __extends = (this && this.__extends) || (function () {\n    var extendStatics = Object.setPrototypeOf ||\n        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||\n        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };\n    return function (d, b) {\n        extendStatics(d, b);\n        function __() { this.constructor = d; }\n        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());\n    };\n})();\nvar dep = __webpack_require__(/*! ./sub/dep */ \"./sub/dep.ts\");\nvar Test = /** @class */ (function (_super) {\n    __extends(Test, _super);\n    function Test() {\n        return _super !== null && _super.apply(this, arguments) || this;\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}(dep));\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nvar __extends = (this && this.__extends) || (function () {\n    var exte
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar Test = /** @class */ (function () {\n    function Test() {\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}());\nmodule.exports = Test;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./sub/dep.ts\n// module id = ./sub/dep.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./sub/dep.ts?");
+eval("\nvar Test = /** @class */ (function () {\n    function Test() {\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}());\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./sub/dep.ts?");
 
 /***/ })
 

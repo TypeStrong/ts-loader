@@ -79,7 +79,7 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _submodule_submodule__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.tsx\");\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (_submodule_submodule__WEBPACK_IMPORTED_MODULE_0__[\"default\"]);\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _submodule_submodule__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.tsx\");\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (_submodule_submodule__WEBPACK_IMPORTED_MODULE_0__[\"default\"]);\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _sub
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ __webpack_exports__[\"default\"] = (\"Hello from submodule\");\n\n//////////////////\n// WEBPACK FOOTER\n// ./submodule/submodule.tsx\n// module id = ./submodule/submodule.tsx\n// module chunks = main\n\n//# sourceURL=webpack:///./submodule/submodule.tsx?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ __webpack_exports__[\"default\"] = (\"Hello from submodule\");\n\n//# sourceURL=webpack:///./submodule/submodule.tsx?");
 
 /***/ })
 

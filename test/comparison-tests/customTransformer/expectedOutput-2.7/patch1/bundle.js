@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("var message = \"HELLO FROM US!\";\nconsole.log(message);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("var message = \"HELLO FROM US!\";\nconsole.log(message);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

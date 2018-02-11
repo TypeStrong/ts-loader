@@ -79,7 +79,7 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"BaseComponent\", function() { return BaseComponent; });\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nvar BaseComponent = function BaseComponent() {\n  _classCallCheck(this, BaseComponent);\n};\n\n//////////////////\n// WEBPACK FOOTER\n// ./index.tsx\n// module id = ./index.tsx\n// module chunks = main\n\n//# sourceURL=webpack:///./index.tsx?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"BaseComponent\", function() { return BaseComponent; });\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nvar BaseComponent = function BaseComponent() {\n  _classCallCheck(this, BaseComponent);\n};\n\n//# sourceURL=webpack:///./index.tsx?");
 
 /***/ })
 

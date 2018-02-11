@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    return Foo;\n}());\nvar Bar = /** @class */ (function () {\n    function Bar() {\n    }\n    return Bar;\n}());\nvar a = 'b'; // this should error with 2322\nmodule.exports = Bar;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nvar Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    return Foo;\n}());\nvar Bar = /** @class */ (function () {\n    function Bar() {\n    }\n    return Bar;\n}());\nvar a = 'b'; // this should error with 2322\nmodule.exports = Bar;\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

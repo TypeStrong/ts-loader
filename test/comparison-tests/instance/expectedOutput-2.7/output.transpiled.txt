@@ -1,5 +1,6 @@
+Built at: 2018-2-11 17:53:45
     Asset      Size  Chunks             Chunk Names
-bundle.js  3.04 KiB       a  [emitted]  a
+bundle.js  2.95 KiB       a  [emitted]  a
 Entrypoint a = bundle.js
 Entrypoint b =
 [./a.ts] 177 bytes {a} [built] [failed] [1 error]

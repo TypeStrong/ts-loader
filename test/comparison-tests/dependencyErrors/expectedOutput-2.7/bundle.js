@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar dep1 = __webpack_require__(/*! ./dep1 */ \"./dep1.ts\");\nvar dep2 = __webpack_require__(/*! ./dep2 */ \"./dep2.ts\");\ndep1('');\ndep2('');\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar dep1 = __webpack_require__(/*! ./dep1 */ \"./dep1.ts\");\nvar dep2 = __webpack_require__(/*! ./dep2 */ \"./dep2.ts\");\ndep1('');\ndep2('');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nvar dep1 = __webpack_require__(/*! ./dep1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./dep1.ts\n// module id = ./dep1.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./dep1.ts?");
+eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep1.ts?");
 
 /***/ }),
 
@@ -103,7 +103,7 @@ eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n///
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./dep2.ts\n// module id = ./dep2.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./dep2.ts?");
+eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep2.ts?");
 
 /***/ })
 

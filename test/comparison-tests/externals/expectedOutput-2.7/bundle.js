@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar hello = __webpack_require__(/*! hello */ \"hello\");\nvar msg = hello.sayHello('World');\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar hello = __webpack_require__(/*! hello */ \"hello\");\nvar msg = hello.sayHello('World');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -90,7 +90,7 @@ eval("\nexports.__esModule = true;\nvar hello = __webpack_require__(/*! hello */
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("module.exports = hello;\n\n//////////////////\n// WEBPACK FOOTER\n// external \"hello\"\n// module id = hello\n// module chunks = main\n\n//# sourceURL=webpack:///external_%22hello%22?");
+eval("module.exports = hello;\n\n//# sourceURL=webpack:///external_%22hello%22?");
 
 /***/ })
 

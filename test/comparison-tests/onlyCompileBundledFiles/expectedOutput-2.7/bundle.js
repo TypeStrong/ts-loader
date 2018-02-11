@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar submodule = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.ts\");\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(submodule);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar submodule = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.ts\");\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(submodule);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -90,7 +90,7 @@ eval("\nexports.__esModule = true;\nvar submodule = __webpack_require__(/*! ./su
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//////////////////\n// WEBPACK FOOTER\n// ./lib/externalLib.js\n// module id = ./lib/externalLib.js\n// module chunks = main\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
+eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
 
 /***/ }),
 
@@ -102,7 +102,7 @@ eval("module.exports = {\n    doSomething: function() { }   \n}\n\n/////////////
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(\"\");\nvar message = \"Hello from submodule\";\nmodule.exports = message;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./submodule/submodule.ts\n// module id = ./submodule/submodule.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./submodule/submodule.ts?");
+eval("\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(\"\");\nvar message = \"Hello from submodule\";\nmodule.exports = message;\n\n\n//# sourceURL=webpack:///./submodule/submodule.ts?");
 
 /***/ })
 

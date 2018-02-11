@@ -8,7 +8,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nmodule.exports = 'c';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./c.ts\n// module id = ./c.ts\n// module chunks = 0\n\n//# sourceURL=webpack:///./c.ts?");
+eval("\nmodule.exports = 'c';\n\n\n//# sourceURL=webpack:///./c.ts?");
 
 /***/ }),
 
@@ -20,7 +20,7 @@ eval("\nmodule.exports = 'c';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./c
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nmodule.exports = 'd';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./d.ts\n// module id = ./d.ts\n// module chunks = 0\n\n//# sourceURL=webpack:///./d.ts?");
+eval("\nmodule.exports = 'd';\n\n\n//# sourceURL=webpack:///./d.ts?");
 
 /***/ })
 

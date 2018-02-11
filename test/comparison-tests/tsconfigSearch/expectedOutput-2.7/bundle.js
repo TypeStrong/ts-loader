@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//////////////////\n// WEBPACK FOOTER\n// ./lib/externalLib.js\n// module id = ./lib/externalLib.js\n// module chunks = main\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
+eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
 
 /***/ }),
 
@@ -90,7 +90,7 @@ eval("module.exports = {\n    doSomething: function() { }   \n}\n\n/////////////
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething('');\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./src/app.ts\n// module id = ./src/app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./src/app.ts?");
+eval("\nexports.__esModule = true;\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething('');\n\n\n//# sourceURL=webpack:///./src/app.ts?");
 
 /***/ })
 

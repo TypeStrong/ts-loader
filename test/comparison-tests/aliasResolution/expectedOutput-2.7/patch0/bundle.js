@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar myComponent = __webpack_require__(/*! components/myComponent */ \"./common/components/myComponent.ts\");\nconsole.log(myComponent);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar myComponent = __webpack_require__(/*! components/myComponent */ \"./common/components/myComponent.ts\");\nconsole.log(myComponent);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nvar myComponent = __webpack_require__(/*! co
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nmodule.exports = 'changed it';\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./common/components/myComponent.ts\n// module id = ./common/components/myComponent.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./common/components/myComponent.ts?");
+eval("\nmodule.exports = 'changed it';\n\n\n//# sourceURL=webpack:///./common/components/myComponent.ts?");
 
 /***/ })
 

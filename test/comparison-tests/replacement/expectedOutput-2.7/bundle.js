@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar dep = __webpack_require__(/*! ./dep */ \"./sub/dep.ts\");\nmodule.exports = dep;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./a.ts\n// module id = ./a.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./a.ts?");
+eval("\nvar dep = __webpack_require__(/*! ./dep */ \"./sub/dep.ts\");\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./a.ts?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nvar dep = __webpack_require__(/*! ./dep */ \"./sub/dep.ts\");\nmodule.ex
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! ./a */ \"./a.ts\");\nconsole.log(a);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! ./a */ \"./a.ts\");\nconsole.log(a);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -103,7 +103,7 @@ eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! ./a */ \"./a
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar dep = 'replacement';\nmodule.exports = dep;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./sub/dep.ts\n// module id = ./sub/dep.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./sub/dep.ts?");
+eval("\nvar dep = 'replacement';\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./sub/dep.ts?");
 
 /***/ })
 

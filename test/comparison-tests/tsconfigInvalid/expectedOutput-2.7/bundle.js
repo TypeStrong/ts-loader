@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed: /u001b[31merror while parsing tsconfig.json/u001b[39m\");\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("throw new Error(\"Module build failed: /u001b[31merror while parsing tsconfig.json/u001b[39m\");\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

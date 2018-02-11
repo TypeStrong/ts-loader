@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed: /u001b[31merror while reading tsconfig.json:/u001b[39m/r/n/u001b[31m/u001b[90m[tsl] /u001b[31m/u001b[1m/u001b[31mERROR/u001b[31m/u001b[22m/u001b[1m/u001b[31m in /u001b[31m/u001b[22m/u001b[1m/u001b[36mC://source//ts-loader//.test//tsconfigNotReadable.transpile//tsconfig.json(5,2)/u001b[31m/u001b[22m/u001b[39m/r/n/u001b[31m/u001b[1m/u001b[31m      TS1109: Expression expected./u001b[31m/u001b[22m/u001b[39m\");\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("throw new Error(\"Module build failed: /u001b[31merror while reading tsconfig.json:/u001b[39m/r/n/u001b[31m/u001b[90m[tsl] /u001b[31m/u001b[1m/u001b[31mERROR/u001b[31m/u001b[22m/u001b[1m/u001b[31m in /u001b[31m/u001b[22m/u001b[1m/u001b[36mC://source//ts-loader//.test//tsconfigNotReadable.transpile//tsconfig.json(5,2)/u001b[31m/u001b[22m/u001b[39m/r/n/u001b[31m/u001b[1m/u001b[31m      TS1109: Expression expected./u001b[31m/u001b[22m/u001b[39m\");\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

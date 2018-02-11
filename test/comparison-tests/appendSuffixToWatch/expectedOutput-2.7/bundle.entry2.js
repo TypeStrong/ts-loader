@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports[\"default\"] = \"some value\";\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./component.vue\n// module id = ./component.vue\n// module chunks = entry2\n\n//# sourceURL=webpack:///./component.vue?");
+eval("\nexports.__esModule = true;\nexports[\"default\"] = \"some value\";\n\n\n//# sourceURL=webpack:///./component.vue?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nexports[\"default\"] = \"some value\";\n\n\n
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nconsole.log(component_vue_1[\"default\"]);\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./entry2.ts\n// module id = ./entry2.ts\n// module chunks = entry2\n\n//# sourceURL=webpack:///./entry2.ts?");
+eval("\nexports.__esModule = true;\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nconsole.log(component_vue_1[\"default\"]);\n\n\n//# sourceURL=webpack:///./entry2.ts?");
 
 /***/ })
 

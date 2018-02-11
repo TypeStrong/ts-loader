@@ -79,7 +79,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports[\"default\"] = {\n    data: function () {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./component.vue\n// module id = ./component.vue\n// module chunks = main\n\n//# sourceURL=webpack:///./component.vue?");
+eval("\nexports.__esModule = true;\nexports[\"default\"] = {\n    data: function () {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//# sourceURL=webpack:///./component.vue?");
 
 /***/ }),
 
@@ -91,7 +91,7 @@ eval("\nexports.__esModule = true;\nexports[\"default\"] = {\n    data: function
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./helper.ts\n// module id = ./helper.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./helper.ts?");
+eval("\nexports.__esModule = true;\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//# sourceURL=webpack:///./helper.ts?");
 
 /***/ }),
 
@@ -103,7 +103,7 @@ eval("\nexports.__esModule = true;\nfunction myMethod() {\n    console.log('from
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports[\"default\"] = {\n    components: { component: component_vue_1[\"default\"] },\n    data: function () {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//////////////////\n// WEBPACK FOOTER\n// ./index.vue\n// module id = ./index.vue\n// module chunks = main\n\n//# sourceURL=webpack:///./index.vue?");
+eval("\nexports.__esModule = true;\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports[\"default\"] = {\n    components: { component: component_vue_1[\"default\"] },\n    data: function () {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//# sourceURL=webpack:///./index.vue?");
 
 /***/ })
 

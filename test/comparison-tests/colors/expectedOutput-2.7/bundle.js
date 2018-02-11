@@ -78,7 +78,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module parse failed: Unexpected token (2:1)/nYou may need an appropriate loader to handle this file type./n| var a;/n|  == 0;/n| \");\n\n//////////////////\n// WEBPACK FOOTER\n// ./app.ts\n// module id = ./app.ts\n// module chunks = main\n\n//# sourceURL=webpack:///./app.ts?");
+eval("throw new Error(\"Module parse failed: Unexpected token (2:1)/nYou may need an appropriate loader to handle this file type./n| var a;/n|  == 0;/n| \");\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 
