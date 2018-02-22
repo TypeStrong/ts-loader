@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,41 +64,47 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var dep = __webpack_require__(1);
-dep('');
-
+eval("\nexports.__esModule = true;\nvar dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\ndep('');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./deeperDep.ts":
+/*!**********************!*\
+  !*** ./deeperDep.ts ***!
+  \**********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-var dep = __webpack_require__(2);
-module.exports = dep;
-
+eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./deeperDep.ts?");
 
 /***/ }),
-/* 2 */
+
+/***/ "./dep.ts":
+/*!****************!*\
+  !*** ./dep.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-function doSomething(input) {
-}
-module.exports = doSomething;
-
+eval("\nvar dep = __webpack_require__(/*! ./deeperDep */ \"./deeperDep.ts\");\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./dep.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

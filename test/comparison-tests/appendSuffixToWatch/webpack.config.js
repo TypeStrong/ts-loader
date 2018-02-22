@@ -1,4 +1,5 @@
 module.exports = {
+    mode: 'development',
     stats: "errors-only",
     entry: {
         entry1: './entry1.ts',
@@ -11,7 +12,7 @@ module.exports = {
         extensions: ['.js', '.ts', '.vue']
     },
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.ts$|\.vue$/,
           loader: 'ts-loader',

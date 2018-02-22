@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,44 +64,47 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var dep1 = __webpack_require__(1);
-var dep2 = __webpack_require__(2);
-dep1('');
-dep2('');
-
+eval("\nexports.__esModule = true;\nvar dep1 = __webpack_require__(/*! ./dep1 */ \"./dep1.ts\");\nvar dep2 = __webpack_require__(/*! ./dep2 */ \"./dep2.ts\");\ndep1('');\ndep2('');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./dep1.ts":
+/*!*****************!*\
+  !*** ./dep1.ts ***!
+  \*****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-function doSomething(input) {
-}
-module.exports = doSomething;
-
+eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep1.ts?");
 
 /***/ }),
-/* 2 */
+
+/***/ "./dep2.ts":
+/*!*****************!*\
+  !*** ./dep2.ts ***!
+  \*****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-function doSomething(input) {
-}
-module.exports = doSomething;
-
+eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep2.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

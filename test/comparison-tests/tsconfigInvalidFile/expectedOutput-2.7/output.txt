@@ -1,6 +1,8 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  2.67 kB       0  [emitted]  main
-   [0] ./.test/tsconfigInvalidFile/app.ts 200 bytes {0} [built] [failed] [1 error]
+Built at: 2018-2-11 17:55:44
+    Asset      Size  Chunks             Chunk Names
+bundle.js  2.98 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 200 bytes {main} [built] [failed] [1 error]
 
-ERROR in ./.test/tsconfigInvalidFile/app.ts
+ERROR in ./app.ts
 Module build failed: [31mA file specified in tsconfig.json could not be found: i-am-a-file-what-does-not-exist.ts[39m

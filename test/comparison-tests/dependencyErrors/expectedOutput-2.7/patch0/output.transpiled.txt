@@ -1,5 +1,7 @@
+Built at: 2018-2-11 17:52:34
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.93 kB       0  [emitted]  main
-   [0] ./.test/dependencyErrors/app.ts 121 bytes {0}
-   [1] ./.test/dependencyErrors/dep1.ts 76 bytes {0} [built]
-   [2] ./.test/dependencyErrors/dep2.ts 76 bytes {0}
+bundle.js  3.6 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 121 bytes {main}
+[./dep1.ts] 76 bytes {main} [built]
+[./dep2.ts] 76 bytes {main}

@@ -1,4 +1,6 @@
-        Asset     Size  Chunks             Chunk Names
-    bundle.js  2.54 kB       0  [emitted]  main
-bundle.js.map  2.58 kB       0  [emitted]  main
-   [0] ./.test/sourceMaps/a.ts 28 bytes {0} [built]
+Built at: 2018-2-11 17:55:37
+        Asset      Size  Chunks             Chunk Names
+    bundle.js  2.78 KiB    main  [emitted]  main
+bundle.js.map  2.61 KiB    main  [emitted]  main
+Entrypoint main = bundle.js bundle.js.map
+[./a.ts] 28 bytes {main} [built]

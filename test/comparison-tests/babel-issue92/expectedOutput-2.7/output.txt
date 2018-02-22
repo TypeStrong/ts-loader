@@ -1,4 +1,6 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  3.02 kB       0  [emitted]  main
-   [0] ./.test/babel-issue92/app.ts 72 bytes {0} [built]
-   [1] ./.test/babel-issue92/submodule/submodule.tsx 38 bytes {0} [built]
+Built at: 2018-2-11 17:51:18
+    Asset      Size  Chunks             Chunk Names
+bundle.js  3.62 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 72 bytes {main} [built]
+[./submodule/submodule.tsx] 38 bytes {main} [built]

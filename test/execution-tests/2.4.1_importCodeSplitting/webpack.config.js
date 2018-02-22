@@ -5,6 +5,7 @@ var path = require("path");
 var webpack = require("webpack");
 
 module.exports = {
+  mode: 'development',
   entry: "./app.ts",
   
   output: {
@@ -14,7 +15,7 @@ module.exports = {
   },
 
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.ts$/,
         loader: "ts-loader"

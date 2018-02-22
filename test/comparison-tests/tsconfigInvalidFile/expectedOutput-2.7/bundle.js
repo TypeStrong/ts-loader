@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,15 +64,22 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: \u001b[31mA file specified in tsconfig.json could not be found: /tsconfigInvalidFile/i-am-a-file-what-does-not-exist.ts\u001b[39m");
+eval("throw new Error(\"Module build failed: /u001b[31mA file specified in tsconfig.json could not be found: C://source//ts-loader//.test//tsconfigInvalidFile//i-am-a-file-what-does-not-exist.ts/u001b[39m\");\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

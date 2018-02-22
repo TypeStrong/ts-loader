@@ -4,7 +4,7 @@ import b from './b';
 console.log(a);
 console.log(b);
 
-const d = import('./d').then(d => {
+import('./d').then(d => {
     console.log(d.d);
 })
 

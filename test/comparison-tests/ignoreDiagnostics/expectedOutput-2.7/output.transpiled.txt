@@ -1,3 +1,5 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  2.75 kB       0  [emitted]  main
-   [0] ./.test/ignoreDiagnostics/app.ts 256 bytes {0} [built]
+Built at: 2018-2-11 17:53:29
+    Asset      Size  Chunks             Chunk Names
+bundle.js  3.06 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 256 bytes {main} [built]

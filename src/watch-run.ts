@@ -4,7 +4,8 @@ import { readFile } from './utils';
 import * as constants from './constants';
 import { 
     TSInstance,
-    WebpackWatching
+    WebpackCompiler,
+    TSFile
 } from './interfaces';
 
 /**
@@ -14,46 +15,49 @@ export function makeWatchRun(
     instance: TSInstance
 ) {
     // Called Before starting compilation after watch
-    const lastTimes = {};
-    let startTime : number | null = null;
-    return (watching: WebpackWatching, cb: () => void) => {
+    const lastTimes = new Map<string, number>();
+    let startTime = 0;
+    
+    return (compiler: WebpackCompiler, callback: () => void) => {
         if (null === instance.modifiedFiles) {
-            instance.modifiedFiles = {};
+            instance.modifiedFiles = new Map<string, TSFile>();
         }
-        startTime = startTime || watching.startTime;
-        const times = watching.compiler.fileTimestamps;
-        Object.keys(times)
-            .filter(filePath =>
-                times[filePath] > (lastTimes[filePath] || startTime)
-                && filePath.match(constants.tsTsxJsJsxRegex)
-            )
-            .forEach(filePath => {
-                lastTimes[filePath] = times[filePath];
-                updateFile(instance, filePath);
-            });
+
+        // startTime = startTime || watching.startTime;
+        const times = compiler.fileTimestamps;
+        for (const [filePath, date] of times) {
+            if (date > (lastTimes.get(filePath) || startTime)
+                && filePath.match(constants.tsTsxJsJsxRegex)) {
+                continue;
+            }
+
+            lastTimes.set(filePath, date);
+
+            updateFile(instance, filePath);
+        }
+
         // On watch update add all known dts files expect the ones in node_modules
         // (skip @types/* and modules with typings)
-        Object.keys(instance.files)
-            .filter(filePath =>
-                filePath.match(constants.dtsDtsxRegex) && !filePath.match(constants.nodeModules)
-            )
-            .forEach(filePath => {
+        for (const filePath of instance.files.keys()) {
+            if (filePath.match(constants.dtsDtsxRegex) && !filePath.match(constants.nodeModules)) {
                 updateFile(instance, filePath);
-            });
-        cb();
+            }
+        }
+
+        callback();
     };
 }
 
 function updateFile(instance: TSInstance, filePath: string) {
-    filePath = path.normalize(filePath);
-    const file = instance.files[filePath] || instance.otherFiles[filePath];
+    const nFilePath = path.normalize(filePath);
+    const file = instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
     if (file !== undefined) {
-        file.text = readFile(filePath) || '';
+        file.text = readFile(nFilePath) || '';
         file.version++;
         instance.version!++;
-        instance.modifiedFiles![filePath] = file;
+        instance.modifiedFiles!.set(nFilePath, file);
         if (instance.watchHost) {
-            instance.watchHost.invokeFileWatcher(filePath, instance.compiler.FileWatcherEventKind.Changed);
+            instance.watchHost.invokeFileWatcher(nFilePath, instance.compiler.FileWatcherEventKind.Changed);
         }
-}
+    }
 }

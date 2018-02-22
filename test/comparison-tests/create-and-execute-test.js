@@ -25,7 +25,7 @@ if (saveOutputMode) {
 
 var typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 var FLAKY = '_FLAKY_';
-var IGNORED = '_IGNORED_';
+var IGNORE = '_IGNORE_';
 
 // set up new paths
 var rootPath = path.resolve(__dirname, '../../');
@@ -34,7 +34,7 @@ var stagingPath = path.resolve(rootPath, '.test');
 
 var testPath = path.join(__dirname, testToRun);
 var testIsFlaky = pathExists(path.join(testPath, FLAKY));
-var testIsIgnored = pathExists(path.join(testPath, IGNORED));
+var testIsIgnored = pathExists(path.join(testPath, IGNORE));
 
 if (testIsIgnored) {
     console.log(testPath + ' is ignored... Not running test.');
@@ -128,6 +128,7 @@ function createWebpackConfig(paths, transpile) {
     var config = require(path.join(paths.testStagingPath, 'webpack.config'));
 
     var options = {
+        // colors: false,
         silent: true,
         compilerOptions: {
             newLine: 'LF'
@@ -360,16 +361,21 @@ function cleanHashFromOutput(stats, webpackOutput) {
 function getNormalisedFileContent(file, location, test) {
     var fileContent;
     var filePath = path.join(location, file);
+
     try {
         var originalContent = fs.readFileSync(filePath).toString();
         fileContent = (file.indexOf('output.') === 0
             ? normaliseString(originalContent)
+                // Built at: 2/15/2018 8:33:18 PM
+                // Built at: 2018-2-11 17:50:52 (any time is fine for us)
+                .replace(/^Built at: .+$/gm, 'Built at: A-DATETIME')
                 // We don't want a difference in the number of kilobytes to fail the build
-                .replace(/[\d]+[.][\d]* kB/g, ' A-NUMBER-OF kB')
+                .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
                 // We also don't want a difference in the number of bytes to fail the build
                 .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
+                .replace(/ test\/comparison-tests\//,' /test/comparison-tests/')
                 // Ignore 'at Object.loader (dist\index.js:32:15)' style row number / column number differences
                 .replace(/(\(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(match, openingBracketPathAndColon, lineNumber, colon, columnNumber, closingBracket){
                     return openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
@@ -378,25 +384,35 @@ function getNormalisedFileContent(file, location, test) {
             // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
             .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
-            });
+            })
+            // strip C:/projects/ts-loader/.test/
+            .replace(/(C\:\/)?[\w|\/]*\/ts-loader\/\.test/g, '')
+            .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'webpack://comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '/ /ts-loader/test/comparison-tests/')
+            // with webpack 4 there are different numbers of *s on Windows and on Linux
+            .replace(/\*{10}\**/g, '**********');
     } catch (e) {
-        fileContent = '!!!' + filePath + ' doePsnt exist!!!';
+        fileContent = '!!!' + filePath + ' doesn\'t exist!!!';
     }
     return fileContent;
 }
 
 function normaliseString(platformSpecificContent) {
     return platformSpecificContent
-        .replace(/\r\n/g, '\n')
+        .replace(/(?:\\[rn]|[\r\n]+)+/g, '\n') // https://stackoverflow.com/a/20023647/761388
+        .replace(/\/r\/n/g, '/n')
         .replace(/\\r\\n/g, '\\n') // bundle.js output needs this; tsConfigNotReadable for instance
-        // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/g, 'ts-loader')
-        // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)')
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
         .replace(new RegExp(regexEscape('/'), 'g'), '\\')
-        .replace(new RegExp(regexEscape('\\'), 'g'), '/');
+        .replace(new RegExp(regexEscape('\\'), 'g'), '/')
+        .replace(new RegExp(regexEscape('//'), 'g'), '/')
+        // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
+        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/g, 'ts-loader')
+        // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
+        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
 }
 
 /**

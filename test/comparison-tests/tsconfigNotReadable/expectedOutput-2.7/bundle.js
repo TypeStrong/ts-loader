@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,15 +64,22 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: \u001b[31merror while reading tsconfig.json:\u001b[39m\r\n\u001b[31m\u001b[90m[tsl] \u001b[31m\u001b[1m\u001b[31mERROR\u001b[31m\u001b[22m\u001b[1m\u001b[31m in \u001b[31m\u001b[22m\u001b[1m\u001b[36m/tsconfigNotReadable/tsconfig.json(5,2)\u001b[31m\u001b[22m\u001b[39m\r\n\u001b[31m\u001b[1m\u001b[31m      TS1109: Expression expected.\u001b[31m\u001b[22m\u001b[39m");
+eval("throw new Error(\"Module build failed: /u001b[31merror while reading tsconfig.json:/u001b[39m/r/n/u001b[31m/u001b[90m[tsl] /u001b[31m/u001b[1m/u001b[31mERROR/u001b[31m/u001b[22m/u001b[1m/u001b[31m in /u001b[31m/u001b[22m/u001b[1m/u001b[36mC://source//ts-loader//.test//tsconfigNotReadable//tsconfig.json(5,2)/u001b[31m/u001b[22m/u001b[39m/r/n/u001b[31m/u001b[1m/u001b[31m      TS1109: Expression expected./u001b[31m/u001b[22m/u001b[39m\");\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

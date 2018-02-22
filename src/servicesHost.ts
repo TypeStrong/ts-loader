@@ -1,6 +1,5 @@
 import * as typescript from 'typescript';
 import * as path from 'path';
-import * as semver from 'semver';
 
 import * as constants from './constants';
 import * as logger from './logger';
@@ -22,11 +21,9 @@ export function makeServicesHost(
     scriptRegex: RegExp,
     log: logger.Logger,
     loader: Webpack,
-    instance: TSInstance,
-    appendTsSuffixTo: RegExp[],
-    appendTsxSuffixTo: RegExp[]
+    instance: TSInstance
 ) {
-    const { compiler, compilerOptions, files } = instance;
+    const { compiler, compilerOptions, files, loaderOptions: { appendTsSuffixTo, appendTsxSuffixTo } } = instance;
 
     const newLine =
         compilerOptions.newLine === constants.CarriageReturnLineFeedCode ? constants.CarriageReturnLineFeed :
@@ -34,15 +31,12 @@ export function makeServicesHost(
                 constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
-    const resolveSync = makeResolver(loader.options);
+    const resolveSync = makeResolver(loader._compiler.options);
 
-    const readFileWithFallback = compiler.sys === undefined || compiler.sys.readFile === undefined
-        ? readFile
-        : (path: string, encoding?: string | undefined): string | undefined => compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+    const readFileWithFallback = (path: string, encoding?: string | undefined): string | undefined =>
+        compiler.sys.readFile(path, encoding) || readFile(path, encoding);
 
-    const fileExists = compiler.sys === undefined || compiler.sys.fileExists === undefined
-        ? (path: string) => readFile(path) !== undefined
-        : (path: string) => compiler.sys.fileExists(path) || readFile(path) !== undefined;
+    const fileExists = (path: string) => compiler.sys.fileExists(path) || readFile(path) !== undefined;
 
     const moduleResolutionHost: ModuleResolutionHost = {
         fileExists,
@@ -50,22 +44,16 @@ export function makeServicesHost(
     };
 
     // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
-    const getCurrentDirectory = (compiler!.version && semver.gte(compiler!.version, '2.3.0'))
-        ? () => loader.context
-        : () => process.cwd();
-
-    const resolutionStrategy = (compiler!.version && semver.gte(compiler!.version, '2.4.0'))
-        ? resolutionStrategyTS24AndAbove
-        : resolutionStrategyTS23AndBelow;
+    const getCurrentDirectory = () => loader.context;
 
     const servicesHost: typescript.LanguageServiceHost = {
         getProjectVersion: () => `${instance.version}`,
 
-        getScriptFileNames: () => Object.keys(files).filter(filePath => filePath.match(scriptRegex)),
+        getScriptFileNames: () => [...files.keys()].filter(filePath => filePath.match(scriptRegex)),
 
         getScriptVersion: (fileName: string) => {
             fileName = path.normalize(fileName);
-            const file = files[fileName];
+            const file = files.get(fileName);
             return file === undefined ? '' : file.version.toString();
         },
 
@@ -73,36 +61,35 @@ export function makeServicesHost(
             // This is called any time TypeScript needs a file's text
             // We either load from memory or from disk
             fileName = path.normalize(fileName);
-            let file = files[fileName];
+            let file = files.get(fileName);
 
             if (file === undefined) {
                 const text = readFile(fileName);
                 if (text === undefined) { return undefined; }
 
-                file = files[fileName] = { version: 0, text };
+                file = { version: 0, text };
+                files.set(fileName, file);
             }
 
-            return compiler.ScriptSnapshot.fromString(file.text);
+            return compiler.ScriptSnapshot.fromString(file.text!);
         },
         /**
          * getDirectories is also required for full import and type reference completions.
          * Without it defined, certain completions will not be provided
          */
-        getDirectories: compiler.sys ? compiler.sys.getDirectories : undefined,
+        getDirectories: compiler.sys.getDirectories,
 
         /**
          * For @types expansion, these two functions are needed.
          */
-        directoryExists: compiler.sys ? compiler.sys.directoryExists : undefined,
+        directoryExists: compiler.sys.directoryExists,
 
-        useCaseSensitiveFileNames: compiler.sys
-            ? () => compiler.sys.useCaseSensitiveFileNames
-            : undefined,
+        useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
 
         // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
-        fileExists: compiler.sys ? compiler.sys.fileExists : undefined,
-        readFile: compiler.sys ? compiler.sys.readFile : undefined,
-        readDirectory: compiler.sys ? compiler.sys.readDirectory : undefined,
+        fileExists: compiler.sys.fileExists,
+        readFile: compiler.sys.readFile,
+        readDirectory: compiler.sys.readDirectory,
 
         getCurrentDirectory,
 
@@ -148,11 +135,10 @@ export function makeWatchHost(
                 constants.EOL;
 
     // make a (sync) resolver that follows webpack's rules
-    const resolveSync = makeResolver(loader.options);
+    const resolveSync = makeResolver(loader._compiler.options);
 
-    const readFileWithFallback = compiler.sys === undefined || compiler.sys.readFile === undefined
-        ? readFile
-        : (path: string, encoding?: string | undefined): string | undefined => compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+    const readFileWithFallback = (path: string, encoding?: string | undefined): string | undefined =>
+        compiler.sys.readFile(path, encoding) || readFile(path, encoding);
 
     const moduleResolutionHost: ModuleResolutionHost = {
         fileExists,
@@ -160,13 +146,7 @@ export function makeWatchHost(
     };
 
     // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
-    const getCurrentDirectory = (compiler!.version && semver.gte(compiler!.version, '2.3.0'))
-        ? () => loader.context
-        : () => process.cwd();
-
-    const resolutionStrategy = (compiler!.version && semver.gte(compiler!.version, '2.4.0'))
-        ? resolutionStrategyTS24AndAbove
-        : resolutionStrategyTS23AndBelow;
+    const getCurrentDirectory = () => loader.context;
 
     type WatchCallbacks<T> = { [fileName: string]: T[] | undefined };
     const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = {};
@@ -184,11 +164,11 @@ export function makeWatchHost(
 
         fileExists,
         readFile: readFileWithCachingText,
-        directoryExists: s => compiler.sys.directoryExists(path.normalize(s)),
-        getDirectories: s => compiler.sys.getDirectories(path.normalize(s)),
-        readDirectory: (s, extensions, exclude, include, depth) => compiler.sys.readDirectory(path.normalize(s), extensions, exclude, include, depth),
-        realpath: s => compiler.sys.resolvePath(path.normalize(s)),
-        trace: s => log.logInfo(s),
+        directoryExists: path => compiler.sys.directoryExists(path.normalize(path)),
+        getDirectories: path => compiler.sys.getDirectories(path.normalize(path)),
+        readDirectory: (path, extensions, exclude, include, depth) => compiler.sys.readDirectory(path.normalize(path), extensions, exclude, include, depth),
+        realpath: path => compiler.sys.resolvePath(path.normalize(path)),
+        trace: logData => log.log(logData),
 
         watchFile,
         watchDirectory,
@@ -211,24 +191,24 @@ export function makeWatchHost(
     return watchHost;
 
     function getRootFileNames() {
-        return Object.keys(files).filter(filePath => filePath.match(scriptRegex));
+        return [...files.keys()].filter(filePath => filePath.match(scriptRegex));
     }
 
     function readFileWithCachingText(fileName: string, encoding?: string) {
         fileName = path.normalize(fileName);
-        let file = files[fileName] || otherFiles[fileName];
+        const file = files.get(fileName) || otherFiles.get(fileName);
         if (file !== undefined) {
             return file.text;
         }
         const text = readFileWithFallback(fileName, encoding);
         if (text === undefined) { return undefined; }
-        otherFiles[fileName] = { version: 0, text };
+        otherFiles.set(fileName, { version: 0, text });
         return text;
     }
 
-    function fileExists(s: string) {
-        s = path.normalize(s);
-        return !!files.hasOwnProperty(s) || compiler.sys.fileExists(s);
+    function fileExists(fileName: string) {
+        const filePath = path.normalize(fileName);
+        return files.has(filePath) || compiler.sys.fileExists(filePath);
     }
 
     function invokeWatcherCallbacks(callbacks: typescript.FileWatcherCallback[] | undefined, fileName: string, eventKind: typescript.FileWatcherEventKind): void;
@@ -320,8 +300,6 @@ function isJsImplementationOfTypings(
         /\.d\.ts$/.test(tsResolution.resolvedFileName);
 }
 
-type ResolutionStrategy = (resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule) => ResolvedModule;
-
 function resolveModuleName(
     resolveSync: ResolveSync,
     moduleResolutionHost: ModuleResolutionHost,
@@ -369,19 +347,10 @@ function resolveModuleName(
     return resolutionResult!;
 }
 
-function resolutionStrategyTS23AndBelow(resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule): ResolvedModule {
-    if (resolutionResult! !== undefined) {
-        if (resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
-            isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)) {
-            resolutionResult!.isExternalLibraryImport = tsResolutionResult.isExternalLibraryImport;
-        }
-    } else {
-        return tsResolutionResult;
-    }
-    return resolutionResult!;
-}
 
-function resolutionStrategyTS24AndAbove(resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule): ResolvedModule {
+type ResolutionStrategy = (resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule) => ResolvedModule;
+
+function resolutionStrategy(resolutionResult: ResolvedModule | undefined, tsResolutionResult: ResolvedModule): ResolvedModule {
     return (resolutionResult! === undefined ||
         resolutionResult!.resolvedFileName === tsResolutionResult.resolvedFileName ||
         isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)

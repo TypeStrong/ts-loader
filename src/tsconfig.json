@@ -1,17 +1,11 @@
 {
     "compilerOptions": {
-        "target": "es5",
-        "noImplicitAny": true,
+        "target": "es2015",
         "noImplicitReturns": true,
-        "noImplicitThis": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "suppressImplicitAnyIndexErrors": true,
-        "strictFunctionTypes": true,
-        "strictNullChecks": true,
-        "lib": [
-            "es5", "es2015.core"
-        ],
+        "strict": true,
         "module": "commonjs",
         "moduleResolution": "node",
         "outDir": "../dist"

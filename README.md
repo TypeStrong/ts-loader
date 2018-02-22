@@ -64,9 +64,9 @@ build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.h
 
 ### Compatibility
 
-#### TypeScript / Webpack
-
-ts-loader supports the latest and greatest version of TypeScript right back to v2.0. ts-loader supports webpack 3.  Our continuous integration test suites run against webpack 3; **not** webpack 2. That said, ts-loader worked fine with webpack 2 when we last checked.
+- TypeScript: 2.4.1+
+- webpack: 4.x+ (please use ts-loader 3.x if you need webpack 2 or 3 support)
+- node: 6.11.5 minimum (aligned with webpack 4)
 
 A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against major releases of TypeScript.  The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
@@ -78,6 +78,7 @@ If you become aware of issues not caught by the test suite then please let us kn
 
     ```javascript
     module.exports = {
+      mode: 'development',
       devtool: 'inline-source-map',
       entry: './app.ts',
       output: {
@@ -328,12 +329,6 @@ as you would do for the `compilerOptions` property in tsconfig.json.
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
-
-#### entryFileCannotBeJs *(boolean) (default=false) DEPRECATED*
-
-If the `allowJs` compiler option is `true` then it's possible for your entry files to be JS. There is a [known issue using ts-loader with TypeScript 2.3 and below](https://github.com/TypeStrong/ts-loader/issues/655).  This option exists to work around that issue if you are using ts-loader with TypeScript 2.3 or below.
-
-This option will be removed in a future version of ts-loader.
 
 #### appendTsSuffixTo *(RegExp[]) (default=[])*
 #### appendTsxSuffixTo *(RegExp[]) (default=[])*

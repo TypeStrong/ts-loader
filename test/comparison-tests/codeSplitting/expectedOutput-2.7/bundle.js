@@ -1,10 +1,12 @@
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// install a JSONP callback for chunk loading
-/******/ 	var parentJsonpFunction = window["webpackJsonp"];
-/******/ 	window["webpackJsonp"] = function webpackJsonpCallback(chunkIds, moreModules, executeModules) {
+/******/ 	function webpackJsonpCallback(data) {
+/******/ 		var chunkIds = data[0];
+/******/ 		var moreModules = data[1]
+/******/
 /******/ 		// add "moreModules" to the modules object,
 /******/ 		// then flag all "chunkIds" as loaded and fire callback
-/******/ 		var moduleId, chunkId, i = 0, resolves = [], result;
+/******/ 		var moduleId, chunkId, i = 0, resolves = [];
 /******/ 		for(;i < chunkIds.length; i++) {
 /******/ 			chunkId = chunkIds[i];
 /******/ 			if(installedChunks[chunkId]) {
@@ -17,20 +19,23 @@
 /******/ 				modules[moduleId] = moreModules[moduleId];
 /******/ 			}
 /******/ 		}
-/******/ 		if(parentJsonpFunction) parentJsonpFunction(chunkIds, moreModules, executeModules);
+/******/ 		if(parentJsonpFunction) parentJsonpFunction(data);
 /******/ 		while(resolves.length) {
 /******/ 			resolves.shift()();
 /******/ 		}
 /******/
 /******/ 	};
 /******/
+/******/
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
-/******/ 	// objects to store loaded and loading chunks
+/******/ 	// object to store loaded and loading chunks
 /******/ 	var installedChunks = {
-/******/ 		1: 0
+/******/ 		"main": 0
 /******/ 	};
+/******/
+/******/
 /******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
@@ -59,51 +64,60 @@
 /******/ 	// This file contains only the entry chunk.
 /******/ 	// The chunk loading function for additional chunks
 /******/ 	__webpack_require__.e = function requireEnsure(chunkId) {
+/******/ 		var promises = [];
+/******/
+/******/
+/******/ 		// JSONP chunk loading for javascript
+/******/
 /******/ 		var installedChunkData = installedChunks[chunkId];
-/******/ 		if(installedChunkData === 0) {
-/******/ 			return new Promise(function(resolve) { resolve(); });
-/******/ 		}
+/******/ 		if(installedChunkData !== 0) { // 0 means "already installed".
 /******/
-/******/ 		// a Promise means "currently loading".
-/******/ 		if(installedChunkData) {
-/******/ 			return installedChunkData[2];
-/******/ 		}
+/******/ 			// a Promise means "currently loading".
+/******/ 			if(installedChunkData) {
+/******/ 				promises.push(installedChunkData[2]);
+/******/ 			} else {
+/******/ 				// setup Promise in chunk cache
+/******/ 				var promise = new Promise(function(resolve, reject) {
+/******/ 					installedChunkData = installedChunks[chunkId] = [resolve, reject];
+/******/ 				});
+/******/ 				promises.push(installedChunkData[2] = promise);
 /******/
-/******/ 		// setup Promise in chunk cache
-/******/ 		var promise = new Promise(function(resolve, reject) {
-/******/ 			installedChunkData = installedChunks[chunkId] = [resolve, reject];
-/******/ 		});
-/******/ 		installedChunkData[2] = promise;
+/******/ 				// start chunk loading
+/******/ 				var head = document.getElementsByTagName('head')[0];
+/******/ 				var script = document.createElement('script');
 /******/
-/******/ 		// start chunk loading
-/******/ 		var head = document.getElementsByTagName('head')[0];
-/******/ 		var script = document.createElement('script');
-/******/ 		script.type = 'text/javascript';
-/******/ 		script.charset = 'utf-8';
-/******/ 		script.async = true;
-/******/ 		script.timeout = 120000;
+/******/ 				script.charset = 'utf-8';
+/******/ 				script.timeout = 120000;
 /******/
-/******/ 		if (__webpack_require__.nc) {
-/******/ 			script.setAttribute("nonce", __webpack_require__.nc);
-/******/ 		}
-/******/ 		script.src = __webpack_require__.p + "" + chunkId + ".bundle.js";
-/******/ 		var timeout = setTimeout(onScriptComplete, 120000);
-/******/ 		script.onerror = script.onload = onScriptComplete;
-/******/ 		function onScriptComplete() {
-/******/ 			// avoid mem leaks in IE.
-/******/ 			script.onerror = script.onload = null;
-/******/ 			clearTimeout(timeout);
-/******/ 			var chunk = installedChunks[chunkId];
-/******/ 			if(chunk !== 0) {
-/******/ 				if(chunk) {
-/******/ 					chunk[1](new Error('Loading chunk ' + chunkId + ' failed.'));
+/******/ 				if (__webpack_require__.nc) {
+/******/ 					script.setAttribute("nonce", __webpack_require__.nc);
 /******/ 				}
-/******/ 				installedChunks[chunkId] = undefined;
+/******/ 				script.src = __webpack_require__.p + "" + chunkId + ".bundle.js";
+/******/ 				var timeout = setTimeout(function(){
+/******/ 					onScriptComplete({ type: 'timeout', target: script });
+/******/ 				}, 120000);
+/******/ 				script.onerror = script.onload = onScriptComplete;
+/******/ 				function onScriptComplete(event) {
+/******/ 					// avoid mem leaks in IE.
+/******/ 					script.onerror = script.onload = null;
+/******/ 					clearTimeout(timeout);
+/******/ 					var chunk = installedChunks[chunkId];
+/******/ 					if(chunk !== 0) {
+/******/ 						if(chunk) {
+/******/ 							var errorType = event && (event.type === 'load' ? 'missing' : event.type);
+/******/ 							var realSrc = event && event.target && event.target.src;
+/******/ 							var error = new Error('Loading chunk ' + chunkId + ' failed.\n(' + errorType + ': ' + realSrc + ')');
+/******/ 							error.type = errorType;
+/******/ 							error.request = realSrc;
+/******/ 							chunk[1](error);
+/******/ 						}
+/******/ 						installedChunks[chunkId] = undefined;
+/******/ 					}
+/******/ 				};
+/******/ 				head.appendChild(script);
 /******/ 			}
-/******/ 		};
-/******/ 		head.appendChild(script);
-/******/
-/******/ 		return promise;
+/******/ 		}
+/******/ 		return Promise.all(promises);
 /******/ 	};
 /******/
 /******/ 	// expose the modules object (__webpack_modules__)
@@ -121,6 +135,11 @@
 /******/ 				get: getter
 /******/ 			});
 /******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
 /******/ 	};
 /******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
@@ -141,53 +160,54 @@
 /******/ 	// on error function for async loading
 /******/ 	__webpack_require__.oe = function(err) { console.error(err); throw err; };
 /******/
+/******/ 	var jsonpArray = window["webpackJsonp"] = window["webpackJsonp"] || [];
+/******/ 	var oldJsonpFunction = jsonpArray.push.bind(jsonpArray);
+/******/ 	jsonpArray.push = webpackJsonpCallback;
+/******/ 	jsonpArray = jsonpArray.slice();
+/******/ 	for(var i = 0; i < jsonpArray.length; i++) webpackJsonpCallback(jsonpArray[i]);
+/******/ 	var parentJsonpFunction = oldJsonpFunction;
+/******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */,
-/* 1 */,
-/* 2 */
+/******/ ({
+
+/***/ "./a.ts":
+/*!**************!*\
+  !*** ./a.ts ***!
+  \**************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var a = __webpack_require__(3);
-var b = __webpack_require__(4);
-console.log(a);
-console.log(b);
-__webpack_require__.e/* require.ensure */(0).then((function (require) {
-    // These require calls are emitted (note these are NOT TypeScript
-    // `import ... require` statements). `require.ensure` is defined in
-    // require.d.ts. Webpack sees this and automatically puts c and d
-    // into a separate chunk. 
-    var cModule = __webpack_require__(0);
-    var dModule = __webpack_require__(1);
-    // cModule and dModule will typed as strings
-    console.log(cModule);
-    console.log(dModule);
-}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);
-
+eval("\nmodule.exports = 'a';\n\n\n//# sourceURL=webpack:///./a.ts?");
 
 /***/ }),
-/* 3 */
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-module.exports = 'a';
-
+eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a);\nconsole.log(b);\n__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... require` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    var cModule = __webpack_require__(/*! ./c */ \"./c.ts\");\n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    // cModule and dModule will typed as strings\n    console.log(cModule);\n    console.log(dModule);\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
-/* 4 */
+
+/***/ "./b.ts":
+/*!**************!*\
+  !*** ./b.ts ***!
+  \**************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-module.exports = 'b';
-
+eval("\nmodule.exports = 'b';\n\n\n//# sourceURL=webpack:///./b.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

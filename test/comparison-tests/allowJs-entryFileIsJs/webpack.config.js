@@ -1,4 +1,5 @@
 module.exports = {
+  mode: 'development',
   entry: './src/index.js',
   output: {
     filename: 'bundle.js'
@@ -7,7 +8,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx']
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.js$/,
         loader: 'ts-loader'

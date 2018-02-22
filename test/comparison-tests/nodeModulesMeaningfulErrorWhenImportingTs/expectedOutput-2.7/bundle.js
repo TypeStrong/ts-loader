@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,26 +64,34 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var a = __webpack_require__(1);
-console.log(a);
-
+eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.ts\");\nconsole.log(a);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./node_modules/a/index.ts":
+/*!*********************************!*\
+  !*** ./node_modules/a/index.ts ***!
+  \*********************************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-throw new Error("Module build failed: Error: Typescript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts.\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358\n    at successLoader (C:/source/ts-loader/dist/index.js:47:15)\n    at Object.loader (C:/source/ts-loader/dist/index.js:29:12)");
+eval("throw new Error(\"Module build failed: Error: Typescript emitted no output for C://source//ts-loader//.test//nodeModulesMeaningfulErrorWhenImportingTs//node_modules//a//index.ts./nYou should not need to recompile .ts files in node_modules./nPlease contact the package author to advise them to use --declaration --outDir./nMore https://github.com/Microsoft/TypeScript/issues/12358/n    at successLoader (C://source//ts-loader//dist//index.js:39:15)/n    at Object.loader (C://source//ts-loader//dist//index.js:21:12)\");\n\n//# sourceURL=webpack:///./node_modules/a/index.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

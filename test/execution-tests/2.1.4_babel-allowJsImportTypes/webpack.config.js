@@ -16,6 +16,7 @@ var babelOptions = {
 };
 
 module.exports = {
+  mode: 'development',
   entry: './src/entry.js',
   output: {
       filename: 'bundle.js'

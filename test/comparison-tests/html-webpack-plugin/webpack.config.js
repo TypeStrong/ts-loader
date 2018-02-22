@@ -1,6 +1,7 @@
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
+    mode: 'development',
     entry: './app.ts',
     output: {
         filename: 'bundle.js'

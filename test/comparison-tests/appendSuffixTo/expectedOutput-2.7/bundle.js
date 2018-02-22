@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,60 +64,47 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./index.vue");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./component.vue":
+/*!***********************!*\
+  !*** ./component.vue ***!
+  \***********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var component_vue_1 = __webpack_require__(1);
-var helper_1 = __webpack_require__(2);
-exports["default"] = {
-    components: { component: component_vue_1["default"] },
-    data: function () {
-        return {
-            msg: "world"
-        };
-    },
-    method: {
-        myMethod: helper_1.myMethod
-    }
-};
-
+eval("\nexports.__esModule = true;\nexports[\"default\"] = {\n    data: function () {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//# sourceURL=webpack:///./component.vue?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./helper.ts":
+/*!*******************!*\
+  !*** ./helper.ts ***!
+  \*******************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-exports["default"] = {
-    data: function () {
-        return {
-            msg: "component"
-        };
-    }
-};
-
+eval("\nexports.__esModule = true;\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//# sourceURL=webpack:///./helper.ts?");
 
 /***/ }),
-/* 2 */
+
+/***/ "./index.vue":
+/*!*******************!*\
+  !*** ./index.vue ***!
+  \*******************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-function myMethod() {
-    console.log('from helper!');
-}
-exports.myMethod = myMethod;
-
+eval("\nexports.__esModule = true;\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports[\"default\"] = {\n    components: { component: component_vue_1[\"default\"] },\n    data: function () {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//# sourceURL=webpack:///./index.vue?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

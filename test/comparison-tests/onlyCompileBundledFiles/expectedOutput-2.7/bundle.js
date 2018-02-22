@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,41 +64,46 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nexports.__esModule = true;\nvar submodule = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.ts\");\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(submodule);\n\n\n//# sourceURL=webpack:///./app.ts?");
+
+/***/ }),
+
+/***/ "./lib/externalLib.js":
+/*!****************************!*\
+  !*** ./lib/externalLib.js ***!
+  \****************************/
+/*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = {
-    doSomething: function() { }   
-}
+eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./submodule/submodule.ts":
+/*!********************************!*\
+  !*** ./submodule/submodule.ts ***!
+  \********************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var submodule = __webpack_require__(2);
-var externalLib = __webpack_require__(0);
-externalLib.doSomething(submodule);
-
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var externalLib = __webpack_require__(0);
-externalLib.doSomething("");
-var message = "Hello from submodule";
-module.exports = message;
-
+eval("\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(\"\");\nvar message = \"Hello from submodule\";\nmodule.exports = message;\n\n\n//# sourceURL=webpack:///./submodule/submodule.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

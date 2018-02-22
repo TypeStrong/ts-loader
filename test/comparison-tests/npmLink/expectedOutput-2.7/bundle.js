@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,30 +64,35 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "../../test/comparison-tests/testLib/foo.ts":
+/*!****************************************************************!*\
+  !*** C:/source/ts-loader/test/comparison-tests/testLib/foo.ts ***!
+  \****************************************************************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var foo_1 = __webpack_require__(1);
-console.log(foo_1["default"]);
-
+eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///C:/source/ts-loader/test/comparison-tests/testLib/foo.ts?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-exports["default"] = 'foo';
-
+eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1[\"default\"]);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

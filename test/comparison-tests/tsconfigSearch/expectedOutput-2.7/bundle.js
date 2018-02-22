@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,28 +64,34 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./lib/externalLib.js":
+/*!****************************!*\
+  !*** ./lib/externalLib.js ***!
+  \****************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
+
+/***/ }),
+
+/***/ "./src/app.ts":
+/*!********************!*\
+  !*** ./src/app.ts ***!
+  \********************/
+/*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-exports.__esModule = true;
-var externalLib = __webpack_require__(1);
-externalLib.doSomething('');
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-module.exports = {
-    doSomething: function() { }   
-}
+eval("\nexports.__esModule = true;\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething('');\n\n\n//# sourceURL=webpack:///./src/app.ts?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

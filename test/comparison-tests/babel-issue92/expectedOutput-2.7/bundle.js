@@ -44,6 +44,11 @@
 /******/ 		}
 /******/ 	};
 /******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
 /******/ 	// getDefaultExport function for compatibility with non-harmony modules
 /******/ 	__webpack_require__.n = function(module) {
 /******/ 		var getter = module && module.__esModule ?
@@ -59,26 +64,35 @@
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
 /******/
+/******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
 /******/ })
 /************************************************************************/
-/******/ ([
-/* 0 */
+/******/ ({
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__submodule_submodule__ = __webpack_require__(1);
-
-/* harmony default export */ __webpack_exports__["default"] = (__WEBPACK_IMPORTED_MODULE_0__submodule_submodule__["a" /* default */]);
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _submodule_submodule__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.tsx\");\n\n/* harmony default export */ __webpack_exports__[\"default\"] = (_submodule_submodule__WEBPACK_IMPORTED_MODULE_0__[\"default\"]);\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
-/* 1 */
+
+/***/ "./submodule/submodule.tsx":
+/*!*********************************!*\
+  !*** ./submodule/submodule.tsx ***!
+  \*********************************/
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony default export */ __webpack_exports__["a"] = ("Hello from submodule");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony default export */ __webpack_exports__[\"default\"] = (\"Hello from submodule\");\n\n//# sourceURL=webpack:///./submodule/submodule.tsx?");
 
 /***/ })
-/******/ ]);
+
+/******/ });

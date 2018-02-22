@@ -97,24 +97,28 @@ export interface Webpack {
      * Emit a file. This is webpack-specific
      */
     emitFile: (fileName: string, text: string) => void; // unused
-    /**
-     * The options passed to the Compiler.
-     */
-    options: {
-        ts: {},
-        resolve: Resolve;
-    };
 }
 
 export interface Compiler {
     plugin: (name: string, callback: Function) => void;
+
+    hooks: any; // TODO: Define this
+
+    /**
+     * The options passed to the Compiler.
+     */
+    options: {
+        resolve: Resolve;
+    };
 }
+
+export type FileLocation = { line: number, character: number }
 
 export interface WebpackError {
     module?: any;
     file?: string;
     message: string;
-    location?: { line: number, character: number };
+    location?: FileLocation;
     loaderSource: string;
 }
 
@@ -140,13 +144,14 @@ export interface WebpackCompiler {
     isChild(): boolean;
     context: string; // a guess
     watchFileSystem: WebpackNodeWatchFileSystem;
-    fileTimestamps: {[key: string]: number};
+    /** key is filepath and value is Date as a number */
+    fileTimestamps: Map<string, number>;
 }
 
 export interface WebpackModule {
     resource: string;
     errors: WebpackError[];
-    meta: {
+    buildMeta: {
         tsLoaderFileVersion: number;
         tsLoaderDefinitionFileVersions: string[];
     };
@@ -161,11 +166,6 @@ export interface WebpackNodeWatchFileSystem {
     wfs?: {
         watcher: Watcher;
     }
-}
-
-export interface WebpackWatching {
-    compiler: WebpackCompiler; // a guess
-    startTime: number;
 }
 
 export interface Resolve {
@@ -265,10 +265,6 @@ export interface ReverseDependencyGraph {
     } | undefined;
 }
 
-export type Partial<T> = {
-    [P in keyof T]?: T[P];
-};
-
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
 
 export interface LoaderOptions {
@@ -288,21 +284,18 @@ export interface LoaderOptions {
     compilerOptions: typescript.CompilerOptions;
     appendTsSuffixTo: RegExp[];
     appendTsxSuffixTo: RegExp[];
-    /** DEPRECATED */
-    entryFileCannotBeJs: boolean;
     happyPackMode: boolean;
     getCustomTransformers?(): typescript.CustomTransformers | undefined;
     experimentalWatchApi: boolean;
 }
 
 export interface TSFile {
-    text: string;
+    text?: string;
     version: number;
 }
 
-export interface TSFiles {
-    [fileName: string]: TSFile | undefined;
-}
+/** where key is filepath */
+export type TSFiles = Map<string, TSFile>;
 
 export interface ResolvedModule {
     originalFileName: string;

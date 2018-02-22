@@ -1,3 +1,5 @@
-    Asset    Size  Chunks             Chunk Names
-bundle.js  2.5 kB       0  [emitted]  main
-   [0] ./.test/allowJs-entryFileIsJs/src/index.js 24 bytes {0} [built]
+Built at: 2018-2-11 17:50:52
+    Asset      Size  Chunks             Chunk Names
+bundle.js  2.83 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./src/index.js] 24 bytes {main} [built]

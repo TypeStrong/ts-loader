@@ -1,6 +1,7 @@
 var webpack = require('webpack');
 
 module.exports = {
+    mode: 'development',
     entry: './app.ts',
     output: {
         filename: 'bundle.js'
@@ -20,15 +21,6 @@ module.exports = {
         // in the bundle.
         new webpack.DefinePlugin({
             DEBUG: false
-        }),
-        // This plugin can additionally optimize dead code away
-        // so that it's not taking up space.
-        new webpack.optimize.UglifyJsPlugin({
-            mangle: false,
-            compress: {
-                dead_code: true
-            },
-            beautify: true
         })
     ]
 }

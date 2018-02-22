@@ -1,4 +1,5 @@
 module.exports = {
+    mode: 'development',
     entry: './src/app.ts',
     output: {
         filename: 'bundle.js'

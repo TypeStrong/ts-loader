@@ -3,7 +3,7 @@ import * as loaderUtils from 'loader-utils';
 import * as typescript from 'typescript';
 
 import { getTypeScriptInstance, getEmitOutput } from './instances';
-import { appendSuffixesIfMatch, arrify, formatErrors, hasOwnProperty, registerWebpackErrors } from './utils';
+import { appendSuffixesIfMatch, arrify, formatErrors } from './utils';
 import * as constants from './constants';
 import {
     AsyncCallback,
@@ -18,8 +18,6 @@ import {
 
 const webpackInstances: Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
-
-type PartialLoaderOptions = Partial<LoaderOptions>;
 
 /**
  * The entry point for ts-loader
@@ -75,7 +73,7 @@ function successLoader(
         // Make sure webpack is aware that even though the emitted JavaScript may be the same as
         // a previously cached version the TypeScript may be different and therefore should be
         // treated as new
-        loader._module.meta.tsLoaderFileVersion = fileVersion;
+        loader._module.buildMeta.tsLoaderFileVersion = fileVersion;
     }
 
     callback(null, output, sourceMap);
@@ -93,17 +91,16 @@ function getLoaderOptions(loader: Webpack) {
     }
 
     const loaderOptions = loaderUtils.getOptions<LoaderOptions>(loader) || {} as LoaderOptions;
-    const configFileOptions: PartialLoaderOptions = loader.options.ts || {};
 
-    const instanceName = webpackIndex + '_' + (loaderOptions.instance || configFileOptions.instance || 'default');
+    const instanceName = webpackIndex + '_' + (loaderOptions.instance || 'default');
 
-    if (hasOwnProperty(loaderOptionsCache, instanceName)) {
+    if (loaderOptionsCache.hasOwnProperty(instanceName)) {
         return loaderOptionsCache[instanceName];
     }
 
     validateLoaderOptions(loaderOptions);
 
-    const options = makeLoaderOptions(instanceName, configFileOptions, loaderOptions);
+    const options = makeLoaderOptions(instanceName, loaderOptions);
 
     loaderOptionsCache[instanceName] = options;
 
@@ -111,7 +108,7 @@ function getLoaderOptions(loader: Webpack) {
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'context', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'entryFileCannotBeJs' /* DEPRECATED */, 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'reportFiles', 'experimentalWatchApi'];
+const validLoaderOptions: ValidLoaderOptions[] = ['silent', 'logLevel', 'logInfoToStdOut', 'instance', 'compiler', 'context', 'configFile', 'transpileOnly', 'ignoreDiagnostics', 'errorFormatter', 'colors', 'compilerOptions', 'appendTsSuffixTo', 'appendTsxSuffixTo', 'onlyCompileBundledFiles', 'happyPackMode', 'getCustomTransformers', 'reportFiles', 'experimentalWatchApi'];
 
 /**
  * Validate the supplied loader options.
@@ -137,7 +134,7 @@ ${ validLoaderOptions.join(' / ')}
     }
 }
 
-function makeLoaderOptions(instanceName: string, configFileOptions: Partial<LoaderOptions>, loaderOptions: LoaderOptions) {
+function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
     const options = Object.assign({}, {
         silent: false,
         logLevel: 'WARN',
@@ -150,14 +147,13 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
         appendTsSuffixTo: [],
         appendTsxSuffixTo: [],
         transformers: {},
-        entryFileCannotBeJs: false,
         happyPackMode: false,
         colors: true,
         onlyCompileBundledFiles: false,
         reportFiles: [],
         // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
         experimentalWatchApi: false
-    } as Partial<LoaderOptions>, configFileOptions, loaderOptions);
+    } as Partial<LoaderOptions>, loaderOptions);
 
     options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
     options.logLevel = options.logLevel.toUpperCase() as LogLevel;
@@ -176,18 +172,19 @@ function makeLoaderOptions(instanceName: string, configFileOptions: Partial<Load
 function updateFileInCache(filePath: string, contents: string, instance: TSInstance) {
     let fileWatcherEventKind: typescript.FileWatcherEventKind | undefined;
     // Update file contents
-    let file = instance.files[filePath];
+    let file = instance.files.get(filePath);
     if (file === undefined) {
-        file = instance.otherFiles[filePath];
+        file = instance.otherFiles.get(filePath);
         if (file !== undefined) {
-            delete instance.otherFiles[filePath];
-            instance.files[filePath] = file;
+            instance.otherFiles.delete(filePath);
+            instance.files.set(filePath, file);
         }
         else {
             if (instance.watchHost) {
                 fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
             }
-            file = instance.files[filePath] = <TSFile>{ version: 0 };
+            file = { version: 0 };
+            instance.files.set(filePath, file);
         }
         instance.changedFilesList = true;
     }
@@ -211,10 +208,10 @@ function updateFileInCache(filePath: string, contents: string, instance: TSInsta
     }
 
     // push this file to modified files hash.
-    if (!instance.modifiedFiles) {
-        instance.modifiedFiles = {};
+    if (instance.modifiedFiles === null || instance.modifiedFiles === undefined) {
+        instance.modifiedFiles = new Map<string, TSFile>();
     }
-    instance.modifiedFiles[filePath] = file;
+    instance.modifiedFiles.set(filePath, file);
     return file.version;
 }
 
@@ -229,7 +226,7 @@ function getEmit(
     loader.clearDependencies();
     loader.addDependency(rawFilePath);
 
-    const allDefinitionFiles = Object.keys(instance.files).filter(defFilePath => defFilePath.match(constants.dtsDtsxRegex));
+    const allDefinitionFiles = [...instance.files.keys()].filter(defFilePath => defFilePath.match(constants.dtsDtsxRegex));
 
     // Make this file dependent on *all* definition files in the program
     const addDependency = loader.addDependency.bind(loader);
@@ -244,9 +241,9 @@ function getEmit(
         additionalDependencies.forEach(addDependency);
     }
 
-    loader._module.meta.tsLoaderDefinitionFileVersions = allDefinitionFiles
+    loader._module.buildMeta.tsLoaderDefinitionFileVersions = allDefinitionFiles
         .concat(additionalDependencies)
-        .map(defFilePath => defFilePath + '@' + (instance.files[defFilePath] || { version: '?' }).version);
+        .map(defFilePath => defFilePath + '@' + (instance.files.get(defFilePath) || { version: '?' }).version);
 
     const outputFile = outputFiles.filter(outputFile => outputFile.name.match(constants.jsJsx)).pop();
     const outputText = (outputFile) ? outputFile.text : undefined;
@@ -277,12 +274,11 @@ function getTranspilationEmit(
 
     // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!instance.loaderOptions.happyPackMode) {
-        registerWebpackErrors(
-            loader._module.errors,
-            formatErrors(diagnostics, instance.loaderOptions, instance.colors,
-                instance.compiler, { module: loader._module },
-                loader.context)
-        );
+        const errors = formatErrors(diagnostics, instance.loaderOptions, instance.colors,
+            instance.compiler, { module: loader._module },
+            loader.context);
+
+        loader._module.errors.push(...errors);
     }
 
     return { outputText, sourceMapText };

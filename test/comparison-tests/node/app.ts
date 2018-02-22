@@ -1,1 +1,1 @@
-/// <reference path="../../src/typings/node/node.d.ts" />
+/// <reference path="../../node_modules/@types/node/index.d.ts" />

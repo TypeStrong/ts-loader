@@ -7,7 +7,7 @@ import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
 import { EOL, dtsDtsxRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
-import { hasOwnProperty, makeError, formatErrors, registerWebpackErrors } from './utils';
+import { makeError, formatErrors } from './utils';
 import * as logger from './logger';
 import { makeServicesHost, makeWatchHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
@@ -17,7 +17,8 @@ import {
     TSInstance,
     TSInstances,
     Webpack,
-    WebpackError
+    WebpackError,
+    TSFile
 } from './interfaces';
 
 const instances = <TSInstances> {};
@@ -45,7 +46,7 @@ export function getTypeScriptInstance(
     loaderOptions: LoaderOptions,
     loader: Webpack
 ): { instance?: TSInstance, error?: WebpackError } {
-    if (hasOwnProperty(instances, loaderOptions.instance)) {
+    if (instances.hasOwnProperty(loaderOptions.instance)) {
         const instance = instances[loaderOptions.instance];
         ensureProgram(instance);
         return { instance: instances[loaderOptions.instance] };
@@ -56,7 +57,7 @@ export function getTypeScriptInstance(
     const compiler = getCompiler(loaderOptions, log);
 
     if (compiler.errorMessage !== undefined) {
-        return { error: makeError(colors.red(compiler.errorMessage)) };
+        return { error: makeError(colors.red(compiler.errorMessage), undefined) };
     }
 
     return successfulTypeScriptInstance(
@@ -91,14 +92,14 @@ function successfulTypeScriptInstance(
         const errors = formatErrors(configParseResult.errors, loaderOptions, colors,
             compiler, { file: configFilePath }, loader.context);
 
-        registerWebpackErrors(loader._module.errors, errors);
+        loader._module.errors.push(...errors);
 
         return { error: makeError(colors.red('error while parsing tsconfig.json'), configFilePath) };
     }
 
     const compilerOptions = getCompilerOptions(configParseResult);
-    const files: TSFiles = {};
-    const otherFiles: TSFiles = {};
+    const files: TSFiles = new Map<string, TSFile>();
+    const otherFiles: TSFiles = new Map<string, TSFile>();
 
     const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
 
@@ -110,10 +111,10 @@ function successfulTypeScriptInstance(
         // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
         if (!loaderOptions.happyPackMode) {
             const diagnostics = program.getOptionsDiagnostics();
-            registerWebpackErrors(
-                loader._module.errors,
-                formatErrors(diagnostics, loaderOptions, colors, compiler!,
-                    {file: configFilePath || 'tsconfig.json'}, loader.context));
+            const errors = formatErrors(diagnostics, loaderOptions, colors, compiler!,
+                {file: configFilePath || 'tsconfig.json'}, loader.context);
+
+            loader._module.errors.push(...errors);
         }
 
         const instance: TSInstance = {
@@ -139,19 +140,19 @@ function successfulTypeScriptInstance(
         const filesToLoad = loaderOptions.onlyCompileBundledFiles ? configParseResult.fileNames.filter(fileName => dtsDtsxRegex.test(fileName)) : configParseResult.fileNames;
         filesToLoad.forEach(filePath => {
             normalizedFilePath = path.normalize(filePath);
-            files[normalizedFilePath] = {
+            files.set(normalizedFilePath, {
                 text: fs.readFileSync(normalizedFilePath, 'utf-8'),
                 version: 0
-            };
+            });
           });
     } catch (exc) {
         return { 
-            error: makeError(colors.red(`A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`)) 
+            error: makeError(colors.red(`A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`), normalizedFilePath!) 
         };
     }
 
     // if allowJs is set then we should accept js(x) files
-    const scriptRegex = configParseResult.options.allowJs && !loaderOptions.entryFileCannotBeJs
+    const scriptRegex = configParseResult.options.allowJs
         ? /\.tsx?$|\.jsx?$/i
         : /\.tsx?$/i;
 
@@ -164,8 +165,8 @@ function successfulTypeScriptInstance(
         languageService: null,
         version: 0,
         transformers: getCustomTransformers(),
-        dependencyGraph: {},
-        reverseDependencyGraph: {},
+        dependencyGraph: {}, 
+        reverseDependencyGraph: {}, 
         modifiedFiles: null,
         colors
     };
@@ -179,12 +180,12 @@ function successfulTypeScriptInstance(
         instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
     }
     else {
-        const servicesHost = makeServicesHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
+        const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
         instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
     }
 
-    loader._compiler.plugin("after-compile", makeAfterCompile(instance, configFilePath));
-    loader._compiler.plugin("watch-run", makeWatchRun(instance));
+    loader._compiler.hooks.afterCompile.tapAsync("ts-loader", makeAfterCompile(instance, configFilePath));
+    loader._compiler.hooks.watchRun.tapAsync("ts-loader", makeWatchRun(instance));
 
     return { instance };
 }

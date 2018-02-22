@@ -1,9 +1,12 @@
+Built at: 2018-2-11 17:52:31
     Asset     Size  Chunks             Chunk Names
-bundle.js  2.93 kB       0  [emitted]  main
-   [0] ./.test/dependencyErrors/app.ts 121 bytes {0} [built] [1 error]
-   [1] ./.test/dependencyErrors/dep1.ts 76 bytes {0} [built]
-   [2] ./.test/dependencyErrors/dep2.ts 76 bytes {0}
+bundle.js  3.6 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 121 bytes {main} [built] [1 error]
+[./dep1.ts] 76 bytes {main} [built]
+[./dep2.ts] 76 bytes {main}
 
-ERROR in ./.test/dependencyErrors/app.ts
+ERROR in app.ts
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(5,6)[39m[22m
 [1m[31m      TS2345: Argument of type '""' is not assignable to parameter of type 'number'.[39m[22m

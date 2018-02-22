@@ -1,2 +1,2 @@
 ({get x(){ return 1 }})
-Symbol
+const mapsDontExistYet = new Map<string, string>();
