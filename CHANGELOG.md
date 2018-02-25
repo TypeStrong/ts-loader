@@ -3,8 +3,8 @@
 ## v4.0.0
 
 - Support webpack 4
-- Drop support for webpack 2/3 **BREAKING CHANGE**
-- Minimum TypeScript version: 2.4.1 **BREAKING CHANGE**
+- Drop support for webpack 2/3 **BREAKING CHANGE** - use ts-loader 3.x if you need webpack 2/3 support
+- Minimum TypeScript version is now 2.4.1 **BREAKING CHANGE**
 - Deprecated option `entryFileCannotBeJs` removed' **BREAKING CHANGE**
 
 ## v3.5.0
