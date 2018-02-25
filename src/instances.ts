@@ -11,29 +11,31 @@ import { makeError, formatErrors } from './utils';
 import * as logger from './logger';
 import { makeServicesHost, makeWatchHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
-import { 
-    LoaderOptions,
-    TSFiles,
-    TSInstance,
-    TSInstances,
-    Webpack,
-    WebpackError,
-    TSFile
+import {
+  LoaderOptions,
+  TSFiles,
+  TSInstance,
+  TSInstances,
+  Webpack,
+  WebpackError,
+  TSFile
 } from './interfaces';
 
-const instances = <TSInstances> {};
+const instances = <TSInstances>{};
 
 function ensureProgram(instance: TSInstance) {
-    if (instance && instance.watchHost) {
-        if (instance.changedFilesList) {
-            instance.watchHost.updateRootFileNames();
-        }
-        if (instance.watchOfFilesAndCompilerOptions) {
-            instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
-        }
-        return instance.program;
+  if (instance && instance.watchHost) {
+    if (instance.changedFilesList) {
+      instance.watchHost.updateRootFileNames();
     }
-    return undefined;
+    if (instance.watchOfFilesAndCompilerOptions) {
+      instance.program = instance.watchOfFilesAndCompilerOptions
+        .getProgram()
+        .getProgram();
+    }
+    return instance.program;
+  }
+  return undefined;
 }
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -43,165 +45,236 @@ function ensureProgram(instance: TSInstance) {
  * `instance` property.
  */
 export function getTypeScriptInstance(
-    loaderOptions: LoaderOptions,
-    loader: Webpack
-): { instance?: TSInstance, error?: WebpackError } {
-    if (instances.hasOwnProperty(loaderOptions.instance)) {
-        const instance = instances[loaderOptions.instance];
-        ensureProgram(instance);
-        return { instance: instances[loaderOptions.instance] };
-    }
+  loaderOptions: LoaderOptions,
+  loader: Webpack
+): { instance?: TSInstance; error?: WebpackError } {
+  if (instances.hasOwnProperty(loaderOptions.instance)) {
+    const instance = instances[loaderOptions.instance];
+    ensureProgram(instance);
+    return { instance: instances[loaderOptions.instance] };
+  }
 
-    const colors = new chalk.constructor({ enabled: loaderOptions.colors });
-    const log = logger.makeLogger(loaderOptions, colors);
-    const compiler = getCompiler(loaderOptions, log);
+  const colors = new chalk.constructor({ enabled: loaderOptions.colors });
+  const log = logger.makeLogger(loaderOptions, colors);
+  const compiler = getCompiler(loaderOptions, log);
 
-    if (compiler.errorMessage !== undefined) {
-        return { error: makeError(colors.red(compiler.errorMessage), undefined) };
-    }
+  if (compiler.errorMessage !== undefined) {
+    return { error: makeError(colors.red(compiler.errorMessage), undefined) };
+  }
 
-    return successfulTypeScriptInstance(
-        loaderOptions, loader, log, colors,
-        compiler.compiler!, compiler.compilerCompatible!, compiler.compilerDetailsLogMessage!
-    );
+  return successfulTypeScriptInstance(
+    loaderOptions,
+    loader,
+    log,
+    colors,
+    compiler.compiler!,
+    compiler.compilerCompatible!,
+    compiler.compilerDetailsLogMessage!
+  );
 }
 
 function successfulTypeScriptInstance(
-    loaderOptions: LoaderOptions,
-    loader: Webpack,
-    log: logger.Logger,
-    colors: Chalk,
-    compiler: typeof typescript,
-    compilerCompatible: boolean,
-    compilerDetailsLogMessage: string
+  loaderOptions: LoaderOptions,
+  loader: Webpack,
+  log: logger.Logger,
+  colors: Chalk,
+  compiler: typeof typescript,
+  compilerCompatible: boolean,
+  compilerDetailsLogMessage: string
 ) {
-    const configFileAndPath = getConfigFile(compiler, colors, loader, loaderOptions, compilerCompatible, log, compilerDetailsLogMessage!);
+  const configFileAndPath = getConfigFile(
+    compiler,
+    colors,
+    loader,
+    loaderOptions,
+    compilerCompatible,
+    log,
+    compilerDetailsLogMessage!
+  );
 
-    if (configFileAndPath.configFileError !== undefined) {
-        const { message, file } = configFileAndPath.configFileError;
-        return { 
-            error: makeError(colors.red('error while reading tsconfig.json:' + EOL + message), file) 
-        };
-    }
+  if (configFileAndPath.configFileError !== undefined) {
+    const { message, file } = configFileAndPath.configFileError;
+    return {
+      error: makeError(
+        colors.red('error while reading tsconfig.json:' + EOL + message),
+        file
+      )
+    };
+  }
 
-    const { configFilePath, configFile } = configFileAndPath;
-    const basePath = loaderOptions.context || path.dirname(configFilePath || '');
-    const configParseResult = getConfigParseResult(compiler, configFile, basePath);
+  const { configFilePath, configFile } = configFileAndPath;
+  const basePath = loaderOptions.context || path.dirname(configFilePath || '');
+  const configParseResult = getConfigParseResult(
+    compiler,
+    configFile,
+    basePath
+  );
 
-    if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
-        const errors = formatErrors(configParseResult.errors, loaderOptions, colors,
-            compiler, { file: configFilePath }, loader.context);
+  if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
+    const errors = formatErrors(
+      configParseResult.errors,
+      loaderOptions,
+      colors,
+      compiler,
+      { file: configFilePath },
+      loader.context
+    );
 
-        loader._module.errors.push(...errors);
+    loader._module.errors.push(...errors);
 
-        return { error: makeError(colors.red('error while parsing tsconfig.json'), configFilePath) };
-    }
+    return {
+      error: makeError(
+        colors.red('error while parsing tsconfig.json'),
+        configFilePath
+      )
+    };
+  }
 
-    const compilerOptions = getCompilerOptions(configParseResult);
-    const files: TSFiles = new Map<string, TSFile>();
-    const otherFiles: TSFiles = new Map<string, TSFile>();
+  const compilerOptions = getCompilerOptions(configParseResult);
+  const files: TSFiles = new Map<string, TSFile>();
+  const otherFiles: TSFiles = new Map<string, TSFile>();
 
-    const getCustomTransformers = loaderOptions.getCustomTransformers || Function.prototype;
+  const getCustomTransformers =
+    loaderOptions.getCustomTransformers || Function.prototype;
 
-    if (loaderOptions.transpileOnly) {
-        // quick return for transpiling
-        // we do need to check for any issues with TS options though
-        const program = compiler!.createProgram([], compilerOptions);
+  if (loaderOptions.transpileOnly) {
+    // quick return for transpiling
+    // we do need to check for any issues with TS options though
+    const program = compiler!.createProgram([], compilerOptions);
 
-        // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
-        if (!loaderOptions.happyPackMode) {
-            const diagnostics = program.getOptionsDiagnostics();
-            const errors = formatErrors(diagnostics, loaderOptions, colors, compiler!,
-                {file: configFilePath || 'tsconfig.json'}, loader.context);
-
-            loader._module.errors.push(...errors);
-        }
-
-        const instance: TSInstance = {
-            compiler, 
-            compilerOptions, 
-            loaderOptions, 
-            files,
-            otherFiles,
-            dependencyGraph: {}, 
-            reverseDependencyGraph: {}, 
-            transformers: getCustomTransformers(),
-            colors
-        };
-
-        instances[loaderOptions.instance] = instance;
-
-        return { instance };
-    }
-
-    // Load initial files (core lib files, any files specified in tsconfig.json)
-    let normalizedFilePath: string;
-    try {
-        const filesToLoad = loaderOptions.onlyCompileBundledFiles ? configParseResult.fileNames.filter(fileName => dtsDtsxRegex.test(fileName)) : configParseResult.fileNames;
-        filesToLoad.forEach(filePath => {
-            normalizedFilePath = path.normalize(filePath);
-            files.set(normalizedFilePath, {
-                text: fs.readFileSync(normalizedFilePath, 'utf-8'),
-                version: 0
-            });
-          });
-    } catch (exc) {
-        return { 
-            error: makeError(colors.red(`A file specified in tsconfig.json could not be found: ${ normalizedFilePath! }`), normalizedFilePath!) 
-        };
-    }
-
-    // if allowJs is set then we should accept js(x) files
-    const scriptRegex = configParseResult.options.allowJs
-        ? /\.tsx?$|\.jsx?$/i
-        : /\.tsx?$/i;
-
-    const instance: TSInstance = instances[loaderOptions.instance] = {
-        compiler,
-        compilerOptions,
+    // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
+    if (!loaderOptions.happyPackMode) {
+      const diagnostics = program.getOptionsDiagnostics();
+      const errors = formatErrors(
+        diagnostics,
         loaderOptions,
-        files,
-        otherFiles,
-        languageService: null,
-        version: 0,
-        transformers: getCustomTransformers(),
-        dependencyGraph: {}, 
-        reverseDependencyGraph: {}, 
-        modifiedFiles: null,
-        colors
+        colors,
+        compiler!,
+        { file: configFilePath || 'tsconfig.json' },
+        loader.context
+      );
+
+      loader._module.errors.push(...errors);
+    }
+
+    const instance: TSInstance = {
+      compiler,
+      compilerOptions,
+      loaderOptions,
+      files,
+      otherFiles,
+      dependencyGraph: {},
+      reverseDependencyGraph: {},
+      transformers: getCustomTransformers(),
+      colors
     };
 
-    if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
-        log.logInfo("Using watch api");
-
-        // If there is api available for watch, use it instead of language service
-        instance.watchHost = makeWatchHost(scriptRegex, log, loader, instance, loaderOptions.appendTsSuffixTo, loaderOptions.appendTsxSuffixTo);
-        instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(instance.watchHost);
-        instance.program = instance.watchOfFilesAndCompilerOptions.getProgram().getProgram();
-    }
-    else {
-        const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
-        instance.languageService = compiler.createLanguageService(servicesHost, compiler.createDocumentRegistry());
-    }
-
-    loader._compiler.hooks.afterCompile.tapAsync("ts-loader", makeAfterCompile(instance, configFilePath));
-    loader._compiler.hooks.watchRun.tapAsync("ts-loader", makeWatchRun(instance));
+    instances[loaderOptions.instance] = instance;
 
     return { instance };
+  }
+
+  // Load initial files (core lib files, any files specified in tsconfig.json)
+  let normalizedFilePath: string;
+  try {
+    const filesToLoad = loaderOptions.onlyCompileBundledFiles
+      ? configParseResult.fileNames.filter(fileName =>
+          dtsDtsxRegex.test(fileName)
+        )
+      : configParseResult.fileNames;
+    filesToLoad.forEach(filePath => {
+      normalizedFilePath = path.normalize(filePath);
+      files.set(normalizedFilePath, {
+        text: fs.readFileSync(normalizedFilePath, 'utf-8'),
+        version: 0
+      });
+    });
+  } catch (exc) {
+    return {
+      error: makeError(
+        colors.red(
+          `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
+        ),
+        normalizedFilePath!
+      )
+    };
+  }
+
+  // if allowJs is set then we should accept js(x) files
+  const scriptRegex = configParseResult.options.allowJs
+    ? /\.tsx?$|\.jsx?$/i
+    : /\.tsx?$/i;
+
+  const instance: TSInstance = (instances[loaderOptions.instance] = {
+    compiler,
+    compilerOptions,
+    loaderOptions,
+    files,
+    otherFiles,
+    languageService: null,
+    version: 0,
+    transformers: getCustomTransformers(),
+    dependencyGraph: {},
+    reverseDependencyGraph: {},
+    modifiedFiles: null,
+    colors
+  });
+
+  if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
+    log.logInfo('Using watch api');
+
+    // If there is api available for watch, use it instead of language service
+    instance.watchHost = makeWatchHost(
+      scriptRegex,
+      log,
+      loader,
+      instance,
+      loaderOptions.appendTsSuffixTo,
+      loaderOptions.appendTsxSuffixTo
+    );
+    instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(
+      instance.watchHost
+    );
+    instance.program = instance.watchOfFilesAndCompilerOptions
+      .getProgram()
+      .getProgram();
+  } else {
+    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
+    instance.languageService = compiler.createLanguageService(
+      servicesHost,
+      compiler.createDocumentRegistry()
+    );
+  }
+
+  loader._compiler.hooks.afterCompile.tapAsync(
+    'ts-loader',
+    makeAfterCompile(instance, configFilePath)
+  );
+  loader._compiler.hooks.watchRun.tapAsync('ts-loader', makeWatchRun(instance));
+
+  return { instance };
 }
 
 export function getEmitOutput(instance: TSInstance, filePath: string) {
-    const program = ensureProgram(instance);
-    if (program) {
-        const outputFiles: typescript.OutputFile[] = [];
-        const writeFile = (fileName: string, text: string, writeByteOrderMark: boolean) =>
-            outputFiles.push({ name: fileName, writeByteOrderMark, text });
-        const sourceFile = program.getSourceFile(filePath);
-        program.emit(sourceFile, writeFile, /*cancellationToken*/ undefined, /*emitOnlyDtsFiles*/ false, instance.transformers);
-        return outputFiles;
-    }
-    else {
-        // Emit Javascript
-        return instance.languageService!.getEmitOutput(filePath).outputFiles;
-    }
+  const program = ensureProgram(instance);
+  if (program) {
+    const outputFiles: typescript.OutputFile[] = [];
+    const writeFile = (
+      fileName: string,
+      text: string,
+      writeByteOrderMark: boolean
+    ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
+    const sourceFile = program.getSourceFile(filePath);
+    program.emit(
+      sourceFile,
+      writeFile,
+      /*cancellationToken*/ undefined,
+      /*emitOnlyDtsFiles*/ false,
+      instance.transformers
+    );
+    return outputFiles;
+  } else {
+    // Emit Javascript
+    return instance.languageService!.getEmitOutput(filePath).outputFiles;
+  }
 }

@@ -4,14 +4,10 @@
     "max-line-length": [false, 140],
     "object-literal-sort-keys": false,
     "interface-name": [true, "never-prefix"],
-    "member-ordering": [true,
-      "public-before-private",
-      "static-before-instance",
-      "variables-before-functions"
-    ],
     "no-unused-variable": [true, "check-parameters"],
     "no-var-requires": false,
     "quotemark": [
+      true,
       "single"
     ],
     "trailing-comma": [false],

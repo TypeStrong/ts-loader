@@ -1,11 +1,7 @@
-import { 
-    Resolve,
-    ResolveSync
-} from './interfaces';
+import { Resolve, ResolveSync } from './interfaces';
 
-const node = require("enhanced-resolve/lib/node");
+const node = require('enhanced-resolve/lib/node');
 
 export function makeResolver(options: { resolve: Resolve }): ResolveSync {
-    return node.create.sync(options.resolve);
+  return node.create.sync(options.resolve);
 }
-

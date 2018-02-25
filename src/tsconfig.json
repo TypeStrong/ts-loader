@@ -1,13 +1,13 @@
 {
-    "compilerOptions": {
-        "target": "es2015",
-        "noImplicitReturns": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "suppressImplicitAnyIndexErrors": true,
-        "strict": true,
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "outDir": "../dist"
-    }
+  "compilerOptions": {
+    "target": "es2015",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "strict": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "../dist"
+  }
 }
