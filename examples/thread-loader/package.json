@@ -3,14 +3,15 @@
   "main": "index.js",
   "version": "1.0.0",
   "scripts": {
-    "start": "webpack --watch"
+    "start": "webpack --watch --mode development"
   },
   "devDependencies": {
-    "cache-loader": "^1.0.3",
-    "fork-ts-checker-webpack-plugin": "^0.2.0",
-    "thread-loader": "^1.1.0",
-    "ts-loader": "^3.0.3",
-    "typescript": "^2.2.2",
-    "webpack": "^3.8.1"
+    "cache-loader": "^1.2.0",
+    "fork-ts-checker-webpack-plugin": "^0.4.0",
+    "thread-loader": "^1.1.4",
+    "ts-loader": "^4.0.0",
+    "typescript": "^2.7.2",
+    "webpack": "^4.0.0",
+    "webpack-cli": "^2.0.9"
   }
 }
