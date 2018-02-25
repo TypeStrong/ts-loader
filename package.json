@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "4.0.0-beta.0",
+  "version": "4.0.0",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "scripts": {
