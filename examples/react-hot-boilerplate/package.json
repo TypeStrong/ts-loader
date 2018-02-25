@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Boilerplate for ReactJS project with hot code reloading",
   "scripts": {
-    "start": "webpack-dev-server",
+    "start": "webpack-dev-server --mode development",
     "prebuild": "rimraf dist",
-    "build": "cross-env NODE_ENV=production webpack -p --config webpack.config.production.js",
+    "build": "cross-env webpack --mode production --config webpack.config.production.js",
     "postbuild": "copyfiles index.html dist"
   },
   "repository": {
@@ -35,15 +35,15 @@
     "@types/react-hot-loader": "^3.0.4",
     "copyfiles": "^1.2.0",
     "cross-env": "^3.1.4",
-    "fork-ts-checker-webpack-plugin": "^0.2.8",
+    "fork-ts-checker-webpack-plugin": "^0.4.0",
     "react-hot-loader": "^3.0.0",
     "rimraf": "^2.6.0",
-    "ts-loader": "^3.0.0",
+    "ts-loader": "^4.0.0",
     "tslint": "^5.8.0",
     "tslint-react": "^3.2.0",
     "typescript": "^2.5.3",
-    "webpack": "^3.0.0",
-    "webpack-dev-server": "^2.2.0"
+    "webpack": "^4.0.0",
+    "webpack-dev-server": "^3.0.0"
   },
   "dependencies": {
     "react": "^16.0.0",

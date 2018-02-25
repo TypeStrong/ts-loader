@@ -3,7 +3,7 @@ var webpack = require('webpack');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 module.exports = {
-  entry: './src/index.js',
+  entry: './src/index.tsx',
 
   output: {
     filename: 'static/bundle.js',
@@ -26,10 +26,6 @@ module.exports = {
   },
 
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true,
-      comments: false
-    }),
     new ForkTsCheckerWebpackPlugin({
       tslint: true,
       checkSyntacticErrors: true
