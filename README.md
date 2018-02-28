@@ -280,6 +280,9 @@ You may provide
 * a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
 * an absolute path to the configuration file.
 
+Please note, that if the configuration file is outside of your project directory, you might need to set the `context` option to avoid TypeScript issues (like TS18003).
+In this case the `configFile` should point to the `tsconfig.json` and `context` to the project root.
+
 #### colors _(boolean) (default=true)_
 
 If `false`, disables built-in colors in logger messages.
