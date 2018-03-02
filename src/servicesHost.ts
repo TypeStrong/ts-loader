@@ -196,17 +196,19 @@ export function makeWatchHost(
 
     fileExists,
     readFile: readFileWithCachingText,
-    directoryExists: path => compiler.sys.directoryExists(path.normalize(path)),
-    getDirectories: path => compiler.sys.getDirectories(path.normalize(path)),
-    readDirectory: (path, extensions, exclude, include, depth) =>
+    directoryExists: dirPath =>
+      compiler.sys.directoryExists(path.normalize(dirPath)),
+    getDirectories: dirPath =>
+      compiler.sys.getDirectories(path.normalize(dirPath)),
+    readDirectory: (dirPath, extensions, exclude, include, depth) =>
       compiler.sys.readDirectory(
-        path.normalize(path),
+        path.normalize(dirPath),
         extensions,
         exclude,
         include,
         depth
       ),
-    realpath: path => compiler.sys.resolvePath(path.normalize(path)),
+    realpath: dirPath => compiler.sys.resolvePath(path.normalize(dirPath)),
     trace: logData => log.log(logData),
 
     watchFile,
