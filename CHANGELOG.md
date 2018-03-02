@@ -1,5 +1,9 @@
 # Changelog
 
+## v4.0.1
+
+* [Fix name collision in experimentalWatchApi code](https://github.com/TypeStrong/ts-loader/pull/737) - thanks @MLoughry!
+
 ## v4.0.0
 
 * Support webpack 4
