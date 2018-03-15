@@ -299,7 +299,9 @@ export interface LoaderOptions {
   appendTsSuffixTo: RegExp[];
   appendTsxSuffixTo: RegExp[];
   happyPackMode: boolean;
-  getCustomTransformers?(): typescript.CustomTransformers | undefined;
+  getCustomTransformers?:
+    | string
+    | (() => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
 }
 
