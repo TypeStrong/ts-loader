@@ -255,6 +255,7 @@ function updateFileInCache(
   }
 
   if (instance.watchHost && fileWatcherEventKind !== undefined) {
+    instance.hasUnaccountedModifiedFiles = true;
     instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind);
     instance.watchHost.invokeDirectoryWatcher(path.dirname(filePath), filePath);
   }

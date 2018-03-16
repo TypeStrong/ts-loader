@@ -256,6 +256,7 @@ export interface TSInstance {
     typescript.BuilderProgram
   >;
   program?: typescript.Program;
+  hasUnaccountedModifiedFiles?: boolean;
   changedFilesList?: boolean;
 }
 
