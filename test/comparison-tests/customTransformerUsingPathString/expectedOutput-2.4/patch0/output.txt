@@ -1,0 +1,4 @@
+    Asset     Size  Chunks             Chunk Names
+bundle.js  2.69 kB       0  [emitted]  main
+chunk    {0} bundle.js (main) 55 bytes [entry] [rendered]
+    [0] ./.test/customTransformer/app.ts 55 bytes {0} [built]
