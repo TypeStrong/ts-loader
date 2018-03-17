@@ -25,13 +25,16 @@ const instances = <TSInstances>{};
 
 function ensureProgram(instance: TSInstance) {
   if (instance && instance.watchHost) {
-    if (instance.changedFilesList) {
-      instance.watchHost.updateRootFileNames();
-    }
-    if (instance.watchOfFilesAndCompilerOptions) {
-      instance.program = instance.watchOfFilesAndCompilerOptions
-        .getProgram()
-        .getProgram();
+    if (instance.hasUnaccountedModifiedFiles) {
+      if (instance.changedFilesList) {
+        instance.watchHost.updateRootFileNames();
+      }
+      if (instance.watchOfFilesAndCompilerOptions) {
+        instance.program = instance.watchOfFilesAndCompilerOptions
+          .getProgram()
+          .getProgram();
+      }
+      instance.hasUnaccountedModifiedFiles = false;
     }
     return instance.program;
   }
