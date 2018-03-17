@@ -137,8 +137,32 @@ function successfulTypeScriptInstance(
   const files: TSFiles = new Map<string, TSFile>();
   const otherFiles: TSFiles = new Map<string, TSFile>();
 
-  const getCustomTransformers =
-    loaderOptions.getCustomTransformers || Function.prototype;
+  // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
+  let { getCustomTransformers: customerTransformers } = loaderOptions;
+  let getCustomTransformers = Function.prototype;
+
+  if (typeof customerTransformers === 'function') {
+    getCustomTransformers = customerTransformers;
+  } else if (typeof customerTransformers === 'string') {
+    try {
+      customerTransformers = require(customerTransformers);
+    } catch (err) {
+      throw new Error(
+        `Failed to load customTransformers from "${
+          loaderOptions.getCustomTransformers
+        }": ${err.message}`
+      );
+    }
+
+    if (typeof customerTransformers !== 'function') {
+      throw new Error(
+        `Custom transformers in "${
+          loaderOptions.getCustomTransformers
+        }" should export a function, got ${typeof getCustomTransformers}`
+      );
+    }
+    getCustomTransformers = customerTransformers;
+  }
 
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
