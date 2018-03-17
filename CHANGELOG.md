@@ -1,5 +1,10 @@
 # Changelog
 
+## v4.1.0
+
+* [Fix slow `experimentalWatchApi`](https://github.com/TypeStrong/ts-loader/pull/747) (#746) - thanks @sheetalkamat and @MLoughry!
+* [feat: `getCustomTransformers` support path string for a module](https://github.com/TypeStrong/ts-loader/pull/745) - thanks @vagusX and @s-panferov (upon whose work this is based I believe)
+
 ## v4.0.1
 
 * [Fix name collision in experimentalWatchApi code](https://github.com/TypeStrong/ts-loader/pull/737) - thanks @MLoughry!
