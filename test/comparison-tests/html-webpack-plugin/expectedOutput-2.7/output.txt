@@ -1,4 +1,4 @@
-Built at: 2018-3-18 09:13:30
+Built at: 2018-3-18 09:18:12
      Asset       Size  Chunks             Chunk Names
  bundle.js    2.8 KiB    main  [emitted]  main
 index.html  190 bytes          [emitted]  
