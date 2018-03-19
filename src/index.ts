@@ -87,7 +87,7 @@ function successLoader(
   );
 
   // _module.meta is not available inside happypack
-  if (!options.happyPackMode) {
+  if (!options.happyPackMode && loader._module && loader._module.buildMeta) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
