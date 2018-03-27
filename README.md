@@ -214,6 +214,26 @@ different dependencies in your application will be lost.
 
 It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/fork-ts-checker). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-fork-ts-checker).
 
+If you enable this option, webpack 4 will give you "export not found" warnings any time you re-export a type:
+
+```
+WARNING in ./src/bar.ts
+1:0-34 "export 'IFoo' was not found in './foo'
+ @ ./src/bar.ts
+ @ ./src/index.ts
+```
+
+The reason this happens is that when typescript doesn't do a full type check, it does not have enough information to determine whether an imported name is a type or not, so when the name is then exported, typescript has no choice but to emit the export. Fortunately, the extraneous export should not be harmful, so you can just suppress these warnings:
+
+```javascript
+module.exports = {
+  ...
+  stats: {
+    warningsFilter: /export .* was not found in/
+  }
+}
+```
+
 #### happyPackMode _(boolean) (default=false)_
 
 If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
