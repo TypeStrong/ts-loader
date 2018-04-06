@@ -14,6 +14,7 @@ export interface ErrorInfo {
   file: string;
   line: number;
   character: number;
+  context: string;
 }
 
 export interface AsyncCallback {
