@@ -1,5 +1,5 @@
-import dep = require("./sub/dep");
+import dep = require('./sub/dep');
 declare class Test extends dep {
-  doSomething(): void;
+    doSomething(): void;
 }
 export = Test;

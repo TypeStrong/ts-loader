@@ -1,4 +1,3 @@
-Built at: 2018-3-18 09:15:19
            Asset      Size  Chunks             Chunk Names
 bundle.entry1.js  2.82 KiB  entry1  [emitted]  entry1
 bundle.entry2.js  3.32 KiB  entry2             entry2

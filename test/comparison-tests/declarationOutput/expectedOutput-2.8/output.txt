@@ -1,4 +1,3 @@
-Built at: 2018-4-7 18:20:03
        Asset       Size  Chunks             Chunk Names
    bundle.js   4.08 KiB    main  [emitted]  main
     app.d.ts  110 bytes          [emitted]  

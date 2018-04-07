@@ -1,4 +1,4 @@
 declare class Test {
-  doSomething(): void;
+    doSomething(): void;
 }
 export = Test;

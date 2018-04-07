@@ -253,7 +253,8 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
         });
         stats.compilation.assets = newAssets;
 
-        var statsString = stats.toString({ timings: false, version: false, hash: false })
+        var statsString = stats.toString({ timings: false, version: false, hash: false, builtAt: false })
+            .replace(/^Built at: .+$/gm, '')
             .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
