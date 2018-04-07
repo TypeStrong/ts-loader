@@ -369,7 +369,7 @@ function getNormalisedFileContent(file, location, test) {
             ? normaliseString(originalContent)
                 // Built at: 2/15/2018 8:33:18 PM
                 // Built at: 2018-2-11 17:50:52 (any time is fine for us)
-                .replace(/^Built at: .+$/gm, 'Built at: A-DATETIME')
+                .replace(/^Built at: .+$/gm, '')
                 // We don't want a difference in the number of kilobytes to fail the build
                 .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
                 // We also don't want a difference in the number of bytes to fail the build
