@@ -1,4 +1,4 @@
-Built at: 2018-3-18 09:17:26
+Built at: 2018-4-7 18:02:49
     Asset      Size  Chunks             Chunk Names
 bundle.js  3.37 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
@@ -7,4 +7,4 @@ Entrypoint main = bundle.js
 
 ERROR in app.ts
 ./app.ts
-Does not compute.... [1m[31mcode: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: app.ts,line: 2,character: 31[39m[22m
+Does not compute.... [1m[31mcode: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: app.ts,line: 2,character: 31,context: .test\errorFormatter[39m[22m
