@@ -73,7 +73,7 @@ export function formatErrors(
             file === undefined
               ? undefined
               : file.getLineAndCharacterOfPosition(diagnostic.start!);
-          const errorInfo = {
+          const errorInfo: ErrorInfo = {
             code: diagnostic.code,
             severity: compiler.DiagnosticCategory[
               diagnostic.category
@@ -84,7 +84,8 @@ export function formatErrors(
             ),
             file: file === undefined ? '' : path.normalize(file.fileName),
             line: position === undefined ? 0 : position.line + 1,
-            character: position === undefined ? 0 : position.character + 1
+            character: position === undefined ? 0 : position.character + 1,
+            context
           };
 
           const message =
