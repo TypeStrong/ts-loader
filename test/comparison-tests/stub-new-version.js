@@ -9,8 +9,8 @@ fs.readdirSync(__dirname).forEach(function(test) {
         if (test === 'testLib') return;
         
         // update this manually when a new version comes out
-        var expectedOutput = path.join(testPath, 'expectedOutput-2.6'),
-            newExpectedOutput = path.join(testPath, 'expectedOutput-2.7');
+        var expectedOutput = path.join(testPath, 'expectedOutput-2.7'),
+            newExpectedOutput = path.join(testPath, 'expectedOutput-2.8');
         
         mkdirp.sync(newExpectedOutput);
         fs.copySync(expectedOutput, newExpectedOutput);

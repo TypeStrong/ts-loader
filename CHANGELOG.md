@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.0
+
+* [Pass `context' to error formatters](https://github.com/TypeStrong/ts-loader/pull/756) - thanks @gustavderdrache!
+
 ## v4.1.0
 
 * [Fix slow `experimentalWatchApi`](https://github.com/TypeStrong/ts-loader/pull/747) (#746) - thanks @sheetalkamat and @MLoughry!

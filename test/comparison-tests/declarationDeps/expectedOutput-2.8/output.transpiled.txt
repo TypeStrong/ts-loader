@@ -1,0 +1,5 @@
+Built at: 2018-3-18 09:16:53
+    Asset      Size  Chunks             Chunk Names
+bundle.js  2.81 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 41 bytes {main} [built]
