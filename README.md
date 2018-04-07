@@ -22,7 +22,7 @@ ts-loader works very well in combination with [babel](https://babeljs.io/) and [
 
 ### Faster Builds
 
-As your project becomes bigger and bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking.
+As your project becomes bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking.
 
 You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin). It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking. Also, the plugin has several optimizations to make incremental type checking faster (AST cache, multiple workers).
 
@@ -32,7 +32,9 @@ If you'd like to make things even faster still (I know, right?) then you might w
 
 There is a "webpack-way" of parallelising builds. Instead of using happypack you can use ts-loader with ts-loader with [thread-loader](https://github.com/webpack-contrib/thread-loader) and [cache-loader](https://github.com/webpack-contrib/cache-loader) in combination. (Again, this should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.) If you'd like to see a simple setup take a look at [our simple example](examples/thread-loader/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-thread-loader).
 
-To read more on this look at this [webpack Medium post](https://medium.com/webpack/typescript-webpack-super-pursuit-mode-83cc568dea79).
+To read more, look at [this post](https://medium.com/webpack/typescript-webpack-super-pursuit-mode-83cc568dea79) by [@johnny_reilly](https://twitter.com/johnny_reilly) on the webpack publication channel.
+
+If you'd like find out further ways to improve your build using the watch API then take a look at [this post](https://medium.com/@kenneth_chau/speeding-up-webpack-typescript-incremental-builds-by-7x-3912ba4c1d15) by [@kenneth_chau](https://twitter.com/kenneth_chau).
 
 ### Installation
 
