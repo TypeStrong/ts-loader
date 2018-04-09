@@ -1,4 +1,4 @@
-# Fast Incremental Builds with ts-loader
+# Large Scale Ready, Fast Incremental Builds with ts-loader
 
 This example follows the principles outlined in [](https://medium.com/@kenneth_chau/speeding-up-webpack-typescript-incremental-builds-by-7x-3912ba4c1d15) making sure that the incremental build speeds can scale up to thousands of modules with `ts-loader`.
 
@@ -8,6 +8,7 @@ Some highlights of this example:
 * `forked-ts-checker-webpack-plugin` is used to do typechecking in a separate thread
 * `webpack-dev-server` is used so that the files are written to memory
 * package.json's `engines` field is filled with required versions of node that will ensure fastest webpack builds
+* separated production vs development webpack configuration files for specific use cases
 
 
 ```shell
