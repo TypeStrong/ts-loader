@@ -542,6 +542,17 @@ Because TS will generate .js and .d.ts files, you should ignore these files, oth
 
 It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/). You may want to look at removing it entirely.
 
+### Hot Module replacement
+
+To enable `webpack-dev-server` HMR, you need to follow the official [Webpack HMR guide](https://webpack.js.org/guides/hot-module-replacement/), then tweak a few config options for `ts-loader`. The required configuration is as follows:
+
+1. Set `transpileOnly` to `true` (see [transpileOnly](#transpileonly-boolean-defaultfalse) for config details and recommendations above).
+2. Inside your HMR acceptance callback function, you must re-require the module that was replaced.
+
+For a boilerplate HMR project using React, check out the [react-hot-boilerplate example](./examples/react-hot-boilerplate/).
+
+For a minimal HMR TypeScript setup, go to the [hot-module-replacement example](./examples/hot-module-replacement/).
+
 ## Contributing
 
 This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributor's guide](CONTRIBUTING.md) to get started.
