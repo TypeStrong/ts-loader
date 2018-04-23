@@ -13,11 +13,14 @@ import {
   TSFile,
   TSInstance,
   Webpack,
+  WebpackError,
   LogLevel
 } from './interfaces';
 
 const webpackInstances: Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
+
+let instanceOrError: { instance?: TSInstance; error?: WebpackError };
 
 /**
  * The entry point for ts-loader
@@ -26,7 +29,8 @@ function loader(this: Webpack, contents: string) {
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
-  const instanceOrError = getTypeScriptInstance(options, this);
+
+  instanceOrError = instanceOrError || getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
     callback(instanceOrError.error);
