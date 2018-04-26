@@ -51,7 +51,8 @@ export function makeServicesHost(
 
   const moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
-    readFile: readFileWithFallback
+    readFile: readFileWithFallback,
+    realpath: compiler.sys.realpath
   };
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
@@ -170,7 +171,8 @@ export function makeWatchHost(
 
   const moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
-    readFile: readFileWithFallback
+    readFile: readFileWithFallback,
+    realpath: compiler.sys.realpath
   };
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3

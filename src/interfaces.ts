@@ -1,4 +1,5 @@
 import * as typescript from 'typescript';
+export { ModuleResolutionHost } from 'typescript';
 import { Chalk } from 'chalk';
 
 export interface SourceMap {
@@ -212,11 +213,6 @@ export interface Resolve {
 
 export interface ResolveSync {
   (context: string | undefined, path: string, moduleName: string): string;
-}
-
-export interface ModuleResolutionHost {
-  fileExists(fileName: string): boolean;
-  readFile(fileName: string, encoding?: string | undefined): string | undefined;
 }
 
 export interface WatchHost
