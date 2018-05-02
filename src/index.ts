@@ -147,7 +147,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'happyPackMode',
   'getCustomTransformers',
   'reportFiles',
-  'experimentalWatchApi'
+  'experimentalWatchApi',
+  'allowTsInNodeModules'
 ];
 
 /**
@@ -199,7 +200,8 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       onlyCompileBundledFiles: false,
       reportFiles: [],
       // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
-      experimentalWatchApi: false
+      experimentalWatchApi: false,
+      allowTsInNodeModules: false
     } as Partial<LoaderOptions>,
     loaderOptions
   );

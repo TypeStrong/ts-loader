@@ -305,6 +305,7 @@ export interface LoaderOptions {
     | string
     | (() => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
+  allowTsInNodeModules: boolean;
 }
 
 export interface TSFile {
