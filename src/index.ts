@@ -69,10 +69,17 @@ function successLoader(
     : getEmit(rawFilePath, filePath, instance, loader);
 
   if (outputText === null || outputText === undefined) {
-    const additionalGuidance =
-      filePath.indexOf('node_modules') !== -1
-        ? '\nYou should not need to recompile .ts files in node_modules.\nPlease contact the package author to advise them to use --declaration --outDir.\nMore https://github.com/Microsoft/TypeScript/issues/12358'
-        : '';
+    let additionalGuidance: string;
+
+    if (!options.allowTsInNodeModules && filePath.indexOf('node_modules') !== -1) {
+      additionalGuidance = " By default, ts-loader will not compile .ts files in node_modules.\n" +
+        "You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n" +
+        "See: https://github.com/Microsoft/TypeScript/issues/12358";
+    }
+    else {
+      additionalGuidance = "";
+    }
+
     throw new Error(
       `Typescript emitted no output for ${filePath}.${additionalGuidance}`
     );
