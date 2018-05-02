@@ -1,0 +1,9 @@
+{
+	"compilerOptions": { },
+  "include": [
+    "./node_modules/whitelistedModule"
+  ],
+  "files": [
+    "./node_modules/whitelistedFiles/file.ts"
+  ]
+}

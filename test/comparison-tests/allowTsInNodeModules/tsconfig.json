@@ -1,8 +1,0 @@
-{
-	"compilerOptions": {
-	   "noEmit": false
-	},
-  "files": [
-    "node_modules/a/index.ts"
-  ]
-}
