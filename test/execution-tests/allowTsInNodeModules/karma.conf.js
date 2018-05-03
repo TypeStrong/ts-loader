@@ -35,7 +35,7 @@ module.exports = function(config) {
     },
 
     webpackMiddleware: {
-      quiet: false,
+      quiet: true,
       stats: {
         colors: true
       }

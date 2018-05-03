@@ -1,5 +1,5 @@
 {
-	"compilerOptions": { },
+  "compilerOptions": { },
   "include": [
     "./node_modules/whitelistedModule"
   ],
