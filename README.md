@@ -486,7 +486,7 @@ You should not need to recompile `.ts` files there, but if you really want to, u
 Note that this option acts as a *whitelist* - any modules you desire to import must be included in
 the `"files"` or `"include"` block of your project's `tsconfig.json`.
 
-See: https://github.com/Microsoft/TypeScript/issues/12358
+See: [https://github.com/Microsoft/TypeScript/issues/12358](https://github.com/Microsoft/TypeScript/issues/12358)
 
 ```javascript
   // in webpack.config.js
@@ -501,8 +501,11 @@ And in your `tsconfig.json`:
 
 ```json
   {
+    "include": [
+      "node_modules/whitelisted_module.ts"
+    ],
     "files": [
-      "node_modules/my_module/index.ts"
+      "node_modules/my_module/whitelisted_file.ts"
     ]
   }
 ```
