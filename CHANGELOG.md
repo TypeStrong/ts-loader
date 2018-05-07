@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.3.0
+
+* [Fix dependency resolution when using pnpm](https://github.com/TypeStrong/ts-loader/pull/774) - thanks @xbtsw and @zkochan!
+* [Add `allowTsInNodeModules` option for importing .ts files from node_modules](https://github.com/TypeStrong/ts-loader/pull/773) - thanks @aelawson!
+
 ## 4.2.0
 
 * [Pass `context' to error formatters](https://github.com/TypeStrong/ts-loader/pull/756) - thanks @gustavderdrache!
