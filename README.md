@@ -479,6 +479,37 @@ loading only those files that are actually bundled by webpack, as well as any `.
 by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
 compilation without being explicitly imported, and therefore not picked up by webpack.
 
+#### allowTsInNodeModules _(boolean) (default=false)_
+
+By default, ts-loader will not compile `.ts` files in `node_modules`.
+You should not need to recompile `.ts` files there, but if you really want to, use this option.
+Note that this option acts as a *whitelist* - any modules you desire to import must be included in
+the `"files"` or `"include"` block of your project's `tsconfig.json`.
+
+See: [https://github.com/Microsoft/TypeScript/issues/12358](https://github.com/Microsoft/TypeScript/issues/12358)
+
+```javascript
+  // in webpack.config.js
+  {
+    test: /\.ts$/,
+    loader: 'ts-loader',
+    options: { allowTsInNodeModules: true }
+  }
+```
+
+And in your `tsconfig.json`:
+
+```json
+  {
+    "include": [
+      "node_modules/whitelisted_module.ts"
+    ],
+    "files": [
+      "node_modules/my_module/whitelisted_file.ts"
+    ]
+  }
+```
+
 #### context _(string) (default=undefined)_
 
 If set, will parse the TypeScript configuration file with given **absolute path** as base path.
