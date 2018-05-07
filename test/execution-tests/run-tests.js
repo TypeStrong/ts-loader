@@ -119,7 +119,7 @@ function runTests(testName) {
 
             passingTests.push(testName);
         } else {
-            console.log('running webpack compliation');
+            console.log('running webpack compilation');
             execSync('webpack --bail', { cwd: testPath, stdio: 'inherit' });
             passingTests.push(testName);
         }
