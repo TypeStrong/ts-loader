@@ -49,6 +49,9 @@
     "micromatch": "^3.1.4",
     "semver": "^5.0.1"
   },
+  "peerDependencies": {
+    "webpack": "^4.5.0"
+  },
   "devDependencies": {
     "@types/micromatch": "^3.1.0",
     "@types/node": "^9.6.2",
