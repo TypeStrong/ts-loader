@@ -258,7 +258,7 @@ export interface TSInstance {
 }
 
 export interface LoaderOptionsCache {
-  [name: string]: LoaderOptions;
+  [name: string]: WeakMap<LoaderOptions, LoaderOptions>;
 }
 
 export interface TSInstances {

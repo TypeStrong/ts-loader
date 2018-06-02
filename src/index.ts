@@ -117,15 +117,21 @@ function getLoaderOptions(loader: Webpack) {
   const instanceName =
     webpackIndex + '_' + (loaderOptions.instance || 'default');
 
-  if (loaderOptionsCache.hasOwnProperty(instanceName)) {
-    return loaderOptionsCache[instanceName];
+  if (!loaderOptionsCache.hasOwnProperty(instanceName)) {
+    loaderOptionsCache[instanceName] = new WeakMap();
+  }
+
+  const cache = loaderOptionsCache[instanceName];
+
+  if (cache.has(loaderOptions)) {
+    return cache.get(loaderOptions) as LoaderOptions;
   }
 
   validateLoaderOptions(loaderOptions);
 
   const options = makeLoaderOptions(instanceName, loaderOptions);
 
-  loaderOptionsCache[instanceName] = options;
+  cache.set(loaderOptions, options);
 
   return options;
 }
