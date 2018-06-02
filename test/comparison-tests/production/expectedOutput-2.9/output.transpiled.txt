@@ -1,0 +1,4 @@
+    Asset       Size  Chunks             Chunk Names
+bundle.js  545 bytes       0  [emitted]  main
+Entrypoint main = bundle.js
+   [0] ./app.ts 27 bytes {0} [built]

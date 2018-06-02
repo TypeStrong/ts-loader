@@ -183,12 +183,14 @@ function provideErrorsToWebpack(
 
     const sourceFile = program && program.getSourceFile(filePath);
     const errors = program
-      ? program
-          .getSyntacticDiagnostics(sourceFile)
-          .concat(program.getSemanticDiagnostics(sourceFile))
-      : languageService!
-          .getSyntacticDiagnostics(filePath)
-          .concat(languageService!.getSemanticDiagnostics(filePath));
+      ? [
+          ...program.getSyntacticDiagnostics(sourceFile),
+          ...program.getSemanticDiagnostics(sourceFile)
+        ]
+      : [
+          ...languageService!.getSyntacticDiagnostics(filePath),
+          ...languageService!.getSemanticDiagnostics(filePath)
+        ];
     if (errors.length > 0) {
       const fileWithError = files.get(filePath) || otherFiles.get(filePath);
       filesWithErrors.set(filePath, fileWithError!);
