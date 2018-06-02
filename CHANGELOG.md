@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.1
+
+* [Fix options caching when ts-loader is used in multiple rules](https://github.com/TypeStrong/ts-loader/pull/782) - thanks @yyx990803!
+
 ## 4.3.0
 
 * [Fix dependency resolution when using pnpm](https://github.com/TypeStrong/ts-loader/pull/774) - thanks @xbtsw and @zkochan!
