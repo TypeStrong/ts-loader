@@ -4,6 +4,8 @@
 
 * [Fix options caching when ts-loader is used in multiple rules](https://github.com/TypeStrong/ts-loader/pull/782) - thanks @yyx990803!
 
+Please note, this bug fix requires that vue-loader users still using v14 should either upgrade to v15 or explicitly pass the same ts-loader options via v14's loaders option.  [See more details here](https://github.com/TypeStrong/ts-loader/pull/782#issuecomment-394406093)
+
 ## 4.3.0
 
 * [Fix dependency resolution when using pnpm](https://github.com/TypeStrong/ts-loader/pull/774) - thanks @xbtsw and @zkochan!
