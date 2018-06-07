@@ -8,6 +8,8 @@
     "strict": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "outDir": "../dist"
+    "declaration": true,
+    "outDir": "../dist",
+    "declarationDir": "../dist/types"
   }
 }

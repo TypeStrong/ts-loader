@@ -1,4 +1,3 @@
-*.ts
 .vscode
 .test
 examples

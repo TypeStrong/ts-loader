@@ -3,6 +3,7 @@
   "version": "4.3.1",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
+  "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "comparison-tests": "npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
