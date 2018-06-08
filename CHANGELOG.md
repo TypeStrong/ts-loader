@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.4.1
+
+* [fix(types): expose public interfaces from root index.d.ts](https://github.com/TypeStrong/ts-loader/pull/790) - thanks @xbtsw and @Hotell!
+
+## 4.4.0
+
+* [feat: generate ambient types from implementation](https://github.com/TypeStrong/ts-loader/pull/788) - thanks @xbtsw and @Hotell!
+* [error when not using webpack 4](https://github.com/TypeStrong/ts-loader/pull/786) - thanks @johnnyreilly
+
 ## 4.3.1
 
 * [Fix options caching when ts-loader is used in multiple rules](https://github.com/TypeStrong/ts-loader/pull/782) - thanks @yyx990803!
