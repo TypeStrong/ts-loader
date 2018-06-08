@@ -391,3 +391,10 @@ function makeSourceMap(
 }
 
 export = loader;
+
+/**
+ * expose public types via declaration merging
+ */
+namespace loader {
+  export interface Options extends LoaderOptions {}
+}
