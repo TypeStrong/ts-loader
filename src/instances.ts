@@ -273,6 +273,12 @@ function successfulTypeScriptInstance(
     );
   }
 
+  if (!loader._compiler.hooks) {
+    throw new Error(
+      "You may be using an old version of webpack; please check you're using at least version 4"
+    );
+  }
+
   loader._compiler.hooks.afterCompile.tapAsync(
     'ts-loader',
     makeAfterCompile(instance, configFilePath)
