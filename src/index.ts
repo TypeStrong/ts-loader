@@ -13,11 +13,20 @@ import {
   TSFile,
   TSInstance,
   Webpack,
-  LogLevel
+  LogLevel,
+  WebpackError
 } from './interfaces';
 
 const webpackInstances: Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
+
+function isError(value: any): value is Error {
+  return 'message' in value && 'name' in value;
+}
+
+function isWebPackError(value: any): value is WebpackError {
+  return 'message' in value && 'loaderSource' in value;
+}
 
 /**
  * The entry point for ts-loader
@@ -29,7 +38,21 @@ function loader(this: Webpack, contents: string) {
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
-    callback(instanceOrError.error);
+    if (isError(instanceOrError.error)) {
+      callback(instanceOrError.error);
+    } else if (isWebPackError(instanceOrError.error)) {
+      callback(instanceOrError.error);
+    } else if (typeof instanceOrError.error === 'object') {
+      let wrappedError = new Error(JSON.stringify(instanceOrError.error));
+      callback(wrappedError);
+    } else if (typeof instanceOrError.error === 'string') {
+      let wrappedError = new Error(instanceOrError.error);
+      callback(wrappedError);
+    } else {
+      let wrappedError = new Error('Unknown error caught in ts-loader.');
+      callback(wrappedError);
+    }
+
     return;
   }
 
