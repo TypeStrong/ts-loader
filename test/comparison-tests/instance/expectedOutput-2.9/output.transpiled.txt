@@ -1,15 +1,17 @@
     Asset      Size  Chunks             Chunk Names
-bundle.js  3.91 KiB       a  [emitted]  a
+bundle.js  3.99 KiB       a  [emitted]  a
 Entrypoint a = bundle.js
 Entrypoint b =
-[./a.ts] 177 bytes {a} [built] [failed] [1 error]
-[./b.ts] 177 bytes {b} [built] [failed] [1 error]
+[./a.ts] 252 bytes {a} [built] [failed] [1 error]
+[./b.ts] 252 bytes {b} [built] [failed] [1 error]
 
 ERROR in ./a.ts
-Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
+Module build failed: Error: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
+    at Object.loader (dist\index.js:18:18)
 
 ERROR in ./b.ts
-Module build failed: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
+Module build failed: Error: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
+    at Object.loader (dist\index.js:18:18)
 
 ERROR in chunk b [entry]
 bundle.js

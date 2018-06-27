@@ -239,7 +239,7 @@ export function makeWatchHost(
         );
       }
     },
-    createProgram: compiler.createAbstractBuilder as any // TODO: Chase up with TypeScript team about API change
+    createProgram: compiler.createAbstractBuilder
   };
   return watchHost;
 

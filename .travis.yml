@@ -11,7 +11,7 @@ install:
   - yarn build
   - yarn add $TYPESCRIPT
 env:
-  - TYPESCRIPT=typescript@2.9.1
+  - TYPESCRIPT=typescript@2.9.2
   - TYPESCRIPT=typescript@next
   - TYPESCRIPT=typescript@2.8.1
   - TYPESCRIPT=typescript@2.7.1
