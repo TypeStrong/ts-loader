@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.4.2
+
+* [fix(loader): new Error to webpack when errors occured in the loader function](https://github.com/TypeStrong/ts-loader/pull/792) - thanks @linxiaowu66 and @systemmetaphor!
+
 ## 4.4.1
 
 * [fix(types): expose public interfaces from root index.d.ts](https://github.com/TypeStrong/ts-loader/pull/790) - thanks @Hotell!
