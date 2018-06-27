@@ -29,7 +29,7 @@ function loader(this: Webpack, contents: string) {
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
-    callback(instanceOrError.error);
+    callback(new Error(instanceOrError.error.message));
     return;
   }
 
