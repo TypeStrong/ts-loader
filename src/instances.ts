@@ -155,7 +155,13 @@ function successfulTypeScriptInstance(
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
     // we do need to check for any issues with TS options though
-    const program = compiler!.createProgram([], compilerOptions);
+    const program = configParseResult.projectReferences
+      ? compiler!.createProgram({
+          rootNames: configParseResult.fileNames,
+          options: configParseResult.options,
+          projectReferences: configParseResult.projectReferences
+        })
+      : compiler!.createProgram([], compilerOptions);
 
     // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!loaderOptions.happyPackMode) {
