@@ -7,7 +7,12 @@ import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
 import { EOL, dtsDtsxOrDtsDtsxMapRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
-import { makeError, formatErrors } from './utils';
+import {
+  makeError,
+  formatErrors,
+  ensureProgram,
+  isUsingProjectReferences
+} from './utils';
 import * as logger from './logger';
 import { makeServicesHost, makeWatchHost } from './servicesHost';
 import { makeWatchRun } from './watch-run';
@@ -23,23 +28,6 @@ import {
 
 const instances = <TSInstances>{};
 
-function ensureProgram(instance: TSInstance) {
-  if (instance && instance.watchHost) {
-    if (instance.hasUnaccountedModifiedFiles) {
-      if (instance.changedFilesList) {
-        instance.watchHost.updateRootFileNames();
-      }
-      if (instance.watchOfFilesAndCompilerOptions) {
-        instance.program = instance.watchOfFilesAndCompilerOptions
-          .getProgram()
-          .getProgram();
-      }
-      instance.hasUnaccountedModifiedFiles = false;
-    }
-    return instance.program;
-  }
-  return undefined;
-}
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
  * a persistent instance of TypeScript that contains all of the files in the program
@@ -305,7 +293,7 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
     const sourceFile = program.getSourceFile(filePath);
     // The source file will be undefined if it’s part of a project reference
-    if (sourceFile || !program.getProjectReferences()) {
+    if (sourceFile || !isUsingProjectReferences(instance)) {
       program.emit(
         sourceFile,
         writeFile,

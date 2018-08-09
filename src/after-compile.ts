@@ -1,5 +1,10 @@
 import * as path from 'path';
-import { collectAllDependants, formatErrors } from './utils';
+
+import {
+  collectAllDependants,
+  formatErrors,
+  isUsingProjectReferences
+} from './utils';
 import * as constants from './constants';
 import {
   TSFiles,
@@ -185,9 +190,7 @@ function provideErrorsToWebpack(
     // If the source file is undefined, that probably means it’s actually part of a project reference.
     // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
     // get a useful error about which file was unexpectedly missing.
-    const usesProjectReferences = !!(program ||
-      languageService!.getProgram())!.getProjectReferences();
-    if (usesProjectReferences && !sourceFile) {
+    if (isUsingProjectReferences(instance) && !sourceFile) {
       continue;
     }
 

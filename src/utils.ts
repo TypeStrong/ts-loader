@@ -12,7 +12,8 @@ import {
   Severity,
   WebpackError,
   WebpackModule,
-  ErrorInfo
+  ErrorInfo,
+  TSInstance
 } from './interfaces';
 
 /**
@@ -226,4 +227,35 @@ export function arrify<T>(val: T | T[]) {
   }
 
   return Array.isArray(val) ? val : [val];
+}
+
+export function ensureProgram(instance: TSInstance) {
+  if (instance && instance.watchHost) {
+    if (instance.hasUnaccountedModifiedFiles) {
+      if (instance.changedFilesList) {
+        instance.watchHost.updateRootFileNames();
+      }
+      if (instance.watchOfFilesAndCompilerOptions) {
+        instance.program = instance.watchOfFilesAndCompilerOptions
+          .getProgram()
+          .getProgram();
+      }
+      instance.hasUnaccountedModifiedFiles = false;
+    }
+    return instance.program;
+  }
+  return undefined;
+}
+
+export function supportsProjectReferences(instance: TSInstance) {
+  const program = ensureProgram(instance);
+  return program && !!program.getProjectReferences;
+}
+
+export function isUsingProjectReferences(instance: TSInstance) {
+  if (supportsProjectReferences(instance)) {
+    const program = ensureProgram(instance);
+    return program && program.getProjectReferences();
+  }
+  return false;
 }
