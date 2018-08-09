@@ -181,6 +181,16 @@ function provideErrorsToWebpack(
     }
 
     const sourceFile = program && program.getSourceFile(filePath);
+
+    // If the source file is undefined, that probably means it’s actually part of a project reference.
+    // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
+    // get a useful error about which file was unexpectedly missing.
+    const usesProjectReferences = !!(program ||
+      languageService!.getProgram())!.getProjectReferences();
+    if (usesProjectReferences && !sourceFile) {
+      continue;
+    }
+
     const errors = program
       ? [
           ...program.getSyntacticDiagnostics(sourceFile),

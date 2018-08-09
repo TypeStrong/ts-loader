@@ -22,7 +22,7 @@ export function makeServicesHost(
   log: logger.Logger,
   loader: Webpack,
   instance: TSInstance,
-  projectReferences: ReadonlyArray<typescript.ProjectReference> = []
+  projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
   const {
     compiler,

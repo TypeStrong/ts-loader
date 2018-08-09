@@ -304,16 +304,21 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       writeByteOrderMark: boolean
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
     const sourceFile = program.getSourceFile(filePath);
-    program.emit(
-      sourceFile,
-      writeFile,
-      /*cancellationToken*/ undefined,
-      /*emitOnlyDtsFiles*/ false,
-      instance.transformers
-    );
+    // The source file will be undefined if it’s part of a project reference
+    if (sourceFile || !program.getProjectReferences()) {
+      program.emit(
+        sourceFile,
+        writeFile,
+        /*cancellationToken*/ undefined,
+        /*emitOnlyDtsFiles*/ false,
+        instance.transformers
+      );
+    }
     return outputFiles;
   } else {
     // Emit Javascript
-    return instance.languageService!.getEmitOutput(filePath).outputFiles;
+    return instance.languageService!.getProgram()!.getSourceFile(filePath)
+      ? instance.languageService!.getEmitOutput(filePath).outputFiles
+      : [];
   }
 }
