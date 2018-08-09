@@ -271,7 +271,7 @@ function successfulTypeScriptInstance(
       log,
       loader,
       instance,
-      configFile.config!.references
+      configParseResult.projectReferences
     );
     instance.languageService = compiler.createLanguageService(
       servicesHost,
