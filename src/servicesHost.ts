@@ -21,7 +21,8 @@ export function makeServicesHost(
   scriptRegex: RegExp,
   log: logger.Logger,
   loader: Webpack,
-  instance: TSInstance
+  instance: TSInstance,
+  projectReferences: ReadonlyArray<typescript.ProjectReference> = []
 ) {
   const {
     compiler,
@@ -60,6 +61,8 @@ export function makeServicesHost(
 
   const servicesHost: typescript.LanguageServiceHost = {
     getProjectVersion: () => `${instance.version}`,
+
+    getProjectReferences: () => projectReferences,
 
     getScriptFileNames: () =>
       [...files.keys()].filter(filePath => filePath.match(scriptRegex)),

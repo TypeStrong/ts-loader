@@ -266,7 +266,13 @@ function successfulTypeScriptInstance(
       .getProgram()
       .getProgram();
   } else {
-    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
+    const servicesHost = makeServicesHost(
+      scriptRegex,
+      log,
+      loader,
+      instance,
+      configFile.config!.references
+    );
     instance.languageService = compiler.createLanguageService(
       servicesHost,
       compiler.createDocumentRegistry()
