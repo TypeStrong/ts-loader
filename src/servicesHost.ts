@@ -152,7 +152,8 @@ export function makeWatchHost(
   loader: Webpack,
   instance: TSInstance,
   appendTsSuffixTo: RegExp[],
-  appendTsxSuffixTo: RegExp[]
+  appendTsxSuffixTo: RegExp[],
+  projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
   const { compiler, compilerOptions, files, otherFiles } = instance;
 
@@ -242,7 +243,9 @@ export function makeWatchHost(
         );
       }
     },
-    createProgram: compiler.createAbstractBuilder
+    createProgram: projectReferences
+      ? createBuilderProgramWithReferences
+      : compiler.createAbstractBuilder
   };
   return watchHost;
 
@@ -367,6 +370,33 @@ export function makeWatchHost(
       fileName,
       recursive ? watchedDirectoriesRecursive : watchedDirectories,
       callback
+    );
+  }
+
+  function createBuilderProgramWithReferences(
+    rootNames: ReadonlyArray<string> | undefined,
+    options: typescript.CompilerOptions | undefined,
+    host: typescript.CompilerHost | undefined,
+    oldProgram: typescript.BuilderProgram | undefined,
+    configFileParsingDiagnostics:
+      | ReadonlyArray<typescript.Diagnostic>
+      | undefined
+  ) {
+    const program = compiler.createProgram({
+      rootNames: rootNames!,
+      options: options!,
+      host,
+      oldProgram: oldProgram && oldProgram.getProgram(),
+      configFileParsingDiagnostics,
+      projectReferences
+    });
+
+    const builderProgramHost: typescript.BuilderProgramHost = host!;
+    return compiler.createAbstractBuilder(
+      program,
+      builderProgramHost,
+      oldProgram,
+      configFileParsingDiagnostics
     );
   }
 }

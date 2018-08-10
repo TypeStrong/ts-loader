@@ -251,7 +251,8 @@ function successfulTypeScriptInstance(
       loader,
       instance,
       loaderOptions.appendTsSuffixTo,
-      loaderOptions.appendTsxSuffixTo
+      loaderOptions.appendTsxSuffixTo,
+      configParseResult.projectReferences
     );
     instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(
       instance.watchHost
