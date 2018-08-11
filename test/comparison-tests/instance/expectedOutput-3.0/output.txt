@@ -5,11 +5,11 @@ Entrypoint b =
 [./a.ts] 242 bytes {a} [built] [failed] [1 error]
 [./b.ts] 242 bytes {b} [built] [failed] [1 error]
 
-ERROR in ./b.ts
+ERROR in ./a.ts
 Module build failed: Error: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
     at Object.loader (dist\index.js:18:18)
 
-ERROR in ./a.ts
+ERROR in ./b.ts
 Module build failed: Error: [31mA file specified in tsconfig.json could not be found: i-dont-exist[39m
     at Object.loader (dist\index.js:18:18)
 
