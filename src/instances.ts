@@ -184,6 +184,7 @@ function successfulTypeScriptInstance(
       loaderOptions,
       files,
       otherFiles,
+      program,
       dependencyGraph: {},
       reverseDependencyGraph: {},
       transformers: getCustomTransformers(),

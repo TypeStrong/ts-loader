@@ -3,7 +3,12 @@ import * as loaderUtils from 'loader-utils';
 import * as typescript from 'typescript';
 
 import { getTypeScriptInstance, getEmitOutput } from './instances';
-import { appendSuffixesIfMatch, arrify, formatErrors } from './utils';
+import {
+  appendSuffixesIfMatch,
+  arrify,
+  formatErrors,
+  getProjectReferenceForFile
+} from './utils';
 import * as constants from './constants';
 import {
   AsyncCallback,
@@ -63,11 +68,81 @@ function successLoader(
       : rawFilePath;
 
   const fileVersion = updateFileInCache(filePath, contents, instance);
+  const referencedProject = getProjectReferenceForFile(filePath, instance);
+  if (referencedProject) {
+    if (referencedProject.commandLine.options.outFile) {
+      throw new Error(
+        `The referenced project at ${
+          referencedProject.sourceFile.fileName
+        } is using the ` +
+          `outFile' option, which is not supported with ts-loader.`
+      );
+    }
 
-  const { outputText, sourceMapText } = options.transpileOnly
-    ? getTranspilationEmit(filePath, contents, instance, loader)
-    : getEmit(rawFilePath, filePath, instance, loader);
+    const jsFileName = instance.compiler.getOutputJavaScriptFileName(
+      filePath,
+      referencedProject.commandLine
+    );
+    const mapFileName = jsFileName + '.map';
+    if (!instance.compiler.sys.fileExists(jsFileName)) {
+      throw new Error(
+        `Could not find output JavaScript file for input ${filePath} ` +
+          `(looked at ${jsFileName}).\nThe input file is part of a project ` +
+          `reference located at ${referencedProject.sourceFile.fileName}, ` +
+          'so ts-loader is looking for the project’s pre-built output on ' +
+          'disk. Try running `tsc --build` to build project references.'
+      );
+    }
 
+    if (!instance.compiler.sys.fileExists(mapFileName)) {
+      loader.emitWarning(
+        'Could not find source map file for referenced project output ' +
+          `${jsFileName}. Ensure the 'sourceMap' compiler option is enabled ` +
+          `in ${referencedProject.sourceFile.fileName} to ensure Webpack ` +
+          'can map project references to the appropriate source files.'
+      );
+    }
+
+    const outputText = instance.compiler.sys.readFile(jsFileName);
+    const sourceMapText = instance.compiler.sys.readFile(mapFileName);
+    makeSourceMapAndFinish(
+      sourceMapText,
+      outputText,
+      filePath,
+      contents,
+      loader,
+      options,
+      fileVersion,
+      callback
+    );
+  } else {
+    const { outputText, sourceMapText } = options.transpileOnly
+      ? getTranspilationEmit(filePath, contents, instance, loader)
+      : getEmit(rawFilePath, filePath, instance, loader);
+
+    makeSourceMapAndFinish(
+      sourceMapText,
+      outputText,
+      filePath,
+      contents,
+      loader,
+      options,
+      fileVersion,
+      callback
+    );
+  }
+}
+
+function makeSourceMapAndFinish(
+  sourceMapText: string | undefined,
+  outputText: string | undefined,
+  filePath: string,
+  contents: string,
+  loader: Webpack,
+  options: LoaderOptions,
+  fileVersion: number,
+  callback: AsyncCallback
+) {
   if (outputText === null || outputText === undefined) {
     const additionalGuidance =
       !options.allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
@@ -77,7 +152,7 @@ function successLoader(
         : '';
 
     throw new Error(
-      `Typescript emitted no output for ${filePath}.${additionalGuidance}`
+      `TypeScript emitted no output for ${filePath}.${additionalGuidance}`
     );
   }
 

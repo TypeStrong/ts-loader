@@ -244,7 +244,7 @@ export function ensureProgram(instance: TSInstance) {
     }
     return instance.program;
   }
-  return undefined;
+  return instance.program;
 }
 
 export function supportsProjectReferences(instance: TSInstance) {
@@ -258,4 +258,21 @@ export function isUsingProjectReferences(instance: TSInstance) {
     return program && program.getProjectReferences();
   }
   return false;
+}
+
+export function getProjectReferenceForFile(
+  filePath: string,
+  instance: TSInstance
+) {
+  if (isUsingProjectReferences(instance)) {
+    const program = ensureProgram(instance);
+    return (
+      program &&
+      program
+        .getProjectReferences()!
+        .find(ref => ref!.commandLine.fileNames.indexOf(filePath) > -1)
+    );
+  }
+
+  return;
 }
