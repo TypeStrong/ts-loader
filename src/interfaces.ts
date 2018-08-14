@@ -94,11 +94,11 @@ export interface Webpack {
   /**
    * Emit a warning.
    */
-  emitWarning: (message: string) => void;
+  emitWarning: (message: Error) => void;
   /**
    * Emit an error.
    */
-  emitError: (message: string) => void;
+  emitError: (message: Error) => void;
   /**
    * Emit a file. This is webpack-specific
    */
