@@ -244,6 +244,9 @@ export function ensureProgram(instance: TSInstance) {
     }
     return instance.program;
   }
+  if (instance.languageService) {
+    return instance.languageService.getProgram();
+  }
   return instance.program;
 }
 
