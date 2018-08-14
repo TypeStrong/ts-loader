@@ -1,0 +1,16 @@
+    Asset      Size  Chunks             Chunk Names
+bundle.js  4.86 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 131 bytes {main} [built] [1 error]
+[./lib/index.ts] 718 bytes {main} [built] [failed] [1 error]
+
+ERROR in tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS6305: Output file 'lib/index.d.ts' has not been built from source file 'lib/index.ts'.[39m[22m
+
+ERROR in ./lib/index.ts
+Module build failed: Error: Could not find output JavaScript file for input lib/index.ts (looked at lib/index.js).
+The input file is part of a project reference located at lib/tsconfig.json, so ts-loader is looking for the project’s pre-built output on disk. Try running `tsc --build` to build project references.
+    at successLoader (dist/index.js:45:19)
+    at Object.loader (dist/index.js:21:12)
+ @ ./app.ts 3:12-28
