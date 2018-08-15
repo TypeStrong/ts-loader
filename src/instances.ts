@@ -205,11 +205,11 @@ function successfulTypeScriptInstance(
   let normalizedFilePath: string;
   try {
     const filesToLoad = loaderOptions.onlyCompileBundledFiles
-      ? configParseResult.fileNames.filter((fileName: string) =>
+      ? configParseResult.fileNames.filter(fileName =>
           dtsDtsxRegex.test(fileName)
         )
       : configParseResult.fileNames;
-    filesToLoad.forEach((filePath: string) => {
+    filesToLoad.forEach(filePath => {
       normalizedFilePath = path.normalize(filePath);
       files.set(normalizedFilePath, {
         text: fs.readFileSync(normalizedFilePath, 'utf-8'),
