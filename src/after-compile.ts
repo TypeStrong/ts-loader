@@ -1,5 +1,4 @@
 import * as path from 'path';
-import * as typescript from 'typescript'
 import { collectAllDependants, formatErrors } from './utils';
 import * as constants from './constants';
 import {
@@ -246,21 +245,20 @@ function provideDeclarationFilesToWebpack(
     }
 
     const outputFiles = getEmitOutput(instance, filePath);
-    const declarationFiles: typescript.OutputFile[] = outputFiles
-      .filter((outputFile: typescript.OutputFile) => outputFile.name.match(constants.dtsDtsxRegex));
+    const declarationFiles = outputFiles.filter(outputFile =>
+      outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+    );
 
-    if (Array.isArray(declarationFiles)) {
-      declarationFiles.forEach(file => {
-        const assetPath = path.relative(
-          compilation.compiler.context,
-          file.name
-        );
-        compilation.assets[assetPath] = {
-          source: () => file.text,
-          size: () => file.text.length
-        };
-      });
-    }
+    declarationFiles.forEach(declarationFile => {
+      const assetPath = path.relative(
+        compilation.compiler.context,
+        declarationFile.name
+      );
+      compilation.assets[assetPath] = {
+        source: () => declarationFile.text,
+        size: () => declarationFile.text.length
+      };
+    });
   }
 }
 

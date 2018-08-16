@@ -12,7 +12,7 @@ export const ScriptTargetES2015 = 2;
 export const ModuleKindCommonJs = 1;
 
 export const tsTsxRegex = /\.ts(x?)$/i;
-export const dtsDtsxRegex = /\.d\.ts(x?)(\.map)?$/i;
+export const dtsDtsxOrDtsDtsxMapRegex = /\.d\.ts(x?)(\.map)?$/i;
 export const dtsTsTsxRegex = /(\.d)?\.ts(x?)$/i;
 export const dtsTsTsxJsJsxRegex = /((\.d)?\.ts(x?)|js(x?))$/i;
 export const tsTsxJsJsxRegex = /\.tsx?$|\.jsx?$/i;
