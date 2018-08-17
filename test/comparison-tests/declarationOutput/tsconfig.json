@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
 		"declaration": true,
-    	"declarationDir": "types"
+		"declarationDir": ".output"
 	}
 }
