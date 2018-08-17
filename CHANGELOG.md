@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.5.0
+
+* [feat: Added support for TypeScript declaration map](https://github.com/TypeStrong/ts-loader/pull/821) - thanks @JonWallsten!
+
 ## 4.4.2
 
 * [fix(loader): new Error to webpack when errors occured in the loader function](https://github.com/TypeStrong/ts-loader/pull/792) - thanks @linxiaowu66 and @systemmetaphor!
