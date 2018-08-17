@@ -5,7 +5,7 @@ import chalk, { Chalk } from 'chalk';
 
 import { makeAfterCompile } from './after-compile';
 import { getConfigFile, getConfigParseResult } from './config';
-import { EOL, dtsDtsxRegex } from './constants';
+import { EOL, dtsDtsxOrDtsDtsxMapRegex } from './constants';
 import { getCompilerOptions, getCompiler } from './compilerSetup';
 import { makeError, formatErrors } from './utils';
 import * as logger from './logger';
@@ -206,7 +206,7 @@ function successfulTypeScriptInstance(
   try {
     const filesToLoad = loaderOptions.onlyCompileBundledFiles
       ? configParseResult.fileNames.filter(fileName =>
-          dtsDtsxRegex.test(fileName)
+          dtsDtsxOrDtsDtsxMapRegex.test(fileName)
         )
       : configParseResult.fileNames;
     filesToLoad.forEach(filePath => {

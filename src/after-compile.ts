@@ -1,5 +1,4 @@
 import * as path from 'path';
-
 import { collectAllDependants, formatErrors } from './utils';
 import * as constants from './constants';
 import {
@@ -246,10 +245,11 @@ function provideDeclarationFilesToWebpack(
     }
 
     const outputFiles = getEmitOutput(instance, filePath);
-    const declarationFile = outputFiles
-      .filter(outputFile => outputFile.name.match(constants.dtsDtsxRegex))
-      .pop();
-    if (declarationFile !== undefined) {
+    const declarationFiles = outputFiles.filter(outputFile =>
+      outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+    );
+
+    declarationFiles.forEach(declarationFile => {
       const assetPath = path.relative(
         compilation.compiler.context,
         declarationFile.name
@@ -258,7 +258,7 @@ function provideDeclarationFilesToWebpack(
         source: () => declarationFile.text,
         size: () => declarationFile.text.length
       };
-    }
+    });
   }
 }
 

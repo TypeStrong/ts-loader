@@ -291,7 +291,7 @@ function getEmit(
   loader.addDependency(rawFilePath);
 
   const allDefinitionFiles = [...instance.files.keys()].filter(defFilePath =>
-    defFilePath.match(constants.dtsDtsxRegex)
+    defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex)
   );
 
   // Make this file dependent on *all* definition files in the program

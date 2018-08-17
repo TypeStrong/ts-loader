@@ -36,7 +36,7 @@ export function makeWatchRun(instance: TSInstance) {
     // (skip @types/* and modules with typings)
     for (const filePath of instance.files.keys()) {
       if (
-        filePath.match(constants.dtsDtsxRegex) &&
+        filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
         !filePath.match(constants.nodeModules)
       ) {
         updateFile(instance, filePath);
