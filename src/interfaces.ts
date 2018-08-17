@@ -149,6 +149,7 @@ export interface WebpackCompilation {
 export interface WebpackCompiler {
   isChild(): boolean;
   context: string; // a guess
+  outputPath: string;
   watchFileSystem: WebpackNodeWatchFileSystem;
   /** key is filepath and value is Date as a number */
   fileTimestamps: Map<string, number>;

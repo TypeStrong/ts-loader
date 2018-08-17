@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
-		"declaration": true
+		"declaration": true,
+    	"declarationDir": "types"
 	}
 }
