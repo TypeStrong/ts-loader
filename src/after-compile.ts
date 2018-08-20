@@ -65,6 +65,7 @@ export function makeAfterCompile(
 
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = null;
+    instance.projectsMissingSourceMaps = new Set();
 
     callback();
   };

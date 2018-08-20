@@ -3,6 +3,7 @@
     "composite": true
   },
   "files": [
-    "./index.ts"
+    "./index.ts",
+    "./foo.ts"
   ]
 }

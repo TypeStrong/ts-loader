@@ -239,6 +239,12 @@ export interface TSInstance {
    * contains the modified files - cleared each time after-compile is called
    */
   modifiedFiles?: TSFiles | null;
+  /**
+   * Paths to project references that are missing source maps.
+   * Cleared each time after-compile is called. Used to dedupe
+   * warnings about source maps during a single compilation.
+   */
+  projectsMissingSourceMaps?: Set<string>;
   languageService?: typescript.LanguageService | null;
   version?: number;
   dependencyGraph: DependencyGraph;

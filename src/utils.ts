@@ -13,7 +13,8 @@ import {
   WebpackError,
   WebpackModule,
   ErrorInfo,
-  TSInstance
+  TSInstance,
+  Webpack
 } from './interfaces';
 
 /**
@@ -278,4 +279,28 @@ export function getProjectReferenceForFile(
   }
 
   return;
+}
+
+export function validateSourceMapOncePerProject(
+  instance: TSInstance,
+  loader: Webpack,
+  jsFileName: string,
+  project: typescript.ResolvedProjectReference
+) {
+  const { projectsMissingSourceMaps = new Set<string>() } = instance;
+  if (!projectsMissingSourceMaps.has(project.sourceFile.fileName)) {
+    instance.projectsMissingSourceMaps = projectsMissingSourceMaps;
+    projectsMissingSourceMaps.add(project.sourceFile.fileName);
+    const mapFileName = jsFileName + '.map';
+    if (!instance.compiler.sys.fileExists(mapFileName)) {
+      loader.emitWarning(
+        new Error(
+          'Could not find source map file for referenced project output ' +
+            `${jsFileName}. Ensure the 'sourceMap' compiler option is enabled ` +
+            `in ${project.sourceFile.fileName} to ensure Webpack ` +
+            'can map project references to the appropriate source files.'
+        )
+      );
+    }
+  }
 }

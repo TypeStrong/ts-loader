@@ -7,7 +7,8 @@ import {
   appendSuffixesIfMatch,
   arrify,
   formatErrors,
-  getProjectReferenceForFile
+  getProjectReferenceForFile,
+  validateSourceMapOncePerProject
 } from './utils';
 import * as constants from './constants';
 import {
@@ -83,7 +84,7 @@ function successLoader(
       filePath,
       referencedProject.commandLine
     );
-    const mapFileName = jsFileName + '.map';
+
     if (!instance.compiler.sys.fileExists(jsFileName)) {
       throw new Error(
         `Could not find output JavaScript file for input ${filePath} ` +
@@ -94,15 +95,14 @@ function successLoader(
       );
     }
 
-    if (!instance.compiler.sys.fileExists(mapFileName)) {
-      loader.emitWarning(
-        'Could not find source map file for referenced project output ' +
-          `${jsFileName}. Ensure the 'sourceMap' compiler option is enabled ` +
-          `in ${referencedProject.sourceFile.fileName} to ensure Webpack ` +
-          'can map project references to the appropriate source files.'
-      );
-    }
+    validateSourceMapOncePerProject(
+      instance,
+      loader,
+      jsFileName,
+      referencedProject
+    );
 
+    const mapFileName = jsFileName + '.map';
     const outputText = instance.compiler.sys.readFile(jsFileName);
     const sourceMapText = instance.compiler.sys.readFile(mapFileName);
     makeSourceMapAndFinish(
