@@ -300,7 +300,7 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       writeByteOrderMark: boolean
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
     const sourceFile = program.getSourceFile(filePath);
-    // The source file will be undefined if it’s part of a project reference
+    // The source file will be undefined if it’s part of an unbuilt project reference
     if (sourceFile || !isUsingProjectReferences(instance)) {
       program.emit(
         sourceFile,
