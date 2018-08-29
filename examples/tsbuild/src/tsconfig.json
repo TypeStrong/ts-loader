@@ -1,0 +1,7 @@
+{
+    "files": [],
+    "references": [
+        { "path": "common" },
+        { "path": "client" }
+    ]
+}

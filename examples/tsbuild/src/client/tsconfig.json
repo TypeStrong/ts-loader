@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "sourceMap": true,
+        "declaration": true,
+        "declarationMap": true,
+        "outDir": "../../lib/client"
+    },
+    "references": [
+        { "path": "../common" }
+    ]
+}
