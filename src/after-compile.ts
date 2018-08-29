@@ -19,6 +19,10 @@ export function makeAfterCompile(
   let checkAllFilesForErrors = true;
 
   return (compilation: WebpackCompilation, callback: () => void) => {
+    if (compilation.errors.length) {
+      callback();
+      return;
+    }
     // Don't add errors for child compilations
     if (compilation.compiler.isChild()) {
       callback();
