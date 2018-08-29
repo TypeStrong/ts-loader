@@ -14,6 +14,11 @@ import {
   Webpack
 } from './interfaces';
 
+export interface CachedServicesHost {
+  servicesHost: typescript.LanguageServiceHost;
+  clearCache: () => void;
+}
+
 /**
  * Create the TypeScript language service
  */
@@ -22,7 +27,7 @@ export function makeServicesHost(
   log: logger.Logger,
   loader: Webpack,
   instance: TSInstance
-) {
+): CachedServicesHost {
   const {
     compiler,
     compilerOptions,
@@ -52,8 +57,11 @@ export function makeServicesHost(
   const moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
     readFile: readFileWithFallback,
-    realpath: compiler.sys.realpath
+    realpath: compiler.sys.realpath,
+    directoryExists: compiler.sys.directoryExists
   };
+
+  const clearCache = addCache(moduleResolutionHost);
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
@@ -97,13 +105,15 @@ export function makeServicesHost(
     /**
      * For @types expansion, these two functions are needed.
      */
-    directoryExists: compiler.sys.directoryExists,
+    directoryExists: moduleResolutionHost.directoryExists,
 
     useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
 
+    realpath: moduleResolutionHost.realpath,
+
     // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
-    fileExists: compiler.sys.fileExists,
-    readFile: compiler.sys.readFile,
+    fileExists: moduleResolutionHost.fileExists,
+    readFile: moduleResolutionHost.readFile,
     readDirectory: compiler.sys.readDirectory,
 
     getCurrentDirectory,
@@ -137,7 +147,7 @@ export function makeServicesHost(
     getCustomTransformers: () => instance.transformers
   };
 
-  return servicesHost;
+  return { servicesHost, clearCache };
 }
 
 /**
@@ -508,4 +518,46 @@ function populateDependencyGraphs(
       path.normalize(containingFile)
     ] = true;
   });
+}
+
+function addCache(servicesHost: typescript.ModuleResolutionHost) {
+  const clearCacheFuncs: (() => void)[] = [];
+  if (servicesHost.fileExists !== undefined) {
+    const cache = createCache(servicesHost.fileExists);
+    servicesHost.fileExists = cache.cached;
+    clearCacheFuncs.push(cache.clear);
+  }
+
+  if (servicesHost.directoryExists !== undefined) {
+    const cache = createCache(servicesHost.directoryExists);
+    servicesHost.directoryExists = cache.cached;
+    clearCacheFuncs.push(cache.clear);
+  }
+
+  if (servicesHost.realpath !== undefined) {
+    const cache = createCache(servicesHost.realpath);
+    servicesHost.realpath = cache.cached;
+    clearCacheFuncs.push(cache.clear);
+  }
+
+  return () => clearCacheFuncs.forEach(clear => clear());
+}
+
+function createCache<TOut>(func: (arg: string) => TOut) {
+  let cache: Record<string, TOut | undefined> = {};
+  return {
+    clear: () => {
+      cache = {};
+    },
+    cached: (arg: string) => {
+      let res = cache[arg];
+      if (res !== undefined) {
+        return res;
+      }
+
+      res = func(arg);
+      cache[arg] = res;
+      return res;
+    }
+  };
 }

@@ -247,6 +247,12 @@ function successfulTypeScriptInstance(
     colors
   });
 
+  if (!loader._compiler.hooks) {
+    throw new Error(
+      "You may be using an old version of webpack; please check you're using at least version 4"
+    );
+  }
+
   if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
     log.logInfo('Using watch api');
 
@@ -266,16 +272,21 @@ function successfulTypeScriptInstance(
       .getProgram()
       .getProgram();
   } else {
-    const servicesHost = makeServicesHost(scriptRegex, log, loader, instance);
+    const cachedServicesHost = makeServicesHost(
+      scriptRegex,
+      log,
+      loader,
+      instance
+    );
+
     instance.languageService = compiler.createLanguageService(
-      servicesHost,
+      cachedServicesHost.servicesHost,
       compiler.createDocumentRegistry()
     );
-  }
 
-  if (!loader._compiler.hooks) {
-    throw new Error(
-      "You may be using an old version of webpack; please check you're using at least version 4"
+    loader._compiler.hooks.watchRun.tap(
+      'ts-loader',
+      cachedServicesHost.clearCache
     );
   }
 
