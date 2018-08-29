@@ -543,6 +543,15 @@ Extending `tsconfig.json`:
 
 Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
 
+### experimentalFileCaching _(boolean) (default=false)_
+
+By default whenever TypeScript compiler needs to check that file/directory is exist or resolve symlink it makes syscall.
+Also it does not cache the result of this operations and may produce a lot of syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
+In some cases it may produce performance degradation in multiple times.
+
+This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler.
+Note that caches are cleared between compilations.
+
 ### `LoaderOptionsPlugin`
 
 [There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`. If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)

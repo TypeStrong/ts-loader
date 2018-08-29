@@ -16,7 +16,7 @@ import {
 
 export interface CachedServicesHost {
   servicesHost: typescript.LanguageServiceHost;
-  clearCache: () => void;
+  clearCache: (() => void) | null;
 }
 
 /**
@@ -26,7 +26,8 @@ export function makeServicesHost(
   scriptRegex: RegExp,
   log: logger.Logger,
   loader: Webpack,
-  instance: TSInstance
+  instance: TSInstance,
+  enableFileCaching: boolean
 ): CachedServicesHost {
   const {
     compiler,
@@ -61,7 +62,7 @@ export function makeServicesHost(
     directoryExists: compiler.sys.directoryExists
   };
 
-  const clearCache = addCache(moduleResolutionHost);
+  const clearCache = enableFileCaching ? addCache(moduleResolutionHost) : null;
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;

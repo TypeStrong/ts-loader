@@ -276,7 +276,8 @@ function successfulTypeScriptInstance(
       scriptRegex,
       log,
       loader,
-      instance
+      instance,
+      loaderOptions.experimentalFileCaching
     );
 
     instance.languageService = compiler.createLanguageService(
@@ -284,10 +285,12 @@ function successfulTypeScriptInstance(
       compiler.createDocumentRegistry()
     );
 
-    loader._compiler.hooks.watchRun.tap(
-      'ts-loader',
-      cachedServicesHost.clearCache
-    );
+    if (cachedServicesHost.clearCache !== null) {
+      loader._compiler.hooks.watchRun.tap(
+        'ts-loader',
+        cachedServicesHost.clearCache
+      );
+    }
   }
 
   loader._compiler.hooks.afterCompile.tapAsync(
