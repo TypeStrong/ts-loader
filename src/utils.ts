@@ -310,19 +310,17 @@ export function getOutputJavaScriptFileName(
   inputFileName: string,
   projectReference: typescript.ResolvedProjectReference
 ) {
-  const relativePath = path.relative(
-    projectReference.sourceFile.fileName,
-    inputFileName
-  );
+  const { options } = projectReference.commandLine;
+  const projectDirectory = path.dirname(projectReference.sourceFile.fileName);
+  const relativePath = path.relative(projectDirectory, inputFileName);
   const outputPath = path.resolve(
-    projectReference.commandLine.options.outDir ||
-      projectReference.sourceFile.fileName,
+    options.outDir || projectDirectory,
     relativePath
   );
   const newExtension = constants.jsonRegex.test(inputFileName)
     ? '.json'
     : constants.tsxRegex.test(inputFileName) &&
-      projectReference.commandLine.options.jsx === typescript.JsxEmit.Preserve
+      options.jsx === typescript.JsxEmit.Preserve
       ? '.jsx'
       : '.js';
   return outputPath.replace(constants.extensionRegex, newExtension);
