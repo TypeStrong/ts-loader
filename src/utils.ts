@@ -274,7 +274,10 @@ export function getProjectReferenceForFile(
       program &&
       program
         .getProjectReferences()!
-        .find(ref => ref && ref.commandLine.fileNames.indexOf(filePath) > -1)
+        .find(
+          ref =>
+            (ref && ref.commandLine.fileNames.indexOf(filePath) > -1) || false
+        )
     );
   }
 
