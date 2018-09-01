@@ -8,7 +8,8 @@ import {
   arrify,
   formatErrors,
   getProjectReferenceForFile,
-  validateSourceMapOncePerProject
+  validateSourceMapOncePerProject,
+  getOutputJavaScriptFileName
 } from './utils';
 import * as constants from './constants';
 import {
@@ -80,10 +81,7 @@ function successLoader(
       );
     }
 
-    const jsFileName = instance.compiler.getOutputJavaScriptFileName(
-      filePath,
-      referencedProject.commandLine
-    );
+    const jsFileName = getOutputJavaScriptFileName(filePath, referencedProject);
 
     if (!instance.compiler.sys.fileExists(jsFileName)) {
       throw new Error(

@@ -304,3 +304,26 @@ export function validateSourceMapOncePerProject(
     }
   }
 }
+
+// Adapted from https://github.com/Microsoft/TypeScript/blob/45101491c0b077c509b25830ef0ee5f85b293754/src/compiler/tsbuild.ts#L305
+export function getOutputJavaScriptFileName(
+  inputFileName: string,
+  projectReference: typescript.ResolvedProjectReference
+) {
+  const relativePath = path.relative(
+    projectReference.sourceFile.fileName,
+    inputFileName
+  );
+  const outputPath = path.resolve(
+    projectReference.commandLine.options.outDir ||
+      projectReference.sourceFile.fileName,
+    relativePath
+  );
+  const newExtension = constants.jsonRegex.test(inputFileName)
+    ? '.json'
+    : constants.tsxRegex.test(inputFileName) &&
+      projectReference.commandLine.options.jsx === typescript.JsxEmit.Preserve
+      ? '.jsx'
+      : '.js';
+  return outputPath.replace(constants.extensionRegex, newExtension);
+}
