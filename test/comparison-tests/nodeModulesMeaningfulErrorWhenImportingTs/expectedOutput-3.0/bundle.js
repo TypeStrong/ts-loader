@@ -105,7 +105,7 @@ eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./nod
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed: Error: Typescript emitted no output for C://source//ts-loader//.test//nodeModulesMeaningfulErrorWhenImportingTs//node_modules//a//index.ts. By default, ts-loader will not compile .ts files in node_modules./nYou should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option./nSee: https://github.com/Microsoft/TypeScript/issues/12358/n    at successLoader (C://source//ts-loader//dist//index.js:41:15)/n    at Object.loader (C://source//ts-loader//dist//index.js:21:12)\");\n\n//# sourceURL=webpack:///./node_modules/a/index.ts?");
+eval("throw new Error(\"Module build failed: Error: TypeScript emitted no output for C://source//ts-loader//.test//nodeModulesMeaningfulErrorWhenImportingTs//node_modules//a//index.ts. By default, ts-loader will not compile .ts files in node_modules./nYou should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option./nSee: https://github.com/Microsoft/TypeScript/issues/12358/n    at makeSourceMapAndFinish (C://source//ts-loader//dist//index.js:71:15)/n    at successLoader (C://source//ts-loader//dist//index.js:61:9)/n    at Object.loader (C://source//ts-loader//dist//index.js:21:12)\");\n\n//# sourceURL=webpack:///./node_modules/a/index.ts?");
 
 /***/ })
 
