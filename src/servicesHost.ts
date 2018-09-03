@@ -14,9 +14,11 @@ import {
   Webpack
 } from './interfaces';
 
-export interface CachedServicesHost {
+export type Action = () => void;
+
+export interface ServiceHostWhichMayBeCacheable {
   servicesHost: typescript.LanguageServiceHost;
-  clearCache: (() => void) | null;
+  clearCache: Action | null;
 }
 
 /**
@@ -28,7 +30,7 @@ export function makeServicesHost(
   loader: Webpack,
   instance: TSInstance,
   enableFileCaching: boolean
-): CachedServicesHost {
+): ServiceHostWhichMayBeCacheable {
   const {
     compiler,
     compilerOptions,
@@ -522,7 +524,7 @@ function populateDependencyGraphs(
 }
 
 function addCache(servicesHost: typescript.ModuleResolutionHost) {
-  const clearCacheFuncs: (() => void)[] = [];
+  const clearCacheFuncs: Action[] = [];
   if (servicesHost.fileExists !== undefined) {
     const cache = createCache(servicesHost.fileExists);
     servicesHost.fileExists = cache.cached;

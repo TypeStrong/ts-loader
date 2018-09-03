@@ -272,7 +272,7 @@ function successfulTypeScriptInstance(
       .getProgram()
       .getProgram();
   } else {
-    const cachedServicesHost = makeServicesHost(
+    const servicesHost = makeServicesHost(
       scriptRegex,
       log,
       loader,
@@ -281,15 +281,12 @@ function successfulTypeScriptInstance(
     );
 
     instance.languageService = compiler.createLanguageService(
-      cachedServicesHost.servicesHost,
+      servicesHost.servicesHost,
       compiler.createDocumentRegistry()
     );
 
-    if (cachedServicesHost.clearCache !== null) {
-      loader._compiler.hooks.watchRun.tap(
-        'ts-loader',
-        cachedServicesHost.clearCache
-      );
+    if (servicesHost.clearCache !== null) {
+      loader._compiler.hooks.watchRun.tap('ts-loader', servicesHost.clearCache);
     }
   }
 
