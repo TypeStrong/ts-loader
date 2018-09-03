@@ -7,9 +7,9 @@ import {
   appendSuffixesIfMatch,
   arrify,
   formatErrors,
-  getProjectReferenceForFile,
   validateSourceMapOncePerProject,
-  getOutputJavaScriptFileName
+  getAndCacheProjectReference,
+  getAndCacheOutputJSFileName
 } from './utils';
 import * as constants from './constants';
 import {
@@ -70,7 +70,7 @@ function successLoader(
       : rawFilePath;
 
   const fileVersion = updateFileInCache(filePath, contents, instance);
-  const referencedProject = getProjectReferenceForFile(filePath, instance);
+  const referencedProject = getAndCacheProjectReference(filePath, instance);
   if (referencedProject) {
     if (referencedProject.commandLine.options.outFile) {
       throw new Error(
@@ -81,7 +81,11 @@ function successLoader(
       );
     }
 
-    const jsFileName = getOutputJavaScriptFileName(filePath, referencedProject);
+    const jsFileName = getAndCacheOutputJSFileName(
+      filePath,
+      referencedProject,
+      instance
+    );
 
     if (!instance.compiler.sys.fileExists(jsFileName)) {
       throw new Error(
@@ -383,14 +387,18 @@ function getEmit(
     fileDependencies === undefined
       ? []
       : fileDependencies.map(({ resolvedFileName, originalFileName }) => {
-          const projectReference = getProjectReferenceForFile(
+          const projectReference = getAndCacheProjectReference(
             resolvedFileName,
             instance
           );
           // In the case of dependencies that are part of a project reference,
           // the real dependency that webpack should watch is the JS output file.
           return projectReference
-            ? getOutputJavaScriptFileName(resolvedFileName, projectReference)
+            ? getAndCacheOutputJSFileName(
+                resolvedFileName,
+                projectReference,
+                instance
+              )
             : originalFileName;
         });
 

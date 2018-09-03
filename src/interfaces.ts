@@ -313,6 +313,10 @@ export interface LoaderOptions {
 export interface TSFile {
   text?: string;
   version: number;
+  projectReference?: {
+    project: typescript.ResolvedProjectReference;
+    outputFileName?: string;
+  };
 }
 
 /** where key is filepath */
