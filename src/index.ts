@@ -93,6 +93,9 @@ function successLoader(
       );
     }
 
+    loader.clearDependencies();
+    loader.addDependency(jsFileName);
+
     validateSourceMapOncePerProject(
       instance,
       loader,
@@ -163,7 +166,7 @@ function makeSourceMapAndFinish(
   );
 
   // _module.meta is not available inside happypack
-  if (!options.happyPackMode) {
+  if (!options.happyPackMode && loader._module.buildMeta) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
@@ -376,7 +379,16 @@ function getEmit(
   const additionalDependencies =
     fileDependencies === undefined
       ? []
-      : fileDependencies.map(module => module.originalFileName);
+      : fileDependencies.map(({ resolvedFileName, originalFileName }) => {
+          const projectReference = getProjectReferenceForFile(
+            resolvedFileName,
+            instance
+          );
+          return projectReference
+            ? getOutputJavaScriptFileName(resolvedFileName, projectReference)
+            : originalFileName;
+        });
+
   if (additionalDependencies) {
     additionalDependencies.forEach(addDependency);
   }
