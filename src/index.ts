@@ -93,6 +93,9 @@ function successLoader(
       );
     }
 
+    // Since the output JS file is being read from disk instead of using the
+    // input TS file, we need to tell the loader that the compilation doesn’t
+    // actually depend on the current file, but depends on the JS file instead.
     loader.clearDependencies();
     loader.addDependency(jsFileName);
 
@@ -384,6 +387,8 @@ function getEmit(
             resolvedFileName,
             instance
           );
+          // In the case of dependencies that are part of a project reference,
+          // the real dependency that webpack should watch is the JS output file.
           return projectReference
             ? getOutputJavaScriptFileName(resolvedFileName, projectReference)
             : originalFileName;
