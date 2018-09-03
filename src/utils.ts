@@ -278,7 +278,7 @@ export function getAndCacheProjectReference(
   }
 
   const projectReference = getProjectReferenceForFile(filePath, instance);
-  if (file && projectReference) {
+  if (file) {
     file.projectReference = { project: projectReference };
   }
 

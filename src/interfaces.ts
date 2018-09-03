@@ -314,7 +314,11 @@ export interface TSFile {
   text?: string;
   version: number;
   projectReference?: {
-    project: typescript.ResolvedProjectReference;
+    /**
+     * Undefined here means we’ve already checked and confirmed there is no
+     * project reference for the file. Don’t bother checking again.
+     */
+    project?: typescript.ResolvedProjectReference;
     outputFileName?: string;
   };
 }
