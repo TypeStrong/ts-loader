@@ -545,19 +545,19 @@ function addCache(servicesHost: typescript.ModuleResolutionHost) {
 }
 
 function createCache<TOut>(func: (arg: string) => TOut) {
-  let cache: Record<string, TOut | undefined> = {};
+  const cache = new Map<string, TOut>();
   return {
     clear: () => {
-      cache = {};
+      cache.clear();
     },
     cached: (arg: string) => {
-      let res = cache[arg];
+      let res = cache.get(arg);
       if (res !== undefined) {
         return res;
       }
 
       res = func(arg);
-      cache[arg] = res;
+      cache.set(arg, res);
       return res;
     }
   };
