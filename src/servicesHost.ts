@@ -525,23 +525,27 @@ function populateDependencyGraphs(
 
 function addCache(servicesHost: typescript.ModuleResolutionHost) {
   const clearCacheFuncs: Action[] = [];
-  if (servicesHost.fileExists !== undefined) {
-    const cache = createCache(servicesHost.fileExists);
-    servicesHost.fileExists = cache.cached;
-    clearCacheFuncs.push(cache.clear);
-  }
 
-  if (servicesHost.directoryExists !== undefined) {
-    const cache = createCache(servicesHost.directoryExists);
-    servicesHost.directoryExists = cache.cached;
-    clearCacheFuncs.push(cache.clear);
-  }
+  type CachedProperty = Extract<
+    keyof typescript.ModuleResolutionHost,
+    'fileExists' | 'directoryExists' | 'realpath'
+  >;
+  const cachedProperties: CachedProperty[] = [
+    'fileExists',
+    'directoryExists',
+    'realpath'
+  ];
 
-  if (servicesHost.realpath !== undefined) {
-    const cache = createCache(servicesHost.realpath);
-    servicesHost.realpath = cache.cached;
-    clearCacheFuncs.push(cache.clear);
-  }
+  cachedProperties.forEach((propertyToCache: CachedProperty) => {
+    const origFn = servicesHost[propertyToCache];
+    if (origFn !== undefined) {
+      const cache = createCache<ReturnType<typeof origFn>>(origFn);
+      servicesHost[
+        propertyToCache
+      ] = cache.cached as typescript.ModuleResolutionHost[CachedProperty];
+      clearCacheFuncs.push(cache.clear);
+    }
+  });
 
   return () => clearCacheFuncs.forEach(clear => clear());
 }
