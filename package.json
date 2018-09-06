@@ -52,7 +52,7 @@
   },
   "devDependencies": {
     "@types/micromatch": "^3.1.0",
-    "@types/node": "^9.6.2",
+    "@types/node": "^10.0.3",
     "@types/semver": "^5.4.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
