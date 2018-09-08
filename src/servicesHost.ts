@@ -523,46 +523,46 @@ function populateDependencyGraphs(
   });
 }
 
+type CacheableFunction = Extract<
+  keyof typescript.ModuleResolutionHost,
+  'fileExists' | 'directoryExists' | 'realpath'
+>;
+const cacheableFunctions: CacheableFunction[] = [
+  'fileExists',
+  'directoryExists',
+  'realpath'
+];
+
 function addCache(servicesHost: typescript.ModuleResolutionHost) {
-  const clearCacheFuncs: Action[] = [];
+  const clearCacheFunctions: Action[] = [];
 
-  type CachedProperty = Extract<
-    keyof typescript.ModuleResolutionHost,
-    'fileExists' | 'directoryExists' | 'realpath'
-  >;
-  const cachedProperties: CachedProperty[] = [
-    'fileExists',
-    'directoryExists',
-    'realpath'
-  ];
-
-  cachedProperties.forEach((propertyToCache: CachedProperty) => {
-    const origFn = servicesHost[propertyToCache];
-    if (origFn !== undefined) {
-      const cache = createCache<ReturnType<typeof origFn>>(origFn);
+  cacheableFunctions.forEach((functionToCache: CacheableFunction) => {
+    const originalFunction = servicesHost[functionToCache];
+    if (originalFunction !== undefined) {
+      const cache = createCache<ReturnType<typeof originalFunction>>(originalFunction);
       servicesHost[
-        propertyToCache
-      ] = cache.cached as typescript.ModuleResolutionHost[CachedProperty];
-      clearCacheFuncs.push(cache.clear);
+        functionToCache
+      ] = cache.getCached as typescript.ModuleResolutionHost[CacheableFunction];
+      clearCacheFunctions.push(cache.clear);
     }
   });
 
-  return () => clearCacheFuncs.forEach(clear => clear());
+  return () => clearCacheFunctions.forEach(clear => clear());
 }
 
-function createCache<TOut>(func: (arg: string) => TOut) {
+function createCache<TOut>(originalFunction: (arg: string) => TOut) {
   const cache = new Map<string, TOut>();
   return {
     clear: () => {
       cache.clear();
     },
-    cached: (arg: string) => {
+    getCached: (arg: string) => {
       let res = cache.get(arg);
       if (res !== undefined) {
         return res;
       }
 
-      res = func(arg);
+      res = originalFunction(arg);
       cache.set(arg, res);
       return res;
     }
