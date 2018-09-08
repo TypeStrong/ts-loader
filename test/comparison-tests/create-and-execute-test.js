@@ -58,10 +58,20 @@ if (fs.statSync(testPath).isDirectory() &&
             testToRun === 'appendSuffixToWatch') { return; }
 
         // @ts-ignore
-        it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
+        it('should work with transpileOnly', createTest(testToRun, testPath, { transpileOnly: true }));
+
+        // The future....
+        // it('should work with experimentalFileCaching', createTest(testToRun, testPath, { experimentalFileCaching: true }));
     });
 }
 
+
+/**
+ * Create a Jasmine test
+ * @param {string} test 
+ * @param {string} testPath 
+ * @param {any} options 
+ */
 function createTest(test, testPath, options) {
     return function (done) {
         this.timeout(60000); // sometimes it just takes awhile
@@ -82,7 +92,7 @@ function createTest(test, testPath, options) {
 
         // execute webpack
         testState.watcher = webpack(
-            createWebpackConfig(paths, options.transpile)
+            createWebpackConfig(paths, options)
         ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, outputs, options, test));
     };
 }
@@ -97,7 +107,7 @@ function createTestState() {
 }
 
 function createPaths(stagingPath, test, options) {
-    var testStagingPath = path.join(stagingPath, test + (options.transpile ? '.transpile' : ''));
+    var testStagingPath = path.join(stagingPath, test + (options.transpileOnly ? '.transpile' : ''));
     return {
         testStagingPath: testStagingPath,
         actualOutput: path.join(testStagingPath, 'actualOutput'),
@@ -121,7 +131,7 @@ function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
 
         outputs.regularSavedOutput = savedOutputs[test].regular = savedOutputs[test].regular || {};
         outputs.transpiledSavedOutput = savedOutputs[test].transpiled = savedOutputs[test].transpiled || {};
-        outputs.currentSavedOutput = options.transpile ? outputs.transpiledSavedOutput : outputs.regularSavedOutput;
+        outputs.currentSavedOutput = options.transpileOnly ? outputs.transpiledSavedOutput : outputs.regularSavedOutput;
 
         mkdirp.sync(paths.originalExpectedOutput);
     } else {
@@ -129,18 +139,16 @@ function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
     }
 }
 
-function createWebpackConfig(paths, transpile) {
+function createWebpackConfig(paths, optionsOriginal) {
     var config = require(path.join(paths.testStagingPath, 'webpack.config'));
 
-    var options = {
+    var options = Object.assign({
         // colors: false,
         silent: true,
         compilerOptions: {
             newLine: 'LF'
         }
-    }
-
-    if (transpile) { options.transpileOnly = true; }
+    }, optionsOriginal);
 
     var tsLoaderPath = require('path').join(__dirname, "../../index.js");
 
@@ -203,7 +211,7 @@ function saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch) {
             var patchedFileName = patch + '/' + file;
             outputs.currentSavedOutput[patchedFileName] = fs.readFileSync(path.join(paths.webpackOutput, file), 'utf-8');
 
-            if (options.transpile) {
+            if (options.transpileOnly) {
                 if (outputs.regularSavedOutput[patchedFileName] !== outputs.transpiledSavedOutput[patchedFileName]) {
                     var extension = path.extname(file);
                     fs.renameSync(
@@ -233,7 +241,7 @@ function handleErrors(err, paths, outputs, patch, options) {
             var patchedErrFileName = patch + '/' + errFileName;
             outputs.currentSavedOutput[patchedErrFileName] = errString;
 
-            if (options.transpile) {
+            if (options.transpileOnly) {
                 if (outputs.regularSavedOutput[patchedErrFileName] !== outputs.transpiledSavedOutput[patchedErrFileName]) {
                     fs.writeFileSync(path.join(paths.originalExpectedOutput, 'err.transpiled.txt'), errString);
                 }
@@ -271,7 +279,7 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
             var patchedStatsFileName = patch + '/' + statsFileName;
             outputs.currentSavedOutput[patchedStatsFileName] = statsString;
 
-            if (options.transpile) {
+            if (options.transpileOnly) {
                 if (outputs.regularSavedOutput[patchedStatsFileName] !== outputs.transpiledSavedOutput[patchedStatsFileName]) {
                     fs.writeFileSync(path.join(paths.originalExpectedOutput, 'output.transpiled.txt'), statsString);
                 }
@@ -288,7 +296,7 @@ function compareFiles(paths, options, test, patch) {
         // massage any .transpiled. files
         glob.sync('**/*', { cwd: paths.expectedOutput, nodir: true }).forEach(function (file) {
             if (/\.transpiled/.test(file)) {
-                if (options.transpile) { // rename if we're in transpile mode
+                if (options.transpileOnly) { // rename if we're in transpile mode
                     var extension = path.extname(file);
                     fs.renameSync(
                         path.join(paths.expectedOutput, file),
