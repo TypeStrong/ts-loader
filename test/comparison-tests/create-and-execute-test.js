@@ -4,6 +4,7 @@ var path = require('path');
 var mkdirp = require('mkdirp');
 var rimraf = require('rimraf');
 var webpack = require('webpack');
+// @ts-ignore
 var webpackVersion = require('webpack/package.json').version;
 var regexEscape = require('escape-string-regexp');
 var typescript = require('typescript');
@@ -44,16 +45,18 @@ if (fs.statSync(testPath).isDirectory() &&
     testToRun !== 'testLib' &&
     !testIsIgnored) {
 
+    // @ts-ignore
     describe(testToRun, function () {
+        // @ts-ignore
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
         if (testToRun === 'declarationOutput' ||
-            testToRun === 'declarationOutputWithMaps' ||
             testToRun === 'importsWatch' ||
             testToRun === 'declarationWatch' ||
             testToRun === 'issue71' ||
             testToRun === 'appendSuffixToWatch') { return; }
 
+        // @ts-ignore
         it('should work with transpile', createTest(testToRun, testPath, { transpile: true }));
     });
 }
@@ -210,7 +213,7 @@ function saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch) {
             }
         });
 
-        fs.copySync(paths.webpackOutput, paths.originalExpectedOutput, { clobber: true });
+        fs.copySync(paths.webpackOutput, paths.originalExpectedOutput, { overwrite: true });
     }
 }
 
@@ -323,7 +326,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
 
         // can get inconsistent results if copying right away
         setTimeout(function () {
-            fs.copySync(patchPath, testStagingPath, { clobber: true });
+            fs.copySync(patchPath, testStagingPath, { overwrite: true });
         }, 1000);
     }
     else {
