@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.0
+
+* [feat: Fixed issue with incorrect output path for declaration files](https://github.com/TypeStrong/ts-loader/pull/822) - thanks @JonWallsten! **BREAKING CHANGE**
+
 ## 4.5.0
 
 * [feat: Added support for TypeScript declaration map](https://github.com/TypeStrong/ts-loader/pull/821) - thanks @JonWallsten!
