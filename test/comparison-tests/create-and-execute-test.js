@@ -51,6 +51,7 @@ if (fs.statSync(testPath).isDirectory() &&
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
         if (testToRun === 'declarationOutput' ||
+            testToRun === 'declarationOutputWithMaps' ||
             testToRun === 'importsWatch' ||
             testToRun === 'declarationWatch' ||
             testToRun === 'issue71' ||
