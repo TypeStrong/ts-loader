@@ -157,7 +157,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'getCustomTransformers',
   'reportFiles',
   'experimentalWatchApi',
-  'allowTsInNodeModules'
+  'allowTsInNodeModules',
+  'experimentalFileCaching'
 ];
 
 /**
@@ -210,7 +211,8 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       reportFiles: [],
       // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
       experimentalWatchApi: false,
-      allowTsInNodeModules: false
+      allowTsInNodeModules: false,
+      experimentalFileCaching: false
     } as Partial<LoaderOptions>,
     loaderOptions
   );
