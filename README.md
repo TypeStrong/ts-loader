@@ -546,26 +546,11 @@ Note that changes in the extending file while not be respected by `ts-loader`. I
 ### experimentalFileCaching _(boolean) (default=false)_
 
 By default whenever the TypeScript compiler needs to check that a file/directory exists or resolve symlinks it makes syscalls.
-It does not cache the result of this operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
+It does not cache the result of these operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
 In some cases it may produce performance degradation.
 
 This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler.
 Note that caches are cleared between compilations.
-
-### `LoaderOptionsPlugin`
-
-[There's a known "gotcha"](https://github.com/TypeStrong/ts-loader/issues/283) if you are using webpack 2 with the `LoaderOptionsPlugin`. If you are faced with the `Cannot read property 'unsafeCache' of undefined` error then you probably need to supply a `resolve` object as below: (Thanks @jeffijoe!)
-
-```js
-new LoaderOptionsPlugin({
-  debug: false,
-  options: {
-    resolve: {
-      extensions: [".ts", ".tsx", ".js"]
-    }
-  }
-});
-```
 
 ### Usage with Webpack watch
 
