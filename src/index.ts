@@ -336,13 +336,11 @@ function getEmit(
  * Transpile file
  */
 function getTranspilationEmit(
-  filePath: string,
+  fileName: string,
   contents: string,
   instance: TSInstance,
   loader: Webpack
 ) {
-  const fileName = path.basename(filePath);
-
   const {
     outputText,
     sourceMapText,
