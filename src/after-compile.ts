@@ -266,7 +266,7 @@ function provideDeclarationFilesToWebpack(
 
     declarationFiles.forEach(declarationFile => {
       const assetPath = path.relative(
-        compilation.compiler.context,
+        compilation.compiler.outputPath,
         declarationFile.name
       );
       compilation.assets[assetPath] = {

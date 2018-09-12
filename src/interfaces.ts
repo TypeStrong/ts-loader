@@ -149,6 +149,7 @@ export interface WebpackCompilation {
 export interface WebpackCompiler {
   isChild(): boolean;
   context: string; // a guess
+  outputPath: string;
   watchFileSystem: WebpackNodeWatchFileSystem;
   /** key is filepath and value is Date as a number */
   fileTimestamps: Map<string, number>;
@@ -308,6 +309,7 @@ export interface LoaderOptions {
     | (() => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
+  experimentalFileCaching: boolean;
 }
 
 export interface TSFile {
