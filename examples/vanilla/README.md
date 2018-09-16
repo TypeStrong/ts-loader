@@ -4,7 +4,7 @@
 yarn install
 
 # Run in watch mode
-yarn start
+yarn watch
 
 # Run in production mode
 yarn build 
