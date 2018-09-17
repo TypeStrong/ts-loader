@@ -72,12 +72,14 @@ function successLoader(
   const fileVersion = updateFileInCache(filePath, contents, instance);
   const referencedProject = getAndCacheProjectReference(filePath, instance);
   if (referencedProject) {
+    const [relativeProjectConfigPath, relativeFilePath] = [
+      path.relative(loader.rootContext, referencedProject.sourceFile.fileName),
+      path.relative(loader.rootContext, filePath)
+    ];
     if (referencedProject.commandLine.options.outFile) {
       throw new Error(
-        `The referenced project at ${
-          referencedProject.sourceFile.fileName
-        } is using the ` +
-          `outFile' option, which is not supported with ts-loader.`
+        `The referenced project at ${relativeProjectConfigPath} is using ` +
+          `the outFile' option, which is not supported with ts-loader.`
       );
     }
 
@@ -87,13 +89,15 @@ function successLoader(
       instance
     );
 
+    const relativeJSFileName = path.relative(loader.rootContext, jsFileName);
     if (!instance.compiler.sys.fileExists(jsFileName)) {
       throw new Error(
-        `Could not find output JavaScript file for input ${filePath} ` +
-          `(looked at ${jsFileName}).\nThe input file is part of a project ` +
-          `reference located at ${referencedProject.sourceFile.fileName}, ` +
-          'so ts-loader is looking for the project’s pre-built output on ' +
-          'disk. Try running `tsc --build` to build project references.'
+        `Could not find output JavaScript file for input ` +
+          `${relativeFilePath} (looked at ${relativeJSFileName}).\n` +
+          `The input file is part of a project reference located at ` +
+          `${relativeProjectConfigPath}, so ts-loader is looking for the ` +
+          'project’s pre-built output on disk. Try running `tsc --build` ' +
+          'to build project references.'
       );
     }
 

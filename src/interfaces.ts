@@ -39,6 +39,11 @@ export interface Webpack {
    */
   context: string;
   /**
+   * The root directory of the Webpack project.
+   * Starting with webpack 4, the formerly `this.options.context` is provided as `this.rootContext`.
+   */
+  rootContext: string;
+  /**
    * The resolved request string.
    * eg: "/abc/loader1.js?xyz!/abc/node_modules/loader2/index.js!/abc/resource.js?rrr"
    */

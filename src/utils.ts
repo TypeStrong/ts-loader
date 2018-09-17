@@ -318,11 +318,15 @@ export function validateSourceMapOncePerProject(
     projectsMissingSourceMaps.add(project.sourceFile.fileName);
     const mapFileName = jsFileName + '.map';
     if (!instance.compiler.sys.fileExists(mapFileName)) {
+      const [relativeJSPath, relativeProjectConfigPath] = [
+        path.relative(loader.rootContext, jsFileName),
+        path.relative(loader.rootContext, project.sourceFile.fileName)
+      ];
       loader.emitWarning(
         new Error(
           'Could not find source map file for referenced project output ' +
-            `${jsFileName}. Ensure the 'sourceMap' compiler option is enabled ` +
-            `in ${project.sourceFile.fileName} to ensure Webpack ` +
+            `${relativeJSPath}. Ensure the 'sourceMap' compiler option ` +
+            `is enabled in ${relativeProjectConfigPath} to ensure Webpack ` +
             'can map project references to the appropriate source files.'
         )
       );
