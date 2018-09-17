@@ -294,7 +294,11 @@ function getProjectReferenceForFile(filePath: string, instance: TSInstance) {
         .getProjectReferences()!
         .find(
           ref =>
-            (ref && ref.commandLine.fileNames.indexOf(filePath) > -1) || false
+            (ref &&
+              ref.commandLine.fileNames.some(
+                file => path.normalize(file) === filePath
+              )) ||
+            false
         )
     );
   }
