@@ -259,7 +259,7 @@ export function supportsProjectReferences(instance: TSInstance) {
 export function isUsingProjectReferences(instance: TSInstance) {
   if (supportsProjectReferences(instance)) {
     const program = ensureProgram(instance);
-    return program && program.getProjectReferences();
+    return Boolean(program && program.getProjectReferences());
   }
   return false;
 }
@@ -285,21 +285,31 @@ export function getAndCacheProjectReference(
   return projectReference;
 }
 
+function getResolvedProjectReferences(
+  program: typescript.Program
+): typescript.ResolvedProjectReference[] | undefined {
+  const getProjectReferences =
+    (program as any).getResolvedProjectReferences ||
+    program.getProjectReferences;
+  if (getProjectReferences) {
+    return getProjectReferences();
+  }
+  return;
+}
+
 function getProjectReferenceForFile(filePath: string, instance: TSInstance) {
   if (isUsingProjectReferences(instance)) {
     const program = ensureProgram(instance);
     return (
       program &&
-      program
-        .getProjectReferences()!
-        .find(
-          ref =>
-            (ref &&
-              ref.commandLine.fileNames.some(
-                file => path.normalize(file) === filePath
-              )) ||
-            false
-        )
+      getResolvedProjectReferences(program)!.find(
+        ref =>
+          (ref &&
+            ref.commandLine.fileNames.some(
+              file => path.normalize(file) === filePath
+            )) ||
+          false
+      )
     );
   }
 
