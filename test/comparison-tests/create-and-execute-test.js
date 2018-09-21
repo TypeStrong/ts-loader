@@ -51,8 +51,10 @@ if (fs.statSync(testPath).isDirectory() &&
 
     // @ts-ignore
     describe(`${testToRun}${extraOption ? ` - ${extraOption}: true` : ''}`, function () {
-        // @ts-ignore
-        it('should have the correct output', createTest(testToRun, testPath, {}));
+        if (testToRun !== 'projectReferencesOutDir' || require('os').platform() !== 'win32') {
+            // @ts-ignore
+            it('should have the correct output', createTest(testToRun, testPath, {}));
+        }
 
         if (testToRun === 'declarationOutput' ||
             testToRun === 'declarationOutputWithMaps' ||
