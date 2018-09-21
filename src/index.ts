@@ -245,7 +245,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'experimentalWatchApi',
   'allowTsInNodeModules',
-  'experimentalFileCaching'
+  'experimentalFileCaching',
+  'projectReferences'
 ];
 
 /**
