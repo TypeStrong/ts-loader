@@ -257,7 +257,10 @@ export function supportsProjectReferences(instance: TSInstance) {
 }
 
 export function isUsingProjectReferences(instance: TSInstance) {
-  if (supportsProjectReferences(instance)) {
+  if (
+    instance.loaderOptions.projectReferences &&
+    supportsProjectReferences(instance)
+  ) {
     const program = ensureProgram(instance);
     return Boolean(program && program.getProjectReferences());
   }

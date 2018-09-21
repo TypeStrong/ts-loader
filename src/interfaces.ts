@@ -315,6 +315,7 @@ export interface LoaderOptions {
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
   experimentalFileCaching: boolean;
+  projectReferences: boolean;
 }
 
 export interface TSFile {
