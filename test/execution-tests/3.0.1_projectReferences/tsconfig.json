@@ -1,0 +1,8 @@
+{
+  "files": [
+    "./src/app.ts"
+  ],
+  "references": [
+    { "path": "./lib" }
+  ]
+}
