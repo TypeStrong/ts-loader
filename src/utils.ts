@@ -276,12 +276,12 @@ export function getAndCacheProjectReference(
   instance: TSInstance
 ) {
   const file = instance.files.get(filePath);
-  if (file && file.projectReference) {
+  if (file !== undefined && file.projectReference) {
     return file.projectReference.project;
   }
 
   const projectReference = getProjectReferenceForFile(filePath, instance);
-  if (file) {
+  if (file !== undefined) {
     file.projectReference = { project: projectReference };
   }
 

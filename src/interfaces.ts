@@ -18,9 +18,11 @@ export interface ErrorInfo {
   context: string;
 }
 
-export interface AsyncCallback {
-  (err: Error | WebpackError | null, source?: string, map?: string): void;
-}
+export type AsyncCallback = (
+  err: Error | WebpackError | null,
+  source?: string,
+  map?: string
+) => void;
 
 /**
  * Details here: https://webpack.github.io/docs/loaders.html#loader-context
@@ -206,9 +208,9 @@ export interface Resolve {
    */
   extensions?: string[];
   /** Check these fields in the package.json for suitable files. */
-  packageMains?: (string | string[])[];
+  packageMains?: Array<string | string[]>;
   /** Check this field in the package.json for an object. Key-value-pairs are threaded as aliasing according to this spec */
-  packageAlias?: (string | string[])[];
+  packageAlias?: Array<string | string[]>;
   /**
    * Enable aggressive but unsafe caching for the resolving of a part of your files.
    * Changes to cached paths may cause failure (in rare cases). An array of RegExps, only a RegExp or true (all files) is expected.
@@ -217,9 +219,11 @@ export interface Resolve {
   unsafeCache?: RegExp | RegExp[] | boolean;
 }
 
-export interface ResolveSync {
-  (context: string | undefined, path: string, moduleName: string): string;
-}
+export type ResolveSync = (
+  context: string | undefined,
+  path: string,
+  moduleName: string
+) => string;
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<

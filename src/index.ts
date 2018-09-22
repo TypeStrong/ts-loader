@@ -1,27 +1,27 @@
-import * as path from 'path';
 import * as loaderUtils from 'loader-utils';
+import * as path from 'path';
 import * as typescript from 'typescript';
 
-import { getTypeScriptInstance, getEmitOutput } from './instances';
-import {
-  appendSuffixesIfMatch,
-  arrify,
-  formatErrors,
-  validateSourceMapOncePerProject,
-  getAndCacheProjectReference,
-  getAndCacheOutputJSFileName
-} from './utils';
 import * as constants from './constants';
+import { getEmitOutput, getTypeScriptInstance } from './instances';
 import {
   AsyncCallback,
   Compiler,
   LoaderOptions,
   LoaderOptionsCache,
+  LogLevel,
   TSFile,
   TSInstance,
-  Webpack,
-  LogLevel
+  Webpack
 } from './interfaces';
+import {
+  appendSuffixesIfMatch,
+  arrify,
+  formatErrors,
+  getAndCacheOutputJSFileName,
+  getAndCacheProjectReference,
+  validateSourceMapOncePerProject
+} from './utils';
 
 const webpackInstances: Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
@@ -30,6 +30,7 @@ const loaderOptionsCache: LoaderOptionsCache = {};
  * The entry point for ts-loader
  */
 function loader(this: Webpack, contents: string) {
+  // tslint:disable-next-line:no-unused-expression
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
@@ -71,7 +72,7 @@ function successLoader(
 
   const fileVersion = updateFileInCache(filePath, contents, instance);
   const referencedProject = getAndCacheProjectReference(filePath, instance);
-  if (referencedProject) {
+  if (referencedProject !== undefined) {
     const [relativeProjectConfigPath, relativeFilePath] = [
       path.relative(loader.rootContext, referencedProject.sourceFile.fileName),
       path.relative(loader.rootContext, filePath)
@@ -400,7 +401,7 @@ function getEmit(
           );
           // In the case of dependencies that are part of a project reference,
           // the real dependency that webpack should watch is the JS output file.
-          return projectReference
+          return projectReference !== undefined
             ? getAndCacheOutputJSFileName(
                 resolvedFileName,
                 projectReference,

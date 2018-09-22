@@ -155,13 +155,14 @@ function successfulTypeScriptInstance(
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
     // we do need to check for any issues with TS options though
-    const program = configParseResult.projectReferences
-      ? compiler!.createProgram({
-          rootNames: configParseResult.fileNames,
-          options: configParseResult.options,
-          projectReferences: configParseResult.projectReferences
-        })
-      : compiler!.createProgram([], compilerOptions);
+    const program =
+      configParseResult.projectReferences !== undefined
+        ? compiler!.createProgram({
+            rootNames: configParseResult.fileNames,
+            options: configParseResult.options,
+            projectReferences: configParseResult.projectReferences
+          })
+        : compiler!.createProgram([], compilerOptions);
 
     // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!loaderOptions.happyPackMode) {
@@ -307,7 +308,7 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
     const sourceFile = program.getSourceFile(filePath);
     // The source file will be undefined if it’s part of an unbuilt project reference
-    if (sourceFile || !isUsingProjectReferences(instance)) {
+    if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
       program.emit(
         sourceFile,
         writeFile,

@@ -1,20 +1,20 @@
 import * as path from 'path';
 
+import * as constants from './constants';
+import { getEmitOutput } from './instances';
+import {
+  TSFile,
+  TSFiles,
+  TSInstance,
+  WebpackCompilation,
+  WebpackError,
+  WebpackModule
+} from './interfaces';
 import {
   collectAllDependants,
   formatErrors,
   isUsingProjectReferences
 } from './utils';
-import * as constants from './constants';
-import {
-  TSFiles,
-  TSInstance,
-  WebpackCompilation,
-  WebpackError,
-  WebpackModule,
-  TSFile
-} from './interfaces';
-import { getEmitOutput } from './instances';
 
 export function makeAfterCompile(
   instance: TSInstance,
@@ -177,7 +177,7 @@ function provideErrorsToWebpack(
     otherFiles
   } = instance;
 
-  let filePathRegex = !!compilerOptions.checkJs
+  const filePathRegex = !!compilerOptions.checkJs
     ? constants.dtsTsTsxJsJsxRegex
     : constants.dtsTsTsxRegex;
 
