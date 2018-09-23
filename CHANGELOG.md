@@ -4,6 +4,10 @@
 
 * [feat: Initial support for project references - `projectReferences`](https://github.com/TypeStrong/ts-loader/pull/817) - thanks @andrewbranch!
 
+## 5.1.1
+
+* [fix(getTranspilationEmit): pass the raw path to transpileModule](https://github.com/TypeStrong/ts-loader/pull/835) - thanks @Brooooooklyn 
+
 ## 5.1.0
 
 * [feat: Added cache for some FS operations while compiling - `experimentalFileCaching`](https://github.com/TypeStrong/ts-loader/pull/829) - thanks @timocov!
