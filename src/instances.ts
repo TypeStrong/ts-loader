@@ -1,32 +1,32 @@
-import * as typescript from 'typescript';
-import * as path from 'path';
-import * as fs from 'fs';
 import chalk, { Chalk } from 'chalk';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as typescript from 'typescript';
 
 import { makeAfterCompile } from './after-compile';
+import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
-import { EOL, dtsDtsxOrDtsDtsxMapRegex } from './constants';
-import { getCompilerOptions, getCompiler } from './compilerSetup';
-import {
-  makeError,
-  formatErrors,
-  ensureProgram,
-  isUsingProjectReferences
-} from './utils';
-import * as logger from './logger';
-import { makeServicesHost, makeWatchHost } from './servicesHost';
-import { makeWatchRun } from './watch-run';
+import { dtsDtsxOrDtsDtsxMapRegex, EOL } from './constants';
 import {
   LoaderOptions,
+  TSFile,
   TSFiles,
   TSInstance,
   TSInstances,
   Webpack,
-  WebpackError,
-  TSFile
+  WebpackError
 } from './interfaces';
+import * as logger from './logger';
+import { makeServicesHost, makeWatchHost } from './servicesHost';
+import {
+  ensureProgram,
+  formatErrors,
+  isUsingProjectReferences,
+  makeError
+} from './utils';
+import { makeWatchRun } from './watch-run';
 
-const instances = <TSInstances>{};
+const instances = {} as TSInstances;
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -179,7 +179,7 @@ function successfulTypeScriptInstance(
       loader._module.errors.push(...errors);
     }
 
-    const instance: TSInstance = {
+    instances[loaderOptions.instance] = {
       compiler,
       compilerOptions,
       loaderOptions,
@@ -192,9 +192,7 @@ function successfulTypeScriptInstance(
       colors
     };
 
-    instances[loaderOptions.instance] = instance;
-
-    return { instance };
+    return { instance: instances[loaderOptions.instance] };
   }
 
   // Load initial files (core lib files, any files specified in tsconfig.json)
