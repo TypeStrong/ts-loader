@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.2.0
+
+* [feat: Initial support for project references - `projectReferences`](https://github.com/TypeStrong/ts-loader/pull/817) - thanks @andrewbranch!
+
 ## 5.1.0
 
 * [feat: Added cache for some FS operations while compiling - `experimentalFileCaching`](https://github.com/TypeStrong/ts-loader/pull/829) - thanks @timocov!
