@@ -154,7 +154,7 @@ export function appendSuffixesIfMatch(
 ): string {
   let amendedPath = filePath;
   for (const suffix in suffixDict) {
-    amendedPath = appendSuffixIfMatch(suffixDict[suffix], filePath, suffix);
+    amendedPath = appendSuffixIfMatch(suffixDict[suffix], amendedPath, suffix);
   }
   return amendedPath;
 }
