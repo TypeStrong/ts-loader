@@ -1,15 +1,20 @@
 import * as path from 'path';
-import { collectAllDependants, formatErrors } from './utils';
+
 import * as constants from './constants';
+import { getEmitOutput } from './instances';
 import {
+  TSFile,
   TSFiles,
   TSInstance,
   WebpackCompilation,
   WebpackError,
-  WebpackModule,
-  TSFile
+  WebpackModule
 } from './interfaces';
-import { getEmitOutput } from './instances';
+import {
+  collectAllDependants,
+  formatErrors,
+  isUsingProjectReferences
+} from './utils';
 
 export function makeAfterCompile(
   instance: TSInstance,
@@ -60,6 +65,7 @@ export function makeAfterCompile(
 
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = null;
+    instance.projectsMissingSourceMaps = new Set();
 
     callback();
   };
@@ -171,7 +177,7 @@ function provideErrorsToWebpack(
     otherFiles
   } = instance;
 
-  let filePathRegex = !!compilerOptions.checkJs
+  const filePathRegex = !!compilerOptions.checkJs
     ? constants.dtsTsTsxJsJsxRegex
     : constants.dtsTsTsxRegex;
 
@@ -181,6 +187,15 @@ function provideErrorsToWebpack(
     }
 
     const sourceFile = program && program.getSourceFile(filePath);
+
+    // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
+    // which will have already produced a more useful error than the one we would get by proceeding here.
+    // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
+    // get a useful error about which file was unexpectedly missing.
+    if (isUsingProjectReferences(instance) && !sourceFile) {
+      continue;
+    }
+
     const errors = program
       ? [
           ...program.getSyntacticDiagnostics(sourceFile),

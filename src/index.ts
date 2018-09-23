@@ -1,20 +1,27 @@
-import * as path from 'path';
 import * as loaderUtils from 'loader-utils';
+import * as path from 'path';
 import * as typescript from 'typescript';
 
-import { getTypeScriptInstance, getEmitOutput } from './instances';
-import { appendSuffixesIfMatch, arrify, formatErrors } from './utils';
 import * as constants from './constants';
+import { getEmitOutput, getTypeScriptInstance } from './instances';
 import {
   AsyncCallback,
   Compiler,
   LoaderOptions,
   LoaderOptionsCache,
+  LogLevel,
   TSFile,
   TSInstance,
-  Webpack,
-  LogLevel
+  Webpack
 } from './interfaces';
+import {
+  appendSuffixesIfMatch,
+  arrify,
+  formatErrors,
+  getAndCacheOutputJSFileName,
+  getAndCacheProjectReference,
+  validateSourceMapOncePerProject
+} from './utils';
 
 const webpackInstances: Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
@@ -23,6 +30,7 @@ const loaderOptionsCache: LoaderOptionsCache = {};
  * The entry point for ts-loader
  */
 function loader(this: Webpack, contents: string) {
+  // tslint:disable-next-line:no-unused-expression
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
@@ -43,13 +51,13 @@ function loader(this: Webpack, contents: string) {
 }
 
 function successLoader(
-  loader: Webpack,
+  loaderContext: Webpack,
   contents: string,
   callback: AsyncCallback,
   options: LoaderOptions,
   instance: TSInstance
 ) {
-  const rawFilePath = path.normalize(loader.resourcePath);
+  const rawFilePath = path.normalize(loaderContext.resourcePath);
 
   const filePath =
     options.appendTsSuffixTo.length > 0 || options.appendTsxSuffixTo.length > 0
@@ -63,11 +71,97 @@ function successLoader(
       : rawFilePath;
 
   const fileVersion = updateFileInCache(filePath, contents, instance);
+  const referencedProject = getAndCacheProjectReference(filePath, instance);
+  if (referencedProject !== undefined) {
+    const [relativeProjectConfigPath, relativeFilePath] = [
+      path.relative(
+        loaderContext.rootContext,
+        referencedProject.sourceFile.fileName
+      ),
+      path.relative(loaderContext.rootContext, filePath)
+    ];
+    if (referencedProject.commandLine.options.outFile) {
+      throw new Error(
+        `The referenced project at ${relativeProjectConfigPath} is using ` +
+          `the outFile' option, which is not supported with ts-loader.`
+      );
+    }
 
-  const { outputText, sourceMapText } = options.transpileOnly
-    ? getTranspilationEmit(filePath, contents, instance, loader)
-    : getEmit(rawFilePath, filePath, instance, loader);
+    const jsFileName = getAndCacheOutputJSFileName(
+      filePath,
+      referencedProject,
+      instance
+    );
 
+    const relativeJSFileName = path.relative(
+      loaderContext.rootContext,
+      jsFileName
+    );
+    if (!instance.compiler.sys.fileExists(jsFileName)) {
+      throw new Error(
+        `Could not find output JavaScript file for input ` +
+          `${relativeFilePath} (looked at ${relativeJSFileName}).\n` +
+          `The input file is part of a project reference located at ` +
+          `${relativeProjectConfigPath}, so ts-loader is looking for the ` +
+          'project’s pre-built output on disk. Try running `tsc --build` ' +
+          'to build project references.'
+      );
+    }
+
+    // Since the output JS file is being read from disk instead of using the
+    // input TS file, we need to tell the loader that the compilation doesn’t
+    // actually depend on the current file, but depends on the JS file instead.
+    loaderContext.clearDependencies();
+    loaderContext.addDependency(jsFileName);
+
+    validateSourceMapOncePerProject(
+      instance,
+      loaderContext,
+      jsFileName,
+      referencedProject
+    );
+
+    const mapFileName = jsFileName + '.map';
+    const outputText = instance.compiler.sys.readFile(jsFileName);
+    const sourceMapText = instance.compiler.sys.readFile(mapFileName);
+    makeSourceMapAndFinish(
+      sourceMapText,
+      outputText,
+      filePath,
+      contents,
+      loaderContext,
+      options,
+      fileVersion,
+      callback
+    );
+  } else {
+    const { outputText, sourceMapText } = options.transpileOnly
+      ? getTranspilationEmit(filePath, contents, instance, loaderContext)
+      : getEmit(rawFilePath, filePath, instance, loaderContext);
+
+    makeSourceMapAndFinish(
+      sourceMapText,
+      outputText,
+      filePath,
+      contents,
+      loaderContext,
+      options,
+      fileVersion,
+      callback
+    );
+  }
+}
+
+function makeSourceMapAndFinish(
+  sourceMapText: string | undefined,
+  outputText: string | undefined,
+  filePath: string,
+  contents: string,
+  loaderContext: Webpack,
+  options: LoaderOptions,
+  fileVersion: number,
+  callback: AsyncCallback
+) {
   if (outputText === null || outputText === undefined) {
     const additionalGuidance =
       !options.allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
@@ -77,7 +171,7 @@ function successLoader(
         : '';
 
     throw new Error(
-      `Typescript emitted no output for ${filePath}.${additionalGuidance}`
+      `TypeScript emitted no output for ${filePath}.${additionalGuidance}`
     );
   }
 
@@ -86,15 +180,15 @@ function successLoader(
     outputText,
     filePath,
     contents,
-    loader
+    loaderContext
   );
 
   // _module.meta is not available inside happypack
-  if (!options.happyPackMode) {
+  if (!options.happyPackMode && loaderContext._module.buildMeta) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
-    loader._module.buildMeta.tsLoaderFileVersion = fileVersion;
+    loaderContext._module.buildMeta.tsLoaderFileVersion = fileVersion;
   }
 
   callback(null, output, sourceMap);
@@ -104,15 +198,16 @@ function successLoader(
  * either retrieves loader options from the cache
  * or creates them, adds them to the cache and returns
  */
-function getLoaderOptions(loader: Webpack) {
+function getLoaderOptions(loaderContext: Webpack) {
   // differentiate the TypeScript instance based on the webpack instance
-  let webpackIndex = webpackInstances.indexOf(loader._compiler);
+  let webpackIndex = webpackInstances.indexOf(loaderContext._compiler);
   if (webpackIndex === -1) {
-    webpackIndex = webpackInstances.push(loader._compiler) - 1;
+    webpackIndex = webpackInstances.push(loaderContext._compiler) - 1;
   }
 
   const loaderOptions =
-    loaderUtils.getOptions<LoaderOptions>(loader) || ({} as LoaderOptions);
+    loaderUtils.getOptions<LoaderOptions>(loaderContext) ||
+    ({} as LoaderOptions);
 
   const instanceName =
     webpackIndex + '_' + (loaderOptions.instance || 'default');
@@ -158,7 +253,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'experimentalWatchApi',
   'allowTsInNodeModules',
-  'experimentalFileCaching'
+  'experimentalFileCaching',
+  'projectReferences'
 ];
 
 /**
@@ -168,6 +264,7 @@ const validLoaderOptions: ValidLoaderOptions[] = [
  */
 function validateLoaderOptions(loaderOptions: LoaderOptions) {
   const loaderOptionKeys = Object.keys(loaderOptions);
+  // tslint:disable-next-line:prefer-for-of
   for (let i = 0; i < loaderOptionKeys.length; i++) {
     const option = loaderOptionKeys[i];
     const isUnexpectedOption =
@@ -285,19 +382,19 @@ function getEmit(
   rawFilePath: string,
   filePath: string,
   instance: TSInstance,
-  loader: Webpack
+  loaderContext: Webpack
 ) {
   const outputFiles = getEmitOutput(instance, filePath);
 
-  loader.clearDependencies();
-  loader.addDependency(rawFilePath);
+  loaderContext.clearDependencies();
+  loaderContext.addDependency(rawFilePath);
 
   const allDefinitionFiles = [...instance.files.keys()].filter(defFilePath =>
     defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex)
   );
 
   // Make this file dependent on *all* definition files in the program
-  const addDependency = loader.addDependency.bind(loader);
+  const addDependency = loaderContext.addDependency.bind(loaderContext);
   allDefinitionFiles.forEach(addDependency);
 
   // Additionally make this file dependent on all imported files
@@ -305,12 +402,27 @@ function getEmit(
   const additionalDependencies =
     fileDependencies === undefined
       ? []
-      : fileDependencies.map(module => module.originalFileName);
+      : fileDependencies.map(({ resolvedFileName, originalFileName }) => {
+          const projectReference = getAndCacheProjectReference(
+            resolvedFileName,
+            instance
+          );
+          // In the case of dependencies that are part of a project reference,
+          // the real dependency that webpack should watch is the JS output file.
+          return projectReference !== undefined
+            ? getAndCacheOutputJSFileName(
+                resolvedFileName,
+                projectReference,
+                instance
+              )
+            : originalFileName;
+        });
+
   if (additionalDependencies) {
     additionalDependencies.forEach(addDependency);
   }
 
-  loader._module.buildMeta.tsLoaderDefinitionFileVersions = allDefinitionFiles
+  loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = allDefinitionFiles
     .concat(additionalDependencies)
     .map(
       defFilePath =>
@@ -320,12 +432,12 @@ function getEmit(
     );
 
   const outputFile = outputFiles
-    .filter(outputFile => outputFile.name.match(constants.jsJsx))
+    .filter(file => file.name.match(constants.jsJsx))
     .pop();
   const outputText = outputFile ? outputFile.text : undefined;
 
   const sourceMapFile = outputFiles
-    .filter(outputFile => outputFile.name.match(constants.jsJsxMap))
+    .filter(file => file.name.match(constants.jsJsxMap))
     .pop();
   const sourceMapText = sourceMapFile ? sourceMapFile.text : undefined;
 
@@ -339,7 +451,7 @@ function getTranspilationEmit(
   fileName: string,
   contents: string,
   instance: TSInstance,
-  loader: Webpack
+  loaderContext: Webpack
 ) {
   const {
     outputText,
@@ -359,11 +471,11 @@ function getTranspilationEmit(
       instance.loaderOptions,
       instance.colors,
       instance.compiler,
-      { module: loader._module },
-      loader.context
+      { module: loaderContext._module },
+      loaderContext.context
     );
 
-    loader._module.errors.push(...errors);
+    loaderContext._module.errors.push(...errors);
   }
 
   return { outputText, sourceMapText };
@@ -374,7 +486,7 @@ function makeSourceMap(
   outputText: string,
   filePath: string,
   contents: string,
-  loader: Webpack
+  loaderContext: Webpack
 ) {
   if (sourceMapText === undefined) {
     return { output: outputText, sourceMap: undefined };
@@ -383,7 +495,7 @@ function makeSourceMap(
   return {
     output: outputText.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, ''),
     sourceMap: Object.assign(JSON.parse(sourceMapText), {
-      sources: [loaderUtils.getRemainingRequest(loader)],
+      sources: [loaderUtils.getRemainingRequest(loaderContext)],
       file: filePath,
       sourcesContent: [contents]
     })
@@ -395,6 +507,8 @@ export = loader;
 /**
  * expose public types via declaration merging
  */
+// tslint:disable-next-line:no-namespace
 namespace loader {
+  // tslint:disable-next-line:no-empty-interface
   export interface Options extends LoaderOptions {}
 }

@@ -51,8 +51,10 @@ if (fs.statSync(testPath).isDirectory() &&
 
     // @ts-ignore
     describe(`${testToRun}${extraOption ? ` - ${extraOption}: true` : ''}`, function () {
-        // @ts-ignore
-        it('should have the correct output', createTest(testToRun, testPath, {}));
+        if (testToRun !== 'projectReferencesOutDir' || require('os').platform() !== 'win32') {
+            // @ts-ignore
+            it('should have the correct output', createTest(testToRun, testPath, {}));
+        }
 
         if (testToRun === 'declarationOutput' ||
             testToRun === 'declarationOutputWithMaps' ||
@@ -400,6 +402,10 @@ function getNormalisedFileContent(file, location) {
                 // Ignore 'at Object.loader (dist\index.js:32:15)' style row number / column number differences
                 .replace(/(\(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(match, openingBracketPathAndColon, lineNumber, colon, columnNumber, closingBracket){
                     return openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
+                })
+                // Ignore path differences in TS error output
+                .replace(/(TS6305:[^']+')([^']+?)([^\\\/']+')([^']+')([^']+?)([^\\\/']+'.*)$/gm, function(match, messageStart, outputFileBaseDir, outputFileName, messageMiddle, sourceFileBaseDir, sourceFileName) {
+                    return messageStart + outputFileName + messageMiddle + sourceFileName;
                 })
             : normaliseString(originalContent))
             // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences

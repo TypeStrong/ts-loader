@@ -18,9 +18,11 @@ export interface ErrorInfo {
   context: string;
 }
 
-export interface AsyncCallback {
-  (err: Error | WebpackError | null, source?: string, map?: string): void;
-}
+export type AsyncCallback = (
+  err: Error | WebpackError | null,
+  source?: string,
+  map?: string
+) => void;
 
 /**
  * Details here: https://webpack.github.io/docs/loaders.html#loader-context
@@ -38,6 +40,11 @@ export interface Webpack {
    * The directory of the module. Can be used as context for resolving other stuff.
    */
   context: string;
+  /**
+   * The root directory of the Webpack project.
+   * Starting with webpack 4, the formerly `this.options.context` is provided as `this.rootContext`.
+   */
+  rootContext: string;
   /**
    * The resolved request string.
    * eg: "/abc/loader1.js?xyz!/abc/node_modules/loader2/index.js!/abc/resource.js?rrr"
@@ -94,11 +101,11 @@ export interface Webpack {
   /**
    * Emit a warning.
    */
-  emitWarning: (message: string) => void;
+  emitWarning: (message: Error) => void;
   /**
    * Emit an error.
    */
-  emitError: (message: string) => void;
+  emitError: (message: Error) => void;
   /**
    * Emit a file. This is webpack-specific
    */
@@ -201,9 +208,9 @@ export interface Resolve {
    */
   extensions?: string[];
   /** Check these fields in the package.json for suitable files. */
-  packageMains?: (string | string[])[];
+  packageMains?: Array<string | string[]>;
   /** Check this field in the package.json for an object. Key-value-pairs are threaded as aliasing according to this spec */
-  packageAlias?: (string | string[])[];
+  packageAlias?: Array<string | string[]>;
   /**
    * Enable aggressive but unsafe caching for the resolving of a part of your files.
    * Changes to cached paths may cause failure (in rare cases). An array of RegExps, only a RegExp or true (all files) is expected.
@@ -212,9 +219,11 @@ export interface Resolve {
   unsafeCache?: RegExp | RegExp[] | boolean;
 }
 
-export interface ResolveSync {
-  (context: string | undefined, path: string, moduleName: string): string;
-}
+export type ResolveSync = (
+  context: string | undefined,
+  path: string,
+  moduleName: string
+) => string;
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
@@ -240,6 +249,12 @@ export interface TSInstance {
    * contains the modified files - cleared each time after-compile is called
    */
   modifiedFiles?: TSFiles | null;
+  /**
+   * Paths to project references that are missing source maps.
+   * Cleared each time after-compile is called. Used to dedupe
+   * warnings about source maps during a single compilation.
+   */
+  projectsMissingSourceMaps?: Set<string>;
   languageService?: typescript.LanguageService | null;
   version?: number;
   dependencyGraph: DependencyGraph;
@@ -304,11 +319,20 @@ export interface LoaderOptions {
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
   experimentalFileCaching: boolean;
+  projectReferences: boolean;
 }
 
 export interface TSFile {
   text?: string;
   version: number;
+  projectReference?: {
+    /**
+     * Undefined here means we’ve already checked and confirmed there is no
+     * project reference for the file. Don’t bother checking again.
+     */
+    project?: typescript.ResolvedProjectReference;
+    outputFileName?: string;
+  };
 }
 
 /** where key is filepath */

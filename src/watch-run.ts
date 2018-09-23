@@ -1,8 +1,8 @@
 import * as path from 'path';
 
-import { readFile } from './utils';
 import * as constants from './constants';
-import { TSInstance, WebpackCompiler, TSFile } from './interfaces';
+import { TSFile, TSInstance, WebpackCompiler } from './interfaces';
+import { readFile } from './utils';
 
 /**
  * Make function which will manually update changed files
@@ -10,7 +10,7 @@ import { TSInstance, WebpackCompiler, TSFile } from './interfaces';
 export function makeWatchRun(instance: TSInstance) {
   // Called Before starting compilation after watch
   const lastTimes = new Map<string, number>();
-  let startTime = 0;
+  const startTime = 0;
 
   return (compiler: WebpackCompiler, callback: () => void) => {
     if (null === instance.modifiedFiles) {

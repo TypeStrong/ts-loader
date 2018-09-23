@@ -1,18 +1,20 @@
-import * as typescript from 'typescript';
-import * as path from 'path';
-import * as fs from 'fs';
 import { Chalk } from 'chalk';
+import * as fs from 'fs';
 import * as micromatch from 'micromatch';
+import * as path from 'path';
+import * as typescript from 'typescript';
 
 import constants = require('./constants');
 import {
   DependencyGraph,
+  ErrorInfo,
   LoaderOptions,
   ReverseDependencyGraph,
   Severity,
+  TSInstance,
+  Webpack,
   WebpackError,
-  WebpackModule,
-  ErrorInfo
+  WebpackModule
 } from './interfaces';
 
 /**
@@ -101,7 +103,7 @@ export function formatErrors(
               : { line: errorInfo.line, character: errorInfo.character }
           );
 
-          return <WebpackError>Object.assign(error, merge);
+          return Object.assign(error, merge) as WebpackError;
         })
     : [];
 }
@@ -133,27 +135,28 @@ export function makeError(
 
 export function appendSuffixIfMatch(
   patterns: RegExp[],
-  path: string,
+  filePath: string,
   suffix: string
 ): string {
   if (patterns.length > 0) {
-    for (let regexp of patterns) {
-      if (path.match(regexp)) {
-        return path + suffix;
+    for (const regexp of patterns) {
+      if (filePath.match(regexp)) {
+        return filePath + suffix;
       }
     }
   }
-  return path;
+  return filePath;
 }
 
 export function appendSuffixesIfMatch(
   suffixDict: { [suffix: string]: RegExp[] },
-  path: string
+  filePath: string
 ): string {
-  for (let suffix in suffixDict) {
-    path = appendSuffixIfMatch(suffixDict[suffix], path, suffix);
+  let amendedPath = filePath;
+  for (const suffix in suffixDict) {
+    amendedPath = appendSuffixIfMatch(suffixDict[suffix], amendedPath, suffix);
   }
-  return path;
+  return amendedPath;
 }
 
 export function unorderedRemoveItem<T>(array: T[], item: T): boolean {
@@ -205,7 +208,7 @@ export function collectAllDependencies(
   const result = {};
   result[filePath] = true;
   collected[filePath] = true;
-  let directDependencies = dependencyGraph[filePath];
+  const directDependencies = dependencyGraph[filePath];
   if (directDependencies !== undefined) {
     directDependencies.forEach(dependencyModule => {
       if (!collected[dependencyModule.originalFileName]) {
@@ -213,7 +216,7 @@ export function collectAllDependencies(
           dependencyGraph,
           dependencyModule.resolvedFileName,
           collected
-        ).forEach(filePath => (result[filePath] = true));
+        ).forEach(depFilePath => (result[depFilePath] = true));
       }
     });
   }
@@ -226,4 +229,171 @@ export function arrify<T>(val: T | T[]) {
   }
 
   return Array.isArray(val) ? val : [val];
+}
+
+export function ensureProgram(instance: TSInstance) {
+  if (instance && instance.watchHost) {
+    if (instance.hasUnaccountedModifiedFiles) {
+      if (instance.changedFilesList) {
+        instance.watchHost.updateRootFileNames();
+      }
+      if (instance.watchOfFilesAndCompilerOptions) {
+        instance.program = instance.watchOfFilesAndCompilerOptions
+          .getProgram()
+          .getProgram();
+      }
+      instance.hasUnaccountedModifiedFiles = false;
+    }
+    return instance.program;
+  }
+  if (instance.languageService) {
+    return instance.languageService.getProgram();
+  }
+  return instance.program;
+}
+
+export function supportsProjectReferences(instance: TSInstance) {
+  const program = ensureProgram(instance);
+  return program && !!program.getProjectReferences;
+}
+
+export function isUsingProjectReferences(instance: TSInstance) {
+  if (
+    instance.loaderOptions.projectReferences &&
+    supportsProjectReferences(instance)
+  ) {
+    const program = ensureProgram(instance);
+    return Boolean(program && program.getProjectReferences());
+  }
+  return false;
+}
+
+/**
+ * Gets the project reference for a file from the cache if it exists,
+ * or gets it from TypeScript and caches it otherwise.
+ */
+export function getAndCacheProjectReference(
+  filePath: string,
+  instance: TSInstance
+) {
+  const file = instance.files.get(filePath);
+  if (file !== undefined && file.projectReference) {
+    return file.projectReference.project;
+  }
+
+  const projectReference = getProjectReferenceForFile(filePath, instance);
+  if (file !== undefined) {
+    file.projectReference = { project: projectReference };
+  }
+
+  return projectReference;
+}
+
+function getResolvedProjectReferences(
+  program: typescript.Program
+): typescript.ResolvedProjectReference[] | undefined {
+  const getProjectReferences =
+    (program as any).getResolvedProjectReferences ||
+    program.getProjectReferences;
+  if (getProjectReferences) {
+    return getProjectReferences();
+  }
+  return;
+}
+
+function getProjectReferenceForFile(filePath: string, instance: TSInstance) {
+  if (isUsingProjectReferences(instance)) {
+    const program = ensureProgram(instance);
+    return (
+      program &&
+      getResolvedProjectReferences(program)!.find(
+        ref =>
+          (ref &&
+            ref.commandLine.fileNames.some(
+              file => path.normalize(file) === filePath
+            )) ||
+          false
+      )
+    );
+  }
+
+  return;
+}
+
+export function validateSourceMapOncePerProject(
+  instance: TSInstance,
+  loader: Webpack,
+  jsFileName: string,
+  project: typescript.ResolvedProjectReference
+) {
+  const { projectsMissingSourceMaps = new Set<string>() } = instance;
+  if (!projectsMissingSourceMaps.has(project.sourceFile.fileName)) {
+    instance.projectsMissingSourceMaps = projectsMissingSourceMaps;
+    projectsMissingSourceMaps.add(project.sourceFile.fileName);
+    const mapFileName = jsFileName + '.map';
+    if (!instance.compiler.sys.fileExists(mapFileName)) {
+      const [relativeJSPath, relativeProjectConfigPath] = [
+        path.relative(loader.rootContext, jsFileName),
+        path.relative(loader.rootContext, project.sourceFile.fileName)
+      ];
+      loader.emitWarning(
+        new Error(
+          'Could not find source map file for referenced project output ' +
+            `${relativeJSPath}. Ensure the 'sourceMap' compiler option ` +
+            `is enabled in ${relativeProjectConfigPath} to ensure Webpack ` +
+            'can map project references to the appropriate source files.'
+        )
+      );
+    }
+  }
+}
+
+/**
+ * Gets the output JS file path for an input file governed by a composite project.
+ * Pulls from the cache if it exists; computes and caches the result otherwise.
+ */
+export function getAndCacheOutputJSFileName(
+  inputFileName: string,
+  projectReference: typescript.ResolvedProjectReference,
+  instance: TSInstance
+) {
+  const file = instance.files.get(inputFileName);
+  if (file && file.projectReference && file.projectReference.outputFileName) {
+    return file.projectReference.outputFileName;
+  }
+
+  const outputFileName = getOutputJavaScriptFileName(
+    inputFileName,
+    projectReference
+  );
+
+  if (file) {
+    file.projectReference = file.projectReference || {
+      project: projectReference
+    };
+    file.projectReference.outputFileName = outputFileName;
+  }
+
+  return outputFileName;
+}
+
+// Adapted from https://github.com/Microsoft/TypeScript/blob/45101491c0b077c509b25830ef0ee5f85b293754/src/compiler/tsbuild.ts#L305
+function getOutputJavaScriptFileName(
+  inputFileName: string,
+  projectReference: typescript.ResolvedProjectReference
+) {
+  const { options } = projectReference.commandLine;
+  const projectDirectory = path.dirname(projectReference.sourceFile.fileName);
+  const relativePath = path.relative(projectDirectory, inputFileName);
+  const outputPath = path.resolve(
+    options.outDir || projectDirectory,
+    relativePath
+  );
+  const newExtension = constants.jsonRegex.test(inputFileName)
+    ? '.json'
+    : constants.tsxRegex.test(inputFileName) &&
+      options.jsx === typescript.JsxEmit.Preserve
+      ? '.jsx'
+      : '.js';
+  return outputPath.replace(constants.extensionRegex, newExtension);
 }

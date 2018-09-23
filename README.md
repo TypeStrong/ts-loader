@@ -543,7 +543,7 @@ Extending `tsconfig.json`:
 
 Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
 
-### experimentalFileCaching _(boolean) (default=false)_
+#### experimentalFileCaching _(boolean) (default=false)_
 
 By default whenever the TypeScript compiler needs to check that a file/directory exists or resolve symlinks it makes syscalls.
 It does not cache the result of these operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
@@ -551,6 +551,32 @@ In some cases it may produce performance degradation.
 
 This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler.
 Note that caches are cleared between compilations.
+
+#### projectReferences _(boolean) (default=false)_
+
+**TL;DR:** Using project references currently requires building referenced projects outside of ts-loader. We don’t want to keep it that way, but we’re releasing what we’ve got now. To try it out, you’ll need to pass `projectReferences: true` to `loaderOptions`.
+
+ts-loader has partial support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in that it will _load_ dependent composite projects that are already built, but will not currently _build/rebuild_ those upstream projects. The best way to explain exactly what this means is through an example. Say you have a project with a project reference pointing to the `lib/` directory:
+
+```
+tsconfig.json
+app.ts
+lib/
+  tsconfig.json
+  niftyUtil.ts
+```
+
+And we’ll assume that the root `tsconfig.json` has `{ "references": { "path": "lib" } }`, which means that any import of a file that’s part of the `lib` sub-project is treated as a reference to another project, not just a reference to a TypeScript file. Before discussing how ts-loader handles this, it’s helpful to review at a really basic level what `tsc` itself does here. If you were to run `tsc` on this tiny example project, the build would fail with the error:
+
+```
+error TS6305: Output file 'lib/niftyUtil.d.ts' has not been built from source file 'lib/niftyUtil.ts'.
+```
+
+Using project references actually instructs `tsc` _not_ to build anything that’s part of another project from source, but rather to look for any `.d.ts` and `.js` files that have already been generated from a previous build. Since we’ve never built the project in `lib` before, those files don’t exist, so building the root project fails. Still just thinking about how `tsc` works, there are two options to make the build succeed: either run `tsc -p lib/tsconfig.json` _first_, or simply run `tsc --build`, which will figure out that `lib` hasn’t been built and build it first for you.
+
+Ok, so how is that relevant to ts-loader? Because the best way to think about what ts-loader does with project references is that it acts like `tsc`, but _not_ like `tsc --build`. If you run ts-loader on a project that’s using project references, and any upstream project hasn’t been built, you’ll get the exact same `error TS6305` that you would get with `tsc`. If you modify a source file in an upstream project and don’t rebuild that project, `ts-loader` won’t have any idea that you’ve changed anything—it will still be looking at the output from the last time you _built_ that file.
+
+**“Hey, don’t you think that sounds kind of useless and terrible?”** Well, sort of. You can consider it a work-in-progress. It’s true that on its own, as of today, ts-loader doesn’t have everything you need to take advantage of project references in Webpack. In practice, though, _consuming_ upstream projects and _building_ upstream projects are somewhat separate concerns. Building them will likely come in a future release. For background, see the [original issue](https://github.com/TypeStrong/ts-loader/issues/815).
 
 ### Usage with Webpack watch
 

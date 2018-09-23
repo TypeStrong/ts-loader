@@ -1,45 +1,33 @@
-import * as typescript from 'typescript';
-import * as path from 'path';
-import * as fs from 'fs';
 import chalk, { Chalk } from 'chalk';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as typescript from 'typescript';
 
 import { makeAfterCompile } from './after-compile';
+import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
-import { EOL, dtsDtsxOrDtsDtsxMapRegex } from './constants';
-import { getCompilerOptions, getCompiler } from './compilerSetup';
-import { makeError, formatErrors } from './utils';
-import * as logger from './logger';
-import { makeServicesHost, makeWatchHost } from './servicesHost';
-import { makeWatchRun } from './watch-run';
+import { dtsDtsxOrDtsDtsxMapRegex, EOL } from './constants';
 import {
   LoaderOptions,
+  TSFile,
   TSFiles,
   TSInstance,
   TSInstances,
   Webpack,
-  WebpackError,
-  TSFile
+  WebpackError
 } from './interfaces';
+import * as logger from './logger';
+import { makeServicesHost, makeWatchHost } from './servicesHost';
+import {
+  ensureProgram,
+  formatErrors,
+  isUsingProjectReferences,
+  makeError
+} from './utils';
+import { makeWatchRun } from './watch-run';
 
-const instances = <TSInstances>{};
+const instances = {} as TSInstances;
 
-function ensureProgram(instance: TSInstance) {
-  if (instance && instance.watchHost) {
-    if (instance.hasUnaccountedModifiedFiles) {
-      if (instance.changedFilesList) {
-        instance.watchHost.updateRootFileNames();
-      }
-      if (instance.watchOfFilesAndCompilerOptions) {
-        instance.program = instance.watchOfFilesAndCompilerOptions
-          .getProgram()
-          .getProgram();
-      }
-      instance.hasUnaccountedModifiedFiles = false;
-    }
-    return instance.program;
-  }
-  return undefined;
-}
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
  * a persistent instance of TypeScript that contains all of the files in the program
@@ -167,7 +155,14 @@ function successfulTypeScriptInstance(
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
     // we do need to check for any issues with TS options though
-    const program = compiler!.createProgram([], compilerOptions);
+    const program =
+      configParseResult.projectReferences !== undefined
+        ? compiler!.createProgram({
+            rootNames: configParseResult.fileNames,
+            options: configParseResult.options,
+            projectReferences: configParseResult.projectReferences
+          })
+        : compiler!.createProgram([], compilerOptions);
 
     // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!loaderOptions.happyPackMode) {
@@ -184,21 +179,20 @@ function successfulTypeScriptInstance(
       loader._module.errors.push(...errors);
     }
 
-    const instance: TSInstance = {
+    instances[loaderOptions.instance] = {
       compiler,
       compilerOptions,
       loaderOptions,
       files,
       otherFiles,
+      program,
       dependencyGraph: {},
       reverseDependencyGraph: {},
       transformers: getCustomTransformers(),
       colors
     };
 
-    instances[loaderOptions.instance] = instance;
-
-    return { instance };
+    return { instance: instances[loaderOptions.instance] };
   }
 
   // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -263,7 +257,8 @@ function successfulTypeScriptInstance(
       loader,
       instance,
       loaderOptions.appendTsSuffixTo,
-      loaderOptions.appendTsxSuffixTo
+      loaderOptions.appendTsxSuffixTo,
+      configParseResult.projectReferences
     );
     instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(
       instance.watchHost
@@ -277,7 +272,8 @@ function successfulTypeScriptInstance(
       log,
       loader,
       instance,
-      loaderOptions.experimentalFileCaching
+      loaderOptions.experimentalFileCaching,
+      configParseResult.projectReferences
     );
 
     instance.languageService = compiler.createLanguageService(
@@ -309,16 +305,21 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       writeByteOrderMark: boolean
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
     const sourceFile = program.getSourceFile(filePath);
-    program.emit(
-      sourceFile,
-      writeFile,
-      /*cancellationToken*/ undefined,
-      /*emitOnlyDtsFiles*/ false,
-      instance.transformers
-    );
+    // The source file will be undefined if it’s part of an unbuilt project reference
+    if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
+      program.emit(
+        sourceFile,
+        writeFile,
+        /*cancellationToken*/ undefined,
+        /*emitOnlyDtsFiles*/ false,
+        instance.transformers
+      );
+    }
     return outputFiles;
   } else {
     // Emit Javascript
-    return instance.languageService!.getEmitOutput(filePath).outputFiles;
+    return instance.languageService!.getProgram()!.getSourceFile(filePath)
+      ? instance.languageService!.getEmitOutput(filePath).outputFiles
+      : [];
   }
 }

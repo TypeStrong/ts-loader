@@ -1,11 +1,12 @@
 {
   "name": "ts-loader",
-  "version": "5.1.1",
+  "version": "5.2.0",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
+    "lint": "tslint --project \"./src\"",
     "comparison-tests": "tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
     "execution-tests": "npm i -g pnpm && node test/execution-tests/run-tests.js",
@@ -78,6 +79,8 @@
     "mocha": "^5.0.0",
     "prettier": "^1.11.1",
     "rimraf": "^2.6.2",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
     "typescript": "^3.0.1",
     "webpack": "^4.5.0",
     "webpack-cli": "^2.1.2"

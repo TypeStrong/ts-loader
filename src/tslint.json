@@ -1,20 +1,22 @@
 {
-  "extends": "tslint:latest",
+  "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
-    "max-line-length": [false, 140],
-    "object-literal-sort-keys": false,
+    "ban-types": false,
+    "forin": false,
+    "interface-over-type-literal": false,
     "interface-name": [true, "never-prefix"],
-    "no-unused-variable": [true, "check-parameters"],
+    "max-line-length": [false, 140],
+    "member-ordering": false,
+    "no-implicit-dependencies": false,
+    "no-object-literal-type-assertion": false,
     "no-var-requires": false,
-    "quotemark": [
-      true,
-      "single"
-    ],
+    "object-literal-sort-keys": false,
+    "prefer-object-spread": false,
+    "strict-boolean-expressions": false,
     "trailing-comma": [false],
-    "triple-equals": [
-      true
-    ],
-    "variable-name": [true,
+    "triple-equals": [true],
+    "variable-name": [
+      true,
       "ban-keywords",
       "check-format",
       "allow-leading-underscore",

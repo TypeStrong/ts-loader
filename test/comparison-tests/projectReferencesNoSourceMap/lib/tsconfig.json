@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "composite": true
+  },
+  "files": [
+    "./index.ts",
+    "./foo.ts"
+  ]
+}
