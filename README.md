@@ -1,10 +1,10 @@
 # TypeScript loader for webpack
 
-[![npm Version](https://img.shields.io/npm/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
-[![Build Status](https://travis-ci.org/TypeStrong/ts-loader.svg?branch=master)](https://travis-ci.org/TypeStrong/ts-loader)
-[![Build Status](https://ci.appveyor.com/api/projects/status/bjh0r0d4ckspgkh9/branch/master?svg=true)](https://ci.appveyor.com/project/JohnReilly/ts-loader/branch/master)
+[![npm version](https://img.shields.io/npm/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
+[![build status](https://travis-ci.org/TypeStrong/ts-loader.svg?branch=master)](https://travis-ci.org/TypeStrong/ts-loader)
+[![build status](https://ci.appveyor.com/api/projects/status/bjh0r0d4ckspgkh9/branch/master?svg=true)](https://ci.appveyor.com/project/JohnReilly/ts-loader/branch/master)
 [![Downloads](http://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
-[![Greenkeeper badge](https://badges.greenkeeper.io/TypeStrong/ts-loader.svg)](https://greenkeeper.io/)
+[![node version](https://img.shields.io/node/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 [![Join the chat at https://gitter.im/TypeStrong/ts-loader](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/TypeStrong/ts-loader)
 
@@ -523,7 +523,7 @@ When using editors like `VS Code` it is advised to add a `tsconfig.json` file to
 referenced in option `configFile`. For more information please [read the PR](https://github.com/TypeStrong/ts-loader/pull/681) that
 is the base and [read the PR](https://github.com/TypeStrong/ts-loader/pull/688) that contributed this option.
 
-Webpack:
+webpack:
 
 ```javascript
 {
@@ -576,13 +576,13 @@ Using project references actually instructs `tsc` _not_ to build anything that�
 
 Ok, so how is that relevant to ts-loader? Because the best way to think about what ts-loader does with project references is that it acts like `tsc`, but _not_ like `tsc --build`. If you run ts-loader on a project that’s using project references, and any upstream project hasn’t been built, you’ll get the exact same `error TS6305` that you would get with `tsc`. If you modify a source file in an upstream project and don’t rebuild that project, `ts-loader` won’t have any idea that you’ve changed anything—it will still be looking at the output from the last time you _built_ that file.
 
-**“Hey, don’t you think that sounds kind of useless and terrible?”** Well, sort of. You can consider it a work-in-progress. It’s true that on its own, as of today, ts-loader doesn’t have everything you need to take advantage of project references in Webpack. In practice, though, _consuming_ upstream projects and _building_ upstream projects are somewhat separate concerns. Building them will likely come in a future release. For background, see the [original issue](https://github.com/TypeStrong/ts-loader/issues/815).
+**“Hey, don’t you think that sounds kind of useless and terrible?”** Well, sort of. You can consider it a work-in-progress. It’s true that on its own, as of today, ts-loader doesn’t have everything you need to take advantage of project references in webpack. In practice, though, _consuming_ upstream projects and _building_ upstream projects are somewhat separate concerns. Building them will likely come in a future release. For background, see the [original issue](https://github.com/TypeStrong/ts-loader/issues/815).
 
-**`outDir` Windows problemo.** At the moment, composite projects built using the [`outDir` compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) cannot be consumed using ts-loader on Windows. If you try to, ts-loader throws a "has not been built from source file" error.  We don't know why yet; it's possible there's a bug in ts-loader. It's more likely there's a bug in ts-loader. Hopefully it's going to get solved at some point. (Hey, maybe you're the one to solve it!) Either way, we didn't want to hold back from releasing. So if you're building on Windows then avoid building `composite` projects using `outDir`. 
+**`outDir` Windows problemo.** At the moment, composite projects built using the [`outDir` compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) cannot be consumed using ts-loader on Windows. If you try to, ts-loader throws a "has not been built from source file" error.  We don't know why yet; it's possible there's a bug in `tsc`. It's more likely there's a bug in `ts-loader`. Hopefully it's going to get solved at some point. (Hey, maybe you're the one to solve it!) Either way, we didn't want to hold back from releasing. So if you're building on Windows then avoid building `composite` projects using `outDir`. 
 
-### Usage with Webpack watch
+### Usage with webpack watch
 
-Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using Webpack, you may wish to add this to your webpack.conf.js file:
+Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using webpack, you may wish to add this to your webpack.conf.js file:
 
 ```js
  plugins: [
@@ -597,7 +597,7 @@ It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be 
 
 ### Hot Module replacement
 
-To enable `webpack-dev-server` HMR, you need to follow the official [Webpack HMR guide](https://webpack.js.org/guides/hot-module-replacement/), then tweak a few config options for `ts-loader`. The required configuration is as follows:
+To enable `webpack-dev-server` HMR, you need to follow the official [webpack HMR guide](https://webpack.js.org/guides/hot-module-replacement/), then tweak a few config options for `ts-loader`. The required configuration is as follows:
 
 1. Set `transpileOnly` to `true` (see [transpileOnly](#transpileonly-boolean-defaultfalse) for config details and recommendations above).
 2. Inside your HMR acceptance callback function, you must re-require the module that was replaced.
