@@ -1,9 +1,9 @@
-import * as typescript from 'typescript';
-import * as path from 'path';
 import { Chalk } from 'chalk';
+import * as path from 'path';
+import * as typescript from 'typescript';
+import { LoaderOptions, Webpack, WebpackError } from './interfaces';
 import * as logger from './logger';
 import { formatErrors } from './utils';
-import { LoaderOptions, Webpack, WebpackError } from './interfaces';
 
 interface ConfigFile {
   config?: any;

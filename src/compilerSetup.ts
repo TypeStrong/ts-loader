@@ -1,9 +1,9 @@
-import * as typescript from 'typescript';
 import * as semver from 'semver';
+import * as typescript from 'typescript';
 
 import * as constants from './constants';
-import * as logger from './logger';
 import { LoaderOptions } from './interfaces';
+import * as logger from './logger';
 
 export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
   let compiler: typeof typescript | undefined;

@@ -1,6 +1,7 @@
+// tslint:disable:no-empty
+import { Chalk } from 'chalk';
 import { Console } from 'console';
 import { LoaderOptions } from './interfaces';
-import { Chalk } from 'chalk';
 
 type InternalLoggerFunc = (whereToLog: any, message: string) => void;
 
@@ -28,6 +29,7 @@ const makeLoggerFunc = (loaderOptions: LoaderOptions): InternalLoggerFunc =>
   loaderOptions.silent
     ? (_whereToLog: any, _message: string) => {}
     : (whereToLog: any, message: string) =>
+        // tslint:disable-next-line:no-console
         console.log.call(whereToLog, message);
 
 const makeExternalLogger = (

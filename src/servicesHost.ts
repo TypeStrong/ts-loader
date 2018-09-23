@@ -1,18 +1,18 @@
-import * as typescript from 'typescript';
 import * as path from 'path';
+import * as typescript from 'typescript';
 
 import * as constants from './constants';
-import * as logger from './logger';
-import { makeResolver } from './resolver';
-import { appendSuffixesIfMatch, readFile, unorderedRemoveItem } from './utils';
 import {
-  WatchHost,
   ModuleResolutionHost,
   ResolvedModule,
   ResolveSync,
   TSInstance,
+  WatchHost,
   Webpack
 } from './interfaces';
+import * as logger from './logger';
+import { makeResolver } from './resolver';
+import { appendSuffixesIfMatch, readFile, unorderedRemoveItem } from './utils';
 
 export type Action = () => void;
 
@@ -50,13 +50,14 @@ export function makeServicesHost(
   const resolveSync = makeResolver(loader._compiler.options);
 
   const readFileWithFallback = (
-    path: string,
+    filePath: string,
     encoding?: string | undefined
   ): string | undefined =>
-    compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+    compiler.sys.readFile(filePath, encoding) || readFile(filePath, encoding);
 
-  const fileExists = (path: string) =>
-    compiler.sys.fileExists(path) || readFile(path) !== undefined;
+  const fileExists = (filePathToCheck: string) =>
+    compiler.sys.fileExists(filePathToCheck) ||
+    readFile(filePathToCheck) !== undefined;
 
   const moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
@@ -147,7 +148,7 @@ export function makeServicesHost(
         instance,
         moduleNames,
         containingFile,
-        resolutionStrategy
+        getResolutionStrategy
       ),
 
     getCustomTransformers: () => instance.transformers
@@ -181,10 +182,10 @@ export function makeWatchHost(
   const resolveSync = makeResolver(loader._compiler.options);
 
   const readFileWithFallback = (
-    path: string,
+    filePath: string,
     encoding?: string | undefined
   ): string | undefined =>
-    compiler.sys.readFile(path, encoding) || readFile(path, encoding);
+    compiler.sys.readFile(filePath, encoding) || readFile(filePath, encoding);
 
   const moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
@@ -243,7 +244,7 @@ export function makeWatchHost(
         instance,
         moduleNames,
         containingFile,
-        resolutionStrategy
+        getResolutionStrategy
       ),
 
     invokeFileWatcher,
@@ -358,6 +359,7 @@ export function makeWatchHost(
     }
     return {
       close: () => {
+        // tslint:disable-next-line:no-shadowed-variable
         const existing = callbacks[file];
         if (existing) {
           unorderedRemoveItem(existing, callback);
@@ -490,6 +492,7 @@ function resolveModuleName(
     if (resolvedFileName.match(scriptRegex)) {
       resolutionResult = { resolvedFileName, originalFileName };
     }
+    // tslint:disable-next-line:no-empty
   } catch (e) {}
 
   const tsResolution = compiler.resolveModuleName(
@@ -520,7 +523,7 @@ type ResolutionStrategy = (
   tsResolutionResult: ResolvedModule
 ) => ResolvedModule;
 
-function resolutionStrategy(
+function getResolutionStrategy(
   resolutionResult: ResolvedModule | undefined,
   tsResolutionResult: ResolvedModule
 ): ResolvedModule {
@@ -572,7 +575,9 @@ function addCache(servicesHost: typescript.ModuleResolutionHost) {
   cacheableFunctions.forEach((functionToCache: CacheableFunction) => {
     const originalFunction = servicesHost[functionToCache];
     if (originalFunction !== undefined) {
-      const cache = createCache<ReturnType<typeof originalFunction>>(originalFunction);
+      const cache = createCache<ReturnType<typeof originalFunction>>(
+        originalFunction
+      );
       servicesHost[
         functionToCache
       ] = cache.getCached as typescript.ModuleResolutionHost[CacheableFunction];

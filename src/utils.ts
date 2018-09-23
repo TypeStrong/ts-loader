@@ -1,20 +1,20 @@
-import * as typescript from 'typescript';
-import * as path from 'path';
-import * as fs from 'fs';
 import { Chalk } from 'chalk';
+import * as fs from 'fs';
 import * as micromatch from 'micromatch';
+import * as path from 'path';
+import * as typescript from 'typescript';
 
 import constants = require('./constants');
 import {
   DependencyGraph,
+  ErrorInfo,
   LoaderOptions,
   ReverseDependencyGraph,
   Severity,
-  WebpackError,
-  WebpackModule,
-  ErrorInfo,
   TSInstance,
-  Webpack
+  Webpack,
+  WebpackError,
+  WebpackModule
 } from './interfaces';
 
 /**
@@ -103,7 +103,7 @@ export function formatErrors(
               : { line: errorInfo.line, character: errorInfo.character }
           );
 
-          return <WebpackError>Object.assign(error, merge);
+          return Object.assign(error, merge) as WebpackError;
         })
     : [];
 }
@@ -135,27 +135,28 @@ export function makeError(
 
 export function appendSuffixIfMatch(
   patterns: RegExp[],
-  path: string,
+  filePath: string,
   suffix: string
 ): string {
   if (patterns.length > 0) {
-    for (let regexp of patterns) {
-      if (path.match(regexp)) {
-        return path + suffix;
+    for (const regexp of patterns) {
+      if (filePath.match(regexp)) {
+        return filePath + suffix;
       }
     }
   }
-  return path;
+  return filePath;
 }
 
 export function appendSuffixesIfMatch(
   suffixDict: { [suffix: string]: RegExp[] },
-  path: string
+  filePath: string
 ): string {
-  for (let suffix in suffixDict) {
-    path = appendSuffixIfMatch(suffixDict[suffix], path, suffix);
+  let amendedPath = filePath;
+  for (const suffix in suffixDict) {
+    amendedPath = appendSuffixIfMatch(suffixDict[suffix], filePath, suffix);
   }
-  return path;
+  return amendedPath;
 }
 
 export function unorderedRemoveItem<T>(array: T[], item: T): boolean {
@@ -207,7 +208,7 @@ export function collectAllDependencies(
   const result = {};
   result[filePath] = true;
   collected[filePath] = true;
-  let directDependencies = dependencyGraph[filePath];
+  const directDependencies = dependencyGraph[filePath];
   if (directDependencies !== undefined) {
     directDependencies.forEach(dependencyModule => {
       if (!collected[dependencyModule.originalFileName]) {
@@ -215,7 +216,7 @@ export function collectAllDependencies(
           dependencyGraph,
           dependencyModule.resolvedFileName,
           collected
-        ).forEach(filePath => (result[filePath] = true));
+        ).forEach(depFilePath => (result[depFilePath] = true));
       }
     });
   }
