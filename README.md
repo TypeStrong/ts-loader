@@ -578,6 +578,8 @@ Ok, so how is that relevant to ts-loader? Because the best way to think about wh
 
 **“Hey, don’t you think that sounds kind of useless and terrible?”** Well, sort of. You can consider it a work-in-progress. It’s true that on its own, as of today, ts-loader doesn’t have everything you need to take advantage of project references in Webpack. In practice, though, _consuming_ upstream projects and _building_ upstream projects are somewhat separate concerns. Building them will likely come in a future release. For background, see the [original issue](https://github.com/TypeStrong/ts-loader/issues/815).
 
+**`outDir` Windows problemo.** At the moment, composite projects built using the [`outDir` compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) cannot be consumed using ts-loader on Windows. If you try to, ts-loader throws a "has not been built from source file" error.  We don't know why yet; it's possible there's a bug in ts-loader. It's more likely there's a bug in ts-loader. Hopefully it's going to get solved at some point. (Hey, maybe you're the one to solve it!) Either way, we didn't want to hold back from releasing. So if you're building on Windows then avoid building `composite` projects using `outDir`. 
+
 ### Usage with Webpack watch
 
 Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using Webpack, you may wish to add this to your webpack.conf.js file:
