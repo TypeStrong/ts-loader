@@ -9,6 +9,7 @@ sudo: required
 install:
   - yarn install
   - yarn build
+  - yarn lint
   - yarn add $TYPESCRIPT
 env:
   - TYPESCRIPT=typescript@3.0.1
