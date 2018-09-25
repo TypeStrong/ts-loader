@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.2.1
+
+* [feat: Lists typescript as a peer dependency](https://github.com/TypeStrong/ts-loader/pull/841) - thanks @arcanis!
+
 ## 5.2.0
 
 * [feat: Initial support for project references - `projectReferences`](https://github.com/TypeStrong/ts-loader/pull/817) - thanks @andrewbranch!
