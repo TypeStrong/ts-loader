@@ -88,25 +88,37 @@ function runTests() {
  * @param {string} testName
  */
 function runTestAsChildProcess(testName) {
-  try {
-    const testToRun = ' --test-to-run ' + testName;
-    const testCommand =
-      'mocha --reporter spec test/comparison-tests/create-and-execute-test.js ' +
-      testToRun;
+  const testToRun = ' --test-to-run ' + testName;
+  const testCommand =
+    'mocha --reporter spec test/comparison-tests/create-and-execute-test.js ' +
+    testToRun;
 
-    const _testOutput = execSync(
-      testCommand + (saveOutputMode ? ' --save-output' : ''),
-      { stdio: 'inherit' }
-    );
-    if (!saveOutputMode) {
-      const _testOutput2 = execSync(
-        testCommand + ' --extra-option experimentalFileCaching',
+  // execution tests are flaky so allow 3 attempts
+  let attempt = 1;
+  let passed = false;
+  while (!passed) {
+    try {
+      const _testOutput = execSync(
+        testCommand + (saveOutputMode ? ' --save-output' : ''),
         { stdio: 'inherit' }
       );
+      if (!saveOutputMode) {
+        const _testOutput2 = execSync(
+          testCommand + ' --extra-option experimentalFileCaching',
+          { stdio: 'inherit' }
+        );
+      }
+      passed = true
+    } catch (err) {
+      console.info(`Attempt ${attempt} failed...`);
+      if (attempt >= 5) throw new Error("Failed to run test repeatedly.")
+      attempt++;
     }
+  }
 
+  if (passed) {
     passingTests.push(testName);
-  } catch (err) {
+  } else {
     failingTests.push(testName);
   }
 }
