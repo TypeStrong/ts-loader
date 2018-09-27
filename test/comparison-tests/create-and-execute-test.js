@@ -276,7 +276,7 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
 
         const statsString = stats.toString({ timings: false, version: false, hash: false, builtAt: false })
             .replace(/^Built at: .+$/gm, '')
-            .replace(/^Module build failed \(from [\/|\\]/, 'Module build failed (from ')
+            .replace(/Module build failed \(from [\/|\\]/, 'Module build failed (from ')
             .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
