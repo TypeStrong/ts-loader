@@ -554,7 +554,7 @@ Note that caches are cleared between compilations.
 
 #### projectReferences _(boolean) (default=false)_
 
-**TL;DR:** Using project references currently requires building referenced projects outside of ts-loader. We don’t want to keep it that way, but we’re releasing what we’ve got now. To try it out, you’ll need to pass `projectReferences: true` to `loaderOptions`.
+**TL;DR:** Using project references currently requires building referenced projects outside of ts-loader. We don’t want to keep it that way, but we’re releasing what we’ve got now. To try it out, you’ll need to pass `projectReferences: true` to `loaderOptions`. You’ll also probably need to use TypeScript 3.1.1 or later (which, as of this writing, means `typescript@next`).
 
 ts-loader has partial support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in that it will _load_ dependent composite projects that are already built, but will not currently _build/rebuild_ those upstream projects. The best way to explain exactly what this means is through an example. Say you have a project with a project reference pointing to the `lib/` directory:
 
@@ -578,7 +578,9 @@ Ok, so how is that relevant to ts-loader? Because the best way to think about wh
 
 **“Hey, don’t you think that sounds kind of useless and terrible?”** Well, sort of. You can consider it a work-in-progress. It’s true that on its own, as of today, ts-loader doesn’t have everything you need to take advantage of project references in webpack. In practice, though, _consuming_ upstream projects and _building_ upstream projects are somewhat separate concerns. Building them will likely come in a future release. For background, see the [original issue](https://github.com/TypeStrong/ts-loader/issues/815).
 
-**`outDir` Windows problemo.** At the moment, composite projects built using the [`outDir` compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) cannot be consumed using ts-loader on Windows. If you try to, ts-loader throws a "has not been built from source file" error.  We don't know why yet; it's possible there's a bug in `tsc`. It's more likely there's a bug in `ts-loader`. Hopefully it's going to get solved at some point. (Hey, maybe you're the one to solve it!) Either way, we didn't want to hold back from releasing. So if you're building on Windows then avoid building `composite` projects using `outDir`. 
+**`outDir` Windows problemo.** At the moment, composite projects built using the [`outDir` compiler option](https://www.typescriptlang.org/docs/handbook/compiler-options.html) cannot be consumed using ts-loader on Windows. If you try to, ts-loader throws a "has not been built from source file" error.  We don't know why yet; it's possible there's a bug in `tsc`. It's more likely there's a bug in `ts-loader`. Hopefully it's going to get solved at some point. (Hey, maybe you're the one to solve it!) Either way, we didn't want to hold back from releasing. So if you're building on Windows then avoid building `composite` projects using `outDir`.
+
+**TypeScript version compatibility.** As a final caveat, [this commit to TypeScript](https://github.com/Microsoft/TypeScript/commit/d519e3f21ec36274726c44dab25c9eb48e34953f) is necessary for the `include` or `exclude` options of a project-referenced tsconfig file to work. It should be released in TypeScript 3.1.1 according to the tags. To use an earlier version of TypeScript, referenced project configuration files must specify `files`, and not `include`.
 
 ### Usage with webpack watch
 
