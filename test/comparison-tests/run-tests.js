@@ -18,8 +18,10 @@ const indexOfSingleTest = process.argv.indexOf('--single-test');
 const singleTestToRun =
   indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
 
-const passingTests = [];
-const failingTests = [];
+/** @type {string[]} */
+let passingTests = [];
+/** @type {string[]} */
+let failingTests = [];
 
 // set up new empty staging area
 const stagingPath = path.resolve(__dirname, '../../.test');
@@ -39,10 +41,16 @@ function runTests() {
   const testDir = __dirname;
 
   if (singleTestToRun) {
-    runTestAsChildProcess(singleTestToRun);
+    if (runTestAsChildProcess(singleTestToRun)) {
+      passingTests.push(singleTestToRun);
+    } else {
+      failingTests.push(singleTestToRun);
+    }
   } else {
     // loop through each test directory triggering a test run as child process
-    fs.readdirSync(testDir)
+
+    /** @type {string[]} */
+    const availableTests = fs.readdirSync(testDir)
       .filter(
         /**
          * @param {string} testName
@@ -50,8 +58,25 @@ function runTests() {
           const testPath = path.join(testDir, testName);
           return fs.statSync(testPath).isDirectory();
         }
-      )
-      .forEach(runTestAsChildProcess);
+      );
+
+      // Allow multiple attempts to pass tests as they're flaky
+      let attempt = 0;
+      while (++attempt <= 20 && passingTests.length < availableTests.length) {
+        if (attempt > 1) {
+          console.log(`Some tests failed; re-running (attempt ${attempt})`)
+        }
+
+        availableTests
+          .filter(testName => !passingTests.includes(testName))
+          .forEach(testName => {
+            if (runTestAsChildProcess(testName)) {
+              passingTests.push(testName);
+            }
+          });
+      }
+
+      failingTests = availableTests.filter(testName => !passingTests.includes(testName));
   }
 
   const end = new Date().getTime();
@@ -93,32 +118,19 @@ function runTestAsChildProcess(testName) {
     'mocha --reporter spec test/comparison-tests/create-and-execute-test.js ' +
     testToRun;
 
-  // execution tests are flaky so allow 3 attempts
-  let attempt = 1;
-  let passed = false;
-  while (!passed) {
-    try {
-      const _testOutput = execSync(
-        testCommand + (saveOutputMode ? ' --save-output' : ''),
+  try {
+    const _testOutput = execSync(
+      testCommand + (saveOutputMode ? ' --save-output' : ''),
+      { stdio: 'inherit' }
+    );
+    if (!saveOutputMode) {
+      const _testOutput2 = execSync(
+        testCommand + ' --extra-option experimentalFileCaching',
         { stdio: 'inherit' }
       );
-      if (!saveOutputMode) {
-        const _testOutput2 = execSync(
-          testCommand + ' --extra-option experimentalFileCaching',
-          { stdio: 'inherit' }
-        );
-      }
-      passed = true
-    } catch (err) {
-      console.info(`Attempt ${attempt} failed...`);
-      if (attempt >= 5) throw new Error("Failed to run test repeatedly.")
-      attempt++;
     }
-  }
-
-  if (passed) {
-    passingTests.push(testName);
-  } else {
-    failingTests.push(testName);
+    return true;
+  } catch (err) {
+    return false;
   }
 }

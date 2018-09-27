@@ -4,9 +4,7 @@
         "checkJs": true,
         "module": "commonjs",
         "noEmit": true,
-        "lib":[
-            "es2015"
-        ]
+        "lib": ["es2016"]
     },
     "files": [
         "create-and-execute-test.js",
