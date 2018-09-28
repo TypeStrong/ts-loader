@@ -276,7 +276,6 @@ function storeStats(stats, testState, paths, outputs, patch, options) {
 
         const statsString = stats.toString({ timings: false, version: false, hash: false, builtAt: false })
             .replace(/^Built at: .+$/gm, '')
-            .replace(/Module build failed \(from [\/|\\]/, 'Module build failed (from ')
             .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
@@ -393,6 +392,8 @@ function getNormalisedFileContent(file, location) {
                 // Built at: 2/15/2018 8:33:18 PM
                 // Built at: 2018-2-11 17:50:52 (any time is fine for us)
                 .replace(/^Built at: .+$/gm, '')
+                // We have 'Module build failed (from /index.js' on Windows and 'Module build failed (from index.js' on Linux
+                .replace(/Module build failed \(from \//gm, 'Module build failed (from ')
                 // We don't want a difference in the number of kilobytes to fail the build
                 .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
                 // We also don't want a difference in the number of bytes to fail the build
