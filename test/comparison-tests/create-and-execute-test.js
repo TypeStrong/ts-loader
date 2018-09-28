@@ -394,6 +394,7 @@ function getNormalisedFileContent(file, location) {
                 .replace(/^Built at: .+$/gm, '')
                 // We have 'Module build failed (from /index.js' on Windows and 'Module build failed (from index.js' on Linux
                 .replace(/Module build failed \(from \//gm, 'Module build failed (from ')
+                .replace(/Module Warning \(from \//gm, 'Module Warning (from ')
                 // We don't want a difference in the number of kilobytes to fail the build
                 .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
                 // We also don't want a difference in the number of bytes to fail the build
