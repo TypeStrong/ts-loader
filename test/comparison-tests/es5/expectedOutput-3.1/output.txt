@@ -6,4 +6,4 @@ Entrypoint main = bundle.js
 ERROR in app.ts
 ./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(2,30)[39m[22m
-[1m[31m      TS2304: Cannot find name 'Map'.[39m[22m
+[1m[31m      TS2583: Cannot find name 'Map'. Do you need to change your target library? Try changing the `lib` compiler option to es2015 or later.[39m[22m
