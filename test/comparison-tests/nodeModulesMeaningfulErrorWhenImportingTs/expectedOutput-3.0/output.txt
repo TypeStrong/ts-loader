@@ -1,14 +1,15 @@
     Asset      Size  Chunks             Chunk Names
-bundle.js  4.83 KiB    main  [emitted]  main
+bundle.js  4.87 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
 [./app.ts] 79 bytes {main} [built]
 [./node_modules/a/index.ts] 669 bytes {main} [built] [failed] [1 error]
 
 ERROR in ./node_modules/a/index.ts
-Module build failed: Error: TypeScript emitted no output for node_modules\a\index.ts. By default, ts-loader will not compile .ts files in node_modules.
+Module build failed (from /index.js):
+Error: TypeScript emitted no output for node_modules\a\index.ts. By default, ts-loader will not compile .ts files in node_modules.
 You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.
 See: https://github.com/Microsoft/TypeScript/issues/12358
-    at makeSourceMapAndFinish (dist\index.js:71:15)
-    at successLoader (dist\index.js:61:9)
-    at Object.loader (dist\index.js:21:12)
+    at makeSourceMapAndFinish (dist\index.js:78:15)
+    at successLoader (dist\index.js:68:9)
+    at Object.loader (dist\index.js:22:12)
  @ ./app.ts 3:8-20

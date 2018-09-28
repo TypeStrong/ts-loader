@@ -91,9 +91,34 @@
   !*** ./app.ts ***!
   \****************/
 /*! no static exports found */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-eval("throw new Error(\"Module build failed (from C:/source/ts-loader/index.js):/nError: ts-loader was supplied with an unexpected loader option: notRealOption/n/nPlease take a look at the options you are supplying; the following are valid options:/nsilent / logLevel / logInfoToStdOut / instance / compiler / context / configFile / transpileOnly / ignoreDiagnostics / errorFormatter / colors / compilerOptions / appendTsSuffixTo / appendTsxSuffixTo / onlyCompileBundledFiles / happyPackMode / getCustomTransformers / reportFiles / experimentalWatchApi / allowTsInNodeModules / experimentalFileCaching / projectReferences/n/n    at validateLoaderOptions (C://source//ts-loader//dist//index.js:151:19)/n    at getLoaderOptions (C://source//ts-loader//dist//index.js:110:5)/n    at Object.loader (C://source//ts-loader//dist//index.js:16:21)\");\n\n//# sourceURL=webpack:///./app.ts?");
+"use strict";
+eval("\nexports.__esModule = true;\nvar dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\ndep('');\n\n\n//# sourceURL=webpack:///./app.ts?");
+
+/***/ }),
+
+/***/ "./deeperDep.ts":
+/*!**********************!*\
+  !*** ./deeperDep.ts ***!
+  \**********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./deeperDep.ts?");
+
+/***/ }),
+
+/***/ "./dep.ts":
+/*!****************!*\
+  !*** ./dep.ts ***!
+  \****************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nvar dep = __webpack_require__(/*! ./deeperDep */ \"./deeperDep.ts\");\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./dep.ts?");
 
 /***/ })
 
