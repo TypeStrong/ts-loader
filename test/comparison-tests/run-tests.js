@@ -5,14 +5,12 @@ const typescript = require('typescript');
 const semver = require('semver');
 const execSync = require('child_process').execSync;
 
+// We only want to run comparison tests for the latest released version
+const typescriptVersion = parseFloat(
+  semver.major(typescript.version) + '.' + semver.minor(typescript.version)
+);
 // @ts-ignore
-const buildTypeScriptVersionString = require('../../package.json').devDependencies.typescript.replace('^', '');
-const buildTypeScriptVersion = semver.major(buildTypeScriptVersionString) + '.' + semver.minor(buildTypeScriptVersionString);
-
-// We only want to run comparison tests for the version TypeScript was built with
-const typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
-// @ts-ignore
-if (typescriptVersion !== buildTypeScriptVersion) return;
+if (typescriptVersion < 3.1 || typescriptVersion > 3.1) return;
 
 // Parse command line arguments
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
