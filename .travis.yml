@@ -1,6 +1,5 @@
 os:
   - linux
-  - osx
 addons:
   chrome: stable
 language: node_js
