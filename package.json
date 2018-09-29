@@ -10,8 +10,12 @@
     "comparison-tests": "tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
     "execution-tests": "npm i -g pnpm && node test/execution-tests/run-tests.js",
-    "test": "node test/run-tests.js",
-    "precommit": "lint-staged"
+    "test": "node test/run-tests.js"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   },
   "lint-staged": {
     "src/**/*.{ts,md}": [
@@ -66,7 +70,7 @@
     "fs-extra": "^7.0.0",
     "glob": "^7.1.1",
     "html-webpack-plugin": "^3.2.0",
-    "husky": "^0.14.3",
+    "husky": "^1.0.0",
     "jasmine-core": "^3.0.0",
     "karma": "^3.0.0",
     "karma-chrome-launcher": "^2.2.0",
