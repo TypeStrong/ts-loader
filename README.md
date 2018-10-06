@@ -252,7 +252,7 @@ This will ensure that the plugin checks for both syntactic errors (eg `const arr
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 
-You can also pass a path string to locate a js module file which exports the function described above, this useful especially in `happyPackMode`. (Because forked proccess cannot serialize functions see more at [related issue](https://github.com/Igorbek/typescript-plugin-styled-components/issues/6#issue-303387183))
+You can also pass a path string to locate a js module file which exports the function described above, this useful especially in `happyPackMode`. (Because forked process cannot serialize functions see more at [related issue](https://github.com/Igorbek/typescript-plugin-styled-components/issues/6#issue-303387183))
 
 #### logInfoToStdOut _(boolean) (default=false)_
 
