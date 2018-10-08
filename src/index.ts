@@ -20,6 +20,7 @@ import {
   formatErrors,
   getAndCacheOutputJSFileName,
   getAndCacheProjectReference,
+  noImportError,
   validateSourceMapOncePerProject
 } from './utils';
 
@@ -475,7 +476,7 @@ function getTranspilationEmit(
       loaderContext.context
     );
 
-    loaderContext._module.errors.push(...errors);
+    loaderContext._module.errors.push(...errors.filter(noImportError));
   }
 
   return { outputText, sourceMapText };

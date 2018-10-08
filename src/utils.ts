@@ -268,6 +268,13 @@ export function isUsingProjectReferences(instance: TSInstance) {
   return false;
 }
 
+export function noImportError(error: WebpackError) {
+  const { message } = error;
+  const v3 = /export '.*'( \(reexported as '.*'\))? was not found in/;
+  const v4 = /Attempted import error: '.*' is not exported from '.*'\./;
+  return !v3.test(message) && !v4.test(message);
+}
+
 /**
  * Gets the project reference for a file from the cache if it exists,
  * or gets it from TypeScript and caches it otherwise.

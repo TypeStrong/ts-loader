@@ -22,7 +22,8 @@ import {
   ensureProgram,
   formatErrors,
   isUsingProjectReferences,
-  makeError
+  makeError,
+  noImportError
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
@@ -111,7 +112,7 @@ function successfulTypeScriptInstance(
       loader.context
     );
 
-    loader._module.errors.push(...errors);
+    loader._module.errors.push(...errors.filter(noImportError));
 
     return {
       error: makeError(
@@ -176,7 +177,7 @@ function successfulTypeScriptInstance(
         loader.context
       );
 
-      loader._module.errors.push(...errors);
+      loader._module.errors.push(...errors.filter(noImportError));
     }
 
     instances[loaderOptions.instance] = {
