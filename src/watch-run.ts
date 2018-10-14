@@ -22,7 +22,7 @@ export function makeWatchRun(instance: TSInstance) {
     for (const [filePath, date] of times) {
       if (
         date > (lastTimes.get(filePath) || startTime) &&
-        filePath.match(constants.tsTsxJsJsxRegex)
+        filePath.match(constants.tsTsxJsJsxRegex) !== null
       ) {
         continue;
       }
@@ -36,8 +36,8 @@ export function makeWatchRun(instance: TSInstance) {
     // (skip @types/* and modules with typings)
     for (const filePath of instance.files.keys()) {
       if (
-        filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
-        !filePath.match(constants.nodeModules)
+        filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
+        filePath.match(constants.nodeModules) === null
       ) {
         updateFile(instance, filePath);
       }
@@ -56,7 +56,7 @@ function updateFile(instance: TSInstance, filePath: string) {
     file.version++;
     instance.version!++;
     instance.modifiedFiles!.set(nFilePath, file);
-    if (instance.watchHost) {
+    if (instance.watchHost !== undefined) {
       instance.watchHost.invokeFileWatcher(
         nFilePath,
         instance.compiler.FileWatcherEventKind.Changed

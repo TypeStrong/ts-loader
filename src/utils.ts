@@ -55,7 +55,10 @@ export function formatErrors(
           if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
             return false;
           }
-          if (loaderOptions.reportFiles.length > 0 && diagnostic.file) {
+          if (
+            loaderOptions.reportFiles.length > 0 &&
+            diagnostic.file !== undefined
+          ) {
             const relativeFileName = path.relative(
               context,
               diagnostic.file.fileName
@@ -140,7 +143,7 @@ export function appendSuffixIfMatch(
 ): string {
   if (patterns.length > 0) {
     for (const regexp of patterns) {
-      if (filePath.match(regexp)) {
+      if (filePath.match(regexp) !== null) {
         return filePath + suffix;
       }
     }
@@ -367,7 +370,7 @@ export function getAndCacheOutputJSFileName(
     projectReference
   );
 
-  if (file) {
+  if (file !== undefined) {
     file.projectReference = file.projectReference || {
       project: projectReference
     };
