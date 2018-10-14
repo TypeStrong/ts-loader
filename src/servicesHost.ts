@@ -251,15 +251,16 @@ export function makeWatchHost(
     invokeDirectoryWatcher,
     updateRootFileNames: () => {
       instance.changedFilesList = false;
-      if (instance.watchOfFilesAndCompilerOptions) {
+      if (instance.watchOfFilesAndCompilerOptions !== undefined) {
         instance.watchOfFilesAndCompilerOptions.updateRootFileNames(
           getRootFileNames()
         );
       }
     },
-    createProgram: projectReferences
-      ? createBuilderProgramWithReferences
-      : compiler.createAbstractBuilder
+    createProgram:
+      projectReferences === undefined
+        ? compiler.createAbstractBuilder
+        : createBuilderProgramWithReferences
   };
   return watchHost;
 
@@ -303,7 +304,7 @@ export function makeWatchHost(
     fileName: string,
     eventKind?: typescript.FileWatcherEventKind
   ) {
-    if (callbacks) {
+    if (callbacks !== undefined) {
       // The array copy is made to ensure that even if one of the callback removes the callbacks,
       // we dont miss any callbacks following it
       const cbs = callbacks.slice();
@@ -352,16 +353,16 @@ export function makeWatchHost(
   ): typescript.FileWatcher {
     file = path.normalize(file);
     const existing = callbacks[file];
-    if (existing) {
-      existing.push(callback);
-    } else {
+    if (existing === undefined) {
       callbacks[file] = [callback];
+    } else {
+      existing.push(callback);
     }
     return {
       close: () => {
         // tslint:disable-next-line:no-shadowed-variable
         const existing = callbacks[file];
-        if (existing) {
+        if (existing !== undefined) {
           unorderedRemoveItem(existing, callback);
         }
       }
@@ -383,7 +384,7 @@ export function makeWatchHost(
   ) {
     return createWatcher(
       fileName,
-      recursive ? watchedDirectoriesRecursive : watchedDirectories,
+      recursive === true ? watchedDirectoriesRecursive : watchedDirectories,
       callback
     );
   }
@@ -489,7 +490,7 @@ function resolveModuleName(
           )
         : originalFileName;
 
-    if (resolvedFileName.match(scriptRegex)) {
+    if (resolvedFileName.match(scriptRegex) !== null) {
       resolutionResult = { resolvedFileName, originalFileName };
     }
     // tslint:disable-next-line:no-empty
