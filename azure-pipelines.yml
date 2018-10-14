@@ -1,0 +1,54 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+pool:
+  vmImage: 'Ubuntu 16.04'
+
+strategy:
+  matrix:
+    node_8_x:
+      node_version: 8.x
+      typescript_version: typescript@3.1.1
+      typescript_version: typescript@next
+      typescript_version: typescript@3.0.1
+      typescript_version: typescript@2.9.2
+      typescript_version: typescript@2.8.1
+      typescript_version: typescript@2.7.1
+      typescript_version: typescript@2.6.1
+      typescript_version: typescript@2.5.2
+      typescript_version: typescript@2.4.1
+    node_6_x:
+      node_version: 6.x
+      typescript_version: typescript@3.1.1
+      typescript_version: typescript@next
+      typescript_version: typescript@3.0.1
+      typescript_version: typescript@2.9.2
+      typescript_version: typescript@2.8.1
+      typescript_version: typescript@2.7.1
+      typescript_version: typescript@2.6.1
+      typescript_version: typescript@2.5.2
+      typescript_version: typescript@2.4.1
+
+steps:
+- task: NodeTool@0 
+  inputs:
+    versionSpec: $(node_version)
+  displayName: 'Install Node.js'
+
+- script: |
+    yarn
+    yarn build
+    yarn lint
+  displayName: 'build'
+
+- script: |
+    yarn add $(typescript_version)
+  displayName: 'install version of TypeScript to test against'
+
+- script: |
+    node --version
+    yarn --version
+    yarn test
+  displayName: 'test'
