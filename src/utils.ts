@@ -48,8 +48,9 @@ export function formatErrors(
   merge: { file?: string; module?: WebpackModule },
   context: string
 ): WebpackError[] {
-  return diagnostics
-    ? diagnostics
+  return diagnostics === undefined
+    ? []
+    : diagnostics
         .filter(diagnostic => {
           if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
             return false;
@@ -104,8 +105,7 @@ export function formatErrors(
           );
 
           return Object.assign(error, merge) as WebpackError;
-        })
-    : [];
+        });
 }
 
 export function readFile(

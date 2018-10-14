@@ -222,9 +222,10 @@ function successfulTypeScriptInstance(
   }
 
   // if allowJs is set then we should accept js(x) files
-  const scriptRegex = configParseResult.options.allowJs
-    ? /\.tsx?$|\.jsx?$/i
-    : /\.tsx?$/i;
+  const scriptRegex =
+    configParseResult.options.allowJs === true
+      ? /\.tsx?$|\.jsx?$/i
+      : /\.tsx?$/i;
 
   const instance: TSInstance = (instances[loaderOptions.instance] = {
     compiler,
@@ -297,7 +298,7 @@ function successfulTypeScriptInstance(
 
 export function getEmitOutput(instance: TSInstance, filePath: string) {
   const program = ensureProgram(instance);
-  if (program) {
+  if (program !== undefined) {
     const outputFiles: typescript.OutputFile[] = [];
     const writeFile = (
       fileName: string,
@@ -318,8 +319,9 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
     return outputFiles;
   } else {
     // Emit Javascript
-    return instance.languageService!.getProgram()!.getSourceFile(filePath)
-      ? instance.languageService!.getEmitOutput(filePath).outputFiles
-      : [];
+    return instance.languageService!.getProgram()!.getSourceFile(filePath) ===
+      undefined
+      ? []
+      : instance.languageService!.getEmitOutput(filePath).outputFiles;
   }
 }

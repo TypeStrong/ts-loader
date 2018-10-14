@@ -84,9 +84,9 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
     const { languageService, loaderOptions, compiler, program } = instance;
 
     const errorsToAdd = formatErrors(
-      program
-        ? program.getOptionsDiagnostics()
-        : languageService!.getCompilerOptionsDiagnostics(),
+      program === undefined
+        ? languageService!.getCompilerOptionsDiagnostics()
+        : program.getOptionsDiagnostics(),
       loaderOptions,
       instance.colors,
       compiler,
@@ -177,34 +177,37 @@ function provideErrorsToWebpack(
     otherFiles
   } = instance;
 
-  const filePathRegex = !!compilerOptions.checkJs
-    ? constants.dtsTsTsxJsJsxRegex
-    : constants.dtsTsTsxRegex;
+  const filePathRegex =
+    compilerOptions.checkJs === true
+      ? constants.dtsTsTsxJsJsxRegex
+      : constants.dtsTsTsxRegex;
 
   for (const filePath of filesToCheckForErrors.keys()) {
-    if (!filePath.match(filePathRegex)) {
+    if (filePath.match(filePathRegex) === null) {
       continue;
     }
 
-    const sourceFile = program && program.getSourceFile(filePath);
+    const sourceFile =
+      program === undefined ? undefined : program.getSourceFile(filePath);
 
     // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
     // which will have already produced a more useful error than the one we would get by proceeding here.
     // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
     // get a useful error about which file was unexpectedly missing.
-    if (isUsingProjectReferences(instance) && !sourceFile) {
+    if (isUsingProjectReferences(instance) && sourceFile === undefined) {
       continue;
     }
 
-    const errors = program
-      ? [
-          ...program.getSyntacticDiagnostics(sourceFile),
-          ...program.getSemanticDiagnostics(sourceFile)
-        ]
-      : [
-          ...languageService!.getSyntacticDiagnostics(filePath),
-          ...languageService!.getSemanticDiagnostics(filePath)
-        ];
+    const errors =
+      program === undefined
+        ? [
+            ...languageService!.getSyntacticDiagnostics(filePath),
+            ...languageService!.getSemanticDiagnostics(filePath)
+          ]
+        : [
+            ...program.getSyntacticDiagnostics(sourceFile),
+            ...program.getSemanticDiagnostics(sourceFile)
+          ];
     if (errors.length > 0) {
       const fileWithError = files.get(filePath) || otherFiles.get(filePath);
       filesWithErrors.set(filePath, fileWithError!);
@@ -255,7 +258,7 @@ function provideDeclarationFilesToWebpack(
   compilation: WebpackCompilation
 ) {
   for (const filePath of filesToCheckForErrors.keys()) {
-    if (!filePath.match(constants.tsTsxRegex)) {
+    if (filePath.match(constants.tsTsxRegex) === null) {
       continue;
     }
 

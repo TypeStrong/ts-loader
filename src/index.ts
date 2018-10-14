@@ -30,7 +30,7 @@ const loaderOptionsCache: LoaderOptionsCache = {};
  * The entry point for ts-loader
  */
 function loader(this: Webpack, contents: string) {
-  // tslint:disable-next-line:no-unused-expression
+  // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
@@ -80,7 +80,7 @@ function successLoader(
       ),
       path.relative(loaderContext.rootContext, filePath)
     ];
-    if (referencedProject.commandLine.options.outFile) {
+    if (referencedProject.commandLine.options.outFile !== undefined) {
       throw new Error(
         `The referenced project at ${relativeProjectConfigPath} is using ` +
           `the outFile' option, which is not supported with ts-loader.`
@@ -184,7 +184,7 @@ function makeSourceMapAndFinish(
   );
 
   // _module.meta is not available inside happypack
-  if (!options.happyPackMode && loaderContext._module.buildMeta) {
+  if (!options.happyPackMode && loaderContext._module.buildMeta !== undefined) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
@@ -278,7 +278,10 @@ ${validLoaderOptions.join(' / ')}
     }
   }
 
-  if (loaderOptions.context && !path.isAbsolute(loaderOptions.context)) {
+  if (
+    loaderOptions.context !== undefined &&
+    !path.isAbsolute(loaderOptions.context)
+  ) {
     throw new Error(
       `Option 'context' has to be an absolute path. Given '${
         loaderOptions.context
@@ -342,7 +345,7 @@ function updateFileInCache(
       instance.otherFiles.delete(filePath);
       instance.files.set(filePath, file);
     } else {
-      if (instance.watchHost) {
+      if (instance.watchHost !== undefined) {
         fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
       }
       file = { version: 0 };
@@ -351,7 +354,7 @@ function updateFileInCache(
     instance.changedFilesList = true;
   }
 
-  if (instance.watchHost && contents === undefined) {
+  if (instance.watchHost !== undefined && contents === undefined) {
     fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Deleted;
   }
 
@@ -359,12 +362,15 @@ function updateFileInCache(
     file.version++;
     file.text = contents;
     instance.version!++;
-    if (instance.watchHost && fileWatcherEventKind === undefined) {
+    if (
+      instance.watchHost !== undefined &&
+      fileWatcherEventKind === undefined
+    ) {
       fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Changed;
     }
   }
 
-  if (instance.watchHost && fileWatcherEventKind !== undefined) {
+  if (instance.watchHost !== undefined && fileWatcherEventKind !== undefined) {
     instance.hasUnaccountedModifiedFiles = true;
     instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind);
     instance.watchHost.invokeDirectoryWatcher(path.dirname(filePath), filePath);
@@ -418,7 +424,7 @@ function getEmit(
             : originalFileName;
         });
 
-  if (additionalDependencies) {
+  if (additionalDependencies.length > 0) {
     additionalDependencies.forEach(addDependency);
   }
 
@@ -434,12 +440,13 @@ function getEmit(
   const outputFile = outputFiles
     .filter(file => file.name.match(constants.jsJsx))
     .pop();
-  const outputText = outputFile ? outputFile.text : undefined;
+  const outputText = outputFile === undefined ? undefined : outputFile.text;
 
   const sourceMapFile = outputFiles
     .filter(file => file.name.match(constants.jsJsxMap))
     .pop();
-  const sourceMapText = sourceMapFile ? sourceMapFile.text : undefined;
+  const sourceMapText =
+    sourceMapFile === undefined ? undefined : sourceMapFile.text;
 
   return { outputText, sourceMapText };
 }
