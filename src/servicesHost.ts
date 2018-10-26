@@ -4,6 +4,7 @@ import * as typescript from 'typescript';
 import * as constants from './constants';
 import {
   ModuleResolutionHost,
+  CustomResolveModuleName,
   ResolvedModule,
   ResolveSync,
   TSInstance,
@@ -36,7 +37,11 @@ export function makeServicesHost(
     compiler,
     compilerOptions,
     files,
-    loaderOptions: { appendTsSuffixTo, appendTsxSuffixTo }
+    loaderOptions: {
+      appendTsSuffixTo,
+      appendTsxSuffixTo,
+      resolveModuleName: customResolveModuleName
+    }
   } = instance;
 
   const newLine =
@@ -148,7 +153,8 @@ export function makeServicesHost(
         instance,
         moduleNames,
         containingFile,
-        getResolutionStrategy
+        getResolutionStrategy,
+        customResolveModuleName
       ),
 
     getCustomTransformers: () => instance.transformers
@@ -426,7 +432,8 @@ function resolveModuleNames(
   instance: TSInstance,
   moduleNames: string[],
   containingFile: string,
-  resolutionStrategy: ResolutionStrategy
+  resolutionStrategy: ResolutionStrategy,
+  customResolveModuleName?: CustomResolveModuleName
 ) {
   const resolvedModules = moduleNames.map(moduleName =>
     resolveModuleName(
@@ -438,7 +445,8 @@ function resolveModuleNames(
       instance,
       moduleName,
       containingFile,
-      resolutionStrategy
+      resolutionStrategy,
+      customResolveModuleName
     )
   );
 
@@ -466,7 +474,8 @@ function resolveModuleName(
   instance: TSInstance,
   moduleName: string,
   containingFile: string,
-  resolutionStrategy: ResolutionStrategy
+  resolutionStrategy: ResolutionStrategy,
+  customResolveModuleName?: CustomResolveModuleName
 ) {
   const { compiler, compilerOptions } = instance;
 
@@ -496,12 +505,17 @@ function resolveModuleName(
     // tslint:disable-next-line:no-empty
   } catch (e) {}
 
-  const tsResolution = compiler.resolveModuleName(
-    moduleName,
-    containingFile,
-    compilerOptions,
-    moduleResolutionHost
-  );
+  const tsResolver = (moduleName: string, containingFile: string, compilerOptions: typescript.CompilerOptions, moduleResolutionHost: typescript.ModuleResolutionHost) =>
+    compiler.resolveModuleName(
+      moduleName,
+      containingFile,
+      compilerOptions,
+      moduleResolutionHost
+    );
+
+  const tsResolution = customResolveModuleName
+    ? customResolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost, tsResolver)
+    : tsResolver(moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
