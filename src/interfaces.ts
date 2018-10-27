@@ -305,7 +305,7 @@ export type ResolveModuleName = (
 export type CustomResolveModuleName = (
   moduleName: string,
   containingFile: string,
-  options: typescript.CompilerOptions,
+  compilerOptions: typescript.CompilerOptions,
   moduleResolutionHost: typescript.ModuleResolutionHost,
   parentResolver: ResolveModuleName
 ) => typescript.ResolvedModuleWithFailedLookupLocations;

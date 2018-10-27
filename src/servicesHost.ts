@@ -3,8 +3,8 @@ import * as typescript from 'typescript';
 
 import * as constants from './constants';
 import {
-  ModuleResolutionHost,
   CustomResolveModuleName,
+  ModuleResolutionHost,
   ResolvedModule,
   ResolveSync,
   TSInstance,
@@ -465,6 +465,15 @@ function isJsImplementationOfTypings(
   );
 }
 
+function applyTsResolver(compiler: typeof typescript, moduleName: string, containingFile: string, compilerOptions: typescript.CompilerOptions, moduleResolutionHost: typescript.ModuleResolutionHost) {
+  return compiler.resolveModuleName(
+    moduleName,
+    containingFile,
+    compilerOptions,
+    moduleResolutionHost
+  );
+}
+
 function resolveModuleName(
   resolveSync: ResolveSync,
   moduleResolutionHost: ModuleResolutionHost,
@@ -505,17 +514,9 @@ function resolveModuleName(
     // tslint:disable-next-line:no-empty
   } catch (e) {}
 
-  const tsResolver = (moduleName: string, containingFile: string, compilerOptions: typescript.CompilerOptions, moduleResolutionHost: typescript.ModuleResolutionHost) =>
-    compiler.resolveModuleName(
-      moduleName,
-      containingFile,
-      compilerOptions,
-      moduleResolutionHost
-    );
-
   const tsResolution = customResolveModuleName
-    ? customResolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost, tsResolver)
-    : tsResolver(moduleName, containingFile, compilerOptions, moduleResolutionHost);
+    ? customResolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost, applyTsResolver.bind(null, compiler))
+    : applyTsResolver(compiler, moduleName, containingFile, compilerOptions, moduleResolutionHost);
 
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
