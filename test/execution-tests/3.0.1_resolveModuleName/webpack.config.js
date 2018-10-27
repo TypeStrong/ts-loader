@@ -7,7 +7,8 @@ module.exports = {
         filename: 'bundle.js'
     },
     resolve: {
-        extensions: ['.ts', '.js']
+        extensions: ['.ts', '.js'],
+        alias: { baz: path.join(__dirname, 'baz-pkg') },
     },
     module: {
         rules: [
@@ -16,6 +17,7 @@ module.exports = {
                     switch (moduleName) {
                         case 'foo': return parentResolver(path.join(__dirname, 'foo-pkg'), containingFile, compilerOptions, compilerHost);
                         case 'bar': return parentResolver(path.join(__dirname, 'bar-pkg'), containingFile, compilerOptions, compilerHost);
+                        case 'baz': return parentResolver(path.join(__dirname, 'baz-pkg'), containingFile, compilerOptions, compilerHost);
                         default: return parentResolver(moduleName, containingFile, compilerOptions, compilerHost);
                     }
                 },

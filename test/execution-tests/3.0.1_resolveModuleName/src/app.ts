@@ -1,6 +1,4 @@
-import {HelloBuilder} from 'bar';
+import {HelloWorld} from 'foo';
+import {makeHello}  from 'baz';
 
-export const makeHello: HelloBuilder = (hello: number, world: number) => ({
-  hello,
-  world,
-});
+export const def: HelloWorld = makeHello(1, 2);

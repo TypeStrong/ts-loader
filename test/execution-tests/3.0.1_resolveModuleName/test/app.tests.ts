@@ -6,7 +6,8 @@ import * as app from '../src/app';
 // 		"noEmitOnError": true
 // in tsconfig.json
 describe("app", () => {
-  it("makeHello to exist", () => {
-    expect(!!app.makeHello).toBe(true);
+  it("app.def to have been setup", () => {
+    expect(app.def.hello).toEqual(1);
+    expect(app.def.world).toEqual(2);
   });
 });
