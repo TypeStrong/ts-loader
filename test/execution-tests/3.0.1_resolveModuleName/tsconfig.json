@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		"noEmitOnError": true,
-		"resolveJsonModule": true
+		"noEmitOnError": true
 	}
 }
