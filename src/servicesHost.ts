@@ -465,7 +465,13 @@ function isJsImplementationOfTypings(
   );
 }
 
-function applyTsResolver(compiler: typeof typescript, moduleName: string, containingFile: string, compilerOptions: typescript.CompilerOptions, moduleResolutionHost: typescript.ModuleResolutionHost) {
+function applyTsResolver(
+  compiler: typeof typescript,
+  moduleName: string,
+  containingFile: string,
+  compilerOptions: typescript.CompilerOptions,
+  moduleResolutionHost: typescript.ModuleResolutionHost
+) {
   return compiler.resolveModuleName(
     moduleName,
     containingFile,
@@ -515,8 +521,20 @@ function resolveModuleName(
   } catch (e) {}
 
   const tsResolution = customResolveModuleName
-    ? customResolveModuleName(moduleName, containingFile, compilerOptions, moduleResolutionHost, applyTsResolver.bind(null, compiler))
-    : applyTsResolver(compiler, moduleName, containingFile, compilerOptions, moduleResolutionHost);
+    ? customResolveModuleName(
+        moduleName,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost,
+        applyTsResolver.bind(null, compiler)
+      )
+    : applyTsResolver(
+        compiler,
+        moduleName,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost
+      );
 
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
