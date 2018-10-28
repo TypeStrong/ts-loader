@@ -520,21 +520,22 @@ function resolveModuleName(
     // tslint:disable-next-line:no-empty
   } catch (e) {}
 
-  const tsResolution = customResolveModuleName
-    ? customResolveModuleName(
-        moduleName,
-        containingFile,
-        compilerOptions,
-        moduleResolutionHost,
-        applyTsResolver.bind(null, compiler)
-      )
-    : applyTsResolver(
-        compiler,
-        moduleName,
-        containingFile,
-        compilerOptions,
-        moduleResolutionHost
-      );
+  const tsResolution =
+    customResolveModuleName !== undefined
+      ? customResolveModuleName(
+          moduleName,
+          containingFile,
+          compilerOptions,
+          moduleResolutionHost,
+          applyTsResolver.bind(null, compiler)
+        )
+      : applyTsResolver(
+          compiler,
+          moduleName,
+          containingFile,
+          compilerOptions,
+          moduleResolutionHost
+        );
 
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
