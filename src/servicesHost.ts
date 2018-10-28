@@ -527,7 +527,19 @@ function resolveModuleName(
           containingFile,
           compilerOptions,
           moduleResolutionHost,
-          applyTsResolver.bind(null, compiler)
+          (
+            moduleName: string,
+            containingFile: string,
+            compilerOptions: typescript.CompilerOptions,
+            moduleResolutionHost: typescript.ModuleResolutionHost
+          ) =>
+            applyTsResolver(
+              compiler,
+              moduleName,
+              containingFile,
+              compilerOptions,
+              moduleResolutionHost
+            )
         )
       : applyTsResolver(
           compiler,
