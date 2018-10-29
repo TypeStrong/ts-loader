@@ -528,17 +528,17 @@ function resolveModuleName(
           compilerOptions,
           moduleResolutionHost,
           (
-            moduleName: string,
-            containingFile: string,
-            compilerOptions: typescript.CompilerOptions,
-            moduleResolutionHost: typescript.ModuleResolutionHost
+            moduleNameFromCustomFn: string,
+            containingFileFromCustomFn: string,
+            compilerOptionsFromCustomFn: typescript.CompilerOptions,
+            moduleResolutionHostFromCustomFn: typescript.ModuleResolutionHost
           ) =>
             applyTsResolver(
               compiler,
-              moduleName,
-              containingFile,
-              compilerOptions,
-              moduleResolutionHost
+              moduleNameFromCustomFn,
+              containingFileFromCustomFn,
+              compilerOptionsFromCustomFn,
+              moduleResolutionHostFromCustomFn
             )
         )
       : applyTsResolver(
