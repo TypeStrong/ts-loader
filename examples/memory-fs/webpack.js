@@ -34,8 +34,10 @@ memoryfs.mkdirpSync("/someplace-somewhere");
 memoryfs.writeFileSync("/someplace-somewhere/index.ts", fs.readFileSync("./data/index.ts"));
 memoryfs.writeFileSync("/someplace-somewhere/render.ts", fs.readFileSync("./data/render.ts"));
 
+// ufs works as a stack, so this actually uses memoryfs first, 
+// then the real fs if we fail to find anything in memoryfs
 const inputFS = ufs
-    .use(fs)
+    .use(fs) 
     .use(memoryfs)
 
 compiler.inputFileSystem = inputFS;
