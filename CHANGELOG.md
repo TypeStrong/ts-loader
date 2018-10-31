@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.3.0
+
+* [feat: Exposes a `resolveNodeModule` option](https://github.com/TypeStrong/ts-loader/pull/862) - thanks @arcanis!
+
 ## 5.2.2
 
 * [feat: Micro-optimizations](https://github.com/TypeStrong/ts-loader/pull/855) - thanks @johnnyreilly
@@ -14,7 +18,7 @@
 
 ## 5.1.1
 
-* [fix(getTranspilationEmit): pass the raw path to transpileModule](https://github.com/TypeStrong/ts-loader/pull/835) - thanks @Brooooooklyn 
+* [fix(getTranspilationEmit): pass the raw path to transpileModule](https://github.com/TypeStrong/ts-loader/pull/835) - thanks @Brooooooklyn
 
 ## 5.1.0
 

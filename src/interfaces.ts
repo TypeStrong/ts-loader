@@ -295,6 +295,21 @@ export interface ReverseDependencyGraph {
 
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
 
+export type ResolveModuleName = (
+  moduleName: string,
+  containingFile: string,
+  compilerOptions: typescript.CompilerOptions,
+  moduleResolutionHost: typescript.ModuleResolutionHost,
+) => typescript.ResolvedModuleWithFailedLookupLocations;
+
+export type CustomResolveModuleName = (
+  moduleName: string,
+  containingFile: string,
+  compilerOptions: typescript.CompilerOptions,
+  moduleResolutionHost: typescript.ModuleResolutionHost,
+  parentResolver: ResolveModuleName
+) => typescript.ResolvedModuleWithFailedLookupLocations;
+
 export interface LoaderOptions {
   silent: boolean;
   logLevel: LogLevel;
@@ -320,6 +335,7 @@ export interface LoaderOptions {
   allowTsInNodeModules: boolean;
   experimentalFileCaching: boolean;
   projectReferences: boolean;
+  resolveModuleName?: CustomResolveModuleName;
 }
 
 export interface TSFile {
