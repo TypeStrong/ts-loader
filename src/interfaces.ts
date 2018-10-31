@@ -1,6 +1,7 @@
 import * as typescript from 'typescript';
 export { ModuleResolutionHost } from 'typescript';
 import { Chalk } from 'chalk';
+import * as fs from "fs";
 
 export interface SourceMap {
   sources: any[];
@@ -40,6 +41,10 @@ export interface Webpack {
    * The directory of the module. Can be used as context for resolving other stuff.
    */
   context: string;
+  /**
+   * The input filesystem for the build
+   */
+  fs: typeof fs;
   /**
    * The root directory of the Webpack project.
    * Starting with webpack 4, the formerly `this.options.context` is provided as `this.rootContext`.
