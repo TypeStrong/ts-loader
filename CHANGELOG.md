@@ -1,62 +1,62 @@
 # Changelog
 
-## 5.3.0
+## v5.3.0
 
 * [feat: Exposes a `resolveNodeModule` option](https://github.com/TypeStrong/ts-loader/pull/862) - thanks @arcanis!
 
-## 5.2.2
+## v5.2.2
 
 * [feat: Micro-optimizations](https://github.com/TypeStrong/ts-loader/pull/855) - thanks @johnnyreilly
 
-## 5.2.1
+## v5.2.1
 
 * [feat: Lists typescript as a peer dependency](https://github.com/TypeStrong/ts-loader/pull/841) - thanks @arcanis!
 
-## 5.2.0
+## v5.2.0
 
 * [feat: Initial support for project references - `projectReferences`](https://github.com/TypeStrong/ts-loader/pull/817) - thanks @andrewbranch!
 
-## 5.1.1
+## v5.1.1
 
 * [fix(getTranspilationEmit): pass the raw path to transpileModule](https://github.com/TypeStrong/ts-loader/pull/835) - thanks @Brooooooklyn
 
-## 5.1.0
+## v5.1.0
 
 * [feat: Added cache for some FS operations while compiling - `experimentalFileCaching`](https://github.com/TypeStrong/ts-loader/pull/829) - thanks @timocov!
 
-## 5.0.0
+## v5.0.0
 
 * [feat: Fixed issue with incorrect output path for declaration files](https://github.com/TypeStrong/ts-loader/pull/822) - thanks @JonWallsten! **BREAKING CHANGE**
 
-## 4.5.0
+## v4.5.0
 
 * [feat: Added support for TypeScript declaration map](https://github.com/TypeStrong/ts-loader/pull/821) - thanks @JonWallsten!
 
-## 4.4.2
+## v4.4.2
 
 * [fix(loader): new Error to webpack when errors occured in the loader function](https://github.com/TypeStrong/ts-loader/pull/792) - thanks @linxiaowu66 and @systemmetaphor!
 
-## 4.4.1
+## v4.4.1
 
 * [fix(types): expose public interfaces from root index.d.ts](https://github.com/TypeStrong/ts-loader/pull/790) - thanks @Hotell!
 
-## 4.4.0
+## v4.4.0
 
 * [feat: generate ambient types from implementation](https://github.com/TypeStrong/ts-loader/pull/788) - thanks @Hotell!
 * [error when not using webpack 4](https://github.com/TypeStrong/ts-loader/pull/786) - thanks @johnnyreilly
 
-## 4.3.1
+## v4.3.1
 
 * [Fix options caching when ts-loader is used in multiple rules](https://github.com/TypeStrong/ts-loader/pull/782) - thanks @yyx990803!
 
 Please note, this bug fix requires that vue-loader users still using v14 should either upgrade to v15 or explicitly pass the same ts-loader options via v14's loaders option.  [See more details here](https://github.com/TypeStrong/ts-loader/pull/782#issuecomment-394406093)
 
-## 4.3.0
+## v4.3.0
 
 * [Fix dependency resolution when using pnpm](https://github.com/TypeStrong/ts-loader/pull/774) - thanks @xbtsw and @zkochan!
 * [Add `allowTsInNodeModules` option for importing .ts files from node_modules](https://github.com/TypeStrong/ts-loader/pull/773) - thanks @aelawson!
 
-## 4.2.0
+## v4.2.0
 
 * [Pass `context' to error formatters](https://github.com/TypeStrong/ts-loader/pull/756) - thanks @gustavderdrache!
 
