@@ -109,7 +109,7 @@ function findConfigFile(
   // If `configFile` is a relative path, resolve it.
   // We define a relative path as: starts with
   // one or two dots + a common directory delimiter
-  if (configFile.match(/^\.\.?(\/|\\)/)) {
+  if (configFile.match(/^\.\.?(\/|\\)/) !== null) {
     const resolvedPath = path.resolve(requestDirPath, configFile);
     return fileExists(resolvedPath) ? resolvedPath : undefined;
 

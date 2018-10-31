@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.2.2
+
+* [feat: Micro-optimizations](https://github.com/TypeStrong/ts-loader/pull/855) - thanks @johnnyreilly
+
 ## 5.2.1
 
 * [feat: Lists typescript as a peer dependency](https://github.com/TypeStrong/ts-loader/pull/841) - thanks @arcanis!

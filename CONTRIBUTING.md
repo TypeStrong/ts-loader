@@ -34,3 +34,13 @@ Not all bugs/features necessarily fit into either framework and that's OK. Howev
 
 To read about the comparison test pack take a look [here](test/comparison-tests/README.md)
 To read about the execution test pack take a look [here](test/execution-tests/README.md)
+
+## Debugging
+
+To debug ts-loader itself:
+
+```
+node --inspect-brk node_modules/webpack/bin/webpack.js --config webpack.dev.js # Obviously configure this depending upon your project setup
+```
+
+Then put a breakpoint in `node_modules/ts-loader/dist/index.js`, and debug in VS Code with "Attach to Node Process". The dist is JS compiled from TS, but it’s still pretty readable.
