@@ -155,7 +155,7 @@ don't directly use them. Instead you require them at [split points](http://webpa
 
 ### Declarations (.d.ts)
 
-To output a built .d.ts file, you can set "declaration": true in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
+To output a built .d.ts file, you can set `"declaration": true` in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
 
 ### Failing the build on TypeScript compilation error
 
