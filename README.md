@@ -266,7 +266,7 @@ Beware of the fact that errors are written to stderr and everything else is writ
 
 #### silent _(boolean) (default=false)_
 
-If true, no console.log messages will be emitted. Note that most error
+If `true`, no console.log messages will be emitted. Note that most error
 messages are emitted via webpack which is not affected by this flag.
 
 #### ignoreDiagnostics _(number[]) (default=[])_
