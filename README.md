@@ -155,7 +155,7 @@ don't directly use them. Instead you require them at [split points](http://webpa
 
 ### Declarations (.d.ts)
 
-To output a built .d.ts file, you can set "declaration": true in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
+To output a built .d.ts file, you can set `"declaration": true` in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
 
 ### Failing the build on TypeScript compilation error
 
@@ -266,7 +266,7 @@ Beware of the fact that errors are written to stderr and everything else is writ
 
 #### silent _(boolean) (default=false)_
 
-If true, no console.log messages will be emitted. Note that most error
+If `true`, no console.log messages will be emitted. Note that most error
 messages are emitted via webpack which is not affected by this flag.
 
 #### ignoreDiagnostics _(number[]) (default=[])_
