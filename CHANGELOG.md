@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.3.1
+
+* [fix: projectReferences with rootDir](https://github.com/TypeStrong/ts-loader/pull/871) (#868) - thanks @andrewbranch!
+
 ## v5.3.0
 
 * [feat: Exposes a `resolveNodeModule` option](https://github.com/TypeStrong/ts-loader/pull/862) - thanks @arcanis!
