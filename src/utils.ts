@@ -386,7 +386,8 @@ function getOutputJavaScriptFileName(
   projectReference: typescript.ResolvedProjectReference
 ) {
   const { options } = projectReference.commandLine;
-  const projectDirectory = path.dirname(projectReference.sourceFile.fileName);
+  const projectDirectory =
+    options.rootDir || path.dirname(projectReference.sourceFile.fileName);
   const relativePath = path.relative(projectDirectory, inputFileName);
   const outputPath = path.resolve(
     options.outDir || projectDirectory,
