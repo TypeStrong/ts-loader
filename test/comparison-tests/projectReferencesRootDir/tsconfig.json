@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+  },
+  "references": [
+    { "path": "./lib" }
+  ]
+}
