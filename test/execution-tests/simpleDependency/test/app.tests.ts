@@ -1,5 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-
 import dep = require('../src/dep');
 
 describe("app", () => {

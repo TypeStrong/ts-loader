@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import enhanceWithClickOutside from 'react-click-outside';
 
 const DeeperApp: React.SFC<{ name: string }> = ({ name }) => 
