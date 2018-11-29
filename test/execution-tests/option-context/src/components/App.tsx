@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import enhanceWithClickOutside from 'react-click-outside';
 
 const App: React.SFC<{ name: string }> = ({ name }) => 
