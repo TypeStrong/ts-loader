@@ -39,25 +39,25 @@ If you'd like find out further ways to improve your build using the watch API th
 ### Installation
 
 ```
-yarn add ts-loader
+yarn add ts-loader --dev
 ```
 
 or
 
 ```
-npm install ts-loader
+npm install ts-loader --save-dev
 ```
 
 You will also need to install TypeScript if you have not already.
 
 ```
-yarn add typescript
+yarn add typescript --dev
 ```
 
 or
 
 ```
-npm install typescript
+npm install typescript --save-dev
 ```
 
 ### Running
