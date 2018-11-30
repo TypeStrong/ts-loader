@@ -16,3 +16,4 @@ npm-debug.log
 /**/.cache-loader
 !build.js
 /**/debug.log
+package-lock.json
