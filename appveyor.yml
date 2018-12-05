@@ -1,10 +1,11 @@
 image: Visual Studio 2017
 environment:
   FORCE_COLOR: 1
-  nodejs_version: "8"
+  nodejs_version: "10"
   matrix:
-  - TYPESCRIPT: typescript@3.1.1
+  - TYPESCRIPT: typescript@3.2.1
   - TYPESCRIPT: typescript@next
+  - TYPESCRIPT: typescript@3.1.1
   - TYPESCRIPT: typescript@3.0.1
   - TYPESCRIPT: typescript@2.9.2
   - TYPESCRIPT: typescript@2.8.1

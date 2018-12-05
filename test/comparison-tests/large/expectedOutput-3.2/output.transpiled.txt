@@ -1,0 +1,20 @@
+Built at: 2018-3-18 09:19:13
+    Asset     Size  Chunks             Chunk Names
+bundle.js  107 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./a.ts] 844 bytes {main} [built]
+[./bb.ts] 850 bytes {main} [built]
+[./bl.ts] 850 bytes {main} [built]
+[./bm.ts] 850 bytes {main} [built]
+[./bn.ts] 850 bytes {main} [built]
+[./cg.ts] 850 bytes {main} [built]
+[./cp.ts] 850 bytes {main} [built]
+[./cx.ts] 850 bytes {main} [built]
+[./db.ts] 850 bytes {main} [built]
+[./dg.ts] 850 bytes {main} [built]
+[./di.ts] 850 bytes {main} [built]
+[./dt.ts] 370 bytes {main} [built]
+[./du.ts] 310 bytes {main} [built]
+[./k.ts] 847 bytes {main} [built]
+[./t.ts] 847 bytes {main} [built]
+    + 65 hidden modules
