@@ -10,7 +10,14 @@
     "comparison-tests": "tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
     "execution-tests": "npm i -g pnpm && node test/execution-tests/run-tests.js",
-    "test": "node test/run-tests.js"
+    "test": "npm-run-all -l test:*",
+    "test:jest": "jest",
+    "test:karma": "node test/run-tests.js"
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/test/jest"
+    ]
   },
   "husky": {
     "hooks": {
@@ -72,6 +79,7 @@
     "html-webpack-plugin": "^3.2.0",
     "husky": "^1.0.0",
     "jasmine-core": "^3.0.0",
+    "jest": "^23.6.0",
     "karma": "^3.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^1.0.0",
@@ -79,13 +87,16 @@
     "karma-sourcemap-loader": "^0.3.6",
     "karma-webpack": "2.0.6",
     "lint-staged": "^7.0.0",
+    "memory-fs": "^0.4.1",
     "mkdirp": "^0.5.1",
     "mocha": "^5.0.0",
+    "npm-run-all": "^4.1.5",
     "prettier": "^1.11.1",
     "rimraf": "^2.6.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
     "typescript": "^3.1.1",
+    "unionfs": "^3.0.2",
     "webpack": "^4.5.0",
     "webpack-cli": "^3.1.1"
   },
