@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.3.2
+
+* [feat: enable experimentalFileCaching by default](https://github.com/TypeStrong/ts-loader/pull/885) (#868) - thanks @timocov!
+
 ## v5.3.1
 
 * [fix: projectReferences with rootDir](https://github.com/TypeStrong/ts-loader/pull/871) (#868) - thanks @andrewbranch!
