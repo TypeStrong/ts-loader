@@ -248,6 +248,8 @@ It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://git
 
 This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`). By default the plugin only checks for semantic errors (as when used with ts-loader in `transpileOnly` mode, ts-loader will still report syntactic errors).
 
+Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
+
 #### getCustomTransformers _( () => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } )_
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
@@ -543,14 +545,12 @@ Extending `tsconfig.json`:
 
 Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
 
-#### experimentalFileCaching _(boolean) (default=false)_
+#### experimentalFileCaching _(boolean) (default=true)_
 
-By default whenever the TypeScript compiler needs to check that a file/directory exists or resolve symlinks it makes syscalls.
-It does not cache the result of these operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
+By default whenever the TypeScript compiler needs to check that a file/directory exists or resolve symlinks it makes syscalls. It does not cache the result of these operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
 In some cases it may produce performance degradation.
 
-This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler.
-Note that caches are cleared between compilations.
+This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler. Note that caches are cleared between compilations.
 
 #### projectReferences _(boolean) (default=false)_
 
