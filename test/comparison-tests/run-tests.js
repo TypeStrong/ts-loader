@@ -123,12 +123,14 @@ function runTestAsChildProcess(testName) {
       testCommand + (saveOutputMode ? ' --save-output' : ''),
       { stdio: 'inherit' }
     );
+    /* No longer necessary and experimentalFileCaching is enabled by default - approach may prove useful in future though
     if (!saveOutputMode) {
       const _testOutput2 = execSync(
         testCommand + ' --extra-option experimentalFileCaching',
         { stdio: 'inherit' }
       );
     }
+    */
     return true;
   } catch (err) {
     return false;
