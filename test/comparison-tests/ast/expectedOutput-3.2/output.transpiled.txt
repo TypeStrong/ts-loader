@@ -1,0 +1,11 @@
+    Asset      Size  Chunks             Chunk Names
+bundle.js  4.14 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 406 bytes {main} [built] [failed] [1 error]
+
+ERROR in ./app.ts
+Module build failed (from index.js):
+Error: 'transpileOnly' cannot be used in conjunction with 'ast'.
+    at validateLoaderOptions (dist/index.js:180:15)
+    at getLoaderOptions (dist/index.js:125:5)
+    at Object.loader (dist/index.js:17:21)

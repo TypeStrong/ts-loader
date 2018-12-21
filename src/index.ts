@@ -1,3 +1,4 @@
+import * as jsonStringifySafe from 'json-stringify-safe';
 import * as loaderUtils from 'loader-utils';
 import * as path from 'path';
 import * as typescript from 'typescript';
@@ -17,6 +18,7 @@ import {
 import {
   appendSuffixesIfMatch,
   arrify,
+  ensureProgram,
   formatErrors,
   getAndCacheOutputJSFileName,
   getAndCacheProjectReference,
@@ -72,7 +74,21 @@ function successLoader(
 
   const fileVersion = updateFileInCache(filePath, contents, instance);
   const referencedProject = getAndCacheProjectReference(filePath, instance);
-  if (referencedProject !== undefined) {
+  if (options.ast) {
+    const program = ensureProgram(instance);
+    if (!program) {
+      // Theoretically, these errors should only happen with `transpileOnly`,
+      // which is validated against while getting loader options.
+      throw new Error('TypeScript program could not be found.');
+    }
+    const sourceFile = program.getSourceFile(filePath);
+    if (!sourceFile) {
+      const relativePath = path.relative(loaderContext.rootContext, filePath);
+      throw new Error(`Source file '${relativePath}' could not be found.`);
+    }
+
+    callback(null, jsonStringifySafe(sourceFile, null, 2));
+  } else if (referencedProject !== undefined) {
     const [relativeProjectConfigPath, relativeFilePath] = [
       path.relative(
         loaderContext.rootContext,
@@ -255,7 +271,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'allowTsInNodeModules',
   'experimentalFileCaching',
   'projectReferences',
-  'resolveModuleName'
+  'resolveModuleName',
+  'ast'
 ];
 
 /**
@@ -289,6 +306,11 @@ ${validLoaderOptions.join(' / ')}
       }'.`
     );
   }
+  if (loaderOptions.ast && loaderOptions.transpileOnly) {
+    throw new Error(
+      `'transpileOnly' cannot be used in conjunction with 'ast'.`
+    );
+  }
 }
 
 function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
@@ -313,7 +335,8 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
       experimentalWatchApi: false,
       allowTsInNodeModules: false,
-      experimentalFileCaching: true
+      experimentalFileCaching: true,
+      ast: false
     } as Partial<LoaderOptions>,
     loaderOptions
   );

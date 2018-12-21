@@ -227,8 +227,8 @@ export type ResolveSync = (
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
-      typescript.BuilderProgram
-    > {
+    typescript.BuilderProgram
+  > {
   invokeFileWatcher(
     fileName: string,
     eventKind: typescript.FileWatcherEventKind
@@ -299,7 +299,7 @@ export type ResolveModuleName = (
   moduleName: string,
   containingFile: string,
   compilerOptions: typescript.CompilerOptions,
-  moduleResolutionHost: typescript.ModuleResolutionHost,
+  moduleResolutionHost: typescript.ModuleResolutionHost
 ) => typescript.ResolvedModuleWithFailedLookupLocations;
 
 export type CustomResolveModuleName = (
@@ -336,6 +336,7 @@ export interface LoaderOptions {
   experimentalFileCaching: boolean;
   projectReferences: boolean;
   resolveModuleName?: CustomResolveModuleName;
+  ast: boolean;
 }
 
 export interface TSFile {

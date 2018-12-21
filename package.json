@@ -51,11 +51,13 @@
   "dependencies": {
     "chalk": "^2.3.0",
     "enhanced-resolve": "^4.0.0",
+    "json-stringify-safe": "^5.0.1",
     "loader-utils": "^1.0.2",
     "micromatch": "^3.1.4",
     "semver": "^5.0.1"
   },
   "devDependencies": {
+    "@types/json-stringify-safe": "^5.0.0",
     "@types/micromatch": "^3.1.0",
     "@types/node": "^10.0.0",
     "@types/semver": "^5.4.0",
@@ -72,6 +74,7 @@
     "html-webpack-plugin": "^3.2.0",
     "husky": "^1.0.0",
     "jasmine-core": "^3.0.0",
+    "json-loader": "^0.5.7",
     "karma": "^3.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^2.0.0",
