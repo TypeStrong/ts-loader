@@ -582,6 +582,9 @@ Ok, so how is that relevant to ts-loader? Because the best way to think about wh
 
 **TypeScript version compatibility.** As a final caveat, [this commit to TypeScript](https://github.com/Microsoft/TypeScript/commit/d519e3f21ec36274726c44dab25c9eb48e34953f) is necessary for the `include` or `exclude` options of a project-referenced tsconfig file to work. It should be released in TypeScript 3.1.1 according to the tags. To use an earlier version of TypeScript, referenced project configuration files must specify `files`, and not `include`.
 
+#### ast _(boolean) (default=false)_
+Instead of transforming TypeScript into JavaScript, as you surely want to do if you’re looking at this loader, this option transforms TypeScript into a JSON representation of its [Abstract Syntax Tree](https://astexplorer.net/#/gist/96f5a3e5ab73bd5c003e49b9cfc749d2/606af49c74f9e05d511746a9480e1369628a4a8b) (AST). Potentially useful for autogenerating documentation of source files.
+
 ### Usage with webpack watch
 
 Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using webpack, you may wish to add this to your webpack.conf.js file:

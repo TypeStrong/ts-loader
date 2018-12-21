@@ -1,3 +1,5 @@
+// Example from https://basarat.gitbooks.io/typescript/docs/types/generics.html
+
 /** A class definition with a generic parameter */
 class Queue<T> {
   private data = [];
