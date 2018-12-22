@@ -422,7 +422,9 @@ function getNormalisedFileContent(file, location) {
             .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '!*** /ts-loader/test/comparison-tests/')
             .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '/ /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
-            .replace(/\*{10}\**/g, '**********');
+            .replace(/\*{10}\**/g, '**********')
+            // AST test has absolute paths in the AST
+            .replace(/"c:\/ast\/app\.ts\/"/ig, '/ast/app.ts');
     } catch (e) {
         fileContent = '!!!' + filePath + ' doesn\'t exist!!!';
     }
