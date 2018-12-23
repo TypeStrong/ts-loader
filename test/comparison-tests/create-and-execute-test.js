@@ -424,7 +424,7 @@ function getNormalisedFileContent(file, location) {
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********')
             // AST test has absolute paths in the AST
-            .replace(/"c:\/ast\/app\.ts\/"/ig, '/ast/app.ts');
+            .replace(/"c:\/ast\/app\.ts\/"/ig, '"/ast/app.ts"');
     } catch (e) {
         fileContent = '!!!' + filePath + ' doesn\'t exist!!!';
     }
