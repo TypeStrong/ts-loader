@@ -28,13 +28,15 @@ You probably don't want to give up type checking; that's rather the point of Typ
 
 If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
 
-If you'd like to make things even faster still (I know, right?) then you might want to consider using ts-loader with [happypack](https://github.com/amireh/happypack) which speeds builds by parallelising work. (This should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.) If you'd like to see a simple setup take a look at [our simple example](examples/happypack/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-happypack).
+### Parallelising Builds
 
-There is a "webpack-way" of parallelising builds. Instead of using happypack you can use ts-loader with [thread-loader](https://github.com/webpack-contrib/thread-loader) and [cache-loader](https://github.com/webpack-contrib/cache-loader) in combination. (Again, this should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.) If you'd like to see a simple setup take a look at [our simple example](examples/thread-loader/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp-thread-loader).
+It's possible to parallelise your builds. Historically this was useful from a performance perspective with webpack 2 / 3.  [With webpack 4+ there appears to be significantly less benefit and perhaps even cost.](https://blog.johnnyreilly.com/2018/12/you-might-not-need-thread-loader.html)
+
+There's two ways to achieve this: [happypack](https://github.com/amireh/happypack) and [thread-loader](https://github.com/webpack-contrib/thread-loader). Both should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.) 
 
 To read more, look at [this post](https://medium.com/webpack/typescript-webpack-super-pursuit-mode-83cc568dea79) by [@johnny_reilly](https://twitter.com/johnny_reilly) on the webpack publication channel.
 
-If you'd like find out further ways to improve your build using the watch API then take a look at [this post](https://medium.com/@kenneth_chau/speeding-up-webpack-typescript-incremental-builds-by-7x-3912ba4c1d15) by [@kenneth_chau](https://twitter.com/kenneth_chau). To see an example setup that Ken generously contributed take a look [here](examples/fast-incremental-builds).
+If you'd like find out further ways to improve your build using the watch API then take a look at [this post](https://medium.com/@kenneth_chau/speeding-up-webpack-typescript-incremental-builds-by-7x-3912ba4c1d15) by [@kenneth_chau](https://twitter.com/kenneth_chau).
 
 ### Installation
 
