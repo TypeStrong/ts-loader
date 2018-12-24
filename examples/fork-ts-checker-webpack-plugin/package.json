@@ -1,0 +1,39 @@
+{
+  "name": "fork-ts-checker-webpack-plugin",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "webpack-dev-server --progress --color --mode development --config webpack.config.development.js",
+    "prebuild": "rimraf ./dist/*",
+    "build": "webpack --color --mode production --config webpack.config.production.js"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.0.0",
+    "@types/react": "^16.0.0",
+    "@types/react-dom": "^16.0.0",
+    "@types/react-router": "^4.0.12",
+    "@types/react-router-dom": "^4.0.5",
+    "@types/react-test-renderer": "^16.0.0",
+    "@types/react-transition-group": "^2.0.2",
+    "fork-ts-checker-notifier-webpack-plugin": "next",
+    "fork-ts-checker-webpack-plugin": "next",
+    "html-webpack-plugin": "next",
+    "rimraf": "^2.6.1",
+    "source-map-loader": "^0.2.1",
+    "ts-loader": "^5.0.0",
+    "tslib": "^1.7.1",
+    "tslint": "^5.5.0",
+    "tslint-react": "^3.2.0",
+    "typescript": "^3.0.0",
+    "webpack": "next",
+    "webpack-cli": "^3.0.0",
+    "webpack-dev-server": "^3.0.0"
+  },
+  "dependencies": {
+    "core-js": "^2.4.1",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "whatwg-fetch": "^3.0.0"
+  }
+}

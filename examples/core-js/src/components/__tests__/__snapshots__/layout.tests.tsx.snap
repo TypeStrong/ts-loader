@@ -1,7 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`app component renders as expected 1`] = `
-<h1>
-  Heya, heya, heya!!!
-</h1>
-`;
