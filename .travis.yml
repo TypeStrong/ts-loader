@@ -24,4 +24,11 @@ env:
   - TYPESCRIPT=typescript@2.6.1
   - TYPESCRIPT=typescript@2.5.2
   - TYPESCRIPT=typescript@2.4.1
- 
+deploy:
+  provider: npm
+  email: johnny_reilly@hotmail.com
+  skip_cleanup: true
+  api_key: $NPM_PUBLISH_TOKEN
+  on:
+    tags: true
+    branch: master
