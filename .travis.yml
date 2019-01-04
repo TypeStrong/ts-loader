@@ -32,3 +32,4 @@ deploy:
   on:
     tags: true
     branch: master
+    node_js: "10"
