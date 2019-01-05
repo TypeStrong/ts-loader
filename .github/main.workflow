@@ -19,16 +19,16 @@ action "build" {
 }
 
 # test with yarn - commented until they work in docker
-#action "test" {
-#  needs = "build"
-#  uses = "docker://node:10"
-#  runs = "yarn"
-#  args = "test"
-#}
+action "test" {
+  needs = "build"
+  uses = "docker://zenika/alpine-chrome:with-node"
+  runs = "yarn"
+  args = "execution-tests"
+}
 
 # filter for a new tag
 action "check for new tag" {
-  needs = "build"
+  needs = "test"
   uses = "actions/bin/filter@master"
   args = "tag"
 }
