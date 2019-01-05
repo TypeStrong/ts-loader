@@ -1,57 +1,14 @@
 /* eslint-disable no-var, strict */
 'use strict';
-var path = require('path');
-var webpack = require('webpack');
 var webpackConfig = require('./webpack.config.js');
-var reporterOptions = require('../../reporterOptions');
+var makeKarmaConfig = require('../../karmaConfig');
 
 module.exports = function(config) {
-  config.set({
-    browsers: ['ChromeHeadlessNoSandbox'],
-    customLaunchers: {
-        ChromeHeadlessNoSandbox: {
-            base: 'ChromeHeadless',
-            flags: [
-                '--no-sandbox', // required to run without privileges in docker
-                '--user-data-dir=/tmp/chrome-test-profile',
-                '--disable-web-security'
-            ]
-        }
-    },
-    
-    files: [
-      // This loads all the tests
-      './**/*.tests.js'
-    ],
-
-    port: 9876,
-
-    frameworks: [ 'jasmine' ],
-
-    logLevel: config.LOG_INFO, //config.LOG_DEBUG
-
-    preprocessors: {
-      './**/*.js': [ 'webpack', 'sourcemap' ]
-    },
-
-    webpack: {
-      devtool: 'inline-source-map',
-      mode: webpackConfig.mode,
-      module: webpackConfig.module,
-      resolve: webpackConfig.resolve,
-
-      // for test harness purposes only, you would not need this in a normal project
-      resolveLoader: webpackConfig.resolveLoader
-    },
-
-    webpackMiddleware: {
-      quiet: true,
-      stats: {
-        colors: true
-      }
-    },
-
-    // reporter options
-    mochaReporter: reporterOptions,
-  });
+  config.set(
+    makeKarmaConfig({
+      config,
+      webpackConfig,
+      files: ['./**/*.tests.js']
+    })
+  );
 };
