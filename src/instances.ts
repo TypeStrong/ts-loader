@@ -188,7 +188,7 @@ function successfulTypeScriptInstance(
       program,
       dependencyGraph: {},
       reverseDependencyGraph: {},
-      transformers: getCustomTransformers(),
+      transformers: getCustomTransformers(program),
       colors
     };
 
@@ -235,7 +235,7 @@ function successfulTypeScriptInstance(
     otherFiles,
     languageService: null,
     version: 0,
-    transformers: getCustomTransformers(),
+    transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
     dependencyGraph: {},
     reverseDependencyGraph: {},
     modifiedFiles: null,
@@ -267,6 +267,8 @@ function successfulTypeScriptInstance(
     instance.program = instance.watchOfFilesAndCompilerOptions
       .getProgram()
       .getProgram();
+
+    instance.transformers = getCustomTransformers(instance.program);
   } else {
     const servicesHost = makeServicesHost(
       scriptRegex,
@@ -285,6 +287,8 @@ function successfulTypeScriptInstance(
     if (servicesHost.clearCache !== null) {
       loader._compiler.hooks.watchRun.tap('ts-loader', servicesHost.clearCache);
     }
+
+    instance.transformers = getCustomTransformers(instance.languageService!.getProgram());
   }
 
   loader._compiler.hooks.afterCompile.tapAsync(

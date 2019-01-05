@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.3.3
+
+* [fix: Pass ts.Program to getCustomTransformers](https://github.com/TypeStrong/ts-loader/pull/889) (#860) - thanks @andersekdahl!
+
 ## v5.3.2
 
 * [feat: enable experimentalFileCaching by default](https://github.com/TypeStrong/ts-loader/pull/885) (#868) - thanks @timocov!

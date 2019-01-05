@@ -1,5 +1,5 @@
 var uppercaseStringLiteralTransformer = require('./uppercaseStringLiteralTransformer').default;
 
-module.exports = () => ({
+module.exports = (program) => ({
   before: [uppercaseStringLiteralTransformer]
 });

@@ -252,7 +252,7 @@ This will ensure that the plugin checks for both syntactic errors (eg `const arr
 
 Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
 
-#### getCustomTransformers _( () => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } )_
+#### getCustomTransformers _( (program: Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } )_
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 
