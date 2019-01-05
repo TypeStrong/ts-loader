@@ -1,10 +1,17 @@
 workflow "build, test and publish on release" {
-  on = "release"
+  on = "push"
   resolves = "publish"
+}
+
+# filter for a new tag
+action "check for new tag" {
+  uses = "actions/bin/filter@1.0.0"
+  args = "tag"
 }
 
 # install with yarn
 action "install" {
+  needs = "check for new tag"
   uses = "actions/npm@1.0.0"
   runs = "yarn"
   args = "install"
