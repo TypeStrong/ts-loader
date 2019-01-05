@@ -9,7 +9,7 @@
     "lint": "tslint --project \"./src\"",
     "comparison-tests": "tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
-    "execution-tests": "npm i -g pnpm && node test/execution-tests/run-tests.js",
+    "execution-tests": "node test/execution-tests/run-tests.js",
     "test": "node test/run-tests.js"
   },
   "husky": {
