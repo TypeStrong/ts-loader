@@ -9,10 +9,14 @@ module.exports = function(config) {
   config.set({
     browsers: ['ChromeHeadlessNoSandbox'],
     customLaunchers: {
-      ChromeHeadlessNoSandbox: {
-        base: 'ChromeHeadless',
-        flags: ['--no-sandbox']
-      }
+        ChromeHeadlessNoSandbox: {
+            base: 'ChromeHeadless',
+            flags: [
+                '--no-sandbox', // required to run without privileges in docker
+                '--user-data-dir=/tmp/chrome-test-profile',
+                '--disable-web-security'
+            ]
+        }
     },
     
     files: [
