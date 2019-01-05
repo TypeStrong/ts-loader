@@ -21,8 +21,7 @@ action "build" {
 # test with yarn
 action "test" {
   needs = "build"
-  uses = "actions/npm@1.0.0"
-  runs = "yarn"
+  uses = "docker://zenika/alpine-chrome:with-node"
   args = "test"
 }
 
