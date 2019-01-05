@@ -3,15 +3,8 @@ workflow "build, test and publish on release" {
   resolves = "publish"
 }
 
-# filter for a new tag
-action "check for new tag" {
-  uses = "actions/bin/filter@master"
-  args = "tag"
-}
-
 # install with yarn
 action "install" {
-  needs = "check for new tag"
   uses = "actions/npm@1.0.0"
   runs = "yarn"
   args = "install"
@@ -33,9 +26,16 @@ action "test" {
   args = "test"
 }
 
+# filter for a new tag
+action "check for new tag" {
+  needs = "test"
+  uses = "actions/bin/filter@master"
+  args = "tag"
+}
+
 # publish with npm
 action "publish" {
-  needs = "test"
+  needs = "check for new tag"
   uses = "actions/npm@1.0.0"
   args = "publish"
   secrets = ["NPM_AUTH_TOKEN"]
