@@ -105,8 +105,8 @@ function runTests(testName) {
     var karmaConfPath = path.join(testPath, 'karma.conf.js');
 
     if (pathExists(path.join(testPath, 'shrinkwrap.yaml'))) {
-        console.log('pnpm install into ' + testPath);
-        execSync('pnpm install', { cwd: testPath, stdio: 'inherit' });
+        console.log('npx pnpm install into ' + testPath);
+        execSync('npx pnpm install', { cwd: testPath, stdio: 'inherit' });
     } else if (pathExists(path.join(testPath, 'package.json'))) {
         console.log('yarn install into ' + testPath);
         execSync('yarn install', { cwd: testPath, stdio: 'inherit' });
