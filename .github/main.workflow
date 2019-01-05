@@ -5,7 +5,7 @@ workflow "build, test and publish on release" {
 
 # filter for a new tag
 action "check for new tag" {
-  uses = "actions/bin/filter@1.0.0"
+  uses = "actions/bin/filter@master"
   args = "tag"
 }
 
