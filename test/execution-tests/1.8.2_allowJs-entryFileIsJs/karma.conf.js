@@ -7,8 +7,14 @@ var reporterOptions = require('../../reporterOptions');
 
 module.exports = function(config) {
   config.set({
-    browsers: [ 'ChromeHeadless' ],
-
+    browsers: ['ChromeHeadlessNoSandbox'],
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
+    
     files: [
       // This loads all the tests
       './**/*.tests.js'
