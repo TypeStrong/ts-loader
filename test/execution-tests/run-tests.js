@@ -115,7 +115,7 @@ function runTests(testName) {
     try {
         if (pathExists(path.join(testPath, 'karma.conf.js'))) {
             var singleRunOrWatch = watch ? '' : ' --single-run';
-            execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadless', { cwd: testPath, stdio: 'inherit' });
+            execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox', { cwd: testPath, stdio: 'inherit' });
 
             passingTests.push(testName);
         } else {
