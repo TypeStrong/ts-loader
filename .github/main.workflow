@@ -21,8 +21,7 @@ action "build" {
 # test with yarn - commented until they work in docker
 action "test" {
   needs = "build"
-  uses = "docker://zenika/alpine-chrome:with-node"
-#  uses = "./.github/node-chrome"
+  uses = "./.github/node-chrome"
   runs = "yarn"
   args = "execution-tests"
 }
