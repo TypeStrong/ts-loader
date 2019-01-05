@@ -23,6 +23,7 @@ action "test" {
   needs = "build"
   uses = "docker://zenika/alpine-chrome:with-node"
   args = "test"
+  runs = "yarn"
 }
 
 # filter for a new tag
