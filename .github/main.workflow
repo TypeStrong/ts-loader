@@ -5,7 +5,7 @@ workflow "build, test and publish on release" {
 
 # install with yarn
 action "install" {
-  uses = "actions/npm@master"
+  uses = "actions/npm@1.0.0"
   runs = "yarn"
   args = "install"
 }
