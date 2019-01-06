@@ -106,7 +106,7 @@ function runTests(testName) {
 
     if (pathExists(path.join(testPath, 'shrinkwrap.yaml'))) {
         console.log('npx pnpm install into ' + testPath);
-        execSync('npx pnpm install', { cwd: testPath, stdio: 'inherit' });
+        execSync('npx pnpm install --force', { cwd: testPath, stdio: 'inherit' });
     } else if (pathExists(path.join(testPath, 'package.json'))) {
         console.log('yarn install into ' + testPath);
         execSync('yarn install', { cwd: testPath, stdio: 'inherit' });
