@@ -16,18 +16,18 @@ RUN apt-get update && apt-get install -y wget --no-install-recommends \
     && apt-get purge --auto-remove -y curl \
     && rm -rf /src/*.deb
 
-WORKDIR /ts-loader
+WORKDIR /TypeStrong/ts-loader
 
 # install packages
-COPY package.json yarn.lock index.js /ts-loader/
+COPY package.json yarn.lock index.js /TypeStrong/ts-loader/
 RUN yarn
 
 # build
-COPY src /ts-loader/src
+COPY src /TypeStrong/ts-loader/src
 RUN yarn build
 
 # test
-COPY test /ts-loader/test
+COPY test /TypeStrong/ts-loader/test
 
 # build and run tests with:
 # docker build -t ts-loader . 
