@@ -18,12 +18,12 @@ action "build" {
   args = "build"
 }
 
-# test with yarn - commented until they work in docker
+# test with yarn
 action "test" {
   needs = "build"
   uses = "./.github/node-chrome"
   runs = "yarn"
-  args = "execution-tests"
+  args = "test"
 }
 
 # filter for a new tag
