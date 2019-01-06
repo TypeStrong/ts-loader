@@ -1,4 +1,4 @@
-FROM node:10-slim
+FROM node:10
 
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
@@ -16,22 +16,19 @@ RUN apt-get update && apt-get install -y wget --no-install-recommends \
     && apt-get purge --auto-remove -y curl \
     && rm -rf /src/*.deb
 
+WORKDIR /ts-loader
+
 # install packages
-ADD package.json yarn.lock index.js /
+COPY package.json yarn.lock index.js /ts-loader/
 RUN yarn
 
 # build
-COPY src src
+COPY src /ts-loader/src
 RUN yarn build
 
 # test
-COPY test test
-RUN yarn execution-tests
+COPY test /ts-loader/test
 
-# build and run execution tests with:
-# docker build -t ts-loader .
-
-
-
-# docker build -t ts-loader . && docker run -rm ts-loader
-# docker build -t ts-loader . && docker run -it ts-loader
+# build and run tests with:
+# docker build -t ts-loader . 
+# docker run -it ts-loader yarn test
