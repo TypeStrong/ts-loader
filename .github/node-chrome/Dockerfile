@@ -1,8 +1,6 @@
 # Taken from https://raw.githubusercontent.com/filipesilva/ng-github-actions/master/.github/node-chrome/Dockerfile
-
-# Taken from https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker
-# Using the "jessie" image because without it there's a "Error: spawn ps ENOENT" after karma/protractor exits.
-FROM node:10-jessie-slim
+# and https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md#running-puppeteer-in-docker
+FROM node:10-slim
 
 # See https://crbug.com/795759
 RUN apt-get update && apt-get install -yq libgconf-2-4
