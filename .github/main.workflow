@@ -8,9 +8,6 @@ action "install" {
   uses = "actions/npm@1.0.0"
   runs = "yarn"
   args = "install"
-  env = {
-    GITHUB_WORKSPACE = "/github/workspace/ts-loader"
-  }
 }
 
 # build with yarn
