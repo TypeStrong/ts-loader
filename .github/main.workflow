@@ -23,7 +23,7 @@ action "test" {
   needs = "build"
   uses = "./.github/node-chrome"
   runs = "yarn"
-  args = "test"
+  args = "execution-tests"
 }
 
 # filter for a new tag
