@@ -416,7 +416,7 @@ function getNormalisedFileContent(file, location) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/(C\:\/)?[\w|\/]*\/ts-loader\/\.test/g, '')
+            .replace(/(C\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/g, '')
             .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'webpack://comparison-tests/')
             .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
             .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '!*** /ts-loader/test/comparison-tests/')
@@ -440,9 +440,9 @@ function normaliseString(platformSpecificContent) {
         .replace(new RegExp(regexEscape('\\'), 'g'), '/')
         .replace(new RegExp(regexEscape('//'), 'g'), '/')
         // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\]ts-loader[\/|\\]index.js/g, 'ts-loader')
+        .replace(/ \S+[\/|\\](ts-loader|workspace)[\/|\\]index.js/g, 'ts-loader')
         // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\]ts-loader[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
+        .replace(/\(\S+[\/|\\](ts-loader|workspace)[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
 }
 
 /**

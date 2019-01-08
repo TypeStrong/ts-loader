@@ -1,46 +1,17 @@
 /* eslint-disable no-var, strict */
 'use strict';
 var webpackConfig = require('./webpack.config.js');
-var reporterOptions = require('../../reporterOptions');
+var makeKarmaConfig = require('../../karmaConfig');
 
 module.exports = function(config) {
-  // Documentation: https://karma-runner.github.io/0.13/config/configuration-file.html
-  config.set({
-    browsers: [ 'ChromeHeadless' ],
-
-    files: [
-      // This ensures we have the es6 shims in place and then loads all the tests
-      'main.js'
-    ],
-
-    port: 9876,
-
-    frameworks: [ 'jasmine' ],
-
-    logLevel: config.LOG_INFO, //config.LOG_DEBUG
-
-    preprocessors: {
-      'main.js': [ 'webpack', 'sourcemap' ]
-    },
-
-    webpack: {
-      devtool: 'inline-source-map',
-      mode: webpackConfig.mode,
-      module: webpackConfig.module,
-      resolve: webpackConfig.resolve,
-
-      // for test harness purposes only, you would not need this in a normal project
-      resolveLoader: webpackConfig.resolveLoader
-    },
-
-    webpackMiddleware: {
-      quiet: true,
-      stats: {
-        colors: true
-      }
-    },
-
-    // reporter options
-    mochaReporter: reporterOptions
-  });
+  config.set(
+    makeKarmaConfig({
+      config,
+      webpackConfig,
+      files: [
+        // This ensures we have the es6 shims in place from babel and then loads all the tests
+        'main.js'
+      ]
+    })
+  );
 };
