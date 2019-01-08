@@ -1,6 +1,7 @@
 workflow "build, test and publish on release" {
   on = "push"
-  resolves = "publish"
+#  resolves = "publish" - commented until this issue is resolved: https://github.com/actions/bin/issues/13
+  resolves = "check for new tag"
 }
 
 # install with yarn
