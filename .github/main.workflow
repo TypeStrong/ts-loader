@@ -33,10 +33,10 @@ action "check for new tag" {
   args = "tag"
 }
 
-# publish with npm
-action "publish" {
-  needs = "check for new tag"
-  uses = "actions/npm@1.0.0"
-  args = "publish"
-  secrets = ["NPM_AUTH_TOKEN"]
-}
+# publish with npm - commented until this issue is resolved: https://github.com/actions/bin/issues/13
+#action "publish" {
+#  needs = "check for new tag"
+#  uses = "actions/npm@1.0.0"
+#  args = "publish"
+#  secrets = ["NPM_AUTH_TOKEN"]
+#}
