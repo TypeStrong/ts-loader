@@ -4,5 +4,8 @@
   ],
   "references": [
     { "path": "./lib" }
-  ]
+  ],
+  "compilerOptions": {
+    "noEmitOnError": true
+  }
 }

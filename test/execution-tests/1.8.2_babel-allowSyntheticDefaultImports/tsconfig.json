@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "module": "es2015",
-    "noEmitOnError": false,
+    "noEmitOnError": true,
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "removeComments": false,

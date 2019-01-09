@@ -5,6 +5,7 @@
         "module": "esnext",
         "strict": true,
         "importHelpers": true,
+        "noEmitOnError": true,
         "lib": [
             "dom",
             "es5",

@@ -5,6 +5,7 @@
         "noImplicitAny": true,
         "noUnusedLocals": true,
         "noUnusedParameters": true,
+        "noEmitOnError": true,
         "removeComments": false,
         "preserveConstEnums": true,
         "sourceMap": true,
