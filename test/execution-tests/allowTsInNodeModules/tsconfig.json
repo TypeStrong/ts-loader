@@ -1,5 +1,7 @@
 {
-  "compilerOptions": { },
+  "compilerOptions": {
+    "noEmitOnError": true
+  },
   "include": [
     "./node_modules/whitelistedModule"
   ],

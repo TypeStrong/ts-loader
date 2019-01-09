@@ -5,7 +5,7 @@
     "lib": ["dom", "es2015", "es2016"],
     "module": "es2015",
     "moduleResolution": "node",
-    "noEmitOnError": false,
+    "noEmitOnError": true,
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "removeComments": false,
