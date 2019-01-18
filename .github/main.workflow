@@ -1,7 +1,6 @@
 workflow "build, test and publish on release" {
   on = "push"
-#  resolves = "publish" - commented until this issue is resolved: https://github.com/actions/bin/issues/13
-  resolves = "check for new tag"
+  resolves = "publish"
 }
 
 # install with yarn
@@ -34,10 +33,9 @@ action "check for new tag" {
   args = "tag"
 }
 
-# publish with npm - commented until this issue is resolved: https://github.com/actions/bin/issues/13
-#action "publish" {
-#  needs = "check for new tag"
-#  uses = "actions/npm@1.0.0"
-#  args = "publish"
-#  secrets = ["NPM_AUTH_TOKEN"]
-#}
+action "publish" {
+  needs = "check for new tag"
+  uses = "actions/npm@1.0.0"
+  args = "publish"
+  secrets = ["NPM_AUTH_TOKEN"]
+}
