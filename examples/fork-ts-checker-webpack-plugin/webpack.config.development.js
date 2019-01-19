@@ -21,8 +21,7 @@ module.exports = {
     },
     plugins: [
         new ForkTsCheckerWebpackPlugin({
-            tslint: true,
-            watch: ['./src'] // optional but improves performance (fewer stat calls)
+            tslint: true, useTypescriptIncrementalApi: true
         }),
         new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
         new HtmlWebpackPlugin({

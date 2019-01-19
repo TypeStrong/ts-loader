@@ -20,6 +20,7 @@ module.exports = {
     plugins: [
         new ForkTsCheckerWebpackPlugin({
             async: false,
+            useTypescriptIncrementalApi: true,
             memoryLimit: 4096
         }),
         new HtmlWebpackPlugin({
