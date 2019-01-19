@@ -14,11 +14,12 @@ This is the typescript loader for webpack.
 
 ### Examples
 
-We have a number of example setups to accomodate different workflows. From "[vanilla](examples/vanilla)" ts-loader, to using ts-loader in combination with [babel](https://babeljs.io/) for transpilation, [happypack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) for faster builds and [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for performing type checking in a separate process. Not forgetting [Hot Module Replacement](https://webpack.js.org/api/hot-module-replacement/). Our examples can be found [here](examples/).
+We have a number of example setups to accomodate different workflows. Our examples can be found [here](examples/).
 
-### Babel
+We probably have more examples than we need.  That said, here's a good way to get started:
 
-ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
+- I want the simplest setup going.  Use "[vanilla](examples/vanilla)" ts-loader
+- I want the fastest compilation that's available.  Use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).  It performs type checking in a separate process with `ts-loader` just handling transpilation.
 
 ### Faster Builds
 
@@ -27,6 +28,10 @@ As your project becomes bigger, compilation time increases linearly. It's becaus
 You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin). It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking. Also, the plugin has several optimizations to make incremental type checking faster (AST cache, multiple workers).
 
 If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
+
+### Babel
+
+ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
 
 ### Parallelising Builds
 
@@ -146,7 +151,7 @@ declare var require: {
 
 Then you can simply require assets or chunks per the [webpack documentation](https://webpack.js.org/guides/code-splitting/).
 
-```js
+```javascript
 require("!style!css!./style.css");
 ```
 
@@ -171,7 +176,7 @@ If you want to resolve modules according to `baseUrl` and `paths` in your `tscon
 
 This feature requires webpack 2.1+ and TypeScript 2.0+. Use the config below or check the [package](https://github.com/dividab/tsconfig-paths-webpack-plugin/blob/master/README.md) for more information on usage.
 
-```js
+```javascript
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
 module.exports = {
@@ -244,7 +249,7 @@ If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-load
 
 It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple HappyPack example](examples/happypack) / [our simple thread-loader example](examples/thread-loader). For a more complex setup take a look at our [more involved HappyPack example](examples/react-babel-karma-gulp-happypack) / [more involved thread-loader example](examples/react-babel-karma-gulp-thread-loader). **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `checkSyntacticErrors` option like so:
 
-```
+```javascript
         new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
 ```
 
@@ -326,7 +331,7 @@ By default ts-loader formats TypeScript compiler output for an error or a warnin
 
 If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter. Please note that the `colors` parameter is an instance of [`chalk`](https://github.com/chalk/chalk) which you can use to color your output. (This instance will respect the `colors` option.)
 
-```js
+```javascript
 function customErrorFormatter(error, colors) {
   const messageColor =
     error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
@@ -339,7 +344,7 @@ function customErrorFormatter(error, colors) {
 
 If the above formatter received an error like this:
 
-```
+```json
 {
   "code":2307,
   "severity": "error",
@@ -588,7 +593,7 @@ Ok, so how is that relevant to ts-loader? Because the best way to think about wh
 
 Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using webpack, you may wish to add this to your webpack.conf.js file:
 
-```js
+```javascript
  plugins: [
    new webpack.WatchIgnorePlugin([
      /\.js$/,

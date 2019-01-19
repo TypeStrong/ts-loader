@@ -1,6 +1,4 @@
 const path = require('path');
-const fs = require('fs');
-const webpack = require('webpack');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
@@ -22,8 +20,8 @@ module.exports = {
     plugins: [
         new ForkTsCheckerWebpackPlugin({
             async: false,
-            memoryLimit: 4096,
-            checkSyntacticErrors: true
+            useTypescriptIncrementalApi: true,
+            memoryLimit: 4096
         }),
         new HtmlWebpackPlugin({
             hash: true,
@@ -48,9 +46,8 @@ module.exports = {
             {
                 test: /.tsx?$/,
                 use: [
-                    { loader: 'ts-loader', options: { happyPackMode: true } }
+                    { loader: 'ts-loader', options: { transpileOnly: true } }
                 ],
-                exclude: /node_modules/
             }
         ]
     },

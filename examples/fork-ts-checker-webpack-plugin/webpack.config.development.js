@@ -1,6 +1,4 @@
 const path = require('path');
-const fs = require('fs');
-const webpack = require('webpack');
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -23,9 +21,7 @@ module.exports = {
     },
     plugins: [
         new ForkTsCheckerWebpackPlugin({
-            tslint: true,
-            checkSyntacticErrors: true,
-            watch: ['./src'] // optional but improves performance (fewer stat calls)
+            tslint: true, useTypescriptIncrementalApi: true
         }),
         new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
         new HtmlWebpackPlugin({
@@ -38,10 +34,8 @@ module.exports = {
             {
                 test: /.tsx?$/,
                 use: [
-                    { loader: 'ts-loader', options: { happyPackMode: true } }
-                ],
-                exclude: path.resolve(process.cwd(), 'node_modules'),
-                include: path.resolve(process.cwd(), "src"),
+                    { loader: 'ts-loader', options: { transpileOnly: true } }
+                ]
             }
         ]
     },
@@ -52,7 +46,6 @@ module.exports = {
     devServer: {
         clientLogLevel: 'warning',
         open: true,
-        hot: true,
         historyApiFallback: true,
         stats: 'errors-only'
     }
