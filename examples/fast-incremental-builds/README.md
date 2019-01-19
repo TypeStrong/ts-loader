@@ -1,5 +1,7 @@
 # Large Scale Ready, Fast Incremental Builds with ts-loader
 
+*You might find that the `fork-ts-checker-webpack-plugin` is faster than this thanks to the new watch API it uses*
+
 This example follows the principles outlined in [](https://medium.com/@kenneth_chau/speeding-up-webpack-typescript-incremental-builds-by-7x-3912ba4c1d15) making sure that the incremental build speeds can scale up to thousands of modules with `ts-loader`.
 
 Some highlights of this example:
