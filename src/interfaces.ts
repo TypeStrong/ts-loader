@@ -330,7 +330,7 @@ export interface LoaderOptions {
   happyPackMode: boolean;
   getCustomTransformers?:
     | string
-    | (() => typescript.CustomTransformers | undefined);
+    | ((program: typescript.Program) => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
   experimentalFileCaching: boolean;

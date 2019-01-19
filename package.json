@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "5.3.2",
+  "version": "5.3.3",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist/types/index.d.ts",
@@ -9,8 +9,10 @@
     "lint": "tslint --project \"./src\"",
     "comparison-tests": "tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
-    "execution-tests": "npm i -g pnpm && node test/execution-tests/run-tests.js",
-    "test": "node test/run-tests.js"
+    "execution-tests": "node test/execution-tests/run-tests.js",
+    "test": "node test/run-tests.js",
+    "docker:build": "docker build -t ts-loader .",
+    "postdocker:build": "docker run -it ts-loader yarn test"
   },
   "husky": {
     "hooks": {
