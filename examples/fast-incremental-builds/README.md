@@ -7,7 +7,7 @@ This example follows the principles outlined in [](https://medium.com/@kenneth_c
 Some highlights of this example:
 
 * `cache-loader`'s writes slows down the incremental builds; so we skip it
-* `forked-ts-checker-webpack-plugin` is used to do typechecking in a separate thread
+* `fork-ts-checker-webpack-plugin` is used to do typechecking in a separate thread
 * `webpack-dev-server` is used so that the files are written to memory
 * package.json's `engines` field is filled with required versions of node that will ensure fastest webpack builds
 * separated production vs development webpack configuration files for specific use cases
