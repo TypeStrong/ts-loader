@@ -37,7 +37,7 @@ ts-loader works very well in combination with [babel](https://babeljs.io/) and [
 
 It's possible to parallelise your builds. Historically this was useful from a performance perspective with webpack 2 / 3.  [With webpack 4+ there appears to be significantly less benefit and perhaps even cost.](https://blog.johnnyreilly.com/2018/12/you-might-not-need-thread-loader.html)
 
-There's two ways to achieve this: [happypack](https://github.com/amireh/happypack) and [thread-loader](https://github.com/webpack-contrib/thread-loader). Both should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.) 
+But if that's what you want to do, there's two ways to achieve this: [happypack](https://github.com/amireh/happypack) and [thread-loader](https://github.com/webpack-contrib/thread-loader). Both should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.) 
 
 To read more, look at [this post](https://medium.com/webpack/typescript-webpack-super-pursuit-mode-83cc568dea79) by [@johnny_reilly](https://twitter.com/johnny_reilly) on the webpack publication channel.
 
