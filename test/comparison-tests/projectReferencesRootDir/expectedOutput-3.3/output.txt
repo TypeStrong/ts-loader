@@ -1,0 +1,10 @@
+    Asset      Size  Chunks             Chunk Names
+bundle.js  4.69 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 81 bytes {main} [built]
+[./lib/src/index.ts] 94 bytes {main} [built] [1 warning]
+
+WARNING in ./lib/src/index.ts
+Module Warning (from /index.js):
+Could not find source map file for referenced project output lib\out\index.js. Ensure the 'sourceMap' compiler option is enabled in lib\tsconfig.json to ensure Webpack can map project references to the appropriate source files.
+ @ ./app.ts 1:0-38 2:12-15 2:21-24 2:30-33
