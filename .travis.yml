@@ -12,6 +12,7 @@ install:
   - yarn install
   - yarn build
   - yarn lint
+  - yarn lint:md
   - yarn add $TYPESCRIPT
 env:
   - TYPESCRIPT=typescript@3.5.1
@@ -27,4 +28,3 @@ env:
   - TYPESCRIPT=typescript@2.6.1
   - TYPESCRIPT=typescript@2.5.2
   - TYPESCRIPT=typescript@2.4.1
- 
