@@ -1594,17 +1594,17 @@ for-in@^1.0.2:
   resolved "https://registry.yarnpkg.com/for-in/-/for-in-1.0.2.tgz#81068d295a8142ec0ac726c6e2200c30fb6d5e80"
   integrity sha1-gQaNKVqBQuwKxybG4iAMMPttXoA=
 
-fork-ts-checker-notifier-webpack-plugin@next:
-  version "1.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/fork-ts-checker-notifier-webpack-plugin/-/fork-ts-checker-notifier-webpack-plugin-1.0.0-alpha.0.tgz#fcef1313c67f03e6947b08701fbdef154459f701"
-  integrity sha512-QsipkO5uQ7soM82BAZOgnAgSvzXHsTvVHAY4IZZiLML282JM91qSAmS8xBikIZoUSb7rtKp0/Wo4w4Gsbb7uKw==
+fork-ts-checker-notifier-webpack-plugin@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fork-ts-checker-notifier-webpack-plugin/-/fork-ts-checker-notifier-webpack-plugin-1.0.0.tgz#04edbcaff60aa38a62fc0de2d8cdebeca48a2f7e"
+  integrity sha512-pYIQ+XyqBVMAjTb/lLW46bdaO9KcLm/Qmzy6JHt1BRjBBPveAwTpf5sWi8ACJH6yaJvgWryK6RiL82RETkw2iw==
   dependencies:
     node-notifier "^5.1.2"
 
-fork-ts-checker-webpack-plugin@next:
-  version "1.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/fork-ts-checker-webpack-plugin/-/fork-ts-checker-webpack-plugin-1.0.0-alpha.4.tgz#ee969b0c3790dbd8e92e885e1c6ba7f5dc7302a9"
-  integrity sha512-DDGceXYHUu9Hyqa5/E24WocGsc6vReqxGOt6jpdmmgwMxmM6MVXEsHP2ApgOYeKTzjFtJAVkbE4rmz8WNPSShA==
+fork-ts-checker-webpack-plugin@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fork-ts-checker-webpack-plugin/-/fork-ts-checker-webpack-plugin-1.0.0.tgz#0f9ff0219f9b6f1a1b10fa25d7cc5015e60c997a"
+  integrity sha512-Kc7LI0OlnWB0FRbDQO+nnDCfZr+LhFSJIP8kZppDXvuXI/opeMg3IrlMedBX/EGgOUK0ma5Hafgkdp3DuxgYdg==
   dependencies:
     babel-code-frame "^6.22.0"
     chalk "^2.4.1"
