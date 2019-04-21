@@ -4,6 +4,7 @@ import * as typescript from 'typescript';
 import * as constants from './constants';
 import {
   CustomResolveModuleName,
+  CustomResolveTypeReferenceDirective,
   ModuleResolutionHost,
   ResolvedModule,
   ResolveSync,
@@ -40,7 +41,8 @@ export function makeServicesHost(
     loaderOptions: {
       appendTsSuffixTo,
       appendTsxSuffixTo,
-      resolveModuleName: customResolveModuleName
+      resolveModuleName: customResolveModuleName,
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
     }
   } = instance;
 
@@ -148,7 +150,8 @@ export function makeServicesHost(
         typeDirectiveNames,
         containingFile,
         compilerOptions,
-        moduleResolutionHost
+        moduleResolutionHost,
+        customResolveTypeReferenceDirective
       ),
 
     resolveModuleNames: (
@@ -188,7 +191,16 @@ export function makeWatchHost(
   appendTsxSuffixTo: RegExp[],
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
-  const { compiler, compilerOptions, files, otherFiles } = instance;
+  const {
+    compiler,
+    compilerOptions,
+    files,
+    otherFiles,
+    loaderOptions: {
+      resolveModuleName: customResolveModuleName,
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
+    }
+  } = instance;
 
   const newLine =
     compilerOptions.newLine === constants.CarriageReturnLineFeedCode
@@ -253,7 +265,27 @@ export function makeWatchHost(
     watchFile,
     watchDirectory,
 
-    resolveModuleNames: (moduleNames, containingFile) =>
+    // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
+    resolveTypeReferenceDirectives: (
+      typeDirectiveNames: string[],
+      containingFile: string,
+      _redirectedReference?: typescript.ResolvedProjectReference
+    ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
+      resolveTypeReferenceDirectives(
+        compiler,
+        typeDirectiveNames,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost,
+        customResolveTypeReferenceDirective
+      ),
+
+    resolveModuleNames: (
+      moduleNames: string[],
+      containingFile: string,
+      _reusedNames?: string[] | undefined,
+      _redirectedReference?: typescript.ResolvedProjectReference | undefined
+    ): (typescript.ResolvedModule | undefined)[] =>
       resolveModuleNames(
         resolveSync,
         moduleResolutionHost,
@@ -263,7 +295,8 @@ export function makeWatchHost(
         instance,
         moduleNames,
         containingFile,
-        getResolutionStrategy
+        getResolutionStrategy,
+        customResolveModuleName
       ),
 
     invokeFileWatcher,
@@ -441,16 +474,26 @@ function resolveTypeReferenceDirectives(
   typeDirectiveNames: string[],
   containingFile: string,
   compilerOptions: typescript.CompilerOptions,
-  moduleResolutionHost: typescript.ModuleResolutionHost
+  moduleResolutionHost: typescript.ModuleResolutionHost,
+  customResolveTypeReferenceDirective:
+    | CustomResolveTypeReferenceDirective
+    | undefined
 ) {
-  const resolvedTypeReferenceDirectives = typeDirectiveNames.map(
-    directive =>
-      compiler.resolveTypeReferenceDirective(
-        directive,
-        containingFile,
-        compilerOptions,
-        moduleResolutionHost
-      ).resolvedTypeReferenceDirective
+  const resolvedTypeReferenceDirectives = typeDirectiveNames.map(directive =>
+    customResolveTypeReferenceDirective === undefined
+      ? compiler.resolveTypeReferenceDirective(
+          directive,
+          containingFile,
+          compilerOptions,
+          moduleResolutionHost
+        ).resolvedTypeReferenceDirective
+      : customResolveTypeReferenceDirective(
+          directive,
+          containingFile,
+          compilerOptions,
+          moduleResolutionHost,
+          compiler.resolveTypeReferenceDirective
+        ).resolvedTypeReferenceDirective
   );
 
   return resolvedTypeReferenceDirectives;
@@ -466,7 +509,7 @@ function resolveModuleNames(
   moduleNames: string[],
   containingFile: string,
   resolutionStrategy: ResolutionStrategy,
-  customResolveModuleName?: CustomResolveModuleName
+  customResolveModuleName: CustomResolveModuleName | undefined
 ) {
   const resolvedModules = moduleNames.map(moduleName =>
     resolveModuleName(

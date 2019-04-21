@@ -255,7 +255,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'allowTsInNodeModules',
   'experimentalFileCaching',
   'projectReferences',
-  'resolveModuleName'
+  'resolveModuleName',
+  'resolveTypeReferenceDirective'
 ];
 
 /**

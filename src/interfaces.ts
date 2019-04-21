@@ -310,13 +310,13 @@ export type CustomResolveModuleName = (
   parentResolver: ResolveModuleName
 ) => typescript.ResolvedModuleWithFailedLookupLocations;
 
-// export type ResolveModuleName = (
-//   typescript: typeof ts,
-//   moduleName: string,
-//   containingFile: string,
-//   compilerOptions: ts.CompilerOptions,
-//   moduleResolutionHost: ts.ModuleResolutionHost
-// ) => ts.ResolvedModuleWithFailedLookupLocations;
+export type CustomResolveTypeReferenceDirective = (
+  typeDirectiveName: string,
+  containingFile: string,
+  compilerOptions: typescript.CompilerOptions,
+  moduleResolutionHost: typescript.ModuleResolutionHost,
+  parentResolver: typeof typescript.resolveTypeReferenceDirective
+) => typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
 
 export interface LoaderOptions {
   silent: boolean;
@@ -336,7 +336,7 @@ export interface LoaderOptions {
   appendTsSuffixTo: RegExp[];
   appendTsxSuffixTo: RegExp[];
   happyPackMode: boolean;
-  getCustomTransformers?:
+  getCustomTransformers:
     | string
     | ((
         program: typescript.Program
@@ -345,7 +345,8 @@ export interface LoaderOptions {
   allowTsInNodeModules: boolean;
   experimentalFileCaching: boolean;
   projectReferences: boolean;
-  resolveModuleName?: CustomResolveModuleName;
+  resolveModuleName: CustomResolveModuleName;
+  resolveTypeReferenceDirective: CustomResolveTypeReferenceDirective;
 }
 
 export interface TSFile {
