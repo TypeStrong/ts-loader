@@ -1,6 +1,7 @@
 {
   "extends": ["tslint:latest", "tslint-config-prettier"],
   "rules": {
+    "array-type": false,
     "ban-types": false,
     "forin": false,
     "interface-over-type-literal": false,

@@ -48,8 +48,8 @@ export function makeServicesHost(
     compilerOptions.newLine === constants.CarriageReturnLineFeedCode
       ? constants.CarriageReturnLineFeed
       : compilerOptions.newLine === constants.LineFeedCode
-        ? constants.LineFeed
-        : constants.EOL;
+      ? constants.LineFeed
+      : constants.EOL;
 
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
@@ -137,13 +137,26 @@ export function makeServicesHost(
     trace: log.log,
     log: log.log,
 
-    /* Unclear if this is useful
-        resolveTypeReferenceDirectives: (typeDirectiveNames: string[], containingFile: string) =>
-            typeDirectiveNames.map(directive =>
-                compiler.resolveTypeReferenceDirective(directive, containingFile, compilerOptions, moduleResolutionHost).resolvedTypeReferenceDirective),
-        */
+    // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
+    resolveTypeReferenceDirectives: (
+      typeDirectiveNames: string[],
+      containingFile: string,
+      _redirectedReference?: typescript.ResolvedProjectReference
+    ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
+      resolveTypeReferenceDirectives(
+        compiler,
+        typeDirectiveNames,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost
+      ),
 
-    resolveModuleNames: (moduleNames, containingFile) =>
+    resolveModuleNames: (
+      moduleNames: string[],
+      containingFile: string,
+      _reusedNames?: string[] | undefined,
+      _redirectedReference?: typescript.ResolvedProjectReference | undefined
+    ): (typescript.ResolvedModule | undefined)[] =>
       resolveModuleNames(
         resolveSync,
         moduleResolutionHost,
@@ -181,8 +194,8 @@ export function makeWatchHost(
     compilerOptions.newLine === constants.CarriageReturnLineFeedCode
       ? constants.CarriageReturnLineFeed
       : compilerOptions.newLine === constants.LineFeedCode
-        ? constants.LineFeed
-        : constants.EOL;
+      ? constants.LineFeed
+      : constants.EOL;
 
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
@@ -421,6 +434,26 @@ export function makeWatchHost(
       configFileParsingDiagnostics
     );
   }
+}
+
+function resolveTypeReferenceDirectives(
+  compiler: typeof typescript,
+  typeDirectiveNames: string[],
+  containingFile: string,
+  compilerOptions: typescript.CompilerOptions,
+  moduleResolutionHost: typescript.ModuleResolutionHost
+) {
+  const resolvedTypeReferenceDirectives = typeDirectiveNames.map(
+    directive =>
+      compiler.resolveTypeReferenceDirective(
+        directive,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost
+      ).resolvedTypeReferenceDirective
+  );
+
+  return resolvedTypeReferenceDirectives;
 }
 
 function resolveModuleNames(

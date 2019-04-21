@@ -227,8 +227,8 @@ export type ResolveSync = (
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
-      typescript.BuilderProgram
-    > {
+    typescript.BuilderProgram
+  > {
   invokeFileWatcher(
     fileName: string,
     eventKind: typescript.FileWatcherEventKind
@@ -299,7 +299,7 @@ export type ResolveModuleName = (
   moduleName: string,
   containingFile: string,
   compilerOptions: typescript.CompilerOptions,
-  moduleResolutionHost: typescript.ModuleResolutionHost,
+  moduleResolutionHost: typescript.ModuleResolutionHost
 ) => typescript.ResolvedModuleWithFailedLookupLocations;
 
 export type CustomResolveModuleName = (
@@ -309,6 +309,14 @@ export type CustomResolveModuleName = (
   moduleResolutionHost: typescript.ModuleResolutionHost,
   parentResolver: ResolveModuleName
 ) => typescript.ResolvedModuleWithFailedLookupLocations;
+
+// export type ResolveModuleName = (
+//   typescript: typeof ts,
+//   moduleName: string,
+//   containingFile: string,
+//   compilerOptions: ts.CompilerOptions,
+//   moduleResolutionHost: ts.ModuleResolutionHost
+// ) => ts.ResolvedModuleWithFailedLookupLocations;
 
 export interface LoaderOptions {
   silent: boolean;
@@ -330,7 +338,9 @@ export interface LoaderOptions {
   happyPackMode: boolean;
   getCustomTransformers?:
     | string
-    | ((program: typescript.Program) => typescript.CustomTransformers | undefined);
+    | ((
+        program: typescript.Program
+      ) => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
   experimentalFileCaching: boolean;
