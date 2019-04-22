@@ -29,6 +29,10 @@ You probably don't want to give up type checking; that's rather the point of Typ
 
 If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker-webpack-plugin/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
 
+### Yarn Plug’n’Play 
+
+`ts-loader` supports [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).  The recommended way to integrate is using the [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration).
+
 ### Babel
 
 ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
@@ -256,6 +260,10 @@ It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://git
 This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`). By default the plugin only checks for semantic errors (as when used with ts-loader in `transpileOnly` mode, ts-loader will still report syntactic errors).
 
 Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
+
+#### resolveModuleName and resolveTypeReferenceDirective:
+
+These options should be functions which will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. It's not intended that these will typically be used by a user of `ts-loader` - they exist to facilitate functionality such as [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).
 
 #### getCustomTransformers _( (program: Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } )_
 

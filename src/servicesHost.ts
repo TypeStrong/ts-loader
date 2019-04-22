@@ -4,6 +4,7 @@ import * as typescript from 'typescript';
 import * as constants from './constants';
 import {
   CustomResolveModuleName,
+  CustomResolveTypeReferenceDirective,
   ModuleResolutionHost,
   ResolvedModule,
   ResolveSync,
@@ -40,7 +41,8 @@ export function makeServicesHost(
     loaderOptions: {
       appendTsSuffixTo,
       appendTsxSuffixTo,
-      resolveModuleName: customResolveModuleName
+      resolveModuleName: customResolveModuleName,
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
     }
   } = instance;
 
@@ -48,8 +50,8 @@ export function makeServicesHost(
     compilerOptions.newLine === constants.CarriageReturnLineFeedCode
       ? constants.CarriageReturnLineFeed
       : compilerOptions.newLine === constants.LineFeedCode
-        ? constants.LineFeed
-        : constants.EOL;
+      ? constants.LineFeed
+      : constants.EOL;
 
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
@@ -75,6 +77,19 @@ export function makeServicesHost(
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
+
+  const resolvers = makeResolvers(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveTypeReferenceDirective,
+    customResolveModuleName,
+    resolveSync,
+    appendTsSuffixTo,
+    appendTsxSuffixTo,
+    scriptRegex,
+    instance
+  );
 
   const servicesHost: typescript.LanguageServiceHost = {
     getProjectVersion: () => `${instance.version}`,
@@ -108,6 +123,7 @@ export function makeServicesHost(
 
       return compiler.ScriptSnapshot.fromString(file.text!);
     },
+
     /**
      * getDirectories is also required for full import and type reference completions.
      * Without it defined, certain completions will not be provided
@@ -137,30 +153,81 @@ export function makeServicesHost(
     trace: log.log,
     log: log.log,
 
-    /* Unclear if this is useful
-        resolveTypeReferenceDirectives: (typeDirectiveNames: string[], containingFile: string) =>
-            typeDirectiveNames.map(directive =>
-                compiler.resolveTypeReferenceDirective(directive, containingFile, compilerOptions, moduleResolutionHost).resolvedTypeReferenceDirective),
-        */
+    // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
+    resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
 
-    resolveModuleNames: (moduleNames, containingFile) =>
-      resolveModuleNames(
-        resolveSync,
-        moduleResolutionHost,
-        appendTsSuffixTo,
-        appendTsxSuffixTo,
-        scriptRegex,
-        instance,
-        moduleNames,
-        containingFile,
-        getResolutionStrategy,
-        customResolveModuleName
-      ),
+    resolveModuleNames: resolvers.resolveModuleNames,
 
     getCustomTransformers: () => instance.transformers
   };
 
   return { servicesHost, clearCache };
+}
+
+function makeResolvers(
+  compiler: typeof typescript,
+  compilerOptions: typescript.CompilerOptions,
+  moduleResolutionHost: typescript.ModuleResolutionHost,
+  customResolveTypeReferenceDirective: CustomResolveTypeReferenceDirective,
+  customResolveModuleName: CustomResolveModuleName,
+  resolveSync: ResolveSync,
+  appendTsSuffixTo: RegExp[],
+  appendTsxSuffixTo: RegExp[],
+  scriptRegex: RegExp,
+  instance: TSInstance
+) {
+  const resolveTypeReferenceDirective = makeResolveTypeReferenceDirective(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveTypeReferenceDirective
+  );
+
+  const resolveTypeReferenceDirectives = (
+    typeDirectiveNames: string[],
+    containingFile: string,
+    _redirectedReference?: typescript.ResolvedProjectReference
+  ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
+    typeDirectiveNames.map(
+      directive =>
+        resolveTypeReferenceDirective(directive, containingFile)
+          .resolvedTypeReferenceDirective
+    );
+
+  const resolveModuleName = makeResolveModuleName(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveModuleName
+  );
+
+  const resolveModuleNames = (
+    moduleNames: string[],
+    containingFile: string,
+    _reusedNames?: string[] | undefined,
+    _redirectedReference?: typescript.ResolvedProjectReference | undefined
+  ): (typescript.ResolvedModule | undefined)[] => {
+    const resolvedModules = moduleNames.map(moduleName =>
+      resolveModule(
+        resolveSync,
+        resolveModuleName,
+        appendTsSuffixTo,
+        appendTsxSuffixTo,
+        scriptRegex,
+        moduleName,
+        containingFile
+      )
+    );
+
+    populateDependencyGraphs(resolvedModules, instance, containingFile);
+
+    return resolvedModules;
+  };
+
+  return {
+    resolveTypeReferenceDirectives,
+    resolveModuleNames
+  };
 }
 
 /**
@@ -175,14 +242,23 @@ export function makeWatchHost(
   appendTsxSuffixTo: RegExp[],
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
-  const { compiler, compilerOptions, files, otherFiles } = instance;
+  const {
+    compiler,
+    compilerOptions,
+    files,
+    otherFiles,
+    loaderOptions: {
+      resolveModuleName: customResolveModuleName,
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
+    }
+  } = instance;
 
   const newLine =
     compilerOptions.newLine === constants.CarriageReturnLineFeedCode
       ? constants.CarriageReturnLineFeed
       : compilerOptions.newLine === constants.LineFeedCode
-        ? constants.LineFeed
-        : constants.EOL;
+      ? constants.LineFeed
+      : constants.EOL;
 
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
@@ -210,6 +286,19 @@ export function makeWatchHost(
   const watchedDirectoriesRecursive: WatchCallbacks<
     typescript.DirectoryWatcherCallback
   > = {};
+
+  const resolvers = makeResolvers(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveTypeReferenceDirective,
+    customResolveModuleName,
+    resolveSync,
+    appendTsSuffixTo,
+    appendTsxSuffixTo,
+    scriptRegex,
+    instance
+  );
 
   const watchHost: WatchHost = {
     rootFiles: getRootFileNames(),
@@ -240,18 +329,10 @@ export function makeWatchHost(
     watchFile,
     watchDirectory,
 
-    resolveModuleNames: (moduleNames, containingFile) =>
-      resolveModuleNames(
-        resolveSync,
-        moduleResolutionHost,
-        appendTsSuffixTo,
-        appendTsxSuffixTo,
-        scriptRegex,
-        instance,
-        moduleNames,
-        containingFile,
-        getResolutionStrategy
-      ),
+    // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
+    resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
+
+    resolveModuleNames: resolvers.resolveModuleNames,
 
     invokeFileWatcher,
     invokeDirectoryWatcher,
@@ -423,36 +504,37 @@ export function makeWatchHost(
   }
 }
 
-function resolveModuleNames(
-  resolveSync: ResolveSync,
+type ResolveTypeReferenceDirective = (
+  directive: string,
+  containingFile: string
+) => typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
+
+function makeResolveTypeReferenceDirective(
+  compiler: typeof typescript,
+  compilerOptions: typescript.CompilerOptions,
   moduleResolutionHost: ModuleResolutionHost,
-  appendTsSuffixTo: RegExp[],
-  appendTsxSuffixTo: RegExp[],
-  scriptRegex: RegExp,
-  instance: TSInstance,
-  moduleNames: string[],
-  containingFile: string,
-  resolutionStrategy: ResolutionStrategy,
-  customResolveModuleName?: CustomResolveModuleName
-) {
-  const resolvedModules = moduleNames.map(moduleName =>
-    resolveModuleName(
-      resolveSync,
-      moduleResolutionHost,
-      appendTsSuffixTo,
-      appendTsxSuffixTo,
-      scriptRegex,
-      instance,
-      moduleName,
+  customResolveTypeReferenceDirective:
+    | CustomResolveTypeReferenceDirective
+    | undefined
+): ResolveTypeReferenceDirective {
+  if (customResolveTypeReferenceDirective === undefined) {
+    return (directive: string, containingFile: string) =>
+      compiler.resolveTypeReferenceDirective(
+        directive,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost
+      );
+  }
+
+  return (directive: string, containingFile: string) =>
+    customResolveTypeReferenceDirective(
+      directive,
       containingFile,
-      resolutionStrategy,
-      customResolveModuleName
-    )
-  );
-
-  populateDependencyGraphs(resolvedModules, instance, containingFile);
-
-  return resolvedModules;
+      compilerOptions,
+      moduleResolutionHost,
+      compiler.resolveTypeReferenceDirective
+    );
 }
 
 function isJsImplementationOfTypings(
@@ -465,35 +547,15 @@ function isJsImplementationOfTypings(
   );
 }
 
-function applyTsResolver(
-  compiler: typeof typescript,
-  moduleName: string,
-  containingFile: string,
-  compilerOptions: typescript.CompilerOptions,
-  moduleResolutionHost: typescript.ModuleResolutionHost
-) {
-  return compiler.resolveModuleName(
-    moduleName,
-    containingFile,
-    compilerOptions,
-    moduleResolutionHost
-  );
-}
-
-function resolveModuleName(
+function resolveModule(
   resolveSync: ResolveSync,
-  moduleResolutionHost: ModuleResolutionHost,
+  resolveModuleName: ResolveModuleName,
   appendTsSuffixTo: RegExp[],
   appendTsxSuffixTo: RegExp[],
   scriptRegex: RegExp,
-  instance: TSInstance,
   moduleName: string,
-  containingFile: string,
-  resolutionStrategy: ResolutionStrategy,
-  customResolveModuleName?: CustomResolveModuleName
+  containingFile: string
 ) {
-  const { compiler, compilerOptions } = instance;
-
   let resolutionResult: ResolvedModule;
 
   try {
@@ -520,34 +582,7 @@ function resolveModuleName(
     // tslint:disable-next-line:no-empty
   } catch (e) {}
 
-  const tsResolution =
-    customResolveModuleName !== undefined
-      ? customResolveModuleName(
-          moduleName,
-          containingFile,
-          compilerOptions,
-          moduleResolutionHost,
-          (
-            moduleNameFromCustomFn: string,
-            containingFileFromCustomFn: string,
-            compilerOptionsFromCustomFn: typescript.CompilerOptions,
-            moduleResolutionHostFromCustomFn: typescript.ModuleResolutionHost
-          ) =>
-            applyTsResolver(
-              compiler,
-              moduleNameFromCustomFn,
-              containingFileFromCustomFn,
-              compilerOptionsFromCustomFn,
-              moduleResolutionHostFromCustomFn
-            )
-        )
-      : applyTsResolver(
-          compiler,
-          moduleName,
-          containingFile,
-          compilerOptions,
-          moduleResolutionHost
-        );
+  const tsResolution = resolveModuleName(moduleName, containingFile);
 
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
@@ -560,26 +595,45 @@ function resolveModuleName(
         tsResolution.resolvedModule.isExternalLibraryImport
     };
 
-    return resolutionStrategy(resolutionResult!, tsResolutionResult);
+    return resolutionResult! === undefined ||
+      resolutionResult.resolvedFileName ===
+        tsResolutionResult.resolvedFileName ||
+      isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)
+      ? tsResolutionResult
+      : resolutionResult!;
   }
   return resolutionResult!;
 }
 
-type ResolutionStrategy = (
-  resolutionResult: ResolvedModule | undefined,
-  tsResolutionResult: ResolvedModule
-) => ResolvedModule;
+type ResolveModuleName = (
+  moduleName: string,
+  containingFile: string
+) => typescript.ResolvedModuleWithFailedLookupLocations;
 
-function getResolutionStrategy(
-  resolutionResult: ResolvedModule | undefined,
-  tsResolutionResult: ResolvedModule
-): ResolvedModule {
-  return resolutionResult! === undefined ||
-    resolutionResult!.resolvedFileName ===
-      tsResolutionResult.resolvedFileName ||
-    isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)
-    ? tsResolutionResult
-    : resolutionResult!;
+function makeResolveModuleName(
+  compiler: typeof typescript,
+  compilerOptions: typescript.CompilerOptions,
+  moduleResolutionHost: ModuleResolutionHost,
+  customResolveModuleName: CustomResolveModuleName | undefined
+): ResolveModuleName {
+  if (customResolveModuleName === undefined) {
+    return (moduleName: string, containingFile: string) =>
+      compiler.resolveModuleName(
+        moduleName,
+        containingFile,
+        compilerOptions,
+        moduleResolutionHost
+      );
+  }
+
+  return (moduleName: string, containingFile: string) =>
+    customResolveModuleName(
+      moduleName,
+      containingFile,
+      compilerOptions,
+      moduleResolutionHost,
+      compiler.resolveModuleName
+    );
 }
 
 function populateDependencyGraphs(
