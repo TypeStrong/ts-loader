@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.4.0
+
+* [feat: resolveTypeReferenceDirective support for yarn PnP](https://github.com/TypeStrong/ts-loader/pull/921) - thanks @johnnyreilly!
+
 ## v5.3.3
 
 * [fix: Pass ts.Program to getCustomTransformers](https://github.com/TypeStrong/ts-loader/pull/889) (#860) - thanks @andersekdahl!
