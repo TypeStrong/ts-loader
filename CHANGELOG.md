@@ -2,7 +2,7 @@
 
 ## v5.4.2
 
-* [fix: don't include anything apart from ts-loader in publish](https://github.com/TypeStrong/ts-loader/pull/922) - thanks @johnnyreilly!
+* [fix: don't include anything apart from ts-loader in publish](https://github.com/TypeStrong/ts-loader/pull/923) - thanks @johnnyreilly!
 
 ## v5.4.0
 
