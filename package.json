@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "5.4.2",
+  "version": "5.4.3",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist/types/index.d.ts",
