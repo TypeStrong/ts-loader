@@ -7,6 +7,7 @@ node_js:
   - "8"
   - "10"
   - "11"
+  - "12"
 sudo: required
 install:
   - yarn install
