@@ -240,6 +240,8 @@ export interface WatchHost
 export interface TSInstance {
   compiler: typeof typescript;
   compilerOptions: typescript.CompilerOptions;
+  /** Used for Vue for the most part */
+  appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
   /**
    * a cache of all the files

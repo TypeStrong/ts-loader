@@ -19,6 +19,7 @@ import {
 import * as logger from './logger';
 import { makeServicesHost, makeWatchHost } from './servicesHost';
 import {
+  appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
   isUsingProjectReferences,
@@ -125,6 +126,19 @@ function successfulTypeScriptInstance(
   const files: TSFiles = new Map<string, TSFile>();
   const otherFiles: TSFiles = new Map<string, TSFile>();
 
+  const appendTsTsxSuffixesIfRequired =
+    loaderOptions.appendTsSuffixTo.length > 0 ||
+    loaderOptions.appendTsxSuffixTo.length > 0
+      ? (filePath: string) =>
+          appendSuffixesIfMatch(
+            {
+              '.ts': loaderOptions.appendTsSuffixTo,
+              '.tsx': loaderOptions.appendTsxSuffixTo
+            },
+            filePath
+          )
+      : (filePath: string) => filePath;
+
   // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
   let { getCustomTransformers: customerTransformers } = loaderOptions;
   let getCustomTransformers = Function.prototype;
@@ -182,6 +196,7 @@ function successfulTypeScriptInstance(
     instances[loaderOptions.instance] = {
       compiler,
       compilerOptions,
+      appendTsTsxSuffixesIfRequired,
       loaderOptions,
       files,
       otherFiles,
@@ -230,6 +245,7 @@ function successfulTypeScriptInstance(
   const instance: TSInstance = (instances[loaderOptions.instance] = {
     compiler,
     compilerOptions,
+    appendTsTsxSuffixesIfRequired,
     loaderOptions,
     files,
     otherFiles,
@@ -257,8 +273,6 @@ function successfulTypeScriptInstance(
       log,
       loader,
       instance,
-      loaderOptions.appendTsSuffixTo,
-      loaderOptions.appendTsxSuffixTo,
       configParseResult.projectReferences
     );
     instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(
@@ -288,7 +302,9 @@ function successfulTypeScriptInstance(
       loader._compiler.hooks.watchRun.tap('ts-loader', servicesHost.clearCache);
     }
 
-    instance.transformers = getCustomTransformers(instance.languageService!.getProgram());
+    instance.transformers = getCustomTransformers(
+      instance.languageService!.getProgram()
+    );
   }
 
   loader._compiler.hooks.afterCompile.tapAsync(

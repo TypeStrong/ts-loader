@@ -14,7 +14,7 @@ import {
 } from './interfaces';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import { appendSuffixesIfMatch, readFile, unorderedRemoveItem } from './utils';
+import { readFile, unorderedRemoveItem } from './utils';
 
 export type Action = () => void;
 
@@ -37,10 +37,9 @@ export function makeServicesHost(
   const {
     compiler,
     compilerOptions,
+    appendTsTsxSuffixesIfRequired,
     files,
     loaderOptions: {
-      appendTsSuffixTo,
-      appendTsxSuffixTo,
       resolveModuleName: customResolveModuleName,
       resolveTypeReferenceDirective: customResolveTypeReferenceDirective
     }
@@ -85,8 +84,7 @@ export function makeServicesHost(
     customResolveTypeReferenceDirective,
     customResolveModuleName,
     resolveSync,
-    appendTsSuffixTo,
-    appendTsxSuffixTo,
+    appendTsTsxSuffixesIfRequired,
     scriptRegex,
     instance
   );
@@ -171,8 +169,7 @@ function makeResolvers(
   customResolveTypeReferenceDirective: CustomResolveTypeReferenceDirective,
   customResolveModuleName: CustomResolveModuleName,
   resolveSync: ResolveSync,
-  appendTsSuffixTo: RegExp[],
-  appendTsxSuffixTo: RegExp[],
+  appendTsTsxSuffixesIfRequired: (filePath: string) => string,
   scriptRegex: RegExp,
   instance: TSInstance
 ) {
@@ -211,8 +208,7 @@ function makeResolvers(
       resolveModule(
         resolveSync,
         resolveModuleName,
-        appendTsSuffixTo,
-        appendTsxSuffixTo,
+        appendTsTsxSuffixesIfRequired,
         scriptRegex,
         moduleName,
         containingFile
@@ -238,13 +234,12 @@ export function makeWatchHost(
   log: logger.Logger,
   loader: Webpack,
   instance: TSInstance,
-  appendTsSuffixTo: RegExp[],
-  appendTsxSuffixTo: RegExp[],
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
   const {
     compiler,
     compilerOptions,
+    appendTsTsxSuffixesIfRequired,
     files,
     otherFiles,
     loaderOptions: {
@@ -294,8 +289,7 @@ export function makeWatchHost(
     customResolveTypeReferenceDirective,
     customResolveModuleName,
     resolveSync,
-    appendTsSuffixTo,
-    appendTsxSuffixTo,
+    appendTsTsxSuffixesIfRequired,
     scriptRegex,
     instance
   );
@@ -550,8 +544,7 @@ function isJsImplementationOfTypings(
 function resolveModule(
   resolveSync: ResolveSync,
   resolveModuleName: ResolveModuleName,
-  appendTsSuffixTo: RegExp[],
-  appendTsxSuffixTo: RegExp[],
+  appendTsTsxSuffixesIfRequired: (filePath: string) => string,
   scriptRegex: RegExp,
   moduleName: string,
   containingFile: string
@@ -565,16 +558,7 @@ function resolveModule(
       moduleName
     );
 
-    const resolvedFileName =
-      appendTsSuffixTo.length > 0 || appendTsxSuffixTo.length > 0
-        ? appendSuffixesIfMatch(
-            {
-              '.ts': appendTsSuffixTo,
-              '.tsx': appendTsxSuffixTo
-            },
-            originalFileName
-          )
-        : originalFileName;
+    const resolvedFileName = appendTsTsxSuffixesIfRequired(originalFileName);
 
     if (resolvedFileName.match(scriptRegex) !== null) {
       resolutionResult = { resolvedFileName, originalFileName };
