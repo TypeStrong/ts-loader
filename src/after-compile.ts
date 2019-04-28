@@ -16,16 +16,6 @@ import {
   isUsingProjectReferences
 } from './utils';
 
-interface PatchedCompiler extends webpack.Compiler {
-  isChild(): boolean;
-  context: string;
-  outputPath: string;
-}
-
-interface PatchedWebpackCompilation extends webpack.compilation.Compilation {
-  compiler: PatchedCompiler;
-}
-
 export function makeAfterCompile(
   instance: TSInstance,
   configFilePath: string | undefined
@@ -33,7 +23,10 @@ export function makeAfterCompile(
   let getCompilerOptionDiagnostics = true;
   let checkAllFilesForErrors = true;
 
-  return (compilation: PatchedWebpackCompilation, callback: () => void) => {
+  return (
+    compilation: webpack.compilation.Compilation,
+    callback: () => void
+  ) => {
     // Don't add errors for child compilations
     if (compilation.compiler.isChild()) {
       callback();
@@ -86,7 +79,7 @@ export function makeAfterCompile(
  */
 function provideCompilerOptionDiagnosticErrorsToWebpack(
   getCompilerOptionDiagnostics: boolean,
-  compilation: PatchedWebpackCompilation,
+  compilation: webpack.compilation.Compilation,
   instance: TSInstance,
   configFilePath: string | undefined
 ) {
@@ -113,23 +106,25 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  * this is used for quick-lookup when trying to find modules
  * based on filepath
  */
-function determineModules(compilation: PatchedWebpackCompilation) {
-  // TODO: Convert to reduce
-  const modules = new Map<string, WebpackModule[]>();
-  compilation.modules.forEach(module => {
-    if (module.resource) {
-      const modulePath = path.normalize(module.resource);
-      const existingModules = modules.get(modulePath);
-      if (existingModules !== undefined) {
-        if (existingModules.indexOf(module) === -1) {
-          existingModules.push(module);
+function determineModules(compilation: webpack.compilation.Compilation) {
+  return compilation.modules.reduce<Map<string, WebpackModule[]>>(
+    (modules, module) => {
+      if (module.resource) {
+        const modulePath = path.normalize(module.resource);
+        const existingModules = modules.get(modulePath);
+        if (existingModules !== undefined) {
+          if (existingModules.indexOf(module) === -1) {
+            existingModules.push(module);
+          }
+        } else {
+          modules.set(modulePath, [module]);
         }
-      } else {
-        modules.set(modulePath, [module]);
       }
-    }
-  });
-  return modules;
+
+      return modules;
+    },
+    new Map<string, WebpackModule[]>()
+  );
 }
 
 function determineFilesToCheckForErrors(
@@ -173,7 +168,7 @@ function determineFilesToCheckForErrors(
 function provideErrorsToWebpack(
   filesToCheckForErrors: TSFiles,
   filesWithErrors: TSFiles,
-  compilation: PatchedWebpackCompilation,
+  compilation: webpack.compilation.Compilation,
   modules: Map<string, WebpackModule[]>,
   instance: TSInstance
 ) {
@@ -265,7 +260,7 @@ function provideErrorsToWebpack(
 function provideDeclarationFilesToWebpack(
   filesToCheckForErrors: TSFiles,
   instance: TSInstance,
-  compilation: PatchedWebpackCompilation
+  compilation: webpack.compilation.Compilation
 ) {
   for (const filePath of filesToCheckForErrors.keys()) {
     if (filePath.match(constants.tsTsxRegex) === null) {

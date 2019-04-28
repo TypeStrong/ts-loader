@@ -29,9 +29,6 @@ import { makeWatchRun } from './watch-run';
 
 const instances = {} as TSInstances;
 
-// TODO: workaround for issues with webpack typings
-type PatchedHookCallback = any;
-
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
  * a persistent instance of TypeScript that contains all of the files in the program
@@ -310,10 +307,10 @@ function successfulTypeScriptInstance(
     );
   }
 
-  loader._compiler.hooks.afterCompile.tapAsync('ts-loader', makeAfterCompile(
-    instance,
-    configFilePath
-  ) as PatchedHookCallback);
+  loader._compiler.hooks.afterCompile.tapAsync(
+    'ts-loader',
+    makeAfterCompile(instance, configFilePath)
+  );
   loader._compiler.hooks.watchRun.tapAsync('ts-loader', makeWatchRun(instance));
 
   return { instance };
