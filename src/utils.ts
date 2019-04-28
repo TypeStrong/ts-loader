@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as path from 'path';
 import * as typescript from 'typescript';
+import * as webpack from 'webpack';
 
 import constants = require('./constants');
 import {
@@ -12,7 +13,6 @@ import {
   ReverseDependencyGraph,
   Severity,
   TSInstance,
-  Webpack,
   WebpackError,
   WebpackModule
 } from './interfaces';
@@ -325,7 +325,7 @@ function getProjectReferenceForFile(filePath: string, instance: TSInstance) {
 
 export function validateSourceMapOncePerProject(
   instance: TSInstance,
-  loader: Webpack,
+  loader: webpack.loader.LoaderContext,
   jsFileName: string,
   project: typescript.ResolvedProjectReference
 ) {
@@ -397,7 +397,7 @@ function getOutputJavaScriptFileName(
     ? '.json'
     : constants.tsxRegex.test(inputFileName) &&
       options.jsx === typescript.JsxEmit.Preserve
-      ? '.jsx'
-      : '.js';
+    ? '.jsx'
+    : '.js';
   return outputPath.replace(constants.extensionRegex, newExtension);
 }

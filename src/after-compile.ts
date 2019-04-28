@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import { getEmitOutput } from './instances';
@@ -6,7 +7,6 @@ import {
   TSFile,
   TSFiles,
   TSInstance,
-  WebpackCompilation,
   WebpackError,
   WebpackModule
 } from './interfaces';
@@ -16,6 +16,16 @@ import {
   isUsingProjectReferences
 } from './utils';
 
+interface PatchedCompiler extends webpack.Compiler {
+  isChild(): boolean;
+  context: string;
+  outputPath: string;
+}
+
+interface PatchedWebpackCompilation extends webpack.compilation.Compilation {
+  compiler: PatchedCompiler;
+}
+
 export function makeAfterCompile(
   instance: TSInstance,
   configFilePath: string | undefined
@@ -23,7 +33,7 @@ export function makeAfterCompile(
   let getCompilerOptionDiagnostics = true;
   let checkAllFilesForErrors = true;
 
-  return (compilation: WebpackCompilation, callback: () => void) => {
+  return (compilation: PatchedWebpackCompilation, callback: () => void) => {
     // Don't add errors for child compilations
     if (compilation.compiler.isChild()) {
       callback();
@@ -76,7 +86,7 @@ export function makeAfterCompile(
  */
 function provideCompilerOptionDiagnosticErrorsToWebpack(
   getCompilerOptionDiagnostics: boolean,
-  compilation: WebpackCompilation,
+  compilation: PatchedWebpackCompilation,
   instance: TSInstance,
   configFilePath: string | undefined
 ) {
@@ -103,7 +113,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  * this is used for quick-lookup when trying to find modules
  * based on filepath
  */
-function determineModules(compilation: WebpackCompilation) {
+function determineModules(compilation: PatchedWebpackCompilation) {
   // TODO: Convert to reduce
   const modules = new Map<string, WebpackModule[]>();
   compilation.modules.forEach(module => {
@@ -163,7 +173,7 @@ function determineFilesToCheckForErrors(
 function provideErrorsToWebpack(
   filesToCheckForErrors: TSFiles,
   filesWithErrors: TSFiles,
-  compilation: WebpackCompilation,
+  compilation: PatchedWebpackCompilation,
   modules: Map<string, WebpackModule[]>,
   instance: TSInstance
 ) {
@@ -255,7 +265,7 @@ function provideErrorsToWebpack(
 function provideDeclarationFilesToWebpack(
   filesToCheckForErrors: TSFiles,
   instance: TSInstance,
-  compilation: WebpackCompilation
+  compilation: PatchedWebpackCompilation
 ) {
   for (const filePath of filesToCheckForErrors.keys()) {
     if (filePath.match(constants.tsTsxRegex) === null) {

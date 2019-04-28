@@ -14,7 +14,7 @@ export interface Logger {
   logError: LoggerFunc;
 }
 
-enum LogLevel {
+export enum LogLevel {
   INFO = 1,
   WARN = 2,
   ERROR = 3

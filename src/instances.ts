@@ -2,6 +2,7 @@ import chalk, { Chalk } from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as typescript from 'typescript';
+import * as webpack from 'webpack';
 
 import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
@@ -13,7 +14,6 @@ import {
   TSFiles,
   TSInstance,
   TSInstances,
-  Webpack,
   WebpackError
 } from './interfaces';
 import * as logger from './logger';
@@ -29,6 +29,9 @@ import { makeWatchRun } from './watch-run';
 
 const instances = {} as TSInstances;
 
+// TODO: workaround for issues with webpack typings
+type PatchedHookCallback = any;
+
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
  * a persistent instance of TypeScript that contains all of the files in the program
@@ -38,7 +41,7 @@ const instances = {} as TSInstances;
  */
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: Webpack
+  loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
   if (instances.hasOwnProperty(loaderOptions.instance)) {
     const instance = instances[loaderOptions.instance];
@@ -67,7 +70,7 @@ export function getTypeScriptInstance(
 
 function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: Webpack,
+  loader: webpack.loader.LoaderContext,
   log: logger.Logger,
   colors: Chalk,
   compiler: typeof typescript,
@@ -307,10 +310,10 @@ function successfulTypeScriptInstance(
     );
   }
 
-  loader._compiler.hooks.afterCompile.tapAsync(
-    'ts-loader',
-    makeAfterCompile(instance, configFilePath)
-  );
+  loader._compiler.hooks.afterCompile.tapAsync('ts-loader', makeAfterCompile(
+    instance,
+    configFilePath
+  ) as PatchedHookCallback);
   loader._compiler.hooks.watchRun.tapAsync('ts-loader', makeWatchRun(instance));
 
   return { instance };
