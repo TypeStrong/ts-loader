@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.4.5
+
+* [use @types/webpack for loader typings](https://github.com/TypeStrong/ts-loader/pull/927) - thanks @LukeSheard!
+
 ## v5.4.4
 
 * [refactor: add common appendTsTsxSuffixesIfRequired function to instance](https://github.com/TypeStrong/ts-loader/pull/924) - thanks @johnnyreilly!
