@@ -1,18 +1,16 @@
 import * as loaderUtils from 'loader-utils';
 import * as path from 'path';
 import * as typescript from 'typescript';
+import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import { getEmitOutput, getTypeScriptInstance } from './instances';
 import {
-  AsyncCallback,
-  Compiler,
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
   TSFile,
-  TSInstance,
-  Webpack
+  TSInstance
 } from './interfaces';
 import {
   appendSuffixesIfMatch,
@@ -23,16 +21,16 @@ import {
   validateSourceMapOncePerProject
 } from './utils';
 
-const webpackInstances: Compiler[] = [];
+const webpackInstances: webpack.Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
 
 /**
  * The entry point for ts-loader
  */
-function loader(this: Webpack, contents: string) {
+function loader(this: webpack.loader.LoaderContext, contents: string) {
   // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
   this.cacheable && this.cacheable();
-  const callback = this.async();
+  const callback = this.async() as webpack.loader.loaderCallback;
   const options = getLoaderOptions(this);
   const instanceOrError = getTypeScriptInstance(options, this);
 
@@ -51,9 +49,9 @@ function loader(this: Webpack, contents: string) {
 }
 
 function successLoader(
-  loaderContext: Webpack,
+  loaderContext: webpack.loader.LoaderContext,
   contents: string,
-  callback: AsyncCallback,
+  callback: webpack.loader.loaderCallback,
   options: LoaderOptions,
   instance: TSInstance
 ) {
@@ -157,10 +155,10 @@ function makeSourceMapAndFinish(
   outputText: string | undefined,
   filePath: string,
   contents: string,
-  loaderContext: Webpack,
+  loaderContext: webpack.loader.LoaderContext,
   options: LoaderOptions,
   fileVersion: number,
-  callback: AsyncCallback
+  callback: webpack.loader.loaderCallback
 ) {
   if (outputText === null || outputText === undefined) {
     const additionalGuidance =
@@ -198,7 +196,7 @@ function makeSourceMapAndFinish(
  * either retrieves loader options from the cache
  * or creates them, adds them to the cache and returns
  */
-function getLoaderOptions(loaderContext: Webpack) {
+function getLoaderOptions(loaderContext: webpack.loader.LoaderContext) {
   // differentiate the TypeScript instance based on the webpack instance
   let webpackIndex = webpackInstances.indexOf(loaderContext._compiler);
   if (webpackIndex === -1) {
@@ -390,7 +388,7 @@ function getEmit(
   rawFilePath: string,
   filePath: string,
   instance: TSInstance,
-  loaderContext: Webpack
+  loaderContext: webpack.loader.LoaderContext
 ) {
   const outputFiles = getEmitOutput(instance, filePath);
 
@@ -460,7 +458,7 @@ function getTranspilationEmit(
   fileName: string,
   contents: string,
   instance: TSInstance,
-  loaderContext: Webpack
+  loaderContext: webpack.loader.LoaderContext
 ) {
   const {
     outputText,
@@ -495,7 +493,7 @@ function makeSourceMap(
   outputText: string,
   filePath: string,
   contents: string,
-  loaderContext: Webpack
+  loaderContext: webpack.loader.LoaderContext
 ) {
   if (sourceMapText === undefined) {
     return { output: outputText, sourceMap: undefined };

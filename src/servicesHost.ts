@@ -1,5 +1,6 @@
 import * as path from 'path';
 import * as typescript from 'typescript';
+import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import {
@@ -9,8 +10,7 @@ import {
   ResolvedModule,
   ResolveSync,
   TSInstance,
-  WatchHost,
-  Webpack
+  WatchHost
 } from './interfaces';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
@@ -29,7 +29,7 @@ export interface ServiceHostWhichMayBeCacheable {
 export function makeServicesHost(
   scriptRegex: RegExp,
   log: logger.Logger,
-  loader: Webpack,
+  loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   enableFileCaching: boolean,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
@@ -232,7 +232,7 @@ function makeResolvers(
 export function makeWatchHost(
   scriptRegex: RegExp,
   log: logger.Logger,
-  loader: Webpack,
+  loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {

@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "5.4.4",
+  "version": "5.4.5",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist/types/index.d.ts",
@@ -59,8 +59,9 @@
   },
   "devDependencies": {
     "@types/micromatch": "^3.1.0",
-    "@types/node": "^10.0.0",
+    "@types/node": "*",
     "@types/semver": "^5.4.0",
+    "@types/webpack": "^4.4.29",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",

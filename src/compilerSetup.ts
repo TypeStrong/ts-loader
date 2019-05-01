@@ -1,7 +1,6 @@
 import * as semver from 'semver';
 import * as typescript from 'typescript';
 
-import * as constants from './constants';
 import { LoaderOptions } from './interfaces';
 import * as logger from './logger';
 
@@ -66,9 +65,9 @@ export function getCompilerOptions(
   if (
     compilerOptions.module === undefined &&
     (compilerOptions.target !== undefined &&
-      compilerOptions.target < constants.ScriptTargetES2015)
+      compilerOptions.target < typescript.ScriptTarget.ES2015)
   ) {
-    compilerOptions.module = constants.ModuleKindCommonJs;
+    compilerOptions.module = typescript.ModuleKind.CommonJS;
   }
 
   return compilerOptions;

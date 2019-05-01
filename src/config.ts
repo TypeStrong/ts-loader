@@ -1,7 +1,9 @@
 import { Chalk } from 'chalk';
 import * as path from 'path';
 import * as typescript from 'typescript';
-import { LoaderOptions, Webpack, WebpackError } from './interfaces';
+import * as webpack from 'webpack';
+
+import { LoaderOptions, WebpackError } from './interfaces';
 import * as logger from './logger';
 import { formatErrors } from './utils';
 
@@ -13,7 +15,7 @@ interface ConfigFile {
 export function getConfigFile(
   compiler: typeof typescript,
   colors: Chalk,
-  loader: Webpack,
+  loader: webpack.loader.LoaderContext,
   loaderOptions: LoaderOptions,
   compilerCompatible: boolean,
   log: logger.Logger,

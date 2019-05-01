@@ -1,7 +1,8 @@
 import * as path from 'path';
+import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { TSFile, TSInstance, WebpackCompiler } from './interfaces';
+import { TSFile, TSInstance } from './interfaces';
 import { readFile } from './utils';
 
 /**
@@ -12,7 +13,7 @@ export function makeWatchRun(instance: TSInstance) {
   const lastTimes = new Map<string, number>();
   const startTime = 0;
 
-  return (compiler: WebpackCompiler, callback: () => void) => {
+  return (compiler: webpack.Compiler, callback: () => void) => {
     if (null === instance.modifiedFiles) {
       instance.modifiedFiles = new Map<string, TSFile>();
     }

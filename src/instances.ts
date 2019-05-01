@@ -2,6 +2,7 @@ import chalk, { Chalk } from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as typescript from 'typescript';
+import * as webpack from 'webpack';
 
 import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
@@ -13,7 +14,6 @@ import {
   TSFiles,
   TSInstance,
   TSInstances,
-  Webpack,
   WebpackError
 } from './interfaces';
 import * as logger from './logger';
@@ -38,7 +38,7 @@ const instances = {} as TSInstances;
  */
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: Webpack
+  loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
   if (instances.hasOwnProperty(loaderOptions.instance)) {
     const instance = instances[loaderOptions.instance];
@@ -67,7 +67,7 @@ export function getTypeScriptInstance(
 
 function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: Webpack,
+  loader: webpack.loader.LoaderContext,
   log: logger.Logger,
   colors: Chalk,
   compiler: typeof typescript,
