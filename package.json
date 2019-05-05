@@ -60,8 +60,8 @@
   "devDependencies": {
     "@types/micromatch": "^3.1.0",
     "@types/node": "*",
-    "@types/semver": "^5.4.0",
-    "@types/webpack": "^4.4.29",
+    "@types/semver": "^6.0.0",
+    "@types/webpack": "^4.4.30",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
