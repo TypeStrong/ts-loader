@@ -2,35 +2,36 @@
 # yarn lockfile v1
 
 
-"@types/events@*":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@types/events/-/events-1.1.0.tgz#93b1be91f63c184450385272c47b6496fd028e02"
-
 "@types/jasmine@^2.8.2":
   version "2.8.2"
   resolved "https://registry.yarnpkg.com/@types/jasmine/-/jasmine-2.8.2.tgz#6ae4d8740c0da5d5a627df725b4eed71b8e36668"
 
-"@types/node@*":
-  version "11.13.8"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-11.13.8.tgz#e5d71173c95533be9842b2c798978f095f912aab"
-  integrity sha512-szA3x/3miL90ZJxUCzx9haNbK5/zmPieGraZEe4WI+3srN0eGLiT22NXeMHmyhNEopn+IrxqMc7wdVwvPl8meg==
+"@types/prop-types@*":
+  version "15.7.1"
+  resolved "https://registry.yarnpkg.com/@types/prop-types/-/prop-types-15.7.1.tgz#f1a11e7babb0c3cad68100be381d1e064c68f1f6"
+  integrity sha512-CFzn9idOEpHrgdw8JsoTkaDDyRWk1jrzIV8djzcgpq0y9tG4B4lFT+Nxh52DVpDXV+n4+NPNv7M1Dj5uMp6XFg==
 
 "@types/react-dom@^16.0.3":
-  version "16.0.3"
-  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.0.3.tgz#8accad7eabdab4cca3e1a56f5ccb57de2da0ff64"
+  version "16.8.4"
+  resolved "https://registry.yarnpkg.com/@types/react-dom/-/react-dom-16.8.4.tgz#7fb7ba368857c7aa0f4e4511c4710ca2c5a12a88"
+  integrity sha512-eIRpEW73DCzPIMaNBDP5pPIpK1KXyZwNgfxiVagb5iGiz6da+9A5hslSX6GAQKdO7SayVCS/Fr2kjqprgAvkfA==
   dependencies:
-    "@types/node" "*"
     "@types/react" "*"
 
 "@types/react-test-renderer@^16.0.0":
-  version "16.0.0"
-  resolved "https://registry.yarnpkg.com/@types/react-test-renderer/-/react-test-renderer-16.0.0.tgz#905a12076d7315eb4a36c4f0e5e760c7b3115420"
+  version "16.8.1"
+  resolved "https://registry.yarnpkg.com/@types/react-test-renderer/-/react-test-renderer-16.8.1.tgz#96f3ce45a3a41c94eca532a99103dd3042c9d055"
+  integrity sha512-8gU69ELfJGxzVWVYj4MTtuHxz9nO+d175XeQ1XrXXxesUBsB4KK6OCfzVhEX6leZWWBDVtMJXp/rUjhClzL7gw==
   dependencies:
     "@types/react" "*"
 
 "@types/react@*", "@types/react@^16.0.27":
-  version "16.0.27"
-  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.0.27.tgz#341899469ea2e98b48b11c18afb4d8361d03b013"
+  version "16.8.16"
+  resolved "https://registry.yarnpkg.com/@types/react/-/react-16.8.16.tgz#2bf980b4fb29cceeb01b2c139b3e185e57d3e08e"
+  integrity sha512-A0+6kS6zwPtvubOLiCJmZ8li5bm3wKIkoKV0h3RdMDOnCj9cYkUnj3bWbE03/lcICdQmwBmUfoFiHeNhbFiyHQ==
+  dependencies:
+    "@types/prop-types" "*"
+    csstype "^2.2.0"
 
 ansi-regex@^2.0.0:
   version "2.1.1"
@@ -710,6 +711,11 @@ core-js@^1.0.0:
 core-js@^2.4.0, core-js@^2.5.0:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.5.1.tgz#ae6874dc66937789b80754ff5428df66819ca50b"
+
+csstype@^2.2.0:
+  version "2.6.4"
+  resolved "https://registry.yarnpkg.com/csstype/-/csstype-2.6.4.tgz#d585a6062096e324e7187f80e04f92bd0f00e37f"
+  integrity sha512-lAJUJP3M6HxFXbqtGRc0iZrdyeN+WzOWeY0q/VnFzI+kqVrYIzC7bWlKqCW7oCIdzoPkvfp82EVvrTlQ8zsWQg==
 
 debug@^2.6.8:
   version "2.6.9"

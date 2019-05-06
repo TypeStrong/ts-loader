@@ -1,5 +1,9 @@
 # Changelog
 
+## v5.4.6
+
+* [Update dependencies](https://github.com/TypeStrong/ts-loader/pull/928) - thanks @johnnyreilly!
+
 ## v5.4.5
 
 * [use @types/webpack for loader typings](https://github.com/TypeStrong/ts-loader/pull/927) - thanks @LukeSheard!
