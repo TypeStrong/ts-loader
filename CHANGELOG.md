@@ -1,7 +1,8 @@
 # Changelog
 
-## v5.4.6
+## v6.0.0
 
+* Drop support for node < 8 related to micromatch upgrade to 4; see: https://github.com/TypeStrong/ts-loader/issues/929
 * [Update dependencies](https://github.com/TypeStrong/ts-loader/pull/928) - thanks @johnnyreilly!
 
 ## v5.4.5
