@@ -13,3 +13,4 @@ CONTRIBUTING.md
 Dockerfile
 HISTORY.md
 RELEASING.md
+*.js.map
