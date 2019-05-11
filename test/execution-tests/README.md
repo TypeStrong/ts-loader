@@ -58,3 +58,5 @@ It's pretty handy to be able to debug tests; for that reason you can run a singl
 `yarn run execution-tests -- --single-test nameOfTest --watch`
 
 Then you can fire up http://localhost:9876/ and the world's your oyster.
+
+See [CONTRIBUTING.md](../../CONTRIBUTING.md#debugging) for more information on debugging.

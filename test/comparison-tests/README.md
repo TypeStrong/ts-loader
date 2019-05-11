@@ -75,3 +75,7 @@ patch0 is applied:
 ## Flaky tests
 
 Some of the tests in the pack are flaky.  For the most part the failures they occasionally experience are not significant.  If you want a test to be allowed to fail without failing the overall build whilst still seeing the output then place a file with the name `_FLAKY_` in the root of that particular test.
+
+## Debugging
+
+See [CONTRIBUTING.md](../../CONTRIBUTING.md#debugging).
