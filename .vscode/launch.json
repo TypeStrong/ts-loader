@@ -19,6 +19,22 @@
       ],
       "console": "integratedTerminal",
       "port": 5858
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run open comparison test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "comparison-tests",
+        "--",
+        "--single-test",
+        "${fileDirname}",
+        "--debug"
+      ],
+      "console": "integratedTerminal",
+      "port": 5858
     }
   ]
 }

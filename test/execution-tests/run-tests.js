@@ -138,7 +138,9 @@ function runTests(testName) {
             passingTests.push(testName);
         } else {
             console.log('running webpack compilation');
-            execSync('webpack --bail', { cwd: testPath, stdio: 'inherit' });
+            var webpackPath = path.resolve(__dirname, '../../node_modules/webpack/bin/karma');
+            var program = debug ? 'node --inspect-brk=5858 ' + webpackPath : 'webpack';
+            execSync(webpackPath + ' --bail', { cwd: testPath, stdio: 'inherit' });
             passingTests.push(testName);
         }
     }
