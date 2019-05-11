@@ -1,0 +1,24 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Run open execution test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "execution-tests",
+        "--",
+        "--single-test",
+        "${fileDirname}",
+        "--debug"
+      ],
+      "console": "integratedTerminal",
+      "port": 5858
+    }
+  ]
+}
