@@ -41,7 +41,7 @@ function runTests() {
   const testDir = __dirname;
 
   if (singleTestToRun) {
-    if (runTestAsChildProcess(singleTestToRun)) {
+    if (runTestAsChildProcess(getTestNameFromPath(singleTestToRun))) {
       passingTests.push(singleTestToRun);
     } else {
       failingTests.push(singleTestToRun);
@@ -107,6 +107,21 @@ function runTests() {
   }
 }
 
+/** @param {string} testNameOrPath */
+function getTestNameFromPath (testNameOrPath) {
+  var tsLoaderPath = path.resolve(__dirname, '../..');
+  var tsLoaderBasename = path.basename(tsLoaderPath);
+  var comparisonTestsRelativeRoot = path.relative(tsLoaderPath, __dirname);
+  var comparisonTestsAbsoluteRoot = path.join(tsLoaderPath, comparisonTestsRelativeRoot);
+  // It wasn’t a path in comparison-tests; assume it was a test name
+  if (testNameOrPath.indexOf(path.join(tsLoaderBasename, comparisonTestsRelativeRoot)) === -1) {
+      return testNameOrPath;
+  }
+  // E.g. projectReferences/lib/index.ts
+  var testPathRelativeToComparisonTests = path.relative(comparisonTestsAbsoluteRoot, testNameOrPath);
+  return testPathRelativeToComparisonTests.split(path.sep)[0];
+}
+
 /**
  * Run test isolated in a child process
  *
@@ -114,8 +129,11 @@ function runTests() {
  */
 function runTestAsChildProcess(testName) {
   const testToRun = ' --test-to-run ' + testName;
+  const debug = process.argv.indexOf('--debug') > -1;
   const testCommand =
-    'mocha --reporter spec test/comparison-tests/create-and-execute-test.js ' +
+    'mocha --reporter spec ' +
+    (debug ? '--inspect-brk=5858 ' : '') +
+    'test/comparison-tests/create-and-execute-test.js ' +
     testToRun;
 
   try {

@@ -90,7 +90,22 @@ function isNotBabelTest (testName) {
     return true;
 }
 
+function getTestNameFromPath (testNameOrPath) {
+    var tsLoaderPath = path.resolve(__dirname, '../..');
+    var tsLoaderBasename = path.basename(tsLoaderPath);
+    var executionTestsRelativeRoot = path.relative(tsLoaderPath, __dirname);
+    var executionTestsAbsoluteRoot = path.join(tsLoaderPath, executionTestsRelativeRoot);
+    // It wasn’t a path in execution-tests; assume it was a test name
+    if (testNameOrPath.indexOf(path.join(tsLoaderBasename, executionTestsRelativeRoot)) === -1) {
+        return testNameOrPath;
+    }
+    // E.g. 3.0.1_projectReferences/lib/index.ts
+    var testPathRelativeToExecutionTests = path.relative(executionTestsAbsoluteRoot, testNameOrPath);
+    return testPathRelativeToExecutionTests.split(path.sep)[0];
+}
+
 function runTests(testName) {
+    testName = getTestNameFromPath(testName);
     console.log('\n-------------------------------------------------------------------------\n');
     console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
 
@@ -103,6 +118,7 @@ function runTests(testName) {
     }
 
     var karmaConfPath = path.join(testPath, 'karma.conf.js');
+    var debug = process.argv.indexOf('--debug') > -1;
 
     if (pathExists(path.join(testPath, 'shrinkwrap.yaml'))) {
         console.log('npx pnpm install into ' + testPath);
@@ -113,14 +129,18 @@ function runTests(testName) {
     }
 
     try {
-        if (pathExists(path.join(testPath, 'karma.conf.js'))) {
+        if (pathExists(karmaConfPath)) {
+            var karmaPath = path.resolve(__dirname, '../../node_modules/karma/bin/karma');
             var singleRunOrWatch = watch ? '' : ' --single-run';
-            execSync('karma start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox', { cwd: testPath, stdio: 'inherit' });
+            var program = debug ? 'node --inspect-brk=5858 ' + karmaPath : 'karma';
+            execSync(program + ' start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox', { cwd: testPath, stdio: 'inherit' });
 
             passingTests.push(testName);
         } else {
             console.log('running webpack compilation');
-            execSync('webpack --bail', { cwd: testPath, stdio: 'inherit' });
+            var webpackPath = path.resolve(__dirname, '../../node_modules/webpack/bin/webpack.js');
+            var program = debug ? 'node --inspect-brk=5858 ' + webpackPath : 'webpack';
+            execSync(webpackPath + ' --bail', { cwd: testPath, stdio: 'inherit' });
             passingTests.push(testName);
         }
     }

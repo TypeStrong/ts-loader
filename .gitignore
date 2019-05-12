@@ -7,7 +7,6 @@
 bundle.js
 npm-debug.log
 /.test/
-/.vscode/
 /test/execution-tests/**/typings
 !/test/**/expectedOutput-*/**
 /**/node_modules
