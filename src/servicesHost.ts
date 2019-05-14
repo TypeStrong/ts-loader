@@ -10,11 +10,13 @@ import {
   ResolvedModule,
   ResolveSync,
   TSInstance,
-  WatchHost
+  WatchHost,
+  FormatDiagnosticsHost
 } from './interfaces';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
 import { readFile, unorderedRemoveItem } from './utils';
+import { getParsedCommandLine } from './config';
 
 export type Action = () => void;
 
@@ -496,6 +498,83 @@ export function makeWatchHost(
       configFileParsingDiagnostics
     );
   }
+}
+
+/**
+ * Create the TypeScript Watch host
+ */
+export function makeSolutionBuilderHost(
+  scriptRegex: RegExp,
+  log: logger.Logger,
+  loader: webpack.loader.LoaderContext,
+  instance: TSInstance
+) {
+  const {
+    compiler,
+    compilerOptions,
+    appendTsTsxSuffixesIfRequired,
+    loaderOptions: {
+      resolveModuleName: customResolveModuleName,
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
+    }
+  } = instance;
+
+  // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
+  const getCurrentDirectory = () => loader.context;
+  const formatDiagnosticHost: FormatDiagnosticsHost = {
+    getCurrentDirectory: () => compiler.sys.getCurrentDirectory(),
+    getCanonicalFileName: compiler.sys.useCaseSensitiveFileNames
+      ? s => s
+      : s => s.toLowerCase(),
+    getNewLine: () => compiler.sys.newLine
+  };
+
+  const reportDiagnostic = (d: typescript.Diagnostic) =>
+    log.logError(compiler.formatDiagnostic(d, formatDiagnosticHost));
+  const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
+    log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+  const reportWatchStatus = (
+    d: typescript.Diagnostic,
+    newLine: string,
+    _options: typescript.CompilerOptions
+  ) =>
+    log.logInfo(
+      `${compiler.flattenDiagnosticMessageText(
+        d.messageText,
+        compiler.sys.newLine
+      )}${newLine + newLine}`
+    );
+  const solutionBuilderHost = compiler.createSolutionBuilderWithWatchHost(
+    compiler.sys,
+    compiler.createEmitAndSemanticDiagnosticsBuilderProgram,
+    reportDiagnostic,
+    reportSolutionBuilderStatus,
+    reportWatchStatus
+  );
+  solutionBuilderHost.getCurrentDirectory = getCurrentDirectory;
+  solutionBuilderHost.trace = logData => log.logInfo(logData);
+  solutionBuilderHost.getParsedCommandLine = file =>
+    getParsedCommandLine(compiler, instance.loaderOptions, file);
+
+  // make a (sync) resolver that follows webpack's rules
+  const resolveSync = makeResolver(loader._compiler.options);
+  const resolvers = makeResolvers(
+    compiler,
+    compilerOptions,
+    solutionBuilderHost,
+    customResolveTypeReferenceDirective,
+    customResolveModuleName,
+    resolveSync,
+    appendTsTsxSuffixesIfRequired,
+    scriptRegex,
+    instance
+  );
+  // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
+  solutionBuilderHost.resolveTypeReferenceDirectives =
+    resolvers.resolveTypeReferenceDirectives;
+  solutionBuilderHost.resolveModuleNames = resolvers.resolveModuleNames;
+
+  return solutionBuilderHost;
 }
 
 type ResolveTypeReferenceDirective = (

@@ -1,0 +1,11 @@
+{
+  "files": [
+    "./src/app.ts"
+  ],
+  "references": [
+    { "path": "./lib" }
+  ],
+  "compilerOptions": {
+    "noEmitOnError": true
+  }
+}

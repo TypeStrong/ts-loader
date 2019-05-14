@@ -17,13 +17,18 @@ import {
   WebpackError
 } from './interfaces';
 import * as logger from './logger';
-import { makeServicesHost, makeWatchHost } from './servicesHost';
+import {
+  makeServicesHost,
+  makeWatchHost,
+  makeSolutionBuilderHost
+} from './servicesHost';
 import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
   isUsingProjectReferences,
-  makeError
+  makeError,
+  supportsSolutionBuild
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
@@ -96,11 +101,7 @@ function successfulTypeScriptInstance(
 
   const { configFilePath, configFile } = configFileAndPath;
   const basePath = loaderOptions.context || path.dirname(configFilePath || '');
-  const configParseResult = getConfigParseResult(
-    compiler,
-    configFile,
-    basePath
-  );
+  let configParseResult = getConfigParseResult(compiler, configFile, basePath);
 
   if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
     const errors = formatErrors(
@@ -261,6 +262,23 @@ function successfulTypeScriptInstance(
   if (!loader._compiler.hooks) {
     throw new Error(
       "You may be using an old version of webpack; please check you're using at least version 4"
+    );
+  }
+
+  if (configFilePath && supportsSolutionBuild(loaderOptions, compiler)) {
+    // Use solution builder
+    log.logInfo('Using SolutionBuilder api');
+    instance.configFilePath = configFilePath;
+    instance.solutionBuilderHost = makeSolutionBuilderHost(
+      scriptRegex,
+      log,
+      loader,
+      instance
+    );
+    instance.solutionBuilder = compiler.createSolutionBuilderWithWatch(
+      instance.solutionBuilderHost,
+      [configFilePath],
+      { verbose: true, watch: true }
     );
   }
 

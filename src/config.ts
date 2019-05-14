@@ -6,6 +6,7 @@ import * as webpack from 'webpack';
 import { LoaderOptions, WebpackError } from './interfaces';
 import * as logger from './logger';
 import { formatErrors } from './utils';
+import { getCompilerOptions } from './compilerSetup';
 
 interface ConfigFile {
   config?: any;
@@ -134,4 +135,32 @@ export function getConfigParseResult(
   );
 
   return configParseResult;
+}
+
+const extendedConfigCache = new Map() as typescript.Map<
+  typescript.ExtendedConfigCacheEntry
+>;
+export function getParsedCommandLine(
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions,
+  configFilePath: string
+): typescript.ParsedCommandLine | undefined {
+  const host: typescript.ParseConfigFileHost = compiler.sys as any;
+  host.onUnRecoverableConfigFileDiagnostic = () => {};
+  const result = compiler.getParsedCommandLineOfConfigFile(
+    configFilePath,
+    loaderOptions.compilerOptions,
+    host,
+    extendedConfigCache
+  );
+  host.onUnRecoverableConfigFileDiagnostic = undefined!;
+  if (result) {
+    const options = getCompilerOptions(result);
+    (compiler as any).setConfigFileInOptions(
+      options,
+      (result.options as any).configFile
+    );
+    result.options = options;
+  }
+  return result;
 }

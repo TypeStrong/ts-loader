@@ -235,6 +235,9 @@ export function arrify<T>(val: T | T[]) {
 }
 
 export function ensureProgram(instance: TSInstance) {
+  if (instance.solutionBuilder) {
+    instance.solutionBuilder.buildReferences(instance.configFilePath!);
+  }
   if (instance && instance.watchHost) {
     if (instance.hasUnaccountedModifiedFiles) {
       if (instance.changedFilesList) {
@@ -349,6 +352,13 @@ export function validateSourceMapOncePerProject(
       );
     }
   }
+}
+
+export function supportsSolutionBuild(
+  loaderOptions: LoaderOptions,
+  compiler: typeof typescript
+) {
+  return !!loaderOptions.projectReferences && !!compiler.InvalidatedProjectKind;
 }
 
 /**

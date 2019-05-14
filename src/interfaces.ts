@@ -1,4 +1,4 @@
-export { ModuleResolutionHost } from 'typescript';
+export { ModuleResolutionHost, FormatDiagnosticsHost } from 'typescript';
 import * as typescript from 'typescript';
 
 import { Chalk } from 'chalk';
@@ -85,6 +85,14 @@ export interface TSInstance {
   program?: typescript.Program;
   hasUnaccountedModifiedFiles?: boolean;
   changedFilesList?: boolean;
+
+  solutionBuilderHost?: typescript.SolutionBuilderWithWatchHost<
+    typescript.EmitAndSemanticDiagnosticsBuilderProgram
+  >;
+  solutionBuilder?: typescript.SolutionBuilder<
+    typescript.EmitAndSemanticDiagnosticsBuilderProgram
+  >;
+  configFilePath?: string;
 }
 
 export interface LoaderOptionsCache {
