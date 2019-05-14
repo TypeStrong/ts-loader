@@ -663,9 +663,7 @@ function addCache(servicesHost: typescript.ModuleResolutionHost) {
       const cache = createCache<ReturnType<typeof originalFunction>>(
         originalFunction
       );
-      servicesHost[
-        functionToCache
-      ] = cache.getCached as typescript.ModuleResolutionHost[CacheableFunction];
+      servicesHost[functionToCache] = cache.getCached as any;
       clearCacheFunctions.push(cache.clear);
     }
   });
