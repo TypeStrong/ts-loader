@@ -208,7 +208,11 @@ function provideErrorsToWebpack(
     if (program && sourceFile) {
       errors.push(
         ...program!.getSyntacticDiagnostics(sourceFile),
-        ...program!.getSemanticDiagnostics(sourceFile)
+        ...program!
+          .getSemanticDiagnostics(sourceFile)
+          // Output file has not been built from source file - this message is redundant with
+          // program.getOptionsDiagnostics() separately added in instances.ts
+          .filter(({ code }) => code !== 6305)
       );
     }
     if (errors.length > 0) {
