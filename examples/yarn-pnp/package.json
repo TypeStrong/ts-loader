@@ -1,0 +1,20 @@
+{
+  "name": "vanilla",
+  "main": "index.js",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "webpack --mode production",
+    "start": "webpack-dev-server --mode development --progress --color"
+  },
+  "devDependencies": {
+    "pnp-webpack-plugin": "johnnyreilly/pnp-webpack-plugin",
+    "ts-loader": "^6.0.0",
+    "typescript": "^3.0.0",
+    "webpack": "^4.0.0",
+    "webpack-cli": "^3.0.0",
+    "webpack-dev-server": "^3.1.14"
+  },
+  "installConfig": {
+    "pnp": true
+  }
+}
