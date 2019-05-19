@@ -1,5 +1,10 @@
 # Changelog
 
+## v6.0.1
+
+* [Fix issue with `resolveTypeReferenceDirective` causing errors like `Cannot find name 'it'` with Jest](https://github.com/TypeStrong/ts-loader/pull/936) (#934) (#919) - thanks @andrewbranch!
+* [Fix TypeScript diagnostics not being printed to console when using project references](https://github.com/TypeStrong/ts-loader/pull/937) (#932) - thanks @andrewbranch!
+
 ## v6.0.0
 
 * [Drop support for node < 8.6 related to micromatch upgrade to 4](https://github.com/TypeStrong/ts-loader/pull/930); see: https://github.com/TypeStrong/ts-loader/issues/929

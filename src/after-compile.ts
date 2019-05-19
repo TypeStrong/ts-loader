@@ -1,4 +1,5 @@
 import * as path from 'path';
+import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
@@ -12,6 +13,7 @@ import {
 } from './interfaces';
 import {
   collectAllDependants,
+  ensureProgram,
   formatErrors,
   isUsingProjectReferences
 } from './utils';
@@ -174,8 +176,6 @@ function provideErrorsToWebpack(
 ) {
   const {
     compiler,
-    program,
-    languageService,
     files,
     loaderOptions,
     compilerOptions,
@@ -187,13 +187,14 @@ function provideErrorsToWebpack(
       ? constants.dtsTsTsxJsJsxRegex
       : constants.dtsTsTsxRegex;
 
+  // I’m pretty sure this will never be undefined here
+  const program = ensureProgram(instance);
   for (const filePath of filesToCheckForErrors.keys()) {
     if (filePath.match(filePathRegex) === null) {
       continue;
     }
 
-    const sourceFile =
-      program === undefined ? undefined : program.getSourceFile(filePath);
+    const sourceFile = program && program.getSourceFile(filePath);
 
     // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
     // which will have already produced a more useful error than the one we would get by proceeding here.
@@ -203,16 +204,17 @@ function provideErrorsToWebpack(
       continue;
     }
 
-    const errors =
-      program === undefined
-        ? [
-            ...languageService!.getSyntacticDiagnostics(filePath),
-            ...languageService!.getSemanticDiagnostics(filePath)
-          ]
-        : [
-            ...program.getSyntacticDiagnostics(sourceFile),
-            ...program.getSemanticDiagnostics(sourceFile)
-          ];
+    const errors: ts.Diagnostic[] = [];
+    if (program && sourceFile) {
+      errors.push(
+        ...program!.getSyntacticDiagnostics(sourceFile),
+        ...program!
+          .getSemanticDiagnostics(sourceFile)
+          // Output file has not been built from source file - this message is redundant with
+          // program.getOptionsDiagnostics() separately added in instances.ts
+          .filter(({ code }) => code !== 6305)
+      );
+    }
     if (errors.length > 0) {
       const fileWithError = files.get(filePath) || otherFiles.get(filePath);
       filesWithErrors.set(filePath, fileWithError!);
