@@ -1,13 +1,13 @@
-# vanilla ts-loader
+# ts-loader 5.x with yarn but *no* resolveTypeReferenceDirectives - works fine
 
 ```shell
 yarn install
 
 # Run in watch mode
-yarn watch
+yarn start
 
 # Run in production mode
 yarn build 
 ```
 
-To see your output simply open up the `index.html` file in your browser of choice.
+Works as you'd expect
