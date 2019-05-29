@@ -125,13 +125,18 @@ function findConfigFile(
 export function getConfigParseResult(
   compiler: typeof typescript,
   configFile: ConfigFile,
-  basePath: string
+  basePath: string,
+  configFilePath: string | undefined
 ) {
   const configParseResult = compiler.parseJsonConfigFileContent(
     configFile.config,
     compiler.sys,
     basePath
   );
+  // set internal options.configFilePath flag on options to denote that we read this from a file
+  configParseResult.options = Object.assign({}, configParseResult.options, {
+    configFilePath
+  });
 
   return configParseResult;
 }
