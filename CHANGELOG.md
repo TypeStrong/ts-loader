@@ -1,7 +1,7 @@
 # Changelog
 
 ## v6.0.2
-* [Set configFilePath when reading config file](https://github.com/TypeStrong/ts-loader/pull/942) (#939) @konpikwastaken
+* [Set configFilePath when reading config file](https://github.com/TypeStrong/ts-loader/pull/942) (#939) - thanks @konpikwastaken!
 
 ## v6.0.1
 
