@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.0.2
+* [Set configFilePath when reading config file](https://github.com/TypeStrong/ts-loader/pull/942) (#939) @konpikwastaken
+
 ## v6.0.1
 
 * [Fix issue with `resolveTypeReferenceDirective` causing errors like `Cannot find name 'it'` with Jest](https://github.com/TypeStrong/ts-loader/pull/936) (#934) (#919) - thanks @andrewbranch!
