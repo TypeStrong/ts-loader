@@ -1,5 +1,6 @@
 import { Chalk } from 'chalk';
 import * as path from 'path';
+import * as semver from 'semver';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
@@ -125,13 +126,21 @@ function findConfigFile(
 export function getConfigParseResult(
   compiler: typeof typescript,
   configFile: ConfigFile,
-  basePath: string
+  basePath: string,
+  configFilePath: string | undefined
 ) {
   const configParseResult = compiler.parseJsonConfigFileContent(
     configFile.config,
     compiler.sys,
     basePath
   );
+
+  if (semver.gte(compiler.version, '3.5.0')) {
+    // set internal options.configFilePath flag on options to denote that we read this from a file
+    configParseResult.options = Object.assign({}, configParseResult.options, {
+      configFilePath
+    });
+  }
 
   return configParseResult;
 }

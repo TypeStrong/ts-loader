@@ -99,7 +99,8 @@ function successfulTypeScriptInstance(
   const configParseResult = getConfigParseResult(
     compiler,
     configFile,
-    basePath
+    basePath,
+    configFilePath
   );
 
   if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
