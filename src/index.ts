@@ -79,8 +79,16 @@ function successLoader(
     instance
   );
 
-  if (changedFilesList) {
+  if (changedFilesList && !instance.rootFileNames.has(filePath)) {
     reloadRootFileNamesFromConfig(loaderContext, instance);
+    if (
+      !instance.rootFileNames.has(filePath) &&
+      !options.onlyCompileBundledFiles
+    ) {
+      throw new Error(
+        `The file ${filePath} is not part of the project specified in tsconfig.json. Make sure it is covered by the fields 'include', 'exclude' and 'files'.`
+      );
+    }
   }
 
   const referencedProject = getAndCacheProjectReference(filePath, instance);
