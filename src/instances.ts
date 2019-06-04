@@ -199,6 +199,10 @@ function successfulTypeScriptInstance(
       compilerOptions,
       appendTsTsxSuffixesIfRequired,
       loaderOptions,
+      basePath,
+      configFile,
+      configFilePath,
+      rootFileNames: new Set(),
       files,
       otherFiles,
       program,
@@ -209,32 +213,6 @@ function successfulTypeScriptInstance(
     };
 
     return { instance: instances[loaderOptions.instance] };
-  }
-
-  // Load initial files (core lib files, any files specified in tsconfig.json)
-  let normalizedFilePath: string;
-  try {
-    const filesToLoad = loaderOptions.onlyCompileBundledFiles
-      ? configParseResult.fileNames.filter(fileName =>
-          dtsDtsxOrDtsDtsxMapRegex.test(fileName)
-        )
-      : configParseResult.fileNames;
-    filesToLoad.forEach(filePath => {
-      normalizedFilePath = path.normalize(filePath);
-      files.set(normalizedFilePath, {
-        text: fs.readFileSync(normalizedFilePath, 'utf-8'),
-        version: 0
-      });
-    });
-  } catch (exc) {
-    return {
-      error: makeError(
-        colors.red(
-          `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
-        ),
-        normalizedFilePath!
-      )
-    };
   }
 
   // if allowJs is set then we should accept js(x) files
@@ -248,6 +226,10 @@ function successfulTypeScriptInstance(
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
     loaderOptions,
+    basePath,
+    configFile,
+    configFilePath,
+    rootFileNames: new Set(),
     files,
     otherFiles,
     languageService: null,
@@ -263,6 +245,28 @@ function successfulTypeScriptInstance(
     throw new Error(
       "You may be using an old version of webpack; please check you're using at least version 4"
     );
+  }
+
+  // Load initial files (core lib files, any files specified in tsconfig.json)
+  updateInstanceRootFileNames(loaderOptions, instance, configParseResult);
+  let normalizedFilePath: string;
+  try {
+    instance.rootFileNames.forEach(filePath => {
+      normalizedFilePath = path.normalize(filePath);
+      files.set(normalizedFilePath, {
+        text: fs.readFileSync(normalizedFilePath, 'utf-8'),
+        version: 0
+      });
+    });
+  } catch (exc) {
+    return {
+      error: makeError(
+        colors.red(
+          `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
+        ),
+        normalizedFilePath!
+      )
+    };
   }
 
   if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
@@ -315,6 +319,21 @@ function successfulTypeScriptInstance(
   loader._compiler.hooks.watchRun.tapAsync('ts-loader', makeWatchRun(instance));
 
   return { instance };
+}
+
+/** Update the set of root filenames in the instance from a parsed tsconfig.json */
+export function updateInstanceRootFileNames(
+  loaderOptions: LoaderOptions,
+  instance: TSInstance,
+  configParseResult: typescript.ParsedCommandLine
+) {
+  const files = loaderOptions.onlyCompileBundledFiles
+    ? configParseResult.fileNames.filter(fileName =>
+        dtsDtsxOrDtsDtsxMapRegex.test(fileName)
+      )
+    : configParseResult.fileNames;
+
+  instance.rootFileNames = new Set(files);
 }
 
 export function getEmitOutput(instance: TSInstance, filePath: string) {

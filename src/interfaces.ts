@@ -56,6 +56,10 @@ export interface TSInstance {
   appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
   /**
+   * Root files as specified by tsconfig.json' include/exclude/files
+   */
+  rootFileNames: Set<string>;
+  /**
    * a cache of all the files
    */
   files: TSFiles;
