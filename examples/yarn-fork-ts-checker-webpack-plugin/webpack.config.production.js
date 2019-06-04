@@ -19,17 +19,11 @@ module.exports = {
         filename: '[name].js',
     },
     plugins: [
-        new ForkTsCheckerWebpackPlugin({
+        new ForkTsCheckerWebpackPlugin(PnpWebpackPlugin.forkTsCheckerOptions({
             async: false,
             useTypescriptIncrementalApi: false, // not possible to use this until: https://github.com/microsoft/TypeScript/issues/31056
-            resolveModuleNameModule: process.versions.pnp
-                ? `${__dirname}/pnpTs.js`
-                : undefined,
-            resolveTypeReferenceDirectiveModule: process.versions.pnp
-                ? `${__dirname}/pnpTs.js`
-                : undefined,
             memoryLimit: 4096
-        }),
+        })),
         new HtmlWebpackPlugin({
             hash: true,
             inject: true,

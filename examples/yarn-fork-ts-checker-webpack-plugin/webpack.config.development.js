@@ -21,16 +21,10 @@ module.exports = {
         publicPath: "/"
     },
     plugins: [
-        new ForkTsCheckerWebpackPlugin({
+        new ForkTsCheckerWebpackPlugin(PnpWebpackPlugin.forkTsCheckerOptions({
             tslint: true, 
             useTypescriptIncrementalApi: false, // not possible to use this until: https://github.com/microsoft/TypeScript/issues/31056
-            resolveModuleNameModule: process.versions.pnp
-                ? `${__dirname}/pnpTs.js`
-                : undefined,
-            resolveTypeReferenceDirectiveModule: process.versions.pnp
-                ? `${__dirname}/pnpTs.js`
-                : undefined
-        }),
+        })),
         new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
         new HtmlWebpackPlugin({
             inject: true,
