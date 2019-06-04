@@ -423,6 +423,17 @@ function updateFileInCache(
     instance.changedFilesList = true;
   }
 
+  // instance.version must be increased when a new root file is added.
+  //
+  // Note that the file could actually be in the cache if it was found
+  // as a dependency before.
+  //
+  // See https://github.com/TypeStrong/ts-loader/issues/943
+  //
+  if (!instance.rootFileNames.has(filePath)) {
+    instance.version!++;
+  }
+
   if (instance.watchHost !== undefined && contents === undefined) {
     fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Deleted;
   }
