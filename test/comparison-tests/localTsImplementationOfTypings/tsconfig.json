@@ -3,6 +3,7 @@
 		
 	},
 	"include": [
-		"app.ts"
+        "app.ts",
+        "fake.ts"
 	]
 }

@@ -3,6 +3,8 @@
 		
 	},
 	"files": [
-		"thing.d.ts"
+	    "thing.d.ts",
+        "app.ts",
+        "dep.ts"
 	]
 }

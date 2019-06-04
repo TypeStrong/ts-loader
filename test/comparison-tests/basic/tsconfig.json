@@ -3,6 +3,8 @@
 		
 	},
 	"files": [
-		"lib/externalLib.d.ts"
+	    "lib/externalLib.d.ts",
+        "submodule/submodule.ts",
+        "app.ts",
 	]
 }

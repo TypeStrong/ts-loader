@@ -3,7 +3,8 @@
 		"module": "commonjs"
 	},
 	// so that ts files there is part of this ts project
-	"include": [
+    "include": [
+        "app.ts",
 		"../../test/comparison-tests/testLib/*"
 	]
 }
