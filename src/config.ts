@@ -4,14 +4,9 @@ import * as semver from 'semver';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
-import { LoaderOptions, WebpackError } from './interfaces';
+import { ConfigFile, LoaderOptions, WebpackError } from './interfaces';
 import * as logger from './logger';
 import { formatErrors } from './utils';
-
-interface ConfigFile {
-  config?: any;
-  error?: typescript.Diagnostic;
-}
 
 export function getConfigFile(
   compiler: typeof typescript,

@@ -3,8 +3,13 @@ import * as path from 'path';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
+import { getConfigParseResult } from './config';
 import * as constants from './constants';
-import { getEmitOutput, getTypeScriptInstance } from './instances';
+import {
+  getEmitOutput,
+  getTypeScriptInstance,
+  updateInstanceRootFileNames
+} from './instances';
 import {
   LoaderOptions,
   LoaderOptionsCache,
@@ -68,7 +73,16 @@ function successLoader(
         )
       : rawFilePath;
 
-  const fileVersion = updateFileInCache(filePath, contents, instance);
+  const { version: fileVersion, changedFilesList } = updateFileInCache(
+    filePath,
+    contents,
+    instance
+  );
+
+  if (changedFilesList) {
+    reloadRootFileNamesFromConfig(loaderContext, instance);
+  }
+
   const referencedProject = getAndCacheProjectReference(filePath, instance);
   if (referencedProject !== undefined) {
     const [relativeProjectConfigPath, relativeFilePath] = [
@@ -148,6 +162,50 @@ function successLoader(
       callback
     );
   }
+}
+
+/**
+ * Update the rootFileNames of the instance, by finding all the files
+ * that match the specs of the tsconfig.
+ */
+function reloadRootFileNamesFromConfig(
+  loaderContext: webpack.loader.LoaderContext,
+  instance: TSInstance
+) {
+  const {
+    compiler,
+    basePath,
+    configFile,
+    configFilePath,
+    colors,
+    loaderOptions
+  } = instance;
+
+  const configParseResult = getConfigParseResult(
+    compiler,
+    configFile,
+    basePath,
+    configFilePath
+  );
+
+  if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
+    const errors = formatErrors(
+      configParseResult.errors,
+      loaderOptions,
+      colors,
+      compiler,
+      { file: configFilePath },
+      loaderContext.context
+    );
+
+    loaderContext._module.errors.push(...errors);
+
+    throw new Error(colors.red('error while parsing tsconfig.json'));
+  }
+
+  updateInstanceRootFileNames(loaderOptions, instance, configParseResult);
+
+  return;
 }
 
 function makeSourceMapAndFinish(
@@ -337,6 +395,8 @@ function updateFileInCache(
   instance: TSInstance
 ) {
   let fileWatcherEventKind: typescript.FileWatcherEventKind | undefined;
+  let changedFilesList = false;
+
   // Update file contents
   let file = instance.files.get(filePath);
   if (file === undefined) {
@@ -351,6 +411,7 @@ function updateFileInCache(
       file = { version: 0 };
       instance.files.set(filePath, file);
     }
+    changedFilesList = true;
     instance.changedFilesList = true;
   }
 
@@ -381,7 +442,10 @@ function updateFileInCache(
     instance.modifiedFiles = new Map<string, TSFile>();
   }
   instance.modifiedFiles.set(filePath, file);
-  return file.version;
+  return {
+    version: file.version,
+    changedFilesList
+  };
 }
 
 function getEmit(

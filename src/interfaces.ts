@@ -3,6 +3,11 @@ import * as typescript from 'typescript';
 
 import { Chalk } from 'chalk';
 
+export interface ConfigFile {
+  config?: any;
+  error?: typescript.Diagnostic;
+}
+
 export interface ErrorInfo {
   code: number;
   severity: Severity;
@@ -55,6 +60,10 @@ export interface TSInstance {
   /** Used for Vue for the most part */
   appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
+
+  basePath: string;
+  configFile: ConfigFile;
+  configFilePath: string | undefined;
   /**
    * Root files as specified by tsconfig.json' include/exclude/files
    */
