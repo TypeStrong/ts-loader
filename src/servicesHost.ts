@@ -522,7 +522,7 @@ export function makeSolutionBuilderHost(
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
   const formatDiagnosticHost: FormatDiagnosticsHost = {
-    getCurrentDirectory: () => compiler.sys.getCurrentDirectory(),
+    getCurrentDirectory: compiler.sys.getCurrentDirectory,
     getCanonicalFileName: compiler.sys.useCaseSensitiveFileNames
       ? s => s
       : s => s.toLowerCase(),

@@ -145,7 +145,10 @@ export function getParsedCommandLine(
   loaderOptions: LoaderOptions,
   configFilePath: string
 ): typescript.ParsedCommandLine | undefined {
-  const host: typescript.ParseConfigFileHost = compiler.sys as any;
+const host: typescript.ParseConfigFileHost = {
+  ...compiler.sys,
+  host.onUnRecoverableConfigFileDiagnostic: () => {}
+};
   host.onUnRecoverableConfigFileDiagnostic = () => {};
   const result = compiler.getParsedCommandLineOfConfigFile(
     configFilePath,
