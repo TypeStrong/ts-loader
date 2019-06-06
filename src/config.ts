@@ -4,10 +4,10 @@ import * as semver from 'semver';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
+import { getCompilerOptions } from './compilerSetup';
 import { LoaderOptions, WebpackError } from './interfaces';
 import * as logger from './logger';
 import { formatErrors } from './utils';
-import { getCompilerOptions } from './compilerSetup';
 
 interface ConfigFile {
   config?: any;
@@ -159,7 +159,7 @@ export function getParsedCommandLine(
     loaderOptions.compilerOptions,
     {
       ...compiler.sys,
-      onUnRecoverableConfigFileDiagnostic: () => {}
+      onUnRecoverableConfigFileDiagnostic: () => {} // tslint:disable-line no-empty
     },
     extendedConfigCache
   );

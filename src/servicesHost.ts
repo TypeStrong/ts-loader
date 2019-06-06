@@ -2,21 +2,21 @@ import * as path from 'path';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
+import { getParsedCommandLine } from './config';
 import * as constants from './constants';
 import {
   CustomResolveModuleName,
   CustomResolveTypeReferenceDirective,
+  FormatDiagnosticsHost,
   ModuleResolutionHost,
   ResolvedModule,
   ResolveSync,
   TSInstance,
-  WatchHost,
-  FormatDiagnosticsHost
+  WatchHost
 } from './interfaces';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
 import { readFile, unorderedRemoveItem } from './utils';
-import { getParsedCommandLine } from './config';
 
 export type Action = () => void;
 

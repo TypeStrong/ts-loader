@@ -19,8 +19,8 @@ import {
 import * as logger from './logger';
 import {
   makeServicesHost,
-  makeWatchHost,
-  makeSolutionBuilderHost
+  makeSolutionBuilderHost,
+  makeWatchHost
 } from './servicesHost';
 import {
   appendSuffixesIfMatch,
