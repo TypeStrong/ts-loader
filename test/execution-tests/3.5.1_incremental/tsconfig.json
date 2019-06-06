@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+	"noEmitOnError": true,
+	"noErrorTruncation": true,
+    "incremental": true,
+	"outDir": "./dist",
+	"target": "es5",
+	"module": "es6"
+  }
+}

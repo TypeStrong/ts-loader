@@ -71,7 +71,9 @@ export function makeServicesHost(
     fileExists,
     readFile: readFileWithFallback,
     realpath: compiler.sys.realpath,
-    directoryExists: compiler.sys.directoryExists
+    directoryExists: compiler.sys.directoryExists,
+    getCurrentDirectory: compiler.sys.getCurrentDirectory,
+    getDirectories: compiler.sys.getDirectories
   };
 
   const clearCache = enableFileCaching ? addCache(moduleResolutionHost) : null;
@@ -189,8 +191,11 @@ function makeResolvers(
   ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
     typeDirectiveNames.map(
       directive =>
-        resolveTypeReferenceDirective(directive, containingFile)
-          .resolvedTypeReferenceDirective
+        resolveTypeReferenceDirective(
+          directive,
+          containingFile,
+          _redirectedReference
+        ).resolvedTypeReferenceDirective
     );
 
   const resolveModuleName = makeResolveModuleName(
@@ -579,7 +584,8 @@ export function makeSolutionBuilderHost(
 
 type ResolveTypeReferenceDirective = (
   directive: string,
-  containingFile: string
+  containingFile: string,
+  redirectedReference?: typescript.ResolvedProjectReference
 ) => typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
 
 function makeResolveTypeReferenceDirective(
@@ -591,16 +597,17 @@ function makeResolveTypeReferenceDirective(
     | undefined
 ): ResolveTypeReferenceDirective {
   if (customResolveTypeReferenceDirective === undefined) {
-    return (directive: string, containingFile: string) =>
+    return (directive, containingFile, redirectedReference) =>
       compiler.resolveTypeReferenceDirective(
         directive,
         containingFile,
         compilerOptions,
-        moduleResolutionHost
+        moduleResolutionHost,
+        redirectedReference
       );
   }
 
-  return (directive: string, containingFile: string) =>
+  return (directive, containingFile) =>
     customResolveTypeReferenceDirective(
       directive,
       containingFile,

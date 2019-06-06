@@ -101,7 +101,12 @@ function successfulTypeScriptInstance(
 
   const { configFilePath, configFile } = configFileAndPath;
   const basePath = loaderOptions.context || path.dirname(configFilePath || '');
-  let configParseResult = getConfigParseResult(compiler, configFile, basePath);
+  const configParseResult = getConfigParseResult(
+    compiler,
+    configFile,
+    basePath,
+    configFilePath
+  );
 
   if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
     const errors = formatErrors(
