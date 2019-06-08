@@ -3162,9 +3162,10 @@ pkg-dir@^3.0.0:
   dependencies:
     find-up "^3.0.0"
 
-pnp-webpack-plugin@johnnyreilly/pnp-webpack-plugin:
-  version "1.4.3"
-  resolved "https://codeload.github.com/johnnyreilly/pnp-webpack-plugin/tar.gz/2f58a0ac5e6a65f8536d2a7a2195e54f9e7c0fe4"
+pnp-webpack-plugin@^1.5.0:
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/pnp-webpack-plugin/-/pnp-webpack-plugin-1.5.0.tgz#62a1cd3068f46d564bb33c56eb250e4d586676eb"
+  integrity sha512-jd9olUr9D7do+RN8Wspzhpxhgp1n6Vd0NtQ4SFkmIACZoEL1nkyAdW9Ygrinjec0vgDcWjscFQQ1gDW8rsfKTg==
   dependencies:
     ts-pnp "^1.1.2"
 
