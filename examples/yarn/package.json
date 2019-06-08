@@ -7,7 +7,7 @@
     "start": "webpack-dev-server --mode development --progress --color"
   },
   "devDependencies": {
-    "pnp-webpack-plugin": "johnnyreilly/pnp-webpack-plugin",
+    "pnp-webpack-plugin": "^1.5.0",
     "ts-loader": "^6.0.1",
     "typescript": "^3.0.0",
     "webpack": "^4.0.0",
