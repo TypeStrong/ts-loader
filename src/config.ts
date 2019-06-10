@@ -127,13 +127,18 @@ export function getConfigParseResult(
   compiler: typeof typescript,
   configFile: ConfigFile,
   basePath: string,
-  configFilePath: string | undefined
+  configFilePath: string | undefined,
+  enableProjectReferences: boolean
 ) {
   const configParseResult = compiler.parseJsonConfigFileContent(
     configFile.config,
     compiler.sys,
     basePath
   );
+
+  if (!enableProjectReferences) {
+    configParseResult.projectReferences = undefined;
+  }
 
   if (semver.gte(compiler.version, '3.5.0')) {
     // set internal options.configFilePath flag on options to denote that we read this from a file
