@@ -670,9 +670,19 @@ function addCache(servicesHost: typescript.ModuleResolutionHost) {
       const cache = createCache<ReturnType<typeof originalFunction>>(
         originalFunction
       );
-      servicesHost[
-        functionToCache
-      ] = cache.getCached as typescript.ModuleResolutionHost[CacheableFunction];
+      switch (functionToCache) {
+        case 'fileExists':
+          servicesHost.fileExists = cache.getCached as typescript.ModuleResolutionHost['fileExists'];
+          break;
+        case 'directoryExists':
+          servicesHost.directoryExists = cache.getCached as typescript.ModuleResolutionHost['directoryExists'];
+          break;
+        case 'realpath':
+          servicesHost.realpath = cache.getCached as typescript.ModuleResolutionHost['realpath'];
+          break;
+        default:
+          throw new Error(`functionToCache ${functionToCache} not found`);
+      }
       clearCacheFunctions.push(cache.clear);
     }
   });
