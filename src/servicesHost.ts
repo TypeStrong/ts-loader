@@ -65,7 +65,7 @@ export function makeServicesHost(
     compiler.sys.fileExists(filePathToCheck) ||
     readFile(filePathToCheck) !== undefined;
 
-  let clearCache: null | (() => void) = null;
+  let clearCache: Action | null = null;
   let moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
     readFile: readFileWithFallback,
