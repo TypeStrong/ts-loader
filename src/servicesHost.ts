@@ -65,7 +65,8 @@ export function makeServicesHost(
     compiler.sys.fileExists(filePathToCheck) ||
     readFile(filePathToCheck) !== undefined;
 
-  const moduleResolutionHost: ModuleResolutionHost = {
+  let clearCache: Action | null = null;
+  let moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
     readFile: readFileWithFallback,
     realpath: compiler.sys.realpath,
@@ -74,7 +75,11 @@ export function makeServicesHost(
     getDirectories: compiler.sys.getDirectories
   };
 
-  const clearCache = enableFileCaching ? addCache(moduleResolutionHost) : null;
+  if (enableFileCaching) {
+    const cached = addCache(moduleResolutionHost);
+    clearCache = cached.clearCache;
+    moduleResolutionHost = cached.moduleResolutionHost;
+  }
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
@@ -651,42 +656,29 @@ function populateDependencyGraphs(
   });
 }
 
-type CacheableFunction = Extract<
-  keyof typescript.ModuleResolutionHost,
-  'fileExists' | 'directoryExists' | 'realpath'
->;
-const cacheableFunctions: CacheableFunction[] = [
-  'fileExists',
-  'directoryExists',
-  'realpath'
-];
-
-function addCache(servicesHost: typescript.ModuleResolutionHost) {
+function addCache(
+  servicesHost: typescript.ModuleResolutionHost
+): {
+  moduleResolutionHost: typescript.ModuleResolutionHost;
+  clearCache: () => void;
+} {
   const clearCacheFunctions: Action[] = [];
-
-  cacheableFunctions.forEach((functionToCache: CacheableFunction) => {
-    const originalFunction = servicesHost[functionToCache];
-    if (originalFunction !== undefined) {
-      const cache = createCache<ReturnType<typeof originalFunction>>(
-        originalFunction
-      );
-      servicesHost[
-        functionToCache
-      ] = cache.getCached as typescript.ModuleResolutionHost[CacheableFunction];
-      clearCacheFunctions.push(cache.clear);
-    }
-  });
-
-  return () => clearCacheFunctions.forEach(clear => clear());
-}
-
-function createCache<TOut>(originalFunction: (arg: string) => TOut) {
-  const cache = new Map<string, TOut>();
   return {
-    clear: () => {
-      cache.clear();
+    moduleResolutionHost: {
+      ...servicesHost,
+      fileExists: createCache(servicesHost.fileExists),
+      directoryExists:
+        servicesHost.directoryExists &&
+        createCache(servicesHost.directoryExists),
+      realpath: servicesHost.realpath && createCache(servicesHost.realpath)
     },
-    getCached: (arg: string) => {
+    clearCache: () => clearCacheFunctions.forEach(clear => clear())
+  };
+
+  function createCache<TOut>(originalFunction: (arg: string) => TOut) {
+    const cache = new Map<string, TOut>();
+    clearCacheFunctions.push(() => cache.clear());
+    return function getCached(arg: string) {
       let res = cache.get(arg);
       if (res !== undefined) {
         return res;
@@ -695,6 +687,6 @@ function createCache<TOut>(originalFunction: (arg: string) => TOut) {
       res = originalFunction(arg);
       cache.set(arg, res);
       return res;
-    }
-  };
+    };
+  }
 }

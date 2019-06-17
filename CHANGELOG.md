@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.0.3
+* [Upgrade typescript version to 3.5.2](https://github.com/TypeStrong/ts-loader/pull/954) (#954) - thanks @fa93hws
+
 ## v6.0.2
 * [Set configFilePath when reading config file](https://github.com/TypeStrong/ts-loader/pull/942) (#939) - thanks @konpikwastaken!
 
