@@ -55,6 +55,7 @@ export interface TSInstance {
   /** Used for Vue for the most part */
   appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
+  rootFileNames: Set<string>;
   /**
    * a cache of all the files
    */
