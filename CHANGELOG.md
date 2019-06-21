@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.0.4
+* [Fix issue when handling files not included in tsconfig.json](https://github.com/TypeStrong/ts-loader/issues/943) (#934) - thanks @davazp!
+
 ## v6.0.3
 * [Upgrade typescript version to 3.5.2](https://github.com/TypeStrong/ts-loader/pull/954) (#954) - thanks @fa93hws
 
