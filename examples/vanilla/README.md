@@ -1,6 +1,4 @@
-# yarn pnp example (broken)
-
-**This is discussed in https://github.com/TypeStrong/ts-loader/issues/934**
+# vanilla ts-loader
 
 ```shell
 yarn install
