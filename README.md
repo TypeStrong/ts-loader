@@ -8,13 +8,13 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![Join the chat at https://gitter.im/TypeStrong/ts-loader](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/TypeStrong/ts-loader)
 
-This is the typescript loader for webpack.
+This is the TypeScript loader for webpack.
 
 ## Getting Started
 
 ### Examples
 
-We have a number of example setups to accomodate different workflows. Our examples can be found [here](examples/).
+We have a number of example setups to accommodate different workflows. Our examples can be found [here](examples/).
 
 We probably have more examples than we need.  That said, here's a good way to get started:
 

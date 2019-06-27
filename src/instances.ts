@@ -100,7 +100,8 @@ function successfulTypeScriptInstance(
     compiler,
     configFile,
     basePath,
-    configFilePath
+    configFilePath,
+    loaderOptions.projectReferences
   );
 
   if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
@@ -124,6 +125,7 @@ function successfulTypeScriptInstance(
   }
 
   const compilerOptions = getCompilerOptions(configParseResult);
+  const rootFileNames = new Set<string>();
   const files: TSFiles = new Map<string, TSFile>();
   const otherFiles: TSFiles = new Map<string, TSFile>();
 
@@ -199,6 +201,7 @@ function successfulTypeScriptInstance(
       compilerOptions,
       appendTsTsxSuffixesIfRequired,
       loaderOptions,
+      rootFileNames,
       files,
       otherFiles,
       program,
@@ -225,6 +228,7 @@ function successfulTypeScriptInstance(
         text: fs.readFileSync(normalizedFilePath, 'utf-8'),
         version: 0
       });
+      rootFileNames.add(normalizedFilePath);
     });
   } catch (exc) {
     return {
@@ -248,6 +252,7 @@ function successfulTypeScriptInstance(
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
     loaderOptions,
+    rootFileNames,
     files,
     otherFiles,
     languageService: null,
