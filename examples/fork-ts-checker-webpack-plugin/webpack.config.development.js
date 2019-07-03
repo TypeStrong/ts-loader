@@ -21,7 +21,7 @@ module.exports = {
     },
     plugins: [
         new ForkTsCheckerWebpackPlugin({
-            tslint: true, useTypescriptIncrementalApi: true
+            eslint: true
         }),
         new ForkTsCheckerNotifierWebpackPlugin({ title: 'TypeScript', excludeWarnings: false }),
         new HtmlWebpackPlugin({
