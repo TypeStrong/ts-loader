@@ -614,14 +614,12 @@ It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be 
 
 ### Hot Module replacement
 
-To enable `webpack-dev-server` HMR, you need to follow the official [webpack HMR guide](https://webpack.js.org/guides/hot-module-replacement/), then tweak a few config options for `ts-loader`. The required configuration is as follows:
+We do not support HMR as we did not yet work out a reliable way how to set it up. 
+
+If you want to give `webpack-dev-server` HMR a try, follow the official [webpack HMR guide](https://webpack.js.org/guides/hot-module-replacement/), then tweak a few config options for `ts-loader`:
 
 1. Set `transpileOnly` to `true` (see [transpileOnly](#transpileonly-boolean-defaultfalse) for config details and recommendations above).
-2. Inside your HMR acceptance callback function, you must re-require the module that was replaced.
-
-For a boilerplate HMR project using React, check out the [react-hot-boilerplate example](./examples/react-hot-boilerplate/).
-
-For a minimal HMR TypeScript setup, go to the [hot-module-replacement example](./examples/hot-module-replacement/).
+2. Inside your HMR acceptance callback function, maybe re-require the module that was replaced.
 
 ## Contributing
 
