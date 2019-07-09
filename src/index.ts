@@ -68,7 +68,7 @@ function successLoader(
         )
       : rawFilePath;
 
-  const fileVersion = updateFileInCache(filePath, contents, instance);
+  const fileVersion = updateFileInCache(options, filePath, contents, instance);
   const referencedProject = getAndCacheProjectReference(filePath, instance);
   if (referencedProject !== undefined) {
     const [relativeProjectConfigPath, relativeFilePath] = [
@@ -332,6 +332,7 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
  * Also add the file to the modified files
  */
 function updateFileInCache(
+  options: LoaderOptions,
   filePath: string,
   contents: string,
   instance: TSInstance
@@ -358,6 +359,22 @@ function updateFileInCache(
     fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Deleted;
   }
 
+  // filePath is a root file as it was passed to the loader. But it
+  // could have been found earlier as a dependency of another file. If
+  // that is the case, compiling this file changes the structure of
+  // the program and we need to increase the instance version.
+  //
+  // See https://github.com/TypeStrong/ts-loader/issues/943
+  if (
+    !instance.rootFileNames.has(filePath) &&
+    // however, be careful not to add files from node_modules unless
+    // it is allowed by the options.
+    (options.allowTsInNodeModules || filePath.indexOf('node_modules') === -1)
+  ) {
+    instance.version!++;
+    instance.rootFileNames.add(filePath);
+  }
+
   if (file.text !== contents) {
     file.version++;
     file.text = contents;
@@ -381,6 +398,7 @@ function updateFileInCache(
     instance.modifiedFiles = new Map<string, TSFile>();
   }
   instance.modifiedFiles.set(filePath, file);
+
   return file.version;
 }
 
