@@ -7,7 +7,8 @@
     "start": "webpack-dev-server --progress --color --mode development --config webpack.config.development.js",
     "prebuild": "rimraf ./dist/*",
     "build": "webpack --color --mode production --config webpack.config.production.js",
-    "lint": "eslint ./src/**/*.*"
+    "lint": "eslint ./",
+    "lint-rule-timings": "cross-env TIMING=1 yarn lint"
   },
   "devDependencies": {
     "@types/jest": "^24.0.0",
@@ -19,6 +20,7 @@
     "@types/react-transition-group": "^2.0.2",
     "@typescript-eslint/eslint-plugin": "^1.11.0",
     "@typescript-eslint/parser": "^1.11.0",
+    "cross-env": "^5.2.0",
     "eslint": "^6.0.1",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-prettier": "^3.1.0",
