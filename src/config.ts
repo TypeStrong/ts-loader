@@ -169,12 +169,7 @@ export function getParsedCommandLine(
     extendedConfigCache
   );
   if (result) {
-    const options = getCompilerOptions(result);
-    (compiler as any).setConfigFileInOptions(
-      options,
-      (result.options as any).configFile
-    );
-    result.options = options;
+    result.options = getCompilerOptions(result);
   }
   return result;
 }
