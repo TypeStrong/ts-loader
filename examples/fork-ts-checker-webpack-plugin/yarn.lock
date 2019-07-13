@@ -1923,8 +1923,10 @@ fork-ts-checker-notifier-webpack-plugin@^1.0.0:
   dependencies:
     node-notifier "^5.1.2"
 
-"fork-ts-checker-webpack-plugin@file:../../../fork-ts-checker-webpack-plugin":
-  version "0.0.0-semantic-release"
+fork-ts-checker-webpack-plugin@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/fork-ts-checker-webpack-plugin/-/fork-ts-checker-webpack-plugin-1.4.0.tgz#56a91667dfd7746248557d4f533772892e9ec474"
+  integrity sha512-Sy8rowZZJuGbu5NoBhk+XiSFpspxt9vJO6XOvPNonajm+8SFddUM375697Sn5b3RVVu/xPD9fZyNHCIbFUGnRA==
   dependencies:
     babel-code-frame "^6.22.0"
     chalk "^2.4.1"
