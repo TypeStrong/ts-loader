@@ -18,9 +18,7 @@ after_success:
   # This hack aims to avoid that adding the remark packages to `package.json` may cause a `tsc` failure.
   - set -e
   - |
-    if [ "$TYPESCRIPT" == "typescript@3.5.1" ]; then
-      yarn add --dev remark-cli remark-validate-links && yarn run remark --use=validate-links --frail --ignore-pattern=CHANGELOG . ;
-    fi
+    if [ "$TYPESCRIPT" == "typescript@3.5.1" ]; then yarn run lint:md; fi
   - set +e
 env:
   - TYPESCRIPT=typescript@3.5.1
