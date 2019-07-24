@@ -12,8 +12,16 @@ install:
   - yarn install
   - yarn build
   - yarn lint
-  - yarn lint:md
   - yarn add $TYPESCRIPT
+after_success:
+  # Lint markdown files. The latest remark works only on TypeScript 3.
+  # This hack aims to avoid that adding the remark packages to `package.json` may cause a `tsc` failure.
+  - set -e
+  - |
+    if [ "$TYPESCRIPT" == "typescript@3.5.1" ]; then
+      yarn add --dev remark-cli remark-validate-links && yarn run remark --use=validate-links --frail --ignore-pattern=CHANGELOG . ;
+    fi
+  - set +e
 env:
   - TYPESCRIPT=typescript@3.5.1
   - TYPESCRIPT=typescript@3.4.4

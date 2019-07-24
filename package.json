@@ -7,7 +7,6 @@
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "lint": "tslint --project \"./src\"",
-    "lint:md": "remark .",
     "comparison-tests": "tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
     "execution-tests": "node test/execution-tests/run-tests.js",
@@ -24,11 +23,6 @@
     "src/**/*.{ts,md}": [
       "prettier --write",
       "git add"
-    ]
-  },
-  "remarkConfig": {
-    "plugins": [
-      "validate-links"
     ]
   },
   "repository": {
@@ -91,8 +85,6 @@
     "mkdirp": "^0.5.1",
     "mocha": "^6.0.0",
     "prettier": "^1.11.1",
-    "remark-cli": "^7.0.0",
-    "remark-validate-links": "^9.0.0",
     "rimraf": "^2.6.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
