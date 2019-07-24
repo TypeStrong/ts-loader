@@ -29,7 +29,7 @@ You probably don't want to give up type checking; that's rather the point of Typ
 
 If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker-webpack-plugin/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
 
-### Yarn Plug’n’Play 
+### Yarn Plug’n’Play
 
 `ts-loader` supports [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).  The recommended way to integrate is using the [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration).
 
@@ -41,7 +41,7 @@ ts-loader works very well in combination with [babel](https://babeljs.io/) and [
 
 It's possible to parallelise your builds. Historically this was useful from a performance perspective with webpack 2 / 3.  [With webpack 4+ there appears to be significantly less benefit and perhaps even cost.](https://blog.johnnyreilly.com/2018/12/you-might-not-need-thread-loader.html)
 
-But if that's what you want to do, there's two ways to achieve this: [happypack](https://github.com/amireh/happypack) and [thread-loader](https://github.com/webpack-contrib/thread-loader). Both should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.) 
+But if that's what you want to do, there's two ways to achieve this: [happypack](https://github.com/amireh/happypack) and [thread-loader](https://github.com/webpack-contrib/thread-loader). Both should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)
 
 To read more, look at [this post](https://medium.com/webpack/typescript-webpack-super-pursuit-mode-83cc568dea79) by [@johnny_reilly](https://twitter.com/johnny_reilly) on the webpack publication channel.
 
@@ -251,7 +251,7 @@ module.exports = {
 
 If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
 
-It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple HappyPack example](examples/happypack) / [our simple thread-loader example](examples/thread-loader). For a more complex setup take a look at our [more involved HappyPack example](examples/react-babel-karma-gulp-happypack) / [more involved thread-loader example](examples/react-babel-karma-gulp-thread-loader). **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `checkSyntacticErrors` option like so:
+It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple thread-loader example](examples/thread-loader). **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `checkSyntacticErrors` option like so:
 
 ```javascript
         new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
@@ -614,7 +614,7 @@ It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be 
 
 ### Hot Module replacement
 
-We do not support HMR as we did not yet work out a reliable way how to set it up. 
+We do not support HMR as we did not yet work out a reliable way how to set it up.
 
 If you want to give `webpack-dev-server` HMR a try, follow the official [webpack HMR guide](https://webpack.js.org/guides/hot-module-replacement/), then tweak a few config options for `ts-loader`:
 
