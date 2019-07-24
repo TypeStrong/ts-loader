@@ -22,6 +22,9 @@ install:
   - yarn build
   - yarn lint
   - yarn add %TYPESCRIPT%
+  # NOTE: `remark` can cause a compile error with older TypeScript.
+  #       For details, see https://github.com/vfile/vfile/issues/36
+  - yarn remove remark-cli remark-validate-links
 test_script:
   - node --version
   - yarn --version
