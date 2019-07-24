@@ -13,12 +13,6 @@ install:
   - yarn build
   - yarn lint
   - yarn add $TYPESCRIPT
-after_success:
-  # The latest `remark` works only on TypeScript 3.
-  - set -e
-  - |
-    if [ "$TYPESCRIPT" == "typescript@3.5.1" ]; then yarn run lint:md; fi
-  - set +e
 env:
   - TYPESCRIPT=typescript@3.5.1
   - TYPESCRIPT=typescript@3.4.4
