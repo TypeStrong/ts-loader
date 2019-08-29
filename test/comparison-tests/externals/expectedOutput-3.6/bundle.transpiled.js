@@ -94,19 +94,18 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar hello = __webpack_require__(/*! hello */ \"hello\");\nvar msg = hello.sayHello('World');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
-/***/ "./lib/index.ts":
-/*!**********************!*\
-  !*** ./lib/index.ts ***!
-  \**********************/
+/***/ "hello":
+/*!************************!*\
+  !*** external "hello" ***!
+  \************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("module.exports = hello;\n\n//# sourceURL=webpack:///external_%22hello%22?");
 
 /***/ })
 

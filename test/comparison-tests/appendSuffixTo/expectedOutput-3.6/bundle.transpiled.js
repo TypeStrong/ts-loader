@@ -81,32 +81,44 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./index.vue");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ "./app.ts":
-/*!****************!*\
-  !*** ./app.ts ***!
-  \****************/
+/***/ "./component.vue":
+/*!***********************!*\
+  !*** ./component.vue ***!
+  \***********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.default = {\n    data: function () {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//# sourceURL=webpack:///./component.vue?");
 
 /***/ }),
 
-/***/ "./lib/index.ts":
-/*!**********************!*\
-  !*** ./lib/index.ts ***!
-  \**********************/
+/***/ "./helper.ts":
+/*!*******************!*\
+  !*** ./helper.ts ***!
+  \*******************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//# sourceURL=webpack:///./helper.ts?");
+
+/***/ }),
+
+/***/ "./index.vue":
+/*!*******************!*\
+  !*** ./index.vue ***!
+  \*******************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports.default = {\n    components: { component: component_vue_1.default },\n    data: function () {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//# sourceURL=webpack:///./index.vue?");
 
 /***/ })
 

@@ -81,32 +81,31 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/app.ts");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ "./app.ts":
-/*!****************!*\
-  !*** ./app.ts ***!
-  \****************/
+/***/ "./lib/externalLib.js":
+/*!****************************!*\
+  !*** ./lib/externalLib.js ***!
+  \****************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
 
 /***/ }),
 
-/***/ "./lib/index.ts":
-/*!**********************!*\
-  !*** ./lib/index.ts ***!
-  \**********************/
+/***/ "./src/app.ts":
+/*!********************!*\
+  !*** ./src/app.ts ***!
+  \********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething('');\n\n\n//# sourceURL=webpack:///./src/app.ts?");
 
 /***/ })
 

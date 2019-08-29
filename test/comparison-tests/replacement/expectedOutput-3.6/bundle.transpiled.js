@@ -86,6 +86,18 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "./a.ts":
+/*!**************!*\
+  !*** ./a.ts ***!
+  \**************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nvar dep = __webpack_require__(/*! ./dep */ \"./sub/dep.ts\");\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./a.ts?");
+
+/***/ }),
+
 /***/ "./app.ts":
 /*!****************!*\
   !*** ./app.ts ***!
@@ -94,19 +106,19 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar a = __webpack_require__(/*! ./a */ \"./a.ts\");\nconsole.log(a);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
-/***/ "./lib/index.ts":
-/*!**********************!*\
-  !*** ./lib/index.ts ***!
-  \**********************/
+/***/ "./sub/dep.ts":
+/*!********************!*\
+  !*** ./sub/dep.ts ***!
+  \********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nvar dep = 'replacement';\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./sub/dep.ts?");
 
 /***/ })
 

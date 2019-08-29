@@ -86,6 +86,18 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "../../test/comparison-tests/testLib/foo.ts":
+/*!****************************************************************!*\
+  !*** C:/source/ts-loader/test/comparison-tests/testLib/foo.ts ***!
+  \****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.default = 'foo';\n\n\n//# sourceURL=webpack:///C:/source/ts-loader/test/comparison-tests/testLib/foo.ts?");
+
+/***/ }),
+
 /***/ "./app.ts":
 /*!****************!*\
   !*** ./app.ts ***!
@@ -94,19 +106,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
-
-/***/ }),
-
-/***/ "./lib/index.ts":
-/*!**********************!*\
-  !*** ./lib/index.ts ***!
-  \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1.default);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

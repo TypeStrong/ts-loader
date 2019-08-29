@@ -103,10 +103,9 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
   !*** ./lib/index.ts ***!
   \**********************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("throw new Error(\"Module build failed (from C:/source/ts-loader/index.js):/nError: Could not find output JavaScript file for input lib//index.ts (looked at lib//index.js)./nThe input file is part of a project reference located at lib//tsconfig.json, so ts-loader is looking for the project’s pre-built output on disk. Try running `tsc --build` to build project references./n    at successLoader (C://source//ts-loader//dist//index.js:46:19)/n    at Object.loader (C://source//ts-loader//dist//index.js:22:12)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 
