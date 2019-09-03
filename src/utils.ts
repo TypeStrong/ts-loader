@@ -80,6 +80,7 @@ export function formatErrors(
               ? undefined
               : file.getLineAndCharacterOfPosition(diagnostic.start!);
           const errorInfo: ErrorInfo = {
+            diagnostic,
             code: diagnostic.code,
             severity: compiler.DiagnosticCategory[
               diagnostic.category

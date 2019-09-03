@@ -4,6 +4,7 @@ import * as typescript from 'typescript';
 import { Chalk } from 'chalk';
 
 export interface ErrorInfo {
+  diagnostic: typescript.Diagnostic;
   code: number;
   severity: Severity;
   content: string;
