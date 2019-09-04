@@ -1,0 +1,12 @@
+    Asset      Size  Chunks             Chunk Names
+bundle.js  4.33 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 120 bytes {main} [built] [1 error]
+[./common/components/myComponent.ts] 46 bytes {main} [built]
+
+ERROR in app.ts
+./app.ts
+[96mapp.ts[0m:[93m2[0m:[93m31[0m - [91merror[0m[90m TS2307: [0mCannot find module 'components/myComponent2'.
+
+[7m2[0m import myComponent2 = require('components/myComponent2');
+[7m [0m [91m                              ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
