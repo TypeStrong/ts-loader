@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.1.0
+* [Build upstream project references with SolutionBuilder](https://github.com/TypeStrong/ts-loader/pull/935) (#851, #913) - thanks @sheetalkamat!
+
 ## v6.0.4
 * [Fix issue when handling files not included in tsconfig.json](https://github.com/TypeStrong/ts-loader/issues/943) (#934) - thanks @davazp!
 
