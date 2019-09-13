@@ -528,6 +528,13 @@ function getOutputFilesFromReference(
     : undefined;
 }
 
+export function isReferencedFile(instance: TSInstance, filePath: string) {
+  return (
+    !!instance.solutionBuilderHost &&
+    !!instance.solutionBuilderHost.watchedFiles[filePath]
+  );
+}
+
 export function getEmitOutput(
   instance: TSInstance,
   filePath: string,

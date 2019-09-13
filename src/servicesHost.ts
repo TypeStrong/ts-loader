@@ -382,6 +382,12 @@ export function updateFileWithText(
         instance.compiler.FileWatcherEventKind.Changed
       );
     }
+    if (instance.solutionBuilderHost !== undefined) {
+      instance.solutionBuilderHost.invokeFileWatcher(
+        nFilePath,
+        instance.compiler.FileWatcherEventKind.Changed
+      );
+    }
   }
 }
 
@@ -586,7 +592,12 @@ export function makeSolutionBuilderHost(
     log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   };
 
-  const { watchFile, watchDirectory, watchedFiles } = createWatchFactory();
+  const {
+    watchFile,
+    watchDirectory,
+    watchedFiles,
+    ...rest
+  } = createWatchFactory();
 
   const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
     log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
@@ -611,7 +622,9 @@ export function makeSolutionBuilderHost(
     ),
     diagnostics: [],
     watchFile: builderWatchFile,
-    watchDirectory
+    watchDirectory,
+    watchedFiles,
+    ...rest
   };
   solutionBuilderHost.getCurrentDirectory = getCurrentDirectory;
   solutionBuilderHost.trace = logData => log.logInfo(logData);

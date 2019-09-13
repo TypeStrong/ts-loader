@@ -77,8 +77,9 @@ export interface WatchFactory {
 
 export interface SolutionBuilderWithWatchHost
   extends typescript.SolutionBuilderWithWatchHost<
-    typescript.EmitAndSemanticDiagnosticsBuilderProgram
-  > {
+      typescript.EmitAndSemanticDiagnosticsBuilderProgram
+    >,
+    WatchFactory {
   diagnostics: typescript.Diagnostic[];
 }
 
