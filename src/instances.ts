@@ -26,7 +26,6 @@ import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
-  isUsingProjectReferences,
   makeError,
   supportsSolutionBuild
 } from './utils';
@@ -290,6 +289,7 @@ function successfulTypeScriptInstance(
       [configFilePath],
       { verbose: true, watch: true }
     );
+    instance.solutionBuilder.buildReferences(instance.configFilePath);
   }
 
   if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
@@ -337,34 +337,235 @@ function successfulTypeScriptInstance(
 
   loader._compiler.hooks.afterCompile.tapAsync(
     'ts-loader',
-    makeAfterCompile(instance, configFilePath)
+    makeAfterCompile(instance, configFilePath, loader)
   );
   loader._compiler.hooks.watchRun.tapAsync('ts-loader', makeWatchRun(instance));
 
   return { instance };
 }
+function forEachResolvedProjectReference<T>(
+  resolvedProjectReferences:
+    | readonly (typescript.ResolvedProjectReference | undefined)[]
+    | undefined,
+  cb: (
+    resolvedProjectReference: typescript.ResolvedProjectReference
+  ) => T | undefined
+): T | undefined {
+  let seenResolvedRefs: typescript.ResolvedProjectReference[] | undefined;
+  return worker(resolvedProjectReferences);
+  function worker(
+    resolvedRefs:
+      | readonly (typescript.ResolvedProjectReference | undefined)[]
+      | undefined
+  ): T | undefined {
+    if (resolvedRefs) {
+      for (const resolvedRef of resolvedRefs) {
+        if (!resolvedRef) {
+          continue;
+        }
+        if (
+          seenResolvedRefs &&
+          seenResolvedRefs.some(seenRef => seenRef === resolvedRef)
+        ) {
+          // ignore recursives
+          continue;
+        }
 
-export function getEmitOutput(instance: TSInstance, filePath: string) {
+        (seenResolvedRefs || (seenResolvedRefs = [])).push(resolvedRef);
+        const result = cb(resolvedRef) || worker(resolvedRef.references);
+        if (result) {
+          return result;
+        }
+      }
+    }
+    return undefined;
+  }
+}
+
+// This code is here as a temporary holder
+function fileExtensionIs(fileName: string, ext: string) {
+  return fileName.endsWith(ext);
+}
+
+function rootDirOfOptions(
+  instance: TSInstance,
+  configFile: typescript.ParsedCommandLine
+) {
+  return (
+    configFile.options.rootDir ||
+    (instance.compiler as any).getDirectoryPath(
+      configFile.options.configFilePath
+    )
+  );
+}
+
+function getOutputPathWithoutChangingExt(
+  instance: TSInstance,
+  inputFileName: string,
+  configFile: typescript.ParsedCommandLine,
+  ignoreCase: boolean,
+  outputDir: string | undefined
+) {
+  return outputDir
+    ? (instance.compiler as any).resolvePath(
+        outputDir,
+        (instance.compiler as any).getRelativePathFromDirectory(
+          rootDirOfOptions(instance, configFile),
+          inputFileName,
+          ignoreCase
+        )
+      )
+    : inputFileName;
+}
+
+function getOutputJSFileName(
+  instance: TSInstance,
+  inputFileName: string,
+  configFile: typescript.ParsedCommandLine,
+  ignoreCase: boolean
+) {
+  if (configFile.options.emitDeclarationOnly) {
+    return undefined;
+  }
+  const isJsonFile = fileExtensionIs(inputFileName, '.json');
+  const outputFileName = (instance.compiler as any).changeExtension(
+    getOutputPathWithoutChangingExt(
+      instance,
+      inputFileName,
+      configFile,
+      ignoreCase,
+      configFile.options.outDir
+    ),
+    isJsonFile
+      ? '.json'
+      : fileExtensionIs(inputFileName, '.tsx') &&
+        configFile.options.jsx === instance.compiler.JsxEmit.Preserve
+      ? '.jsx'
+      : '.js'
+  );
+  return !isJsonFile ||
+    (instance.compiler as any).comparePaths(
+      inputFileName,
+      outputFileName,
+      configFile.options.configFilePath,
+      ignoreCase
+    ) !== (instance.compiler as any).Comparison.EqualTo
+    ? outputFileName
+    : undefined;
+}
+
+function getOutputFileNames(
+  instance: TSInstance,
+  configFile: typescript.ParsedCommandLine,
+  inputFileName: string
+): string[] {
+  const outputs: string[] = [];
+  const ignoreCase = !instance.compiler.sys.useCaseSensitiveFileNames;
+  const addOutput = (fileName: string | undefined) =>
+    fileName && outputs.push(fileName);
+  const js = getOutputJSFileName(
+    instance,
+    inputFileName,
+    configFile,
+    ignoreCase
+  );
+  addOutput(js);
+  if (!fileExtensionIs(inputFileName, '.json')) {
+    if (js && configFile.options.sourceMap) {
+      addOutput(`${js}.map`);
+    }
+    if (
+      (configFile.options.declaration || configFile.options.composite) &&
+      (instance.compiler as any).hasTSFileExtension(inputFileName)
+    ) {
+      const dts = (instance.compiler as any).getOutputDeclarationFileName(
+        inputFileName,
+        configFile,
+        ignoreCase
+      );
+      addOutput(dts);
+      if (configFile.options.declarationMap) {
+        addOutput(`${dts}.map`);
+      }
+    }
+  }
+
+  return outputs;
+}
+
+function getOutputFilesFromReference(
+  program: typescript.Program,
+  instance: TSInstance,
+  filePath: string
+): typescript.OutputFile[] | undefined {
+  // May be api to get file
+  const refs = program.getResolvedProjectReferences();
+  return refs && instance.solutionBuilderHost
+    ? forEachResolvedProjectReference(refs, ({ commandLine }) => {
+        const { options, fileNames } = commandLine;
+        if (
+          !options.outFile &&
+          !options.out &&
+          fileNames.some(file => path.normalize(file) === filePath)
+        ) {
+          // TODO api in typescript
+          // For now copying from typescript
+          const outputFiles: typescript.OutputFile[] = [];
+          getOutputFileNames(
+            instance,
+            commandLine,
+            (instance.compiler as any).resolvePath(filePath)
+          ).forEach(name => {
+            const text = instance.compiler.sys.readFile(name);
+            if (text) {
+              outputFiles.push({ name, text, writeByteOrderMark: false });
+            }
+          });
+          return outputFiles;
+        }
+        return undefined;
+      })
+    : undefined;
+}
+
+export function getEmitOutput(
+  instance: TSInstance,
+  filePath: string,
+  loaderContext: webpack.loader.LoaderContext
+) {
   const program = ensureProgram(instance);
   if (program !== undefined) {
-    const outputFiles: typescript.OutputFile[] = [];
-    const writeFile = (
-      fileName: string,
-      text: string,
-      writeByteOrderMark: boolean
-    ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
     const sourceFile = program.getSourceFile(filePath);
     // The source file will be undefined if it’s part of an unbuilt project reference
-    if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
-      program.emit(
-        sourceFile,
-        writeFile,
-        /*cancellationToken*/ undefined,
-        /*emitOnlyDtsFiles*/ false,
-        instance.transformers
-      );
+    if (sourceFile) {
+      if (path.resolve(sourceFile.fileName) !== path.resolve(filePath)) {
+        const outputFiles = getOutputFilesFromReference(
+          program,
+          instance,
+          filePath
+        );
+        if (outputFiles) {
+          return outputFiles;
+        }
+        loaderContext.emitWarning(`No output found for ${filePath}`);
+      } else {
+        const outputFiles: typescript.OutputFile[] = [];
+        const writeFile = (
+          fileName: string,
+          text: string,
+          writeByteOrderMark: boolean
+        ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
+        program.emit(
+          sourceFile,
+          writeFile,
+          /*cancellationToken*/ undefined,
+          /*emitOnlyDtsFiles*/ false,
+          instance.transformers
+        );
+        return outputFiles;
+      }
     }
-    return outputFiles;
+    return [];
   } else {
     // Emit Javascript
     return instance.languageService!.getProgram()!.getSourceFile(filePath) ===

@@ -1,8 +1,8 @@
-import * as path from 'path';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import { TSFile, TSInstance } from './interfaces';
+import { updateFileWithText } from './servicesHost';
 import { readFile } from './utils';
 
 /**
@@ -49,19 +49,9 @@ export function makeWatchRun(instance: TSInstance) {
 }
 
 function updateFile(instance: TSInstance, filePath: string) {
-  const nFilePath = path.normalize(filePath);
-  const file =
-    instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
-  if (file !== undefined) {
-    file.text = readFile(nFilePath) || '';
-    file.version++;
-    instance.version!++;
-    instance.modifiedFiles!.set(nFilePath, file);
-    if (instance.watchHost !== undefined) {
-      instance.watchHost.invokeFileWatcher(
-        nFilePath,
-        instance.compiler.FileWatcherEventKind.Changed
-      );
-    }
-  }
+  updateFileWithText(
+    instance,
+    filePath,
+    nFilePath => readFile(nFilePath) || ''
+  );
 }

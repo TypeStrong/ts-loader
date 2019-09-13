@@ -11,7 +11,10 @@ import {
   ModuleResolutionHost,
   ResolvedModule,
   ResolveSync,
+  SolutionBuilderWithWatchHost,
   TSInstance,
+  WatchCallbacks,
+  WatchFactory,
   WatchHost
 } from './interfaces';
 import * as logger from './logger';
@@ -238,54 +241,7 @@ function makeResolvers(
   };
 }
 
-/**
- * Create the TypeScript Watch host
- */
-export function makeWatchHost(
-  scriptRegex: RegExp,
-  log: logger.Logger,
-  loader: webpack.loader.LoaderContext,
-  instance: TSInstance,
-  projectReferences?: ReadonlyArray<typescript.ProjectReference>
-) {
-  const {
-    compiler,
-    compilerOptions,
-    appendTsTsxSuffixesIfRequired,
-    files,
-    otherFiles,
-    loaderOptions: {
-      resolveModuleName: customResolveModuleName,
-      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
-    }
-  } = instance;
-
-  const newLine =
-    compilerOptions.newLine === constants.CarriageReturnLineFeedCode
-      ? constants.CarriageReturnLineFeed
-      : compilerOptions.newLine === constants.LineFeedCode
-      ? constants.LineFeed
-      : constants.EOL;
-
-  // make a (sync) resolver that follows webpack's rules
-  const resolveSync = makeResolver(loader._compiler.options);
-
-  const readFileWithFallback = (
-    filePath: string,
-    encoding?: string | undefined
-  ): string | undefined =>
-    compiler.sys.readFile(filePath, encoding) || readFile(filePath, encoding);
-
-  const moduleResolutionHost: ModuleResolutionHost = {
-    fileExists,
-    readFile: readFileWithFallback,
-    realpath: compiler.sys.realpath
-  };
-
-  // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
-  const getCurrentDirectory = () => loader.context;
-
-  type WatchCallbacks<T> = { [fileName: string]: T[] | undefined };
+function createWatchFactory(): WatchFactory {
   const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = {};
   const watchedDirectories: WatchCallbacks<
     typescript.DirectoryWatcherCallback
@@ -294,91 +250,15 @@ export function makeWatchHost(
     typescript.DirectoryWatcherCallback
   > = {};
 
-  const resolvers = makeResolvers(
-    compiler,
-    compilerOptions,
-    moduleResolutionHost,
-    customResolveTypeReferenceDirective,
-    customResolveModuleName,
-    resolveSync,
-    appendTsTsxSuffixesIfRequired,
-    scriptRegex,
-    instance
-  );
-
-  const watchHost: WatchHost = {
-    rootFiles: getRootFileNames(),
-    options: compilerOptions,
-
-    useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
-    getNewLine: () => newLine,
-    getCurrentDirectory,
-    getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
-
-    fileExists,
-    readFile: readFileWithCachingText,
-    directoryExists: dirPath =>
-      compiler.sys.directoryExists(path.normalize(dirPath)),
-    getDirectories: dirPath =>
-      compiler.sys.getDirectories(path.normalize(dirPath)),
-    readDirectory: (dirPath, extensions, exclude, include, depth) =>
-      compiler.sys.readDirectory(
-        path.normalize(dirPath),
-        extensions,
-        exclude,
-        include,
-        depth
-      ),
-    realpath: dirPath => compiler.sys.resolvePath(path.normalize(dirPath)),
-    trace: logData => log.log(logData),
-
-    watchFile,
-    watchDirectory,
-
-    // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
-    resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
-
-    resolveModuleNames: resolvers.resolveModuleNames,
-
+  return {
+    watchedFiles,
+    watchedDirectories,
+    watchedDirectoriesRecursive,
     invokeFileWatcher,
     invokeDirectoryWatcher,
-    updateRootFileNames: () => {
-      instance.changedFilesList = false;
-      if (instance.watchOfFilesAndCompilerOptions !== undefined) {
-        instance.watchOfFilesAndCompilerOptions.updateRootFileNames(
-          getRootFileNames()
-        );
-      }
-    },
-    createProgram:
-      projectReferences === undefined
-        ? compiler.createAbstractBuilder
-        : createBuilderProgramWithReferences
+    watchFile,
+    watchDirectory
   };
-  return watchHost;
-
-  function getRootFileNames() {
-    return [...files.keys()].filter(filePath => filePath.match(scriptRegex));
-  }
-
-  function readFileWithCachingText(fileName: string, encoding?: string) {
-    fileName = path.normalize(fileName);
-    const file = files.get(fileName) || otherFiles.get(fileName);
-    if (file !== undefined) {
-      return file.text;
-    }
-    const text = readFileWithFallback(fileName, encoding);
-    if (text === undefined) {
-      return undefined;
-    }
-    otherFiles.set(fileName, { version: 0, text });
-    return text;
-  }
-
-  function fileExists(fileName: string) {
-    const filePath = path.normalize(fileName);
-    return files.has(filePath) || compiler.sys.fileExists(filePath);
-  }
 
   function invokeWatcherCallbacks(
     callbacks: typescript.FileWatcherCallback[] | undefined,
@@ -481,6 +361,168 @@ export function makeWatchHost(
       callback
     );
   }
+}
+
+export function updateFileWithText(
+  instance: TSInstance,
+  filePath: string,
+  text: (nFilePath: string) => string
+) {
+  const nFilePath = path.normalize(filePath);
+  const file =
+    instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
+  if (file !== undefined) {
+    file.text = text(nFilePath);
+    file.version++;
+    instance.version!++;
+    instance.modifiedFiles!.set(nFilePath, file);
+    if (instance.watchHost !== undefined) {
+      instance.watchHost.invokeFileWatcher(
+        nFilePath,
+        instance.compiler.FileWatcherEventKind.Changed
+      );
+    }
+  }
+}
+
+/**
+ * Create the TypeScript Watch host
+ */
+export function makeWatchHost(
+  scriptRegex: RegExp,
+  log: logger.Logger,
+  loader: webpack.loader.LoaderContext,
+  instance: TSInstance,
+  projectReferences?: ReadonlyArray<typescript.ProjectReference>
+) {
+  const {
+    compiler,
+    compilerOptions,
+    appendTsTsxSuffixesIfRequired,
+    files,
+    otherFiles,
+    loaderOptions: {
+      resolveModuleName: customResolveModuleName,
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
+    }
+  } = instance;
+
+  const newLine =
+    compilerOptions.newLine === constants.CarriageReturnLineFeedCode
+      ? constants.CarriageReturnLineFeed
+      : compilerOptions.newLine === constants.LineFeedCode
+      ? constants.LineFeed
+      : constants.EOL;
+
+  // make a (sync) resolver that follows webpack's rules
+  const resolveSync = makeResolver(loader._compiler.options);
+
+  const readFileWithFallback = (
+    filePath: string,
+    encoding?: string | undefined
+  ): string | undefined =>
+    compiler.sys.readFile(filePath, encoding) || readFile(filePath, encoding);
+
+  const moduleResolutionHost: ModuleResolutionHost = {
+    fileExists,
+    readFile: readFileWithFallback,
+    realpath: compiler.sys.realpath
+  };
+
+  // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
+  const getCurrentDirectory = () => loader.context;
+
+  const {
+    watchFile,
+    watchDirectory,
+    invokeFileWatcher,
+    invokeDirectoryWatcher
+  } = createWatchFactory();
+  const resolvers = makeResolvers(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveTypeReferenceDirective,
+    customResolveModuleName,
+    resolveSync,
+    appendTsTsxSuffixesIfRequired,
+    scriptRegex,
+    instance
+  );
+
+  const watchHost: WatchHost = {
+    rootFiles: getRootFileNames(),
+    options: compilerOptions,
+
+    useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
+    getNewLine: () => newLine,
+    getCurrentDirectory,
+    getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
+
+    fileExists,
+    readFile: readFileWithCachingText,
+    directoryExists: dirPath =>
+      compiler.sys.directoryExists(path.normalize(dirPath)),
+    getDirectories: dirPath =>
+      compiler.sys.getDirectories(path.normalize(dirPath)),
+    readDirectory: (dirPath, extensions, exclude, include, depth) =>
+      compiler.sys.readDirectory(
+        path.normalize(dirPath),
+        extensions,
+        exclude,
+        include,
+        depth
+      ),
+    realpath: dirPath => compiler.sys.resolvePath(path.normalize(dirPath)),
+    trace: logData => log.log(logData),
+
+    watchFile,
+    watchDirectory,
+
+    // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
+    resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
+
+    resolveModuleNames: resolvers.resolveModuleNames,
+
+    invokeFileWatcher,
+    invokeDirectoryWatcher,
+    updateRootFileNames: () => {
+      instance.changedFilesList = false;
+      if (instance.watchOfFilesAndCompilerOptions !== undefined) {
+        instance.watchOfFilesAndCompilerOptions.updateRootFileNames(
+          getRootFileNames()
+        );
+      }
+    },
+    createProgram:
+      projectReferences === undefined
+        ? compiler.createAbstractBuilder
+        : createBuilderProgramWithReferences
+  };
+  return watchHost;
+
+  function getRootFileNames() {
+    return [...files.keys()].filter(filePath => filePath.match(scriptRegex));
+  }
+
+  function readFileWithCachingText(fileName: string, encoding?: string) {
+    fileName = path.normalize(fileName);
+    const file = files.get(fileName) || otherFiles.get(fileName);
+    if (file !== undefined) {
+      return file.text;
+    }
+    const text = readFileWithFallback(fileName, encoding);
+    if (text === undefined) {
+      return undefined;
+    }
+    otherFiles.set(fileName, { version: 0, text });
+    return text;
+  }
+
+  function fileExists(fileName: string) {
+    const filePath = path.normalize(fileName);
+    return files.has(filePath) || compiler.sys.fileExists(filePath);
+  }
 
   function createBuilderProgramWithReferences(
     rootNames: ReadonlyArray<string> | undefined,
@@ -518,7 +560,7 @@ export function makeSolutionBuilderHost(
   log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance
-) {
+): SolutionBuilderWithWatchHost {
   const {
     compiler,
     compilerOptions,
@@ -539,8 +581,13 @@ export function makeSolutionBuilderHost(
     getNewLine: () => compiler.sys.newLine
   };
 
-  const reportDiagnostic = (d: typescript.Diagnostic) =>
-    log.logError(compiler.formatDiagnostic(d, formatDiagnosticHost));
+  const reportDiagnostic = (d: typescript.Diagnostic) => {
+    solutionBuilderHost.diagnostics.push(d);
+    log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+  };
+
+  const { watchFile, watchDirectory, watchedFiles } = createWatchFactory();
+
   const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
     log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   const reportWatchStatus = (
@@ -554,17 +601,26 @@ export function makeSolutionBuilderHost(
         compiler.sys.newLine
       )}${newLine + newLine}`
     );
-  const solutionBuilderHost = compiler.createSolutionBuilderWithWatchHost(
-    compiler.sys,
-    compiler.createEmitAndSemanticDiagnosticsBuilderProgram,
-    reportDiagnostic,
-    reportSolutionBuilderStatus,
-    reportWatchStatus
-  );
+  const solutionBuilderHost: SolutionBuilderWithWatchHost = {
+    ...compiler.createSolutionBuilderWithWatchHost(
+      compiler.sys,
+      compiler.createEmitAndSemanticDiagnosticsBuilderProgram,
+      reportDiagnostic,
+      reportSolutionBuilderStatus,
+      reportWatchStatus
+    ),
+    diagnostics: [],
+    watchFile: builderWatchFile,
+    watchDirectory
+  };
   solutionBuilderHost.getCurrentDirectory = getCurrentDirectory;
   solutionBuilderHost.trace = logData => log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file =>
     getParsedCommandLine(compiler, instance.loaderOptions, file);
+  solutionBuilderHost.writeFile = (name, text, writeByteOrderMark) => {
+    compiler.sys.writeFile(name, text, writeByteOrderMark);
+    updateFileWithText(instance, name, () => text);
+  };
 
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
@@ -585,6 +641,54 @@ export function makeSolutionBuilderHost(
   solutionBuilderHost.resolveModuleNames = resolvers.resolveModuleNames;
 
   return solutionBuilderHost;
+
+  function builderWatchFile(
+    fileName: string,
+    callback: typescript.FileWatcherCallback,
+    pollingInterval?: number
+  ) {
+    loader.addDependency(path.resolve(fileName));
+    const watcher = watchFile(fileName, callback, pollingInterval);
+    return {
+      close() {
+        watcher.close();
+        updateDependencies();
+      }
+    };
+  }
+
+  // TODO::
+  // function builderWatchDirectory(path: string, callback: typescript.DirectoryWatcherCallback, recursive?: boolean) {
+  //    loader.addContextDependency(path);
+  //    const watcher = watchDirectory(path, callback, recursive);
+  //    return {
+  //        close() {
+  //            watcher.close();
+  //            updateDependencies();
+  //        }
+  //    };
+  // }
+
+  function updateDependencies() {
+    loader.clearDependencies();
+    for (const key in watchedFiles) {
+      if (Object.prototype.hasOwnProperty.call(watchedFiles, key)) {
+        loader.addDependency(key);
+      }
+    }
+
+    // TODO::
+    // for (const key in watchedDirectories) {
+    //    if (Object.prototype.hasOwnProperty.call(watchedDirectories, key)) {
+    //        loader.addContextDependency(key);
+    //    }
+    // }
+    // for (const key in watchedDirectoriesRecursive) {
+    //    if (Object.prototype.hasOwnProperty.call(watchedDirectoriesRecursive, key)) {
+    //        loader.addContextDependency(key);
+    //    }
+    // }
+  }
 }
 
 type ResolveTypeReferenceDirective = (

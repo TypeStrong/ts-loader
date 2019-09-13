@@ -12,14 +12,7 @@ import {
   TSFile,
   TSInstance
 } from './interfaces';
-import {
-  appendSuffixesIfMatch,
-  arrify,
-  formatErrors,
-  getAndCacheOutputJSFileName,
-  getAndCacheProjectReference,
-  validateSourceMapOncePerProject
-} from './utils';
+import { appendSuffixesIfMatch, arrify, formatErrors } from './utils';
 
 const webpackInstances: webpack.Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
@@ -69,85 +62,20 @@ function successLoader(
       : rawFilePath;
 
   const fileVersion = updateFileInCache(options, filePath, contents, instance);
-  const referencedProject = getAndCacheProjectReference(filePath, instance);
-  if (referencedProject !== undefined) {
-    const [relativeProjectConfigPath, relativeFilePath] = [
-      path.relative(
-        loaderContext.rootContext,
-        referencedProject.sourceFile.fileName
-      ),
-      path.relative(loaderContext.rootContext, filePath)
-    ];
-    if (referencedProject.commandLine.options.outFile !== undefined) {
-      throw new Error(
-        `The referenced project at ${relativeProjectConfigPath} is using ` +
-          `the outFile' option, which is not supported with ts-loader.`
-      );
-    }
+  const { outputText, sourceMapText } = options.transpileOnly
+    ? getTranspilationEmit(filePath, contents, instance, loaderContext)
+    : getEmit(rawFilePath, filePath, instance, loaderContext);
 
-    const jsFileName = getAndCacheOutputJSFileName(
-      filePath,
-      referencedProject,
-      instance
-    );
-
-    const relativeJSFileName = path.relative(
-      loaderContext.rootContext,
-      jsFileName
-    );
-    if (!instance.compiler.sys.fileExists(jsFileName)) {
-      throw new Error(
-        `Could not find output JavaScript file for input ` +
-          `${relativeFilePath} (looked at ${relativeJSFileName}).\n` +
-          `The input file is part of a project reference located at ` +
-          `${relativeProjectConfigPath}, so ts-loader is looking for the ` +
-          'project’s pre-built output on disk. Try running `tsc --build` ' +
-          'to build project references.'
-      );
-    }
-
-    // Since the output JS file is being read from disk instead of using the
-    // input TS file, we need to tell the loader that the compilation doesn’t
-    // actually depend on the current file, but depends on the JS file instead.
-    loaderContext.clearDependencies();
-    loaderContext.addDependency(jsFileName);
-
-    validateSourceMapOncePerProject(
-      instance,
-      loaderContext,
-      jsFileName,
-      referencedProject
-    );
-
-    const mapFileName = jsFileName + '.map';
-    const outputText = instance.compiler.sys.readFile(jsFileName);
-    const sourceMapText = instance.compiler.sys.readFile(mapFileName);
-    makeSourceMapAndFinish(
-      sourceMapText,
-      outputText,
-      filePath,
-      contents,
-      loaderContext,
-      options,
-      fileVersion,
-      callback
-    );
-  } else {
-    const { outputText, sourceMapText } = options.transpileOnly
-      ? getTranspilationEmit(filePath, contents, instance, loaderContext)
-      : getEmit(rawFilePath, filePath, instance, loaderContext);
-
-    makeSourceMapAndFinish(
-      sourceMapText,
-      outputText,
-      filePath,
-      contents,
-      loaderContext,
-      options,
-      fileVersion,
-      callback
-    );
-  }
+  makeSourceMapAndFinish(
+    sourceMapText,
+    outputText,
+    filePath,
+    contents,
+    loaderContext,
+    options,
+    fileVersion,
+    callback
+  );
 }
 
 function makeSourceMapAndFinish(
@@ -408,7 +336,7 @@ function getEmit(
   instance: TSInstance,
   loaderContext: webpack.loader.LoaderContext
 ) {
-  const outputFiles = getEmitOutput(instance, filePath);
+  const outputFiles = getEmitOutput(instance, filePath, loaderContext);
 
   loaderContext.clearDependencies();
   loaderContext.addDependency(rawFilePath);
@@ -426,21 +354,7 @@ function getEmit(
   const additionalDependencies =
     fileDependencies === undefined
       ? []
-      : fileDependencies.map(({ resolvedFileName, originalFileName }) => {
-          const projectReference = getAndCacheProjectReference(
-            resolvedFileName,
-            instance
-          );
-          // In the case of dependencies that are part of a project reference,
-          // the real dependency that webpack should watch is the JS output file.
-          return projectReference !== undefined
-            ? getAndCacheOutputJSFileName(
-                resolvedFileName,
-                projectReference,
-                instance
-              )
-            : originalFileName;
-        });
+      : fileDependencies.map(({ originalFileName }) => originalFileName);
 
   if (additionalDependencies.length > 0) {
     additionalDependencies.forEach(addDependency);

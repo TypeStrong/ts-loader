@@ -11,16 +11,12 @@ import {
   WebpackError,
   WebpackModule
 } from './interfaces';
-import {
-  collectAllDependants,
-  ensureProgram,
-  formatErrors,
-  isUsingProjectReferences
-} from './utils';
+import { collectAllDependants, ensureProgram, formatErrors } from './utils';
 
 export function makeAfterCompile(
   instance: TSInstance,
-  configFilePath: string | undefined
+  configFilePath: string | undefined,
+  loaderContext: webpack.loader.LoaderContext
 ) {
   let getCompilerOptionDiagnostics = true;
   let checkAllFilesForErrors = true;
@@ -65,8 +61,25 @@ export function makeAfterCompile(
     provideDeclarationFilesToWebpack(
       filesToCheckForErrors,
       instance,
-      compilation
+      compilation,
+      loaderContext
     );
+
+    if (instance.solutionBuilderHost) {
+      // append errors
+      const formattedErrors = instance.solutionBuilderHost.diagnostics.map(d =>
+        formatErrors(
+          [d],
+          instance.loaderOptions,
+          instance.colors,
+          instance.compiler,
+          { file: d.file ? path.resolve(d.file.fileName) : 'tsconfig.json' },
+          compilation.compiler.context
+        )
+      );
+
+      compilation.errors.push(...formattedErrors);
+    }
 
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = null;
@@ -189,21 +202,13 @@ function provideErrorsToWebpack(
 
   // I’m pretty sure this will never be undefined here
   const program = ensureProgram(instance);
+  // TODO:: handle referenced projects
   for (const filePath of filesToCheckForErrors.keys()) {
     if (filePath.match(filePathRegex) === null) {
       continue;
     }
 
     const sourceFile = program && program.getSourceFile(filePath);
-
-    // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
-    // which will have already produced a more useful error than the one we would get by proceeding here.
-    // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
-    // get a useful error about which file was unexpectedly missing.
-    if (isUsingProjectReferences(instance) && sourceFile === undefined) {
-      continue;
-    }
-
     const errors: ts.Diagnostic[] = [];
     if (program && sourceFile) {
       errors.push(
@@ -262,14 +267,15 @@ function provideErrorsToWebpack(
 function provideDeclarationFilesToWebpack(
   filesToCheckForErrors: TSFiles,
   instance: TSInstance,
-  compilation: webpack.compilation.Compilation
+  compilation: webpack.compilation.Compilation,
+  loaderContext: webpack.loader.LoaderContext
 ) {
   for (const filePath of filesToCheckForErrors.keys()) {
     if (filePath.match(constants.tsTsxRegex) === null) {
       continue;
     }
 
-    const outputFiles = getEmitOutput(instance, filePath);
+    const outputFiles = getEmitOutput(instance, filePath, loaderContext);
     const declarationFiles = outputFiles.filter(outputFile =>
       outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
     );

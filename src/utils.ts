@@ -3,7 +3,6 @@ import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as path from 'path';
 import * as typescript from 'typescript';
-import * as webpack from 'webpack';
 
 import constants = require('./constants');
 import {
@@ -258,156 +257,9 @@ export function ensureProgram(instance: TSInstance) {
   return instance.program;
 }
 
-export function supportsProjectReferences(instance: TSInstance) {
-  const program = ensureProgram(instance);
-  return program && !!program.getProjectReferences;
-}
-
-export function isUsingProjectReferences(instance: TSInstance) {
-  if (
-    instance.loaderOptions.projectReferences &&
-    supportsProjectReferences(instance)
-  ) {
-    const program = ensureProgram(instance);
-    return Boolean(program && program.getProjectReferences());
-  }
-  return false;
-}
-
-/**
- * Gets the project reference for a file from the cache if it exists,
- * or gets it from TypeScript and caches it otherwise.
- */
-export function getAndCacheProjectReference(
-  filePath: string,
-  instance: TSInstance
-) {
-  const file = instance.files.get(filePath);
-  if (file !== undefined && file.projectReference) {
-    return file.projectReference.project;
-  }
-
-  const projectReference = getProjectReferenceForFile(filePath, instance);
-  if (file !== undefined) {
-    file.projectReference = { project: projectReference };
-  }
-
-  return projectReference;
-}
-
-function getResolvedProjectReferences(
-  program: typescript.Program
-): typescript.ResolvedProjectReference[] | undefined {
-  const getProjectReferences =
-    (program as any).getResolvedProjectReferences ||
-    program.getProjectReferences;
-  if (getProjectReferences) {
-    return getProjectReferences();
-  }
-  return;
-}
-
-function getProjectReferenceForFile(filePath: string, instance: TSInstance) {
-  if (isUsingProjectReferences(instance)) {
-    const program = ensureProgram(instance);
-    return (
-      program &&
-      getResolvedProjectReferences(program)!.find(
-        ref =>
-          (ref &&
-            ref.commandLine.fileNames.some(
-              file => path.normalize(file) === filePath
-            )) ||
-          false
-      )
-    );
-  }
-
-  return;
-}
-
-export function validateSourceMapOncePerProject(
-  instance: TSInstance,
-  loader: webpack.loader.LoaderContext,
-  jsFileName: string,
-  project: typescript.ResolvedProjectReference
-) {
-  const { projectsMissingSourceMaps = new Set<string>() } = instance;
-  if (!projectsMissingSourceMaps.has(project.sourceFile.fileName)) {
-    instance.projectsMissingSourceMaps = projectsMissingSourceMaps;
-    projectsMissingSourceMaps.add(project.sourceFile.fileName);
-    const mapFileName = jsFileName + '.map';
-    if (!instance.compiler.sys.fileExists(mapFileName)) {
-      const [relativeJSPath, relativeProjectConfigPath] = [
-        path.relative(loader.rootContext, jsFileName),
-        path.relative(loader.rootContext, project.sourceFile.fileName)
-      ];
-      loader.emitWarning(
-        new Error(
-          'Could not find source map file for referenced project output ' +
-            `${relativeJSPath}. Ensure the 'sourceMap' compiler option ` +
-            `is enabled in ${relativeProjectConfigPath} to ensure Webpack ` +
-            'can map project references to the appropriate source files.'
-        )
-      );
-    }
-  }
-}
-
 export function supportsSolutionBuild(
   loaderOptions: LoaderOptions,
   compiler: typeof typescript
 ) {
   return !!loaderOptions.projectReferences && !!compiler.InvalidatedProjectKind;
-}
-
-/**
- * Gets the output JS file path for an input file governed by a composite project.
- * Pulls from the cache if it exists; computes and caches the result otherwise.
- */
-export function getAndCacheOutputJSFileName(
-  inputFileName: string,
-  projectReference: typescript.ResolvedProjectReference,
-  instance: TSInstance
-) {
-  const file = instance.files.get(inputFileName);
-  if (file && file.projectReference && file.projectReference.outputFileName) {
-    return file.projectReference.outputFileName;
-  }
-
-  const outputFileName = getOutputJavaScriptFileName(
-    inputFileName,
-    projectReference
-  );
-
-  if (file !== undefined) {
-    file.projectReference = file.projectReference || {
-      project: projectReference
-    };
-    file.projectReference.outputFileName = outputFileName;
-  }
-
-  return outputFileName;
-}
-
-// Adapted from https://github.com/Microsoft/TypeScript/blob/45101491c0b077c509b25830ef0ee5f85b293754/src/compiler/tsbuild.ts#L305
-function getOutputJavaScriptFileName(
-  inputFileName: string,
-  projectReference: typescript.ResolvedProjectReference
-) {
-  const { options } = projectReference.commandLine;
-  const projectDirectory =
-    options.rootDir || path.dirname(projectReference.sourceFile.fileName);
-  const relativePath = path.relative(projectDirectory, inputFileName);
-  const outputPath = path.resolve(
-    options.outDir || projectDirectory,
-    relativePath
-  );
-  const newExtension = constants.jsonRegex.test(inputFileName)
-    ? '.json'
-    : constants.tsxRegex.test(inputFileName) &&
-      options.jsx === typescript.JsxEmit.Preserve
-    ? '.jsx'
-    : '.js';
-  return outputPath.replace(constants.extensionRegex, newExtension);
 }
