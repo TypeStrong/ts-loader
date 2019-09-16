@@ -15,11 +15,12 @@ import {
   TSInstance,
   WatchCallbacks,
   WatchFactory,
-  WatchHost
+  WatchHost,
+  WebpackError
 } from './interfaces';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import { readFile, unorderedRemoveItem } from './utils';
+import { formatErrors, readFile, unorderedRemoveItem } from './utils';
 
 export type Action = () => void;
 
@@ -702,6 +703,28 @@ export function makeSolutionBuilderHost(
     //    }
     // }
   }
+}
+
+export function getSolutionErrors(instance: TSInstance, context: string) {
+  const solutionErrors: WebpackError[] = [];
+  if (
+    instance.solutionBuilderHost &&
+    instance.solutionBuilderHost.diagnostics.length
+  ) {
+    instance.solutionBuilderHost.diagnostics.forEach(d =>
+      solutionErrors.push(
+        ...formatErrors(
+          [d],
+          instance.loaderOptions,
+          instance.colors,
+          instance.compiler,
+          { file: d.file ? path.resolve(d.file.fileName) : 'tsconfig.json' },
+          context
+        )
+      )
+    );
+  }
+  return solutionErrors;
 }
 
 type ResolveTypeReferenceDirective = (

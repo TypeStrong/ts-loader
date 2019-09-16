@@ -18,6 +18,7 @@ import {
 } from './interfaces';
 import * as logger from './logger';
 import {
+  getSolutionErrors,
   makeServicesHost,
   makeSolutionBuilderHost,
   makeWatchHost
@@ -174,20 +175,52 @@ function successfulTypeScriptInstance(
     getCustomTransformers = customerTransformers;
   }
 
+  // if allowJs is set then we should accept js(x) files
+  const scriptRegex =
+    configParseResult.options.allowJs === true
+      ? /\.tsx?$|\.jsx?$/i
+      : /\.tsx?$/i;
+
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
     // we do need to check for any issues with TS options though
-    const program =
+    const transpileInstance: TSInstance = (instances[loaderOptions.instance] = {
+      compiler,
+      compilerOptions,
+      appendTsTsxSuffixesIfRequired,
+      loaderOptions,
+      rootFileNames,
+      files,
+      otherFiles,
+      program: undefined, // temporary, to be set later
+      dependencyGraph: {},
+      reverseDependencyGraph: {},
+      transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
+      colors
+    });
+
+    tryAndBuildSolutionReferences(
+      transpileInstance,
+      loader,
+      log,
+      scriptRegex,
+      configFilePath
+    );
+    const program = (transpileInstance.program =
       configParseResult.projectReferences !== undefined
         ? compiler!.createProgram({
             rootNames: configParseResult.fileNames,
             options: configParseResult.options,
             projectReferences: configParseResult.projectReferences
           })
-        : compiler!.createProgram([], compilerOptions);
+        : compiler!.createProgram([], compilerOptions));
 
     // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!loaderOptions.happyPackMode) {
+      const solutionErrors: WebpackError[] = getSolutionErrors(
+        transpileInstance,
+        loader.context
+      );
       const diagnostics = program.getOptionsDiagnostics();
       const errors = formatErrors(
         diagnostics,
@@ -197,26 +230,10 @@ function successfulTypeScriptInstance(
         { file: configFilePath || 'tsconfig.json' },
         loader.context
       );
-
-      loader._module.errors.push(...errors);
+      loader._module.errors.push(...solutionErrors, ...errors);
     }
-
-    instances[loaderOptions.instance] = {
-      compiler,
-      compilerOptions,
-      appendTsTsxSuffixesIfRequired,
-      loaderOptions,
-      rootFileNames,
-      files,
-      otherFiles,
-      program,
-      dependencyGraph: {},
-      reverseDependencyGraph: {},
-      transformers: getCustomTransformers(program),
-      colors
-    };
-
-    return { instance: instances[loaderOptions.instance] };
+    transpileInstance.transformers = getCustomTransformers(program);
+    return { instance: transpileInstance };
   }
 
   // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -246,12 +263,6 @@ function successfulTypeScriptInstance(
     };
   }
 
-  // if allowJs is set then we should accept js(x) files
-  const scriptRegex =
-    configParseResult.options.allowJs === true
-      ? /\.tsx?$|\.jsx?$/i
-      : /\.tsx?$/i;
-
   const instance: TSInstance = (instances[loaderOptions.instance] = {
     compiler,
     compilerOptions,
@@ -275,23 +286,13 @@ function successfulTypeScriptInstance(
     );
   }
 
-  if (configFilePath && supportsSolutionBuild(loaderOptions, compiler)) {
-    // Use solution builder
-    log.logInfo('Using SolutionBuilder api');
-    instance.configFilePath = configFilePath;
-    instance.solutionBuilderHost = makeSolutionBuilderHost(
-      scriptRegex,
-      log,
-      loader,
-      instance
-    );
-    instance.solutionBuilder = compiler.createSolutionBuilderWithWatch(
-      instance.solutionBuilderHost,
-      [configFilePath],
-      { verbose: true, watch: true }
-    );
-    instance.solutionBuilder.buildReferences(instance.configFilePath);
-  }
+  tryAndBuildSolutionReferences(
+    instance,
+    loader,
+    log,
+    scriptRegex,
+    configFilePath
+  );
 
   if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
     log.logInfo('Using watch api');
@@ -344,6 +345,36 @@ function successfulTypeScriptInstance(
 
   return { instance };
 }
+
+function tryAndBuildSolutionReferences(
+  instance: TSInstance,
+  loader: webpack.loader.LoaderContext,
+  log: logger.Logger,
+  scriptRegex: RegExp,
+  configFilePath: string | undefined
+) {
+  if (
+    configFilePath &&
+    supportsSolutionBuild(instance.loaderOptions, instance.compiler)
+  ) {
+    // Use solution builder
+    log.logInfo('Using SolutionBuilder api');
+    instance.configFilePath = configFilePath;
+    instance.solutionBuilderHost = makeSolutionBuilderHost(
+      scriptRegex,
+      log,
+      loader,
+      instance
+    );
+    instance.solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
+      instance.solutionBuilderHost,
+      [configFilePath],
+      { verbose: true }
+    );
+    instance.solutionBuilder.buildReferences(instance.configFilePath);
+  }
+}
+
 function forEachResolvedProjectReference<T>(
   resolvedProjectReferences:
     | readonly (typescript.ResolvedProjectReference | undefined)[]

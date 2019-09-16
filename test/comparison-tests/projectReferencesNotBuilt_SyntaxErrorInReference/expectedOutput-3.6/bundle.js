@@ -105,7 +105,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed (from c:/github/ts-loader/index.js):/nError: TypeScript emitted no output for c://github//ts-loader//.test//projectReferencesNotBuilt_SyntaxErrorInReference//lib//index.ts./n    at makeSourceMapAndFinish (c://github//ts-loader//dist//index.js:45:15)/n    at successLoader (c://github//ts-loader//dist//index.js:36:5)/n    at Object.loader (c://github//ts-loader//dist//index.js:22:12)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("throw new Error(\"Module build failed (from c:/github/ts-loader/index.js):/nError: TypeScript emitted no output for c://github//ts-loader//.test//projectReferencesNotBuilt_SyntaxErrorInReference//lib//index.ts./n    at makeSourceMapAndFinish (c://github//ts-loader//dist//index.js:78:15)/n    at successLoader (c://github//ts-loader//dist//index.js:68:9)/n    at Object.loader (c://github//ts-loader//dist//index.js:22:12)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 

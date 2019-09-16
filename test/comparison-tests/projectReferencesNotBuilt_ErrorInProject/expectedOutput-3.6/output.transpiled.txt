@@ -1,9 +1,5 @@
     Asset      Size  Chunks             Chunk Names
 bundle.js  4.37 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
-[./app.ts] 183 bytes {main} [built] [1 error]
+[./app.ts] 183 bytes {main} [built]
 [./lib/index.ts] 133 bytes {main} [built]
-
-ERROR in tsconfig.json
-[90m[tsl] [39m[1m[31mERROR[39m[22m
-[1m[31m      TS6305: Output file '/.test/projectReferencesNotBuilt_ErrorInProject/lib/index.d.ts' has not been built from source file '/.test/projectReferencesNotBuilt_ErrorInProject/lib/index.ts'.[39m[22m

@@ -11,6 +11,7 @@ import {
   WebpackError,
   WebpackModule
 } from './interfaces';
+import { getSolutionErrors } from './servicesHost';
 import {
   collectAllDependants,
   ensureProgram,
@@ -70,22 +71,10 @@ export function makeAfterCompile(
       loaderContext
     );
 
-    if (instance.solutionBuilderHost) {
-      // append errors
-      const formattedErrors = instance.solutionBuilderHost.diagnostics.map(d =>
-        formatErrors(
-          [d],
-          instance.loaderOptions,
-          instance.colors,
-          instance.compiler,
-          { file: d.file ? path.resolve(d.file.fileName) : 'tsconfig.json' },
-          compilation.compiler.context
-        )
-      );
-
-      compilation.errors.push(...formattedErrors);
-    }
-
+    // append errors
+    compilation.errors.push(
+      ...getSolutionErrors(instance, compilation.compiler.context)
+    );
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = null;
     instance.projectsMissingSourceMaps = new Set();
