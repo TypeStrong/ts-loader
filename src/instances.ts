@@ -499,7 +499,8 @@ function getOutputFilesFromReference(
   filePath: string
 ): typescript.OutputFile[] | undefined {
   // May be api to get file
-  const refs = program.getResolvedProjectReferences();
+  const refs =
+    instance.solutionBuilderHost && program.getResolvedProjectReferences();
   return refs && instance.solutionBuilderHost
     ? forEachResolvedProjectReference(refs, ({ commandLine }) => {
         const { options, fileNames } = commandLine;
