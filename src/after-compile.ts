@@ -11,7 +11,12 @@ import {
   WebpackError,
   WebpackModule
 } from './interfaces';
-import { collectAllDependants, ensureProgram, formatErrors } from './utils';
+import {
+  collectAllDependants,
+  ensureProgram,
+  formatErrors,
+  isUsingProjectReferences
+} from './utils';
 
 export function makeAfterCompile(
   instance: TSInstance,
@@ -202,13 +207,20 @@ function provideErrorsToWebpack(
 
   // I’m pretty sure this will never be undefined here
   const program = ensureProgram(instance);
-  // TODO:: handle referenced projects
   for (const filePath of filesToCheckForErrors.keys()) {
     if (filePath.match(filePathRegex) === null) {
       continue;
     }
 
     const sourceFile = program && program.getSourceFile(filePath);
+    // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
+    // which will have already produced a more useful error than the one we would get by proceeding here.
+    // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
+    // get a useful error about which file was unexpectedly missing.
+    if (isUsingProjectReferences(instance) && sourceFile === undefined) {
+      continue;
+    }
+
     const errors: ts.Diagnostic[] = [];
     if (program && sourceFile) {
       errors.push(

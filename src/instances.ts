@@ -26,6 +26,7 @@ import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
+  isUsingProjectReferences,
   makeError,
   supportsSolutionBuild
 } from './utils';
@@ -499,9 +500,8 @@ function getOutputFilesFromReference(
   filePath: string
 ): typescript.OutputFile[] | undefined {
   // May be api to get file
-  const refs =
-    instance.solutionBuilderHost && program.getResolvedProjectReferences();
-  return refs && instance.solutionBuilderHost
+  const refs = program.getResolvedProjectReferences();
+  return refs
     ? forEachResolvedProjectReference(refs, ({ commandLine }) => {
         const { options, fileNames } = commandLine;
         if (
@@ -543,37 +543,41 @@ export function getEmitOutput(
 ) {
   const program = ensureProgram(instance);
   if (program !== undefined) {
+    // TODO:: Unbuilt project reference
     const sourceFile = program.getSourceFile(filePath);
-    // The source file will be undefined if it’s part of an unbuilt project reference
-    if (sourceFile) {
-      if (path.resolve(sourceFile.fileName) !== path.resolve(filePath)) {
-        const outputFiles = getOutputFilesFromReference(
-          program,
-          instance,
-          filePath
-        );
-        if (outputFiles) {
-          return outputFiles;
-        }
-        loaderContext.emitWarning(`No output found for ${filePath}`);
-      } else {
-        const outputFiles: typescript.OutputFile[] = [];
-        const writeFile = (
-          fileName: string,
-          text: string,
-          writeByteOrderMark: boolean
-        ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
-        program.emit(
-          sourceFile,
-          writeFile,
-          /*cancellationToken*/ undefined,
-          /*emitOnlyDtsFiles*/ false,
-          instance.transformers
-        );
-        return outputFiles;
+    if (
+      sourceFile &&
+      instance.solutionBuilderHost &&
+      path.resolve(sourceFile.fileName) !== path.resolve(filePath)
+    ) {
+      const builtReferences = getOutputFilesFromReference(
+        program,
+        instance,
+        filePath
+      );
+      if (builtReferences) {
+        return builtReferences;
       }
+      loaderContext.emitWarning(`No output found for ${filePath}`);
+      return [];
     }
-    return [];
+    const outputFiles: typescript.OutputFile[] = [];
+    const writeFile = (
+      fileName: string,
+      text: string,
+      writeByteOrderMark: boolean
+    ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
+    // The source file will be undefined if it’s part of an unbuilt project reference
+    if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
+      program.emit(
+        sourceFile,
+        writeFile,
+        /*cancellationToken*/ undefined,
+        /*emitOnlyDtsFiles*/ false,
+        instance.transformers
+      );
+    }
+    return outputFiles;
   } else {
     // Emit Javascript
     return instance.languageService!.getProgram()!.getSourceFile(filePath) ===
