@@ -111,7 +111,7 @@ function successLoader(
     }
 
     // Since the output JS file is being read from disk instead of using the
-    // input TS file, we need to tell the loader that the compilation doesn�t
+    // input TS file, we need to tell the loader that the compilation doesn’t
     // actually depend on the current file, but depends on the JS file instead.
     loaderContext.clearDependencies();
     loaderContext.addDependency(jsFileName);
