@@ -375,7 +375,7 @@ function tryAndBuildSolutionReferences(
   }
 }
 
-function forEachResolvedProjectReference<T>(
+export function forEachResolvedProjectReference<T>(
   resolvedProjectReferences:
     | readonly (typescript.ResolvedProjectReference | undefined)[]
     | undefined,
@@ -531,33 +531,33 @@ function getOutputFilesFromReference(
   filePath: string
 ): typescript.OutputFile[] | undefined {
   // May be api to get file
-  const refs = program.getResolvedProjectReferences();
-  return refs
-    ? forEachResolvedProjectReference(refs, ({ commandLine }) => {
-        const { options, fileNames } = commandLine;
-        if (
-          !options.outFile &&
-          !options.out &&
-          fileNames.some(file => path.normalize(file) === filePath)
-        ) {
-          // TODO api in typescript
-          // For now copying from typescript
-          const outputFiles: typescript.OutputFile[] = [];
-          getOutputFileNames(
-            instance,
-            commandLine,
-            (instance.compiler as any).resolvePath(filePath)
-          ).forEach(name => {
-            const text = instance.compiler.sys.readFile(name);
-            if (text) {
-              outputFiles.push({ name, text, writeByteOrderMark: false });
-            }
-          });
-          return outputFiles;
-        }
-        return undefined;
-      })
-    : undefined;
+  return forEachResolvedProjectReference(
+    program.getResolvedProjectReferences(),
+    ({ commandLine }) => {
+      const { options, fileNames } = commandLine;
+      if (
+        !options.outFile &&
+        !options.out &&
+        fileNames.some(file => path.normalize(file) === filePath)
+      ) {
+        // TODO api in typescript
+        // For now copying from typescript
+        const outputFiles: typescript.OutputFile[] = [];
+        getOutputFileNames(
+          instance,
+          commandLine,
+          (instance.compiler as any).resolvePath(filePath)
+        ).forEach(name => {
+          const text = instance.compiler.sys.readFile(name);
+          if (text) {
+            outputFiles.push({ name, text, writeByteOrderMark: false });
+          }
+        });
+        return outputFiles;
+      }
+      return undefined;
+    }
+  );
 }
 
 export function isReferencedFile(instance: TSInstance, filePath: string) {

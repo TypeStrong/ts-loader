@@ -3,7 +3,7 @@ import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { getEmitOutput } from './instances';
+import { forEachResolvedProjectReference, getEmitOutput } from './instances';
 import {
   TSFile,
   TSFiles,
@@ -70,6 +70,8 @@ export function makeAfterCompile(
       compilation,
       loaderContext
     );
+
+    provideTsBuildInfoFilesToWebpack(instance, compilation);
 
     // append errors
     compilation.errors.push(
@@ -291,6 +293,42 @@ function provideDeclarationFilesToWebpack(
         size: () => declarationFile.text.length
       };
     });
+  }
+}
+
+/**
+ * gather all .tsbuildinfo for the project
+ */
+function provideTsBuildInfoFilesToWebpack(
+  instance: TSInstance,
+  compilation: webpack.compilation.Compilation
+) {
+  if (instance.solutionBuilderHost) {
+    const program = ensureProgram(instance);
+    if (program) {
+      forEachResolvedProjectReference(
+        program.getResolvedProjectReferences(),
+        resolvedRef => {
+          // TODO:: update compiler to expose this
+          const buildInfoPath = (instance.compiler as any).getOutputPathForBuildInfo(
+            resolvedRef.commandLine.options
+          );
+          if (buildInfoPath) {
+            const text = instance.compiler.sys.readFile(buildInfoPath);
+            if (text) {
+              const assetPath = path.relative(
+                compilation.compiler.outputPath,
+                path.resolve(buildInfoPath)
+              );
+              compilation.assets[assetPath] = {
+                source: () => text,
+                size: () => text.length
+              };
+            }
+          }
+        }
+      );
+    }
   }
 }
 
