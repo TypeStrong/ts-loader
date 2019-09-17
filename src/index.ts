@@ -526,7 +526,10 @@ function getTranspilationEmit(
   });
 
   // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
-  if (!instance.loaderOptions.happyPackMode) {
+  if (
+    !instance.loaderOptions.happyPackMode &&
+    !isReferencedFile(instance, fileName)
+  ) {
     const errors = formatErrors(
       diagnostics,
       instance.loaderOptions,

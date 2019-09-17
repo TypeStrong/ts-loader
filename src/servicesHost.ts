@@ -682,7 +682,7 @@ export function getSolutionErrors(instance: TSInstance, context: string) {
           instance.loaderOptions,
           instance.colors,
           instance.compiler,
-          { file: d.file ? path.resolve(d.file.fileName) : 'tsconfig.json' },
+          { file: d.file ? undefined : 'tsconfig.json' },
           context
         )
       )
