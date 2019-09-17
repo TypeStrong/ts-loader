@@ -106,7 +106,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _lib
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"lib\", function() { return lib; });\nconst lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"lib\", function() { return lib; });\nconst lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?");
 
 /***/ })
 

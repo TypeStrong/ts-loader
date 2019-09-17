@@ -563,7 +563,7 @@ function getOutputFilesFromReference(
 export function isReferencedFile(instance: TSInstance, filePath: string) {
   return (
     !!instance.solutionBuilderHost &&
-    !!instance.solutionBuilderHost.watchedFiles[filePath]
+    !!instance.solutionBuilderHost.watchedFiles.get(filePath)
   );
 }
 
@@ -574,7 +574,6 @@ export function getEmitOutput(
 ) {
   const program = ensureProgram(instance);
   if (program !== undefined) {
-    // TODO:: Unbuilt project reference
     const sourceFile = program.getSourceFile(filePath);
     if (
       sourceFile &&

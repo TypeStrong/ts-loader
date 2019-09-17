@@ -49,7 +49,7 @@ export interface WatchHost
   updateRootFileNames(): void;
 }
 
-export type WatchCallbacks<T> = { [fileName: string]: T[] | undefined };
+export type WatchCallbacks<T> = Map<string, T[]>;
 export interface WatchFactory {
   watchedFiles: WatchCallbacks<typescript.FileWatcherCallback>;
   watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback>;

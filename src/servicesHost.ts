@@ -242,14 +242,20 @@ function makeResolvers(
   };
 }
 
-function createWatchFactory(): WatchFactory {
-  const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = {};
+function createWatchFactory(
+  beforeCallbacks?: (
+    cb: typescript.FileWatcherCallback[] | typescript.DirectoryWatcherCallback[]
+  ) => void
+): WatchFactory {
+  const watchedFiles: WatchCallbacks<
+    typescript.FileWatcherCallback
+  > = new Map();
   const watchedDirectories: WatchCallbacks<
     typescript.DirectoryWatcherCallback
-  > = {};
+  > = new Map();
   const watchedDirectoriesRecursive: WatchCallbacks<
     typescript.DirectoryWatcherCallback
-  > = {};
+  > = new Map();
 
   return {
     watchedFiles,
@@ -278,10 +284,13 @@ function createWatchFactory(): WatchFactory {
     fileName: string,
     eventKind?: typescript.FileWatcherEventKind
   ) {
-    if (callbacks !== undefined) {
+    if (callbacks !== undefined && callbacks.length) {
       // The array copy is made to ensure that even if one of the callback removes the callbacks,
       // we dont miss any callbacks following it
       const cbs = callbacks.slice();
+      if (beforeCallbacks) {
+        beforeCallbacks(cbs);
+      }
       for (const cb of cbs) {
         cb(fileName, eventKind as typescript.FileWatcherEventKind);
       }
@@ -293,7 +302,7 @@ function createWatchFactory(): WatchFactory {
     eventKind: typescript.FileWatcherEventKind
   ) {
     fileName = path.normalize(fileName);
-    invokeWatcherCallbacks(watchedFiles[fileName], fileName, eventKind);
+    invokeWatcherCallbacks(watchedFiles.get(fileName), fileName, eventKind);
   }
 
   function invokeDirectoryWatcher(
@@ -301,7 +310,10 @@ function createWatchFactory(): WatchFactory {
     fileAddedOrRemoved: string
   ) {
     directory = path.normalize(directory);
-    invokeWatcherCallbacks(watchedDirectories[directory], fileAddedOrRemoved);
+    invokeWatcherCallbacks(
+      watchedDirectories.get(directory),
+      fileAddedOrRemoved
+    );
     invokeRecursiveDirectoryWatcher(directory, fileAddedOrRemoved);
   }
 
@@ -311,7 +323,7 @@ function createWatchFactory(): WatchFactory {
   ) {
     directory = path.normalize(directory);
     invokeWatcherCallbacks(
-      watchedDirectoriesRecursive[directory],
+      watchedDirectoriesRecursive.get(directory),
       fileAddedOrRemoved
     );
     const basePath = path.dirname(directory);
@@ -326,18 +338,21 @@ function createWatchFactory(): WatchFactory {
     callback: T
   ): typescript.FileWatcher {
     file = path.normalize(file);
-    const existing = callbacks[file];
+    const existing = callbacks.get(file);
     if (existing === undefined) {
-      callbacks[file] = [callback];
+      callbacks.set(file, [callback]);
     } else {
       existing.push(callback);
     }
     return {
       close: () => {
         // tslint:disable-next-line:no-shadowed-variable
-        const existing = callbacks[file];
+        const existing = callbacks.get(file);
         if (existing !== undefined) {
           unorderedRemoveItem(existing, callback);
+          if (!existing.length) {
+            callbacks.delete(file);
+          }
         }
       }
     };
@@ -373,21 +388,24 @@ export function updateFileWithText(
   const file =
     instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
   if (file !== undefined) {
-    file.text = text(nFilePath);
-    file.version++;
-    instance.version!++;
-    instance.modifiedFiles!.set(nFilePath, file);
-    if (instance.watchHost !== undefined) {
-      instance.watchHost.invokeFileWatcher(
-        nFilePath,
-        instance.compiler.FileWatcherEventKind.Changed
-      );
-    }
-    if (instance.solutionBuilderHost !== undefined) {
-      instance.solutionBuilderHost.invokeFileWatcher(
-        nFilePath,
-        instance.compiler.FileWatcherEventKind.Changed
-      );
+    const newText = text(nFilePath);
+    if (newText !== file.text) {
+      file.text = newText;
+      file.version++;
+      instance.version!++;
+      instance.modifiedFiles!.set(nFilePath, file);
+      if (instance.watchHost !== undefined) {
+        instance.watchHost.invokeFileWatcher(
+          nFilePath,
+          instance.compiler.FileWatcherEventKind.Changed
+        );
+      }
+      if (instance.solutionBuilderHost !== undefined) {
+        instance.solutionBuilderHost.invokeFileWatcher(
+          nFilePath,
+          instance.compiler.FileWatcherEventKind.Changed
+        );
+      }
     }
   }
 }
@@ -593,13 +611,6 @@ export function makeSolutionBuilderHost(
     log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   };
 
-  const {
-    watchFile,
-    watchDirectory,
-    watchedFiles,
-    ...rest
-  } = createWatchFactory();
-
   const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
     log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   const reportWatchStatus = (
@@ -622,10 +633,7 @@ export function makeSolutionBuilderHost(
       reportWatchStatus
     ),
     diagnostics: [],
-    watchFile: builderWatchFile,
-    watchDirectory,
-    watchedFiles,
-    ...rest
+    ...createWatchFactory(beforeWatchCallbacks)
   };
   solutionBuilderHost.getCurrentDirectory = getCurrentDirectory;
   solutionBuilderHost.trace = logData => log.logInfo(logData);
@@ -656,52 +664,8 @@ export function makeSolutionBuilderHost(
 
   return solutionBuilderHost;
 
-  function builderWatchFile(
-    fileName: string,
-    callback: typescript.FileWatcherCallback,
-    pollingInterval?: number
-  ) {
-    loader.addDependency(path.resolve(fileName));
-    const watcher = watchFile(fileName, callback, pollingInterval);
-    return {
-      close() {
-        watcher.close();
-        updateDependencies();
-      }
-    };
-  }
-
-  // TODO::
-  // function builderWatchDirectory(path: string, callback: typescript.DirectoryWatcherCallback, recursive?: boolean) {
-  //    loader.addContextDependency(path);
-  //    const watcher = watchDirectory(path, callback, recursive);
-  //    return {
-  //        close() {
-  //            watcher.close();
-  //            updateDependencies();
-  //        }
-  //    };
-  // }
-
-  function updateDependencies() {
-    loader.clearDependencies();
-    for (const key in watchedFiles) {
-      if (Object.prototype.hasOwnProperty.call(watchedFiles, key)) {
-        loader.addDependency(key);
-      }
-    }
-
-    // TODO::
-    // for (const key in watchedDirectories) {
-    //    if (Object.prototype.hasOwnProperty.call(watchedDirectories, key)) {
-    //        loader.addContextDependency(key);
-    //    }
-    // }
-    // for (const key in watchedDirectoriesRecursive) {
-    //    if (Object.prototype.hasOwnProperty.call(watchedDirectoriesRecursive, key)) {
-    //        loader.addContextDependency(key);
-    //    }
-    // }
+  function beforeWatchCallbacks() {
+    solutionBuilderHost.diagnostics.length = 0;
   }
 }
 

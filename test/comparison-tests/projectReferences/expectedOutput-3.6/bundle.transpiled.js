@@ -106,7 +106,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n    // I am adding this comment here by hand to ensure\n    // Webpack is using the JS output for project references\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 

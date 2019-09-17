@@ -18,7 +18,6 @@ export function makeWatchRun(instance: TSInstance) {
       instance.modifiedFiles = new Map<string, TSFile>();
     }
 
-    // startTime = startTime || watching.startTime;
     const times = compiler.fileTimestamps;
     for (const [filePath, date] of times) {
       if (
@@ -29,7 +28,6 @@ export function makeWatchRun(instance: TSInstance) {
       }
 
       lastTimes.set(filePath, date);
-
       updateFile(instance, filePath);
     }
 
@@ -40,6 +38,13 @@ export function makeWatchRun(instance: TSInstance) {
         filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
         filePath.match(constants.nodeModules) === null
       ) {
+        updateFile(instance, filePath);
+      }
+    }
+
+    // Update all the watched files from solution builder
+    if (instance.solutionBuilderHost) {
+      for (const filePath of instance.solutionBuilderHost.watchedFiles.keys()) {
         updateFile(instance, filePath);
       }
     }
