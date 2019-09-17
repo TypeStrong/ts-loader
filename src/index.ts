@@ -105,7 +105,7 @@ function successLoader(
           `${relativeFilePath} (looked at ${relativeJSFileName}).\n` +
           `The input file is part of a project reference located at ` +
           `${relativeProjectConfigPath}, so ts-loader is looking for the ` +
-          'project�s pre-built output on disk. Try running `tsc --build` ' +
+          'project’s pre-built output on disk. Try running `tsc --build` ' +
           'to build project references.'
       );
     }
