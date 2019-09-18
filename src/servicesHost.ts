@@ -12,6 +12,7 @@ import {
   ResolvedModule,
   ResolveSync,
   SolutionBuilderWithWatchHost,
+  SolutionDiagnostics,
   TSInstance,
   WatchCallbacks,
   WatchFactory,
@@ -583,7 +584,8 @@ export function makeSolutionBuilderHost(
     appendTsTsxSuffixesIfRequired,
     loaderOptions: {
       resolveModuleName: customResolveModuleName,
-      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
+      transpileOnly
     }
   } = instance;
 
@@ -597,8 +599,32 @@ export function makeSolutionBuilderHost(
     getNewLine: () => compiler.sys.newLine
   };
 
+  const diagnostics: SolutionDiagnostics = {
+    global: [],
+    perFile: new Map(),
+    transpileErrors: []
+  };
   const reportDiagnostic = (d: typescript.Diagnostic) => {
-    solutionBuilderHost.diagnostics.push(d);
+    if (transpileOnly) {
+      const filePath = d.file ? path.resolve(d.file.fileName) : undefined;
+      const last =
+        diagnostics.transpileErrors[diagnostics.transpileErrors.length - 1];
+      if (diagnostics.transpileErrors.length && last[0] === filePath) {
+        last[1].push(d);
+      } else {
+        diagnostics.transpileErrors.push([filePath, [d]]);
+      }
+    } else if (d.file) {
+      const filePath = path.resolve(d.file.fileName);
+      const existing = diagnostics.perFile.get(filePath);
+      if (existing) {
+        existing.push(d);
+      } else {
+        diagnostics.perFile.set(filePath, [d]);
+      }
+    } else {
+      diagnostics.global.push(d);
+    }
     log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   };
 
@@ -623,7 +649,7 @@ export function makeSolutionBuilderHost(
       reportSolutionBuilderStatus,
       reportWatchStatus
     ),
-    diagnostics: [],
+    diagnostics,
     ...createWatchFactory(beforeWatchCallbacks),
     // Overrides
     getCurrentDirectory,
@@ -659,7 +685,9 @@ export function makeSolutionBuilderHost(
   return solutionBuilderHost;
 
   function beforeWatchCallbacks() {
-    solutionBuilderHost.diagnostics.length = 0;
+    diagnostics.global.length = 0;
+    diagnostics.perFile.clear();
+    diagnostics.transpileErrors.length = 0;
   }
 }
 
@@ -667,19 +695,20 @@ export function getSolutionErrors(instance: TSInstance, context: string) {
   const solutionErrors: WebpackError[] = [];
   if (
     instance.solutionBuilderHost &&
-    instance.solutionBuilderHost.diagnostics.length
+    instance.solutionBuilderHost.diagnostics.transpileErrors.length
   ) {
-    instance.solutionBuilderHost.diagnostics.forEach(d =>
-      solutionErrors.push(
-        ...formatErrors(
-          [d],
-          instance.loaderOptions,
-          instance.colors,
-          instance.compiler,
-          { file: d.file ? undefined : 'tsconfig.json' },
-          context
+    instance.solutionBuilderHost.diagnostics.transpileErrors.forEach(
+      ([filePath, errors]) =>
+        solutionErrors.push(
+          ...formatErrors(
+            errors,
+            instance.loaderOptions,
+            instance.colors,
+            instance.compiler,
+            { file: filePath ? undefined : 'tsconfig.json' },
+            context
+          )
         )
-      )
     );
   }
   return solutionErrors;

@@ -11,7 +11,6 @@ import {
   WebpackError,
   WebpackModule
 } from './interfaces';
-import { getSolutionErrors } from './servicesHost';
 import {
   collectAllDependants,
   ensureProgram,
@@ -69,12 +68,9 @@ export function makeAfterCompile(
       compilation
     );
 
+    provideSolutionErrorsToWebpack(compilation, modules, instance);
     provideTsBuildInfoFilesToWebpack(instance, compilation);
 
-    // append errors
-    compilation.errors.push(
-      ...getSolutionErrors(instance, compilation.compiler.context)
-    );
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = null;
     instance.projectsMissingSourceMaps = new Set();
@@ -260,6 +256,76 @@ function provideErrorsToWebpack(
       compilation.errors.push(...formattedErrors);
     }
   }
+}
+
+function provideSolutionErrorsToWebpack(
+  compilation: webpack.compilation.Compilation,
+  modules: Map<string, WebpackModule[]>,
+  instance: TSInstance
+) {
+  if (
+    !instance.solutionBuilderHost ||
+    !(
+      instance.solutionBuilderHost.diagnostics.global.length ||
+      instance.solutionBuilderHost.diagnostics.perFile.size
+    )
+  ) {
+    return;
+  }
+
+  const {
+    compiler,
+    loaderOptions,
+    solutionBuilderHost: { diagnostics }
+  } = instance;
+
+  for (const [filePath, perFileDiagnostics] of diagnostics.perFile) {
+    // if we have access to a webpack module, use that
+    const associatedModules = modules.get(filePath);
+    if (associatedModules !== undefined) {
+      associatedModules.forEach(module => {
+        // remove any existing errors
+        removeTSLoaderErrors(module.errors);
+
+        // append errors
+        const formattedErrors = formatErrors(
+          perFileDiagnostics,
+          loaderOptions,
+          instance.colors,
+          compiler,
+          { module },
+          compilation.compiler.context
+        );
+
+        module.errors.push(...formattedErrors);
+        compilation.errors.push(...formattedErrors);
+      });
+    } else {
+      // otherwise it's a more generic error
+      const formattedErrors = formatErrors(
+        perFileDiagnostics,
+        loaderOptions,
+        instance.colors,
+        compiler,
+        { file: filePath },
+        compilation.compiler.context
+      );
+
+      compilation.errors.push(...formattedErrors);
+    }
+  }
+
+  // Add global solution errors
+  compilation.errors.push(
+    ...formatErrors(
+      diagnostics.global,
+      instance.loaderOptions,
+      instance.colors,
+      instance.compiler,
+      { file: 'tsconfig.json' },
+      compilation.compiler.context
+    )
+  );
 }
 
 /**

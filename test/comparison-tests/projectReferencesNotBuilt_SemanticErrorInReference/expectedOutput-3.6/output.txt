@@ -2,7 +2,7 @@
 bundle.js  4.7 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
 [./app.ts] 131 bytes {main} [built]
-[./lib/index.ts] 509 bytes {main} [built] [failed] [1 error]
+[./lib/index.ts] 509 bytes {main} [built] [failed] [2 errors]
 
 ERROR in ./lib/index.ts
 Module build failed (from /index.js):
@@ -16,5 +16,7 @@ ERROR in tsconfig.json
 [90m[tsl] [39m[1m[31mERROR[39m[22m
 [1m[31m      TS6305: Output file '/.test/projectReferencesNotBuilt_SemanticErrorInReference/lib/index.d.ts' has not been built from source file '/.test/projectReferencesNotBuilt_SemanticErrorInReference/lib/index.ts'.[39m[22m
 
-ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib\index.ts(6,7)[39m[22m
+ERROR in lib\index.ts
+./lib/index.ts
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib\index.ts(6,7)[39m[22m
 [1m[31m      TS2322: Type '10' is not assignable to type 'string'.[39m[22m

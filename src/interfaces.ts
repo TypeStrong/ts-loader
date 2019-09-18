@@ -75,12 +75,18 @@ export interface WatchFactory {
   ): typescript.FileWatcher;
 }
 
+export interface SolutionDiagnostics {
+  global: typescript.Diagnostic[];
+  perFile: Map<string, typescript.Diagnostic[]>;
+  transpileErrors: [string | undefined, typescript.Diagnostic[]][];
+}
+
 export interface SolutionBuilderWithWatchHost
   extends typescript.SolutionBuilderWithWatchHost<
       typescript.EmitAndSemanticDiagnosticsBuilderProgram
     >,
     WatchFactory {
-  diagnostics: typescript.Diagnostic[];
+  diagnostics: SolutionDiagnostics;
 }
 
 export interface TSInstance {
