@@ -303,27 +303,33 @@ function provideTsBuildInfoFilesToWebpack(
   instance: TSInstance,
   compilation: webpack.compilation.Compilation
 ) {
-  if (instance.solutionBuilderHost) {
+  if (instance.solutionBuilderHost && instance.modifiedFiles) {
     const program = ensureProgram(instance);
     if (program) {
       forEachResolvedProjectReference(
         program.getResolvedProjectReferences(),
         resolvedRef => {
-          // TODO:: update compiler to expose this
-          const buildInfoPath = (instance.compiler as any).getOutputPathForBuildInfo(
-            resolvedRef.commandLine.options
-          );
-          if (buildInfoPath) {
-            const text = instance.compiler.sys.readFile(buildInfoPath);
-            if (text) {
-              const assetPath = path.relative(
-                compilation.compiler.outputPath,
-                path.resolve(buildInfoPath)
-              );
-              compilation.assets[assetPath] = {
-                source: () => text,
-                size: () => text.length
-              };
+          if (
+            resolvedRef.commandLine.fileNames.some(f =>
+              instance.modifiedFiles!.has(path.resolve(f))
+            )
+          ) {
+            // TODO:: update compiler to expose this
+            const buildInfoPath = (instance.compiler as any).getOutputPathForBuildInfo(
+              resolvedRef.commandLine.options
+            );
+            if (buildInfoPath) {
+              const text = instance.compiler.sys.readFile(buildInfoPath);
+              if (text) {
+                const assetPath = path.relative(
+                  compilation.compiler.outputPath,
+                  path.resolve(buildInfoPath)
+                );
+                compilation.assets[assetPath] = {
+                  source: () => text,
+                  size: () => text.length
+                };
+              }
             }
           }
         }
