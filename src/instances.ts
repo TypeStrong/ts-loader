@@ -571,7 +571,7 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
   const program = ensureProgram(instance);
   if (program !== undefined) {
     const sourceFile = program.getSourceFile(filePath);
-    if (instance.solutionBuilderHost) {
+    if (isReferencedFile(instance, filePath)) {
       const builtReferences = getOutputFilesFromReference(
         program,
         instance,
