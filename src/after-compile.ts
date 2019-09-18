@@ -183,7 +183,7 @@ function provideErrorsToWebpack(
   } = instance;
 
   const filePathRegex =
-    compilerOptions.checkJs === true
+    compilerOptions.allowJs === true
       ? constants.dtsTsTsxJsJsxRegex
       : constants.dtsTsTsxRegex;
 
