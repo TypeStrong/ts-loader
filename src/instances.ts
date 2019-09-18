@@ -339,7 +339,7 @@ function successfulTypeScriptInstance(
 
   loader._compiler.hooks.afterCompile.tapAsync(
     'ts-loader',
-    makeAfterCompile(instance, configFilePath, loader)
+    makeAfterCompile(instance, configFilePath)
   );
   loader._compiler.hooks.watchRun.tapAsync('ts-loader', makeWatchRun(instance));
 
@@ -567,19 +567,11 @@ export function isReferencedFile(instance: TSInstance, filePath: string) {
   );
 }
 
-export function getEmitOutput(
-  instance: TSInstance,
-  filePath: string,
-  loaderContext: webpack.loader.LoaderContext
-) {
+export function getEmitOutput(instance: TSInstance, filePath: string) {
   const program = ensureProgram(instance);
   if (program !== undefined) {
     const sourceFile = program.getSourceFile(filePath);
-    if (
-      sourceFile &&
-      instance.solutionBuilderHost &&
-      path.resolve(sourceFile.fileName) !== path.resolve(filePath)
-    ) {
+    if (instance.solutionBuilderHost) {
       const builtReferences = getOutputFilesFromReference(
         program,
         instance,
@@ -588,8 +580,6 @@ export function getEmitOutput(
       if (builtReferences) {
         return builtReferences;
       }
-      loaderContext.emitWarning(`No output found for ${filePath}`);
-      return [];
     }
     const outputFiles: typescript.OutputFile[] = [];
     const writeFile = (

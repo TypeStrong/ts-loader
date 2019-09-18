@@ -21,8 +21,7 @@ import {
 
 export function makeAfterCompile(
   instance: TSInstance,
-  configFilePath: string | undefined,
-  loaderContext: webpack.loader.LoaderContext
+  configFilePath: string | undefined
 ) {
   let getCompilerOptionDiagnostics = true;
   let checkAllFilesForErrors = true;
@@ -67,8 +66,7 @@ export function makeAfterCompile(
     provideDeclarationFilesToWebpack(
       filesToCheckForErrors,
       instance,
-      compilation,
-      loaderContext
+      compilation
     );
 
     provideTsBuildInfoFilesToWebpack(instance, compilation);
@@ -270,15 +268,14 @@ function provideErrorsToWebpack(
 function provideDeclarationFilesToWebpack(
   filesToCheckForErrors: TSFiles,
   instance: TSInstance,
-  compilation: webpack.compilation.Compilation,
-  loaderContext: webpack.loader.LoaderContext
+  compilation: webpack.compilation.Compilation
 ) {
   for (const filePath of filesToCheckForErrors.keys()) {
     if (filePath.match(constants.tsTsxRegex) === null) {
       continue;
     }
 
-    const outputFiles = getEmitOutput(instance, filePath, loaderContext);
+    const outputFiles = getEmitOutput(instance, filePath);
     const declarationFiles = outputFiles.filter(outputFile =>
       outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
     );
