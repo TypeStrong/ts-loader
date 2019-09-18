@@ -1,11 +1,6 @@
                       Asset      Size  Chunks             Chunk Names
-                  bundle.js  4.33 KiB    main  [emitted]  main
+                  bundle.js  4.36 KiB    main  [emitted]  main
 ../lib/tsconfig.tsbuildinfo  68.4 KiB          [emitted]  
 Entrypoint main = bundle.js
-[./app.ts] 169 bytes {main} [built] [1 error]
-[./lib/index.ts] 104 bytes {main}
-
-ERROR in app.ts
-./app.ts
-[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,46)[39m[22m
-[1m[31m      TS2339: Property 'four' does not exist on type '{ one: number; two: number; three: number; }'.[39m[22m
+[./app.ts] 169 bytes {main} [built]
+[./lib/index.ts] 136 bytes {main}

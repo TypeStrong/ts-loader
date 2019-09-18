@@ -12,6 +12,7 @@ const semver = require('semver');
 const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
+const copySync = require('./copySync');
 
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 
@@ -91,7 +92,7 @@ function createTest(test, testPath, options) {
 
         // copy all input to a staging area
         mkdirp.sync(paths.testStagingPath);
-        fs.copySync(testPath, paths.testStagingPath);
+        copySync(testPath, paths.testStagingPath);
 
         // ensure output directories
         mkdirp.sync(paths.actualOutput);
@@ -184,7 +185,7 @@ function createWebpackWatchHandler(done, paths, testState, outputs, options, tes
 
         saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch);
 
-        fs.copySync(paths.webpackOutput, paths.actualOutput);
+        copySync(paths.webpackOutput, paths.actualOutput);
         rimraf.sync(paths.webpackOutput);
 
         handleErrors(err, paths, outputs, patch, options);
@@ -230,7 +231,7 @@ function saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch) {
             }
         });
 
-        fs.copySync(paths.webpackOutput, paths.originalExpectedOutput, { overwrite: true });
+        copySync(paths.webpackOutput, paths.originalExpectedOutput);
     }
 }
 
@@ -343,7 +344,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
 
         // can get inconsistent results if copying right away
         setTimeout(function () {
-            fs.copySync(patchPath, testStagingPath, { overwrite: true });
+            copySync(patchPath, testStagingPath);
         }, 1000);
     }
     else {

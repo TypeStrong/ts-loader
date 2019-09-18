@@ -244,6 +244,7 @@ function makeResolvers(
 
 function createWatchFactory(
   beforeCallbacks?: (
+    key: string,
     cb: typescript.FileWatcherCallback[] | typescript.DirectoryWatcherCallback[]
   ) => void
 ): WatchFactory {
@@ -268,28 +269,20 @@ function createWatchFactory(
   };
 
   function invokeWatcherCallbacks(
-    callbacks: typescript.FileWatcherCallback[] | undefined,
-    fileName: string,
-    eventKind: typescript.FileWatcherEventKind
-  ): void;
-  function invokeWatcherCallbacks(
-    callbacks: typescript.DirectoryWatcherCallback[] | undefined,
-    fileName: string
-  ): void;
-  function invokeWatcherCallbacks(
-    callbacks:
-      | typescript.FileWatcherCallback[]
-      | typescript.DirectoryWatcherCallback[]
-      | undefined,
+    map:
+      | Map<string, typescript.FileWatcherCallback[]>
+      | Map<string, typescript.DirectoryWatcherCallback[]>,
+    key: string,
     fileName: string,
     eventKind?: typescript.FileWatcherEventKind
   ) {
+    const callbacks = map.get(key);
     if (callbacks !== undefined && callbacks.length) {
       // The array copy is made to ensure that even if one of the callback removes the callbacks,
       // we dont miss any callbacks following it
       const cbs = callbacks.slice();
       if (beforeCallbacks) {
-        beforeCallbacks(cbs);
+        beforeCallbacks(key, cbs);
       }
       for (const cb of cbs) {
         cb(fileName, eventKind as typescript.FileWatcherEventKind);
@@ -302,7 +295,7 @@ function createWatchFactory(
     eventKind: typescript.FileWatcherEventKind
   ) {
     fileName = path.normalize(fileName);
-    invokeWatcherCallbacks(watchedFiles.get(fileName), fileName, eventKind);
+    invokeWatcherCallbacks(watchedFiles, fileName, fileName, eventKind);
   }
 
   function invokeDirectoryWatcher(
@@ -310,10 +303,7 @@ function createWatchFactory(
     fileAddedOrRemoved: string
   ) {
     directory = path.normalize(directory);
-    invokeWatcherCallbacks(
-      watchedDirectories.get(directory),
-      fileAddedOrRemoved
-    );
+    invokeWatcherCallbacks(watchedDirectories, directory, fileAddedOrRemoved);
     invokeRecursiveDirectoryWatcher(directory, fileAddedOrRemoved);
   }
 
@@ -323,7 +313,8 @@ function createWatchFactory(
   ) {
     directory = path.normalize(directory);
     invokeWatcherCallbacks(
-      watchedDirectoriesRecursive.get(directory),
+      watchedDirectoriesRecursive,
+      directory,
       fileAddedOrRemoved
     );
     const basePath = path.dirname(directory);
@@ -633,16 +624,19 @@ export function makeSolutionBuilderHost(
       reportWatchStatus
     ),
     diagnostics: [],
-    ...createWatchFactory(beforeWatchCallbacks)
+    ...createWatchFactory(beforeWatchCallbacks),
+    // Overrides
+    getCurrentDirectory,
+    writeFile: (name, text, writeByteOrderMark) => {
+      compiler.sys.writeFile(name, text, writeByteOrderMark);
+      updateFileWithText(instance, name, () => text);
+    },
+    setTimeout: undefined,
+    clearTimeout: undefined
   };
-  solutionBuilderHost.getCurrentDirectory = getCurrentDirectory;
   solutionBuilderHost.trace = logData => log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file =>
     getParsedCommandLine(compiler, instance.loaderOptions, file);
-  solutionBuilderHost.writeFile = (name, text, writeByteOrderMark) => {
-    compiler.sys.writeFile(name, text, writeByteOrderMark);
-    updateFileWithText(instance, name, () => text);
-  };
 
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
