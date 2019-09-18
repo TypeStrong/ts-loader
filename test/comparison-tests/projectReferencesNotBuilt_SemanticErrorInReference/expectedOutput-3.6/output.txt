@@ -1,13 +1,13 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.61 KiB    main  [emitted]  main
+    Asset     Size  Chunks             Chunk Names
+bundle.js  4.7 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
 [./app.ts] 131 bytes {main} [built]
-[./lib/index.ts] 426 bytes {main} [built] [failed] [1 error]
+[./lib/index.ts] 509 bytes {main} [built] [failed] [1 error]
 
 ERROR in ./lib/index.ts
 Module build failed (from /index.js):
-Error: TypeScript emitted no output for lib\index.ts.
-    at makeSourceMapAndFinish (dist\index.js:78:15)
+Error: TypeScript emitted no output for lib\index.ts. The most common cause for this is having errors when building referenced projects.
+    at makeSourceMapAndFinish (dist\index.js:80:15)
     at successLoader (dist\index.js:68:9)
     at Object.loader (dist\index.js:22:12)
  @ ./app.ts 3:12-28

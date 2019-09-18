@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.foo = 'foo';\n\n\n//# sourceURL=webpack:///./lib/foo.ts?");
+eval("\r\nexports.__esModule = true;\r\nexports.foo = 'foo';\r\n\n\n//# sourceURL=webpack:///./lib/foo.ts?");
 
 /***/ }),
 
