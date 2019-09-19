@@ -87,14 +87,14 @@
 /******/ ({
 
 /***/ "../../test/comparison-tests/testLib/foo.ts":
-/*!****************************************************************!*\
-  !*** C:/source/ts-loader/test/comparison-tests/testLib/foo.ts ***!
-  \****************************************************************/
+/*!**************************************************************!*\
+  !*** C:/work/ts-loader/test/comparison-tests/testLib/foo.ts ***!
+  \**************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///C:/source/ts-loader/test/comparison-tests/testLib/foo.ts?");
+eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///C:/work/ts-loader/test/comparison-tests/testLib/foo.ts?");
 
 /***/ }),
 
