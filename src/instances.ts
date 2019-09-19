@@ -276,7 +276,6 @@ function successfulTypeScriptInstance(
     transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
     dependencyGraph: {},
     reverseDependencyGraph: {},
-    modifiedFiles: null,
     colors
   });
 

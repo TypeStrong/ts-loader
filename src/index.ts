@@ -432,7 +432,7 @@ function updateFileInCache(
   }
 
   // push this file to modified files hash.
-  if (instance.modifiedFiles === null || instance.modifiedFiles === undefined) {
+  if (!instance.modifiedFiles) {
     instance.modifiedFiles = new Map<string, TSFile>();
   }
   instance.modifiedFiles.set(filePath, file);
