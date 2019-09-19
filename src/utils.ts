@@ -244,9 +244,8 @@ export function ensureProgram(instance: TSInstance) {
         instance.watchHost.updateRootFileNames();
       }
       if (instance.watchOfFilesAndCompilerOptions) {
-        instance.program = instance.watchOfFilesAndCompilerOptions
-          .getProgram()
-          .getProgram();
+        instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
+        instance.program = instance.builderProgram.getProgram();
       }
       instance.hasUnaccountedModifiedFiles = false;
     }
