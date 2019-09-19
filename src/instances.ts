@@ -307,9 +307,8 @@ function successfulTypeScriptInstance(
     instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(
       instance.watchHost
     );
-    instance.program = instance.watchOfFilesAndCompilerOptions
-      .getProgram()
-      .getProgram();
+    instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
+    instance.program = instance.builderProgram.getProgram();
 
     instance.transformers = getCustomTransformers(instance.program);
   } else {
@@ -571,6 +570,60 @@ export function isReferencedFile(instance: TSInstance, filePath: string) {
   );
 }
 
+export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
+  const program = ensureProgram(instance);
+  const builderProgram = instance.builderProgram;
+  if (builderProgram && program) {
+    if (filePath) {
+      const existing = instance.watchHost!.outputFiles.get(filePath);
+      if (existing) {
+        return existing;
+      }
+    }
+
+    const outputFiles: typescript.OutputFile[] = [];
+    const writeFile: typescript.WriteFileCallback = (
+      fileName,
+      text,
+      writeByteOrderMark
+    ) => {
+      if (fileName.endsWith('.tsbuildinfo')) {
+        instance.watchHost!.tsbuildinfo = {
+          name: fileName,
+          writeByteOrderMark,
+          text
+        };
+      } else {
+        outputFiles.push({ name: fileName, writeByteOrderMark, text });
+      }
+    };
+
+    const sourceFile = filePath ? program.getSourceFile(filePath) : undefined;
+    // Try emit Next file
+    while (true) {
+      const result = builderProgram.emitNextAffectedFile(
+        writeFile,
+        /*cancellationToken*/ undefined,
+        /*emitOnlyDtsFiles*/ false,
+        instance.transformers
+      );
+      if (!result) {
+        break;
+      }
+      if ((result.affected as typescript.SourceFile).fileName) {
+        instance.watchHost!.outputFiles.set(
+          path.resolve((result.affected as typescript.SourceFile).fileName),
+          outputFiles.slice()
+        );
+      }
+      if (result.affected === sourceFile) {
+        return outputFiles;
+      }
+    }
+  }
+  return undefined;
+}
+
 export function getEmitOutput(instance: TSInstance, filePath: string) {
   const program = ensureProgram(instance);
   if (program !== undefined) {
@@ -593,6 +646,10 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
     // The source file will be undefined if it’s part of an unbuilt project reference
     if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
+      const outputFilesFromWatch = getEmitFromWatchHost(instance, filePath);
+      if (outputFilesFromWatch) {
+        return outputFilesFromWatch;
+      }
       program.emit(
         sourceFile,
         writeFile,
