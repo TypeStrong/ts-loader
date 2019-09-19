@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.1.1
+* [Fix SolutionBuilder watches](https://github.com/TypeStrong/ts-loader/pull/1003) (#998) - thanks @sheetalkamat!
+* [fix: no errors reported if flagged with @ts-check](https://github.com/TypeStrong/ts-loader/pull/1008) (#1004) - thanks @reinholdk!
+
 ## v6.1.0
 * [Build upstream project references with SolutionBuilder](https://github.com/TypeStrong/ts-loader/pull/935) (#851, #913) - thanks @sheetalkamat!
 
