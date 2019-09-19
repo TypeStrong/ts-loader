@@ -1,8 +1,8 @@
     Asset      Size  Chunks             Chunk Names
-bundle.js  4.68 KiB    main  [emitted]  main
+bundle.js  4.69 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
 [./app.ts] 131 bytes {main} [built]
-[./lib/index.ts] 497 bytes {main} [built] [failed] [2 errors]
+[./lib/index.ts] 507 bytes {main} [built] [failed] [2 errors]
 
 ERROR in ./lib/index.ts
 Module build failed (from /index.js):
