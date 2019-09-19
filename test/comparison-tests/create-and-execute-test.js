@@ -12,6 +12,7 @@ const semver = require('semver');
 const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
+const copySync = require('./copySync');
 
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 
@@ -78,7 +79,6 @@ if (fs.statSync(testPath).isDirectory() &&
 function createTest(test, testPath, options) {
     return function (done) {
         this.timeout(60000); // sometimes it just takes awhile
-
         const testState = createTestState();
         const paths = createPaths(stagingPath, test, options);
         const outputs = {
@@ -91,7 +91,14 @@ function createTest(test, testPath, options) {
 
         // copy all input to a staging area
         mkdirp.sync(paths.testStagingPath);
-        fs.copySync(testPath, paths.testStagingPath);
+        copySync(testPath, paths.testStagingPath);
+        if (test === "projectReferencesWatchRefWithTwoFilesAlreadyBuilt") {
+            // Copy output
+            copySync(path.resolve(testPath, "libOutput"), path.resolve(paths.testStagingPath, "lib"));
+            // Change the buildinfo to use typescript version we have
+            const buildInfoPath = path.resolve(paths.testStagingPath, "lib/tsconfig.tsbuildinfo");
+            fs.writeFileSync(buildInfoPath, fs.readFileSync(buildInfoPath, "utf8").replace("FakeTSVersion", typescript.version));
+        }
 
         // ensure output directories
         mkdirp.sync(paths.actualOutput);
@@ -184,7 +191,7 @@ function createWebpackWatchHandler(done, paths, testState, outputs, options, tes
 
         saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch);
 
-        fs.copySync(paths.webpackOutput, paths.actualOutput);
+        copySync(paths.webpackOutput, paths.actualOutput);
         rimraf.sync(paths.webpackOutput);
 
         handleErrors(err, paths, outputs, patch, options);
@@ -230,7 +237,7 @@ function saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch) {
             }
         });
 
-        fs.copySync(paths.webpackOutput, paths.originalExpectedOutput, { overwrite: true });
+        copySync(paths.webpackOutput, paths.originalExpectedOutput);
     }
 }
 
@@ -340,10 +347,9 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
     const patchPath = path.join(testStagingPath, 'patch' + testState.iteration);
     if (fs.existsSync(patchPath)) {
         testState.iteration++;
-
         // can get inconsistent results if copying right away
         setTimeout(function () {
-            fs.copySync(patchPath, testStagingPath, { overwrite: true });
+            copySync(patchPath, testStagingPath);
         }, 1000);
     }
     else {

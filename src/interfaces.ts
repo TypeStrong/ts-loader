@@ -49,6 +49,46 @@ export interface WatchHost
   updateRootFileNames(): void;
 }
 
+export type WatchCallbacks<T> = Map<string, T[]>;
+export interface WatchFactory {
+  watchedFiles: WatchCallbacks<typescript.FileWatcherCallback>;
+  watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback>;
+  watchedDirectoriesRecursive: WatchCallbacks<
+    typescript.DirectoryWatcherCallback
+  >;
+  invokeFileWatcher(
+    fileName: string,
+    eventKind: typescript.FileWatcherEventKind
+  ): void;
+  invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
+  /** Used to watch changes in source files, missing files needed to update the program or config file */
+  watchFile(
+    path: string,
+    callback: typescript.FileWatcherCallback,
+    pollingInterval?: number
+  ): typescript.FileWatcher;
+  /** Used to watch resolved module's failed lookup locations, config file specs, type roots where auto type reference directives are added */
+  watchDirectory(
+    path: string,
+    callback: typescript.DirectoryWatcherCallback,
+    recursive?: boolean
+  ): typescript.FileWatcher;
+}
+
+export interface SolutionDiagnostics {
+  global: typescript.Diagnostic[];
+  perFile: Map<string, typescript.Diagnostic[]>;
+  transpileErrors: [string | undefined, typescript.Diagnostic[]][];
+}
+
+export interface SolutionBuilderWithWatchHost
+  extends typescript.SolutionBuilderWithWatchHost<
+      typescript.EmitAndSemanticDiagnosticsBuilderProgram
+    >,
+    WatchFactory {
+  diagnostics: SolutionDiagnostics;
+}
+
 export interface TSInstance {
   compiler: typeof typescript;
   compilerOptions: typescript.CompilerOptions;
@@ -87,9 +127,7 @@ export interface TSInstance {
   hasUnaccountedModifiedFiles?: boolean;
   changedFilesList?: boolean;
 
-  solutionBuilderHost?: typescript.SolutionBuilderWithWatchHost<
-    typescript.EmitAndSemanticDiagnosticsBuilderProgram
-  >;
+  solutionBuilderHost?: SolutionBuilderWithWatchHost;
   solutionBuilder?: typescript.SolutionBuilder<
     typescript.EmitAndSemanticDiagnosticsBuilderProgram
   >;

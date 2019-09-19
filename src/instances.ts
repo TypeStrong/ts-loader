@@ -18,6 +18,7 @@ import {
 } from './interfaces';
 import * as logger from './logger';
 import {
+  getSolutionErrors,
   makeServicesHost,
   makeSolutionBuilderHost,
   makeWatchHost
@@ -174,20 +175,52 @@ function successfulTypeScriptInstance(
     getCustomTransformers = customerTransformers;
   }
 
+  // if allowJs is set then we should accept js(x) files
+  const scriptRegex =
+    configParseResult.options.allowJs === true
+      ? /\.tsx?$|\.jsx?$/i
+      : /\.tsx?$/i;
+
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
     // we do need to check for any issues with TS options though
-    const program =
+    const transpileInstance: TSInstance = (instances[loaderOptions.instance] = {
+      compiler,
+      compilerOptions,
+      appendTsTsxSuffixesIfRequired,
+      loaderOptions,
+      rootFileNames,
+      files,
+      otherFiles,
+      program: undefined, // temporary, to be set later
+      dependencyGraph: {},
+      reverseDependencyGraph: {},
+      transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
+      colors
+    });
+
+    tryAndBuildSolutionReferences(
+      transpileInstance,
+      loader,
+      log,
+      scriptRegex,
+      configFilePath
+    );
+    const program = (transpileInstance.program =
       configParseResult.projectReferences !== undefined
         ? compiler!.createProgram({
             rootNames: configParseResult.fileNames,
             options: configParseResult.options,
             projectReferences: configParseResult.projectReferences
           })
-        : compiler!.createProgram([], compilerOptions);
+        : compiler!.createProgram([], compilerOptions));
 
     // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
     if (!loaderOptions.happyPackMode) {
+      const solutionErrors: WebpackError[] = getSolutionErrors(
+        transpileInstance,
+        loader.context
+      );
       const diagnostics = program.getOptionsDiagnostics();
       const errors = formatErrors(
         diagnostics,
@@ -197,26 +230,10 @@ function successfulTypeScriptInstance(
         { file: configFilePath || 'tsconfig.json' },
         loader.context
       );
-
-      loader._module.errors.push(...errors);
+      loader._module.errors.push(...solutionErrors, ...errors);
     }
-
-    instances[loaderOptions.instance] = {
-      compiler,
-      compilerOptions,
-      appendTsTsxSuffixesIfRequired,
-      loaderOptions,
-      rootFileNames,
-      files,
-      otherFiles,
-      program,
-      dependencyGraph: {},
-      reverseDependencyGraph: {},
-      transformers: getCustomTransformers(program),
-      colors
-    };
-
-    return { instance: instances[loaderOptions.instance] };
+    transpileInstance.transformers = getCustomTransformers(program);
+    return { instance: transpileInstance };
   }
 
   // Load initial files (core lib files, any files specified in tsconfig.json)
@@ -246,12 +263,6 @@ function successfulTypeScriptInstance(
     };
   }
 
-  // if allowJs is set then we should accept js(x) files
-  const scriptRegex =
-    configParseResult.options.allowJs === true
-      ? /\.tsx?$|\.jsx?$/i
-      : /\.tsx?$/i;
-
   const instance: TSInstance = (instances[loaderOptions.instance] = {
     compiler,
     compilerOptions,
@@ -275,22 +286,13 @@ function successfulTypeScriptInstance(
     );
   }
 
-  if (configFilePath && supportsSolutionBuild(loaderOptions, compiler)) {
-    // Use solution builder
-    log.logInfo('Using SolutionBuilder api');
-    instance.configFilePath = configFilePath;
-    instance.solutionBuilderHost = makeSolutionBuilderHost(
-      scriptRegex,
-      log,
-      loader,
-      instance
-    );
-    instance.solutionBuilder = compiler.createSolutionBuilderWithWatch(
-      instance.solutionBuilderHost,
-      [configFilePath],
-      { verbose: true, watch: true }
-    );
-  }
+  tryAndBuildSolutionReferences(
+    instance,
+    loader,
+    log,
+    scriptRegex,
+    configFilePath
+  );
 
   if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
     log.logInfo('Using watch api');
@@ -344,16 +346,247 @@ function successfulTypeScriptInstance(
   return { instance };
 }
 
+function tryAndBuildSolutionReferences(
+  instance: TSInstance,
+  loader: webpack.loader.LoaderContext,
+  log: logger.Logger,
+  scriptRegex: RegExp,
+  configFilePath: string | undefined
+) {
+  if (
+    configFilePath &&
+    supportsSolutionBuild(instance.loaderOptions, instance.compiler)
+  ) {
+    // Use solution builder
+    log.logInfo('Using SolutionBuilder api');
+    instance.configFilePath = configFilePath;
+    instance.solutionBuilderHost = makeSolutionBuilderHost(
+      scriptRegex,
+      log,
+      loader,
+      instance
+    );
+    instance.solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
+      instance.solutionBuilderHost,
+      [configFilePath],
+      { verbose: true }
+    );
+    instance.solutionBuilder.buildReferences(instance.configFilePath);
+  }
+}
+
+export function forEachResolvedProjectReference<T>(
+  resolvedProjectReferences:
+    | readonly (typescript.ResolvedProjectReference | undefined)[]
+    | undefined,
+  cb: (
+    resolvedProjectReference: typescript.ResolvedProjectReference
+  ) => T | undefined
+): T | undefined {
+  let seenResolvedRefs: typescript.ResolvedProjectReference[] | undefined;
+  return worker(resolvedProjectReferences);
+  function worker(
+    resolvedRefs:
+      | readonly (typescript.ResolvedProjectReference | undefined)[]
+      | undefined
+  ): T | undefined {
+    if (resolvedRefs) {
+      for (const resolvedRef of resolvedRefs) {
+        if (!resolvedRef) {
+          continue;
+        }
+        if (
+          seenResolvedRefs &&
+          seenResolvedRefs.some(seenRef => seenRef === resolvedRef)
+        ) {
+          // ignore recursives
+          continue;
+        }
+
+        (seenResolvedRefs || (seenResolvedRefs = [])).push(resolvedRef);
+        const result = cb(resolvedRef) || worker(resolvedRef.references);
+        if (result) {
+          return result;
+        }
+      }
+    }
+    return undefined;
+  }
+}
+
+// This code is here as a temporary holder
+function fileExtensionIs(fileName: string, ext: string) {
+  return fileName.endsWith(ext);
+}
+
+function rootDirOfOptions(
+  instance: TSInstance,
+  configFile: typescript.ParsedCommandLine
+) {
+  return (
+    configFile.options.rootDir ||
+    (instance.compiler as any).getDirectoryPath(
+      configFile.options.configFilePath
+    )
+  );
+}
+
+function getOutputPathWithoutChangingExt(
+  instance: TSInstance,
+  inputFileName: string,
+  configFile: typescript.ParsedCommandLine,
+  ignoreCase: boolean,
+  outputDir: string | undefined
+) {
+  return outputDir
+    ? (instance.compiler as any).resolvePath(
+        outputDir,
+        (instance.compiler as any).getRelativePathFromDirectory(
+          rootDirOfOptions(instance, configFile),
+          inputFileName,
+          ignoreCase
+        )
+      )
+    : inputFileName;
+}
+
+function getOutputJSFileName(
+  instance: TSInstance,
+  inputFileName: string,
+  configFile: typescript.ParsedCommandLine,
+  ignoreCase: boolean
+) {
+  if (configFile.options.emitDeclarationOnly) {
+    return undefined;
+  }
+  const isJsonFile = fileExtensionIs(inputFileName, '.json');
+  const outputFileName = (instance.compiler as any).changeExtension(
+    getOutputPathWithoutChangingExt(
+      instance,
+      inputFileName,
+      configFile,
+      ignoreCase,
+      configFile.options.outDir
+    ),
+    isJsonFile
+      ? '.json'
+      : fileExtensionIs(inputFileName, '.tsx') &&
+        configFile.options.jsx === instance.compiler.JsxEmit.Preserve
+      ? '.jsx'
+      : '.js'
+  );
+  return !isJsonFile ||
+    (instance.compiler as any).comparePaths(
+      inputFileName,
+      outputFileName,
+      configFile.options.configFilePath,
+      ignoreCase
+    ) !== (instance.compiler as any).Comparison.EqualTo
+    ? outputFileName
+    : undefined;
+}
+
+function getOutputFileNames(
+  instance: TSInstance,
+  configFile: typescript.ParsedCommandLine,
+  inputFileName: string
+): string[] {
+  const outputs: string[] = [];
+  const ignoreCase = !instance.compiler.sys.useCaseSensitiveFileNames;
+  const addOutput = (fileName: string | undefined) =>
+    fileName && outputs.push(fileName);
+  const js = getOutputJSFileName(
+    instance,
+    inputFileName,
+    configFile,
+    ignoreCase
+  );
+  addOutput(js);
+  if (!fileExtensionIs(inputFileName, '.json')) {
+    if (js && configFile.options.sourceMap) {
+      addOutput(`${js}.map`);
+    }
+    if (
+      (configFile.options.declaration || configFile.options.composite) &&
+      (instance.compiler as any).hasTSFileExtension(inputFileName)
+    ) {
+      const dts = (instance.compiler as any).getOutputDeclarationFileName(
+        inputFileName,
+        configFile,
+        ignoreCase
+      );
+      addOutput(dts);
+      if (configFile.options.declarationMap) {
+        addOutput(`${dts}.map`);
+      }
+    }
+  }
+
+  return outputs;
+}
+
+function getOutputFilesFromReference(
+  program: typescript.Program,
+  instance: TSInstance,
+  filePath: string
+): typescript.OutputFile[] | undefined {
+  // May be api to get file
+  return forEachResolvedProjectReference(
+    program.getResolvedProjectReferences(),
+    ({ commandLine }) => {
+      const { options, fileNames } = commandLine;
+      if (
+        !options.outFile &&
+        !options.out &&
+        fileNames.some(file => path.normalize(file) === filePath)
+      ) {
+        // TODO api in typescript
+        // For now copying from typescript
+        const outputFiles: typescript.OutputFile[] = [];
+        getOutputFileNames(
+          instance,
+          commandLine,
+          (instance.compiler as any).resolvePath(filePath)
+        ).forEach(name => {
+          const text = instance.compiler.sys.readFile(name);
+          if (text) {
+            outputFiles.push({ name, text, writeByteOrderMark: false });
+          }
+        });
+        return outputFiles;
+      }
+      return undefined;
+    }
+  );
+}
+
+export function isReferencedFile(instance: TSInstance, filePath: string) {
+  return (
+    !!instance.solutionBuilderHost &&
+    !!instance.solutionBuilderHost.watchedFiles.get(filePath)
+  );
+}
+
 export function getEmitOutput(instance: TSInstance, filePath: string) {
   const program = ensureProgram(instance);
   if (program !== undefined) {
+    const sourceFile = program.getSourceFile(filePath);
+    if (isReferencedFile(instance, filePath)) {
+      const builtReferences = getOutputFilesFromReference(
+        program,
+        instance,
+        filePath
+      );
+      if (builtReferences) {
+        return builtReferences;
+      }
+    }
     const outputFiles: typescript.OutputFile[] = [];
     const writeFile = (
       fileName: string,
       text: string,
       writeByteOrderMark: boolean
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
-    const sourceFile = program.getSourceFile(filePath);
     // The source file will be undefined if it’s part of an unbuilt project reference
     if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
       program.emit(

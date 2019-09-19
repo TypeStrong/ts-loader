@@ -11,12 +11,17 @@ import {
   ModuleResolutionHost,
   ResolvedModule,
   ResolveSync,
+  SolutionBuilderWithWatchHost,
+  SolutionDiagnostics,
   TSInstance,
-  WatchHost
+  WatchCallbacks,
+  WatchFactory,
+  WatchHost,
+  WebpackError
 } from './interfaces';
 import * as logger from './logger';
 import { makeResolver } from './resolver';
-import { readFile, unorderedRemoveItem } from './utils';
+import { formatErrors, readFile, unorderedRemoveItem } from './utils';
 
 export type Action = () => void;
 
@@ -238,6 +243,165 @@ function makeResolvers(
   };
 }
 
+function createWatchFactory(
+  beforeCallbacks?: (
+    key: string,
+    cb: typescript.FileWatcherCallback[] | typescript.DirectoryWatcherCallback[]
+  ) => void
+): WatchFactory {
+  const watchedFiles: WatchCallbacks<
+    typescript.FileWatcherCallback
+  > = new Map();
+  const watchedDirectories: WatchCallbacks<
+    typescript.DirectoryWatcherCallback
+  > = new Map();
+  const watchedDirectoriesRecursive: WatchCallbacks<
+    typescript.DirectoryWatcherCallback
+  > = new Map();
+
+  return {
+    watchedFiles,
+    watchedDirectories,
+    watchedDirectoriesRecursive,
+    invokeFileWatcher,
+    invokeDirectoryWatcher,
+    watchFile,
+    watchDirectory
+  };
+
+  function invokeWatcherCallbacks(
+    map:
+      | Map<string, typescript.FileWatcherCallback[]>
+      | Map<string, typescript.DirectoryWatcherCallback[]>,
+    key: string,
+    fileName: string,
+    eventKind?: typescript.FileWatcherEventKind
+  ) {
+    const callbacks = map.get(key);
+    if (callbacks !== undefined && callbacks.length) {
+      // The array copy is made to ensure that even if one of the callback removes the callbacks,
+      // we dont miss any callbacks following it
+      const cbs = callbacks.slice();
+      if (beforeCallbacks) {
+        beforeCallbacks(key, cbs);
+      }
+      for (const cb of cbs) {
+        cb(fileName, eventKind as typescript.FileWatcherEventKind);
+      }
+    }
+  }
+
+  function invokeFileWatcher(
+    fileName: string,
+    eventKind: typescript.FileWatcherEventKind
+  ) {
+    fileName = path.normalize(fileName);
+    invokeWatcherCallbacks(watchedFiles, fileName, fileName, eventKind);
+  }
+
+  function invokeDirectoryWatcher(
+    directory: string,
+    fileAddedOrRemoved: string
+  ) {
+    directory = path.normalize(directory);
+    invokeWatcherCallbacks(watchedDirectories, directory, fileAddedOrRemoved);
+    invokeRecursiveDirectoryWatcher(directory, fileAddedOrRemoved);
+  }
+
+  function invokeRecursiveDirectoryWatcher(
+    directory: string,
+    fileAddedOrRemoved: string
+  ) {
+    directory = path.normalize(directory);
+    invokeWatcherCallbacks(
+      watchedDirectoriesRecursive,
+      directory,
+      fileAddedOrRemoved
+    );
+    const basePath = path.dirname(directory);
+    if (directory !== basePath) {
+      invokeRecursiveDirectoryWatcher(basePath, fileAddedOrRemoved);
+    }
+  }
+
+  function createWatcher<T>(
+    file: string,
+    callbacks: WatchCallbacks<T>,
+    callback: T
+  ): typescript.FileWatcher {
+    file = path.normalize(file);
+    const existing = callbacks.get(file);
+    if (existing === undefined) {
+      callbacks.set(file, [callback]);
+    } else {
+      existing.push(callback);
+    }
+    return {
+      close: () => {
+        // tslint:disable-next-line:no-shadowed-variable
+        const existing = callbacks.get(file);
+        if (existing !== undefined) {
+          unorderedRemoveItem(existing, callback);
+          if (!existing.length) {
+            callbacks.delete(file);
+          }
+        }
+      }
+    };
+  }
+
+  function watchFile(
+    fileName: string,
+    callback: typescript.FileWatcherCallback,
+    _pollingInterval?: number
+  ) {
+    return createWatcher(fileName, watchedFiles, callback);
+  }
+
+  function watchDirectory(
+    fileName: string,
+    callback: typescript.DirectoryWatcherCallback,
+    recursive?: boolean
+  ) {
+    return createWatcher(
+      fileName,
+      recursive === true ? watchedDirectoriesRecursive : watchedDirectories,
+      callback
+    );
+  }
+}
+
+export function updateFileWithText(
+  instance: TSInstance,
+  filePath: string,
+  text: (nFilePath: string) => string
+) {
+  const nFilePath = path.normalize(filePath);
+  const file =
+    instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
+  if (file !== undefined) {
+    const newText = text(nFilePath);
+    if (newText !== file.text) {
+      file.text = newText;
+      file.version++;
+      instance.version!++;
+      instance.modifiedFiles!.set(nFilePath, file);
+      if (instance.watchHost !== undefined) {
+        instance.watchHost.invokeFileWatcher(
+          nFilePath,
+          instance.compiler.FileWatcherEventKind.Changed
+        );
+      }
+      if (instance.solutionBuilderHost !== undefined) {
+        instance.solutionBuilderHost.invokeFileWatcher(
+          nFilePath,
+          instance.compiler.FileWatcherEventKind.Changed
+        );
+      }
+    }
+  }
+}
+
 /**
  * Create the TypeScript Watch host
  */
@@ -285,15 +449,12 @@ export function makeWatchHost(
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
 
-  type WatchCallbacks<T> = { [fileName: string]: T[] | undefined };
-  const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = {};
-  const watchedDirectories: WatchCallbacks<
-    typescript.DirectoryWatcherCallback
-  > = {};
-  const watchedDirectoriesRecursive: WatchCallbacks<
-    typescript.DirectoryWatcherCallback
-  > = {};
-
+  const {
+    watchFile,
+    watchDirectory,
+    invokeFileWatcher,
+    invokeDirectoryWatcher
+  } = createWatchFactory();
   const resolvers = makeResolvers(
     compiler,
     compilerOptions,
@@ -380,108 +541,6 @@ export function makeWatchHost(
     return files.has(filePath) || compiler.sys.fileExists(filePath);
   }
 
-  function invokeWatcherCallbacks(
-    callbacks: typescript.FileWatcherCallback[] | undefined,
-    fileName: string,
-    eventKind: typescript.FileWatcherEventKind
-  ): void;
-  function invokeWatcherCallbacks(
-    callbacks: typescript.DirectoryWatcherCallback[] | undefined,
-    fileName: string
-  ): void;
-  function invokeWatcherCallbacks(
-    callbacks:
-      | typescript.FileWatcherCallback[]
-      | typescript.DirectoryWatcherCallback[]
-      | undefined,
-    fileName: string,
-    eventKind?: typescript.FileWatcherEventKind
-  ) {
-    if (callbacks !== undefined) {
-      // The array copy is made to ensure that even if one of the callback removes the callbacks,
-      // we dont miss any callbacks following it
-      const cbs = callbacks.slice();
-      for (const cb of cbs) {
-        cb(fileName, eventKind as typescript.FileWatcherEventKind);
-      }
-    }
-  }
-
-  function invokeFileWatcher(
-    fileName: string,
-    eventKind: typescript.FileWatcherEventKind
-  ) {
-    fileName = path.normalize(fileName);
-    invokeWatcherCallbacks(watchedFiles[fileName], fileName, eventKind);
-  }
-
-  function invokeDirectoryWatcher(
-    directory: string,
-    fileAddedOrRemoved: string
-  ) {
-    directory = path.normalize(directory);
-    invokeWatcherCallbacks(watchedDirectories[directory], fileAddedOrRemoved);
-    invokeRecursiveDirectoryWatcher(directory, fileAddedOrRemoved);
-  }
-
-  function invokeRecursiveDirectoryWatcher(
-    directory: string,
-    fileAddedOrRemoved: string
-  ) {
-    directory = path.normalize(directory);
-    invokeWatcherCallbacks(
-      watchedDirectoriesRecursive[directory],
-      fileAddedOrRemoved
-    );
-    const basePath = path.dirname(directory);
-    if (directory !== basePath) {
-      invokeRecursiveDirectoryWatcher(basePath, fileAddedOrRemoved);
-    }
-  }
-
-  function createWatcher<T>(
-    file: string,
-    callbacks: WatchCallbacks<T>,
-    callback: T
-  ): typescript.FileWatcher {
-    file = path.normalize(file);
-    const existing = callbacks[file];
-    if (existing === undefined) {
-      callbacks[file] = [callback];
-    } else {
-      existing.push(callback);
-    }
-    return {
-      close: () => {
-        // tslint:disable-next-line:no-shadowed-variable
-        const existing = callbacks[file];
-        if (existing !== undefined) {
-          unorderedRemoveItem(existing, callback);
-        }
-      }
-    };
-  }
-
-  function watchFile(
-    fileName: string,
-    callback: typescript.FileWatcherCallback,
-    _pollingInterval?: number
-  ) {
-    return createWatcher(fileName, watchedFiles, callback);
-  }
-
-  function watchDirectory(
-    fileName: string,
-    callback: typescript.DirectoryWatcherCallback,
-    recursive?: boolean
-  ) {
-    return createWatcher(
-      fileName,
-      recursive === true ? watchedDirectoriesRecursive : watchedDirectories,
-      callback
-    );
-  }
-
   function createBuilderProgramWithReferences(
     rootNames: ReadonlyArray<string> | undefined,
     options: typescript.CompilerOptions | undefined,
@@ -518,14 +577,15 @@ export function makeSolutionBuilderHost(
   log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance
-) {
+): SolutionBuilderWithWatchHost {
   const {
     compiler,
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
     loaderOptions: {
       resolveModuleName: customResolveModuleName,
-      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
+      transpileOnly
     }
   } = instance;
 
@@ -539,8 +599,35 @@ export function makeSolutionBuilderHost(
     getNewLine: () => compiler.sys.newLine
   };
 
-  const reportDiagnostic = (d: typescript.Diagnostic) =>
-    log.logError(compiler.formatDiagnostic(d, formatDiagnosticHost));
+  const diagnostics: SolutionDiagnostics = {
+    global: [],
+    perFile: new Map(),
+    transpileErrors: []
+  };
+  const reportDiagnostic = (d: typescript.Diagnostic) => {
+    if (transpileOnly) {
+      const filePath = d.file ? path.resolve(d.file.fileName) : undefined;
+      const last =
+        diagnostics.transpileErrors[diagnostics.transpileErrors.length - 1];
+      if (diagnostics.transpileErrors.length && last[0] === filePath) {
+        last[1].push(d);
+      } else {
+        diagnostics.transpileErrors.push([filePath, [d]]);
+      }
+    } else if (d.file) {
+      const filePath = path.resolve(d.file.fileName);
+      const existing = diagnostics.perFile.get(filePath);
+      if (existing) {
+        existing.push(d);
+      } else {
+        diagnostics.perFile.set(filePath, [d]);
+      }
+    } else {
+      diagnostics.global.push(d);
+    }
+    log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+  };
+
   const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
     log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   const reportWatchStatus = (
@@ -554,14 +641,25 @@ export function makeSolutionBuilderHost(
         compiler.sys.newLine
       )}${newLine + newLine}`
     );
-  const solutionBuilderHost = compiler.createSolutionBuilderWithWatchHost(
-    compiler.sys,
-    compiler.createEmitAndSemanticDiagnosticsBuilderProgram,
-    reportDiagnostic,
-    reportSolutionBuilderStatus,
-    reportWatchStatus
-  );
-  solutionBuilderHost.getCurrentDirectory = getCurrentDirectory;
+  const solutionBuilderHost: SolutionBuilderWithWatchHost = {
+    ...compiler.createSolutionBuilderWithWatchHost(
+      compiler.sys,
+      compiler.createEmitAndSemanticDiagnosticsBuilderProgram,
+      reportDiagnostic,
+      reportSolutionBuilderStatus,
+      reportWatchStatus
+    ),
+    diagnostics,
+    ...createWatchFactory(beforeWatchCallbacks),
+    // Overrides
+    getCurrentDirectory,
+    writeFile: (name, text, writeByteOrderMark) => {
+      compiler.sys.writeFile(name, text, writeByteOrderMark);
+      updateFileWithText(instance, name, () => text);
+    },
+    setTimeout: undefined,
+    clearTimeout: undefined
+  };
   solutionBuilderHost.trace = logData => log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file =>
     getParsedCommandLine(compiler, instance.loaderOptions, file);
@@ -585,6 +683,35 @@ export function makeSolutionBuilderHost(
   solutionBuilderHost.resolveModuleNames = resolvers.resolveModuleNames;
 
   return solutionBuilderHost;
+
+  function beforeWatchCallbacks() {
+    diagnostics.global.length = 0;
+    diagnostics.perFile.clear();
+    diagnostics.transpileErrors.length = 0;
+  }
+}
+
+export function getSolutionErrors(instance: TSInstance, context: string) {
+  const solutionErrors: WebpackError[] = [];
+  if (
+    instance.solutionBuilderHost &&
+    instance.solutionBuilderHost.diagnostics.transpileErrors.length
+  ) {
+    instance.solutionBuilderHost.diagnostics.transpileErrors.forEach(
+      ([filePath, errors]) =>
+        solutionErrors.push(
+          ...formatErrors(
+            errors,
+            instance.loaderOptions,
+            instance.colors,
+            instance.compiler,
+            { file: filePath ? undefined : 'tsconfig.json' },
+            context
+          )
+        )
+    );
+  }
+  return solutionErrors;
 }
 
 type ResolveTypeReferenceDirective = (

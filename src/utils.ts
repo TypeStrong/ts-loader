@@ -282,6 +282,11 @@ export function getAndCacheProjectReference(
   filePath: string,
   instance: TSInstance
 ) {
+  // When using solution builder, dont do the project reference caching
+  if (instance.solutionBuilderHost) {
+    return undefined;
+  }
+
   const file = instance.files.get(filePath);
   if (file !== undefined && file.projectReference) {
     return file.projectReference.project;

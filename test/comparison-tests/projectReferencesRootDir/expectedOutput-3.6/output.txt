@@ -1,10 +1,11 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.69 KiB    main  [emitted]  main
+                      Asset      Size  Chunks             Chunk Names
+                  bundle.js  4.66 KiB    main  [emitted]  main
+      ../lib/out/index.d.ts  89 bytes          [emitted]  
+../lib/tsconfig.tsbuildinfo  71.5 KiB          [emitted]  
 Entrypoint main = bundle.js
 [./app.ts] 81 bytes {main} [built]
-[./lib/src/index.ts] 94 bytes {main} [built] [1 warning]
+[./lib/src/index.ts] 66 bytes {main} [built]
 
-WARNING in ./lib/src/index.ts
-Module Warning (from /index.js):
-Could not find source map file for referenced project output lib\out\index.js. Ensure the 'sourceMap' compiler option is enabled in lib\tsconfig.json to ensure Webpack can map project references to the appropriate source files.
- @ ./app.ts 1:0-38 2:12-15 2:21-24 2:30-33
+ERROR in tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS5033: Could not write file '/.test/projectReferencesRootDir/lib/out/index.d.ts': Cannot read property 'set' of null.[39m[22m
