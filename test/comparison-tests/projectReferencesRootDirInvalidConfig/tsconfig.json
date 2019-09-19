@@ -2,7 +2,6 @@
   "compilerOptions": {
     "target": "esnext"
   },
-  "files": ["./app.ts"],
   "references": [
     { "path": "./lib" }
   ]

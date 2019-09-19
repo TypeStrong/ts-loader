@@ -72,9 +72,8 @@ export function makeAfterCompile(
     provideTsBuildInfoFilesToWebpack(instance, compilation);
 
     instance.filesWithErrors = filesWithErrors;
-    instance.modifiedFiles = null;
+    instance.modifiedFiles = undefined;
     instance.projectsMissingSourceMaps = new Set();
-
     callback();
   };
 }
@@ -90,7 +89,6 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
 ) {
   if (getCompilerOptionDiagnostics) {
     const { languageService, loaderOptions, compiler, program } = instance;
-
     const errorsToAdd = formatErrors(
       program === undefined
         ? languageService!.getCompilerOptionsDiagnostics()

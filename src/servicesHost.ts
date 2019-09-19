@@ -13,6 +13,7 @@ import {
   ResolveSync,
   SolutionBuilderWithWatchHost,
   SolutionDiagnostics,
+  TSFile,
   TSInstance,
   WatchCallbacks,
   WatchFactory,
@@ -385,7 +386,10 @@ export function updateFileWithText(
       file.text = newText;
       file.version++;
       instance.version!++;
-      instance.modifiedFiles!.set(nFilePath, file);
+      if (!instance.modifiedFiles) {
+        instance.modifiedFiles = new Map<string, TSFile>();
+      }
+      instance.modifiedFiles.set(nFilePath, file);
       if (instance.watchHost !== undefined) {
         instance.watchHost.invokeFileWatcher(
           nFilePath,

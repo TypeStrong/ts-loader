@@ -103,7 +103,7 @@ export interface TSInstance {
   /**
    * contains the modified files - cleared each time after-compile is called
    */
-  modifiedFiles?: TSFiles | null;
+  modifiedFiles?: TSFiles;
   /**
    * Paths to project references that are missing source maps.
    * Cleared each time after-compile is called. Used to dedupe

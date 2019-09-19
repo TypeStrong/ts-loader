@@ -90,23 +90,23 @@
 /*!****************!*\
   !*** ./app.ts ***!
   \****************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _lib_src_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib/src/index */ \"./lib/src/index.ts\");\n\nconsole.log(_lib_src_index__WEBPACK_IMPORTED_MODULE_0__[\"lib\"].one, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__[\"lib\"].two, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__[\"lib\"].three);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
-/***/ "./lib/index.ts":
-/*!**********************!*\
-  !*** ./lib/index.ts ***!
-  \**********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ "./lib/src/index.ts":
+/*!**************************!*\
+  !*** ./lib/src/index.ts ***!
+  \**************************/
+/*! exports provided: lib */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"lib\", function() { return lib; });\nconst lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?");
 
 /***/ })
 
