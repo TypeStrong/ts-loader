@@ -402,9 +402,9 @@ function getNormalisedFileContent(file, location) {
                 .replace(/Module build failed \(from \//gm, 'Module build failed (from ')
                 .replace(/Module Warning \(from \//gm, 'Module Warning (from ')
                 // We don't want a difference in the number of kilobytes to fail the build
-                .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
+                .replace(/\s+[\d]+([.][\d]*)? KiB\s+/g, ' A-NUMBER-OF KiB ')
                 // We also don't want a difference in the number of bytes to fail the build
-                .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
+                .replace(/\s+\d+ bytes\s+/g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
                 .replace(/ test\/comparison-tests\//,' /test/comparison-tests/')
