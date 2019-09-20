@@ -567,7 +567,7 @@ export function isReferencedFile(instance: TSInstance, filePath: string) {
 }
 
 export function getEmitOutput(instance: TSInstance, filePath: string) {
-  if (fileExtensionIs(filePath, typescript.Extension.Dts)) {
+  if (fileExtensionIs(filePath, instance.compiler.Extension.Dts)) {
     return [];
   }
   const program = ensureProgram(instance);
