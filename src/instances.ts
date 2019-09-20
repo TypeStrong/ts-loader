@@ -572,6 +572,9 @@ export function isReferencedFile(instance: TSInstance, filePath: string) {
 }
 
 export function getEmitOutput(instance: TSInstance, filePath: string) {
+  if (fileExtensionIs(filePath, instance.compiler.Extension.Dts)) {
+    return [];
+  }
   const program = ensureProgram(instance);
   if (program !== undefined) {
     const sourceFile = program.getSourceFile(filePath);
