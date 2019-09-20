@@ -90,10 +90,23 @@
 /*!****************!*\
   !*** ./app.ts ***!
   \****************/
-/*! no static exports found */
-/***/ (function(module, exports) {
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-eval("throw new Error(\"Module build failed (from C:/source/ts-loader/index.js):/nError: ts-loader was supplied with an unexpected loader option: notRealOption/n/nPlease take a look at the options you are supplying; the following are valid options:/nsilent / logLevel / logInfoToStdOut / instance / compiler / context / configFile / transpileOnly / ignoreDiagnostics / errorFormatter / colors / compilerOptions / appendTsSuffixTo / appendTsxSuffixTo / onlyCompileBundledFiles / happyPackMode / getCustomTransformers / reportFiles / experimentalWatchApi / allowTsInNodeModules / experimentalFileCaching / projectReferences / resolveModuleName / resolveTypeReferenceDirective/n/n    at validateLoaderOptions (C://source//ts-loader//dist//index.js:155:19)/n    at getLoaderOptions (C://source//ts-loader//dist//index.js:112:5)/n    at Object.loader (C://source//ts-loader//dist//index.js:16:21)\");\n\n//# sourceURL=webpack:///./app.ts?");
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _lib_src_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib/src/index */ \"./lib/src/index.ts\");\n\nconsole.log(_lib_src_index__WEBPACK_IMPORTED_MODULE_0__[\"lib\"].one, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__[\"lib\"].two, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__[\"lib\"].three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+
+/***/ }),
+
+/***/ "./lib/src/index.ts":
+/*!**************************!*\
+  !*** ./lib/src/index.ts ***!
+  \**************************/
+/*! exports provided: lib */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, \"lib\", function() { return lib; });\nconst lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?");
 
 /***/ })
 

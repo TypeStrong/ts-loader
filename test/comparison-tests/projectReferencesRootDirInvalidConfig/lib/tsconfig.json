@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "composite": true,
+    "sourceMap": true,
+    "outDir": "./out",
+    "rootDir": "./src"
+  },
+  "files": [
+    "./src/index.ts"
+  ]
+}

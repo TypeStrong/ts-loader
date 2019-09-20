@@ -52,10 +52,8 @@ if (fs.statSync(testPath).isDirectory() &&
 
     // @ts-ignore
     describe(`${testToRun}${extraOption ? ` - ${extraOption}: true` : ''}`, function () {
-        if (testToRun !== 'projectReferencesOutDir' || require('os').platform() !== 'win32') {
-            // @ts-ignore
-            it('should have the correct output', createTest(testToRun, testPath, {}));
-        }
+        // @ts-ignore
+        it('should have the correct output', createTest(testToRun, testPath, {}));
 
         if (testToRun === 'declarationOutput' ||
             testToRun === 'declarationOutputWithMaps' ||
@@ -390,7 +388,6 @@ function getNormalisedFileContent(file, location) {
     /** @type {string} */
     let fileContent;
     const filePath = path.join(location, file);
-
     try {
         const originalContent = fs.readFileSync(filePath).toString();
         fileContent = (file.indexOf('output.') === 0
@@ -402,9 +399,9 @@ function getNormalisedFileContent(file, location) {
                 .replace(/Module build failed \(from \//gm, 'Module build failed (from ')
                 .replace(/Module Warning \(from \//gm, 'Module Warning (from ')
                 // We don't want a difference in the number of kilobytes to fail the build
-                .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
+                .replace(/\s+[\d]+([.][\d]*)? KiB\s+/g, ' A-NUMBER-OF KiB ')
                 // We also don't want a difference in the number of bytes to fail the build
-                .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
+                .replace(/\s+\d+ bytes\s+/g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
                 .replace(/ test\/comparison-tests\//,' /test/comparison-tests/')
@@ -422,11 +419,11 @@ function getNormalisedFileContent(file, location) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/(C\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/g, '')
-            .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'webpack://comparison-tests/')
-            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
-            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '!*** /ts-loader/test/comparison-tests/')
-            .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '/ /ts-loader/test/comparison-tests/')
+            .replace(/(C\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/ig, '')
+            .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********');
     } catch (e) {
