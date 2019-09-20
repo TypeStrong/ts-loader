@@ -507,11 +507,7 @@ function getOutputFileNames(
     }
     if (
       (configFile.options.declaration || configFile.options.composite) &&
-      (instance.compiler as any).hasTSFileExtension(inputFileName) &&
-      !(instance.compiler as any).fileExtensionIs(
-        inputFileName,
-        typescript.Extension.Dts
-      )
+      (instance.compiler as any).hasTSFileExtension(inputFileName)
     ) {
       const dts = (instance.compiler as any).getOutputDeclarationFileName(
         inputFileName,
@@ -571,6 +567,9 @@ export function isReferencedFile(instance: TSInstance, filePath: string) {
 }
 
 export function getEmitOutput(instance: TSInstance, filePath: string) {
+  if (fileExtensionIs(filePath, typescript.Extension.Dts)) {
+    return [];
+  }
   const program = ensureProgram(instance);
   if (program !== undefined) {
     const sourceFile = program.getSourceFile(filePath);
