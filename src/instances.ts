@@ -507,7 +507,11 @@ function getOutputFileNames(
     }
     if (
       (configFile.options.declaration || configFile.options.composite) &&
-      (instance.compiler as any).hasTSFileExtension(inputFileName)
+      (instance.compiler as any).hasTSFileExtension(inputFileName) &&
+      !(instance.compiler as any).fileExtensionIs(
+        inputFileName,
+        typescript.Extension.Dts
+      )
     ) {
       const dts = (instance.compiler as any).getOutputDeclarationFileName(
         inputFileName,
