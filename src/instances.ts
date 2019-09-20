@@ -546,8 +546,6 @@ function getOutputFilesFromReference(
         !options.out &&
         fileNames.some(file => path.normalize(file) === filePath)
       ) {
-        // TODO api in typescript
-        // For now copying from typescript
         const outputFiles: typescript.OutputFile[] = [];
         getOutputFileNames(
           instance,
