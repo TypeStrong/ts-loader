@@ -17,6 +17,9 @@ const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 const indexOfSingleTest = process.argv.indexOf('--single-test');
 const singleTestToRun =
   indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
+const indexOfTestCriteria = process.argv.indexOf('--match-test');
+const testCriteria =
+  indexOfTestCriteria !== -1 && new RegExp(process.argv[indexOfTestCriteria + 1]);
 
 /** @type {string[]} */
 let passingTests = [];
@@ -58,6 +61,12 @@ function runTests() {
           const testPath = path.join(testDir, testName);
           return fs.statSync(testPath).isDirectory();
         }
+      )
+      .filter(
+        /**
+         * @param {string} testName
+         */ testName =>
+          testCriteria ? !!testName.match(testCriteria) : true
       );
 
       // Allow multiple attempts to pass tests as they're flaky

@@ -357,6 +357,15 @@ function provideDeclarationFilesToWebpack(
   }
 }
 
+function getOutputPathForBuildInfo(
+  compiler: typeof ts,
+  options: ts.CompilerOptions
+) {
+  return (compiler as any).getTsBuildInfoEmitOutputFilePath
+    ? (compiler as any).getTsBuildInfoEmitOutputFilePath(options)
+    : (compiler as any).getOutputPathForBuildInfo(options);
+}
+
 /**
  * gather all .tsbuildinfo for the project
  */
@@ -375,8 +384,8 @@ function provideTsBuildInfoFilesToWebpack(
               instance.modifiedFiles!.has(path.resolve(f))
             )
           ) {
-            // TODO:: update compiler to expose this
-            const buildInfoPath = (instance.compiler as any).getOutputPathForBuildInfo(
+            const buildInfoPath = getOutputPathForBuildInfo(
+              instance.compiler,
               resolvedRef.commandLine.options
             );
             if (buildInfoPath) {

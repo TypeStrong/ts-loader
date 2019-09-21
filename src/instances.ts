@@ -490,8 +490,15 @@ function getOutputFileNames(
   configFile: typescript.ParsedCommandLine,
   inputFileName: string
 ): string[] {
-  const outputs: string[] = [];
   const ignoreCase = !instance.compiler.sys.useCaseSensitiveFileNames;
+  if ((instance.compiler as any).getOutputFileNames) {
+    return (instance.compiler as any).getOutputFileNames(
+      configFile,
+      inputFileName,
+      ignoreCase
+    );
+  }
+  const outputs: string[] = [];
   const addOutput = (fileName: string | undefined) =>
     fileName && outputs.push(fileName);
   const js = getOutputJSFileName(
@@ -539,8 +546,6 @@ function getOutputFilesFromReference(
         !options.out &&
         fileNames.some(file => path.normalize(file) === filePath)
       ) {
-        // TODO api in typescript
-        // For now copying from typescript
         const outputFiles: typescript.OutputFile[] = [];
         getOutputFileNames(
           instance,
