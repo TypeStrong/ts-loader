@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.2.0
+* [Emitting .tsbuildinfo when using watch api](https://github.com/TypeStrong/ts-loader/pull/1017) - thanks @sheetalkamat!
+
 ## v6.1.2
 * [don't emit declaration files for a declaration file](https://github.com/TypeStrong/ts-loader/pull/1015) (#1014) - thanks @gvinaccia!
 * [Consume typescript apis from typescript nightly](https://github.com/TypeStrong/ts-loader/pull/1016) - thanks @sheetalkamat!

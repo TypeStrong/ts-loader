@@ -39,7 +39,7 @@ export type ResolveSync = (
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
-    typescript.BuilderProgram
+    typescript.EmitAndSemanticDiagnosticsBuilderProgram
   > {
   invokeFileWatcher(
     fileName: string,
@@ -47,6 +47,8 @@ export interface WatchHost
   ): void;
   invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
   updateRootFileNames(): void;
+  outputFiles: Map<string, typescript.OutputFile[]>;
+  tsbuildinfo?: typescript.OutputFile;
 }
 
 export type WatchCallbacks<T> = Map<string, T[]>;
@@ -121,8 +123,9 @@ export interface TSInstance {
   otherFiles: TSFiles;
   watchHost?: WatchHost;
   watchOfFilesAndCompilerOptions?: typescript.WatchOfFilesAndCompilerOptions<
-    typescript.BuilderProgram
+    typescript.EmitAndSemanticDiagnosticsBuilderProgram
   >;
+  builderProgram?: typescript.EmitAndSemanticDiagnosticsBuilderProgram;
   program?: typescript.Program;
   hasUnaccountedModifiedFiles?: boolean;
   changedFilesList?: boolean;
