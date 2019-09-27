@@ -517,8 +517,10 @@ export function makeWatchHost(
     },
     createProgram:
       projectReferences === undefined
-        ? compiler.createAbstractBuilder
-        : createBuilderProgramWithReferences
+        ? compiler.createEmitAndSemanticDiagnosticsBuilderProgram
+        : createBuilderProgramWithReferences,
+
+    outputFiles: new Map()
   };
   return watchHost;
 
@@ -549,7 +551,7 @@ export function makeWatchHost(
     rootNames: ReadonlyArray<string> | undefined,
     options: typescript.CompilerOptions | undefined,
     host: typescript.CompilerHost | undefined,
-    oldProgram: typescript.BuilderProgram | undefined,
+    oldProgram: typescript.EmitAndSemanticDiagnosticsBuilderProgram | undefined,
     configFileParsingDiagnostics:
       | ReadonlyArray<typescript.Diagnostic>
       | undefined
@@ -564,7 +566,7 @@ export function makeWatchHost(
     });
 
     const builderProgramHost: typescript.BuilderProgramHost = host!;
-    return compiler.createAbstractBuilder(
+    return compiler.createEmitAndSemanticDiagnosticsBuilderProgram(
       program,
       builderProgramHost,
       oldProgram,
