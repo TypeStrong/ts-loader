@@ -9,14 +9,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+
+      - name: install node
+        uses: actions/setup-node@v1
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
-      - run: yarn install
-      - run: yarn build
-      - uses: ./.github/node-chrome
-      - run: yarn execution-tests
+
+      - name: install
+        run: yarn install
+
+      - name: build
+        run: yarn build
+
+      - name: test
+        uses: ./.github/node-chrome
+        run: yarn execution-tests
+
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
