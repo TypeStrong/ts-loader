@@ -16,5 +16,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
       - uses: ./.github/node-chrome
       - run: yarn execution-tests
