@@ -3,30 +3,20 @@ on: [push, pull_request]
 name: build and test
 
 jobs:
-  install:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: yarn install
+      - run: npm test
 
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-
-    - name: install
-      uses: actions/npm@1.0.0
-      with:
-        entrypoint: yarn
-        args: install
-
-    - name: build
-      uses: actions/npm@1.0.0
-      with:
-        entrypoint: yarn
-        args: build
-
-    - name: test
-      uses: ./.github/node-chrome
-      with:
-        entrypoint: yarn
-        args: execution-tests
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: ./.github/node-chrome
+      - run: yarn execution-tests
