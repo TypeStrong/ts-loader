@@ -1,6 +1,8 @@
-on: [push, pull_request]
+on:
+  release:
+    types: [published]
 
-name: build and test
+name: build, test and publish
 
 jobs:
   install:
@@ -30,3 +32,11 @@ jobs:
       with:
         entrypoint: yarn
         args: execution-tests
+
+    - name: publish if release is created
+      if: github.event_name == 'release' && github.event.action == 'created'
+      uses: actions/npm@1.0.0
+      env:
+        NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      with:
+        args: publish
