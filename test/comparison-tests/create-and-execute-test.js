@@ -89,10 +89,24 @@ function createTest(test, testPath, options) {
 
         // copy all input to a staging area
         mkdirp.sync(paths.testStagingPath);
+        const nonWatchNonCompositePath = testPath.replace(/(_Composite)?_WatchApi$/, "");
+        if (nonWatchNonCompositePath !== testPath) {
+            const nonWatchPath = testPath.replace(/_WatchApi$/, "");
+            // Copy things from non watch path
+            copySync(nonWatchNonCompositePath, paths.testStagingPath);
+            if (nonWatchPath !== nonWatchNonCompositePath) {
+                // Change the tsconfig to be composite
+                const configPath = path.resolve(paths.testStagingPath, "tsconfig.json");
+                const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+                config.files = [ "./app.ts"];
+                config.compilerOptions = { composite: true };
+                fs.writeFileSync(configPath, JSON.stringify(config, /*replacer*/ undefined, " "));
+            }
+        }
         copySync(testPath, paths.testStagingPath);
-        if (test === "projectReferencesWatchRefWithTwoFilesAlreadyBuilt") {
+        if (test.startsWith("projectReferencesWatchRefWithTwoFilesAlreadyBuilt")) {
             // Copy output
-            copySync(path.resolve(testPath, "libOutput"), path.resolve(paths.testStagingPath, "lib"));
+            copySync(path.resolve(paths.testStagingPath, "libOutput"), path.resolve(paths.testStagingPath, "lib"));
             // Change the buildinfo to use typescript version we have
             const buildInfoPath = path.resolve(paths.testStagingPath, "lib/tsconfig.tsbuildinfo");
             fs.writeFileSync(buildInfoPath, fs.readFileSync(buildInfoPath, "utf8").replace("FakeTSVersion", typescript.version));
@@ -104,7 +118,7 @@ function createTest(test, testPath, options) {
 
         // execute webpack
         testState.watcher = webpack(
-            createWebpackConfig(paths, options)
+            createWebpackConfig(paths, options, nonWatchNonCompositePath !== testPath)
         ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, outputs, options, test));
     };
 }
@@ -153,7 +167,7 @@ function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
     }
 }
 
-function createWebpackConfig(paths, optionsOriginal) {
+function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
     const config = require(path.join(paths.testStagingPath, 'webpack.config'));
 
     const extraOptionMaybe = extraOption ? { [extraOption]: true } : {};
@@ -162,7 +176,8 @@ function createWebpackConfig(paths, optionsOriginal) {
         silent: true,
         compilerOptions: {
             newLine: 'LF'
-        }
+        },
+        experimentalWatchApi: !!useWatchApi
     }, optionsOriginal, extraOptionMaybe);
 
     const tsLoaderPath = require('path').join(__dirname, "../../index.js");

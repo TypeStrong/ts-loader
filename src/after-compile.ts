@@ -3,7 +3,11 @@ import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { forEachResolvedProjectReference, getEmitOutput } from './instances';
+import {
+  forEachResolvedProjectReference,
+  getEmitFromWatchHost,
+  getEmitOutput
+} from './instances';
 import {
   TSFile,
   TSFiles,
@@ -405,6 +409,25 @@ function provideTsBuildInfoFilesToWebpack(
         }
       );
     }
+  }
+
+  if (instance.watchHost) {
+    // Ensure emit is complete
+    getEmitFromWatchHost(instance);
+    if (instance.watchHost.tsbuildinfo) {
+      const { tsbuildinfo } = instance.watchHost;
+      const assetPath = path.relative(
+        compilation.compiler.outputPath,
+        path.resolve(tsbuildinfo.name)
+      );
+      compilation.assets[assetPath] = {
+        source: () => tsbuildinfo.text,
+        size: () => tsbuildinfo.text.length
+      };
+    }
+
+    instance.watchHost.outputFiles.clear();
+    instance.watchHost.tsbuildinfo = undefined;
   }
 }
 
