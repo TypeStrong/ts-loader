@@ -3,7 +3,7 @@ on: [push, pull_request]
 name: build and test
 
 jobs:
-  build:
+  build and test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -11,13 +11,5 @@ jobs:
         with:
           node-version: 12
       - run: yarn install
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
       - uses: ./.github/node-chrome
       - run: yarn execution-tests
