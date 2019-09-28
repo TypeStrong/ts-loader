@@ -11,5 +11,6 @@ jobs:
         with:
           node-version: 12
       - run: yarn install
+      - run: yarn build
       - uses: ./.github/node-chrome
       - run: yarn execution-tests
