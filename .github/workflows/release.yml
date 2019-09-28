@@ -13,7 +13,6 @@ jobs:
         with:
           node-version: 12
       - run: yarn install
-      - run: npm test
 
   test:
     needs: build
