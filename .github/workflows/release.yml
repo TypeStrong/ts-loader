@@ -5,28 +5,7 @@ on:
 name: build, test and publish
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - run: yarn install
-
-  test:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - uses: ./.github/node-chrome
-      - run: yarn execution-tests
-
-  publish-npm:
-    needs: test
+  build_test_and_publish:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -34,6 +13,10 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
+      - run: yarn install
+      - run: yarn build
+      - uses: ./.github/node-chrome
+      - run: yarn execution-tests
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
