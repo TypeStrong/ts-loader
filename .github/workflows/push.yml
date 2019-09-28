@@ -1,0 +1,38 @@
+on: push
+name: build, test and (only if this a release) publish
+jobs:
+  install:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+
+    # - name: Dump GitHub context
+    #   env:
+    #     GITHUB_CONTEXT: ${{ toJson(github) }}
+    #   run: echo "$GITHUB_CONTEXT"
+
+    - name: install
+      uses: actions/npm@1.0.0
+      with:
+        entrypoint: yarn
+        args: install
+
+    - name: build
+      uses: actions/npm@1.0.0
+      with:
+        entrypoint: yarn
+        args: build
+
+    - name: test
+      uses: ./.github/node-chrome
+      with:
+        entrypoint: yarn
+        args: execution-tests
+
+    - name: publish if release is created
+      if: github.event_name == 'release' && github.event.action == 'created'
+      uses: actions/npm@1.0.0
+      env:
+        NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      with:
+        args: publish
