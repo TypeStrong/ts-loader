@@ -20,6 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: ./.github/node-chrome
+        with:
+          node-version: 12
       - run: yarn execution-tests
 
   publish-npm:
