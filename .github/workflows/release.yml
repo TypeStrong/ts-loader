@@ -5,38 +5,29 @@ on:
 name: build, test and publish
 
 jobs:
-  install:
+  build_test_and_publish:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+      - uses: actions/checkout@v1
 
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
+      - name: install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+          registry-url: https://registry.npmjs.org/
 
-    - name: install
-      uses: actions/npm@1.0.0
-      with:
-        entrypoint: yarn
-        args: install
+      - name: install
+        run: yarn install
 
-    - name: build
-      uses: actions/npm@1.0.0
-      with:
-        entrypoint: yarn
-        args: build
+      - name: build
+        run: yarn build
 
-    - name: test
-      uses: ./.github/node-chrome
-      with:
-        entrypoint: yarn
-        args: execution-tests
+      - name: install chrome
+        uses: ./.github/node-chrome
 
-    - name: publish if release is created
-      if: github.event_name == 'release' && github.event.action == 'created'
-      uses: actions/npm@1.0.0
-      env:
-        NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
-      with:
-        args: publish
+      - name: test
+        run: yarn execution-tests
+
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
