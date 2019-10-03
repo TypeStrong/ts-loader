@@ -1,0 +1,12 @@
+{
+    "name": "lib",
+    "version": "1.0.0",
+    "description": "",
+    "main": "out/index.js",
+    "typings": "out/index.d.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC"
+}

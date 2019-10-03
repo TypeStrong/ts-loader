@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "sourceMap": true,
+    "outDir": "./out"
+  },
+  "files": [
+    "./index.ts"
+  ]
+}
