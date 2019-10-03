@@ -6,6 +6,7 @@ import * as webpack from 'webpack';
 import * as constants from './constants';
 import {
   getEmitOutput,
+  getInputFileNameFromOutput,
   getTypeScriptInstance,
   isReferencedFile
 } from './instances';
@@ -472,13 +473,19 @@ function getEmit(
             );
             // In the case of dependencies that are part of a project reference,
             // the real dependency that webpack should watch is the JS output file.
-            return projectReference !== undefined
-              ? getAndCacheOutputJSFileName(
-                  resolvedFileName,
-                  projectReference,
-                  instance
-                )
-              : originalFileName;
+            if (projectReference !== undefined) {
+              return getAndCacheOutputJSFileName(
+                resolvedFileName,
+                projectReference,
+                instance
+              );
+            }
+            return (
+              getInputFileNameFromOutput(
+                instance,
+                path.resolve(resolvedFileName)
+              ) || originalFileName
+            );
           });
 
     if (additionalDependencies.length > 0) {
