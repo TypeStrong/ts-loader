@@ -7,7 +7,7 @@ import * as webpack from 'webpack';
 import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
-import { dtsDtsxOrDtsDtsxMapRegex, EOL } from './constants';
+import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
 import {
   LoaderOptions,
   TSFile,
@@ -560,6 +560,34 @@ function getOutputFilesFromReference(
       }
       return undefined;
     }
+  );
+}
+
+export function getInputFileNameFromOutput(
+  instance: TSInstance,
+  filePath: string
+): string | undefined {
+  if (filePath.match(tsTsxRegex) && !fileExtensionIs(filePath, '.d.ts')) {
+    return undefined;
+  }
+  const program = ensureProgram(instance);
+  return (
+    program &&
+    forEachResolvedProjectReference(
+      program.getResolvedProjectReferences(),
+      ({ commandLine }) => {
+        const { options, fileNames } = commandLine;
+        if (!options.outFile && !options.out) {
+          const input = fileNames.find(file =>
+            getOutputFileNames(instance, commandLine, file).find(
+              name => path.resolve(name) === filePath
+            )
+          );
+          return input && path.resolve(input);
+        }
+        return undefined;
+      }
+    )
   );
 }
 
