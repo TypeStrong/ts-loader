@@ -3,11 +3,7 @@ import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import {
-  forEachResolvedProjectReference,
-  getEmitFromWatchHost,
-  getEmitOutput
-} from './instances';
+import { getEmitFromWatchHost, getEmitOutput } from './instances';
 import {
   TSFile,
   TSFiles,
@@ -361,15 +357,6 @@ function provideDeclarationFilesToWebpack(
   }
 }
 
-function getOutputPathForBuildInfo(
-  compiler: typeof ts,
-  options: ts.CompilerOptions
-) {
-  return (compiler as any).getTsBuildInfoEmitOutputFilePath
-    ? (compiler as any).getTsBuildInfoEmitOutputFilePath(options)
-    : (compiler as any).getOutputPathForBuildInfo(options);
-}
-
 /**
  * gather all .tsbuildinfo for the project
  */
@@ -377,38 +364,19 @@ function provideTsBuildInfoFilesToWebpack(
   instance: TSInstance,
   compilation: webpack.compilation.Compilation
 ) {
-  if (instance.solutionBuilderHost && instance.modifiedFiles) {
-    const program = ensureProgram(instance);
-    if (program) {
-      forEachResolvedProjectReference(
-        program.getResolvedProjectReferences(),
-        resolvedRef => {
-          if (
-            resolvedRef.commandLine.fileNames.some(f =>
-              instance.modifiedFiles!.has(path.resolve(f))
-            )
-          ) {
-            const buildInfoPath = getOutputPathForBuildInfo(
-              instance.compiler,
-              resolvedRef.commandLine.options
-            );
-            if (buildInfoPath) {
-              const text = instance.compiler.sys.readFile(buildInfoPath);
-              if (text) {
-                const assetPath = path.relative(
-                  compilation.compiler.outputPath,
-                  path.resolve(buildInfoPath)
-                );
-                compilation.assets[assetPath] = {
-                  source: () => text,
-                  size: () => text.length
-                };
-              }
-            }
-          }
-        }
+  if (instance.solutionBuilderHost) {
+    instance.solutionBuilderHost.tsbuildinfos.forEach(({ name, text }) => {
+      const assetPath = path.relative(
+        compilation.compiler.outputPath,
+        path.resolve(name)
       );
-    }
+      compilation.assets[assetPath] = {
+        source: () => text,
+        size: () => text.length
+      };
+    });
+
+    instance.solutionBuilderHost.tsbuildinfos.length = 0;
   }
 
   if (instance.watchHost) {

@@ -647,6 +647,7 @@ export function makeSolutionBuilderHost(
         compiler.sys.newLine
       )}${newLine + newLine}`
     );
+  const tsbuildinfos = [] as typescript.OutputFile[];
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...compiler.createSolutionBuilderWithWatchHost(
       compiler.sys,
@@ -662,9 +663,17 @@ export function makeSolutionBuilderHost(
     writeFile: (name, text, writeByteOrderMark) => {
       compiler.sys.writeFile(name, text, writeByteOrderMark);
       updateFileWithText(instance, name, () => text);
+      if (name.endsWith('.tsbuildinfo')) {
+        tsbuildinfos.push({
+          name,
+          text,
+          writeByteOrderMark: !!writeByteOrderMark
+        });
+      }
     },
     setTimeout: undefined,
-    clearTimeout: undefined
+    clearTimeout: undefined,
+    tsbuildinfos
   };
   solutionBuilderHost.trace = logData => log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file =>
