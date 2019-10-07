@@ -89,6 +89,7 @@ export interface SolutionBuilderWithWatchHost
     >,
     WatchFactory {
   diagnostics: SolutionDiagnostics;
+  outputFiles: Map<string, typescript.OutputFile>;
   tsbuildinfos: typescript.OutputFile[];
 }
 

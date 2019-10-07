@@ -61,15 +61,15 @@ export function makeAfterCompile(
       modules,
       instance
     );
-
     provideDeclarationFilesToWebpack(
       filesToCheckForErrors,
       instance,
       compilation
     );
+    provideTsBuildInfoFilesToWebpack(instance, compilation);
 
     provideSolutionErrorsToWebpack(compilation, modules, instance);
-    provideTsBuildInfoFilesToWebpack(instance, compilation);
+    provideAssetsFromSolutionBuilderHost(instance, compilation);
 
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = undefined;
@@ -339,21 +339,51 @@ function provideDeclarationFilesToWebpack(
       continue;
     }
 
-    const outputFiles = getEmitOutput(instance, filePath);
-    const declarationFiles = outputFiles.filter(outputFile =>
-      outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+    addDeclarationFilesAsAsset(
+      getEmitOutput(
+        instance,
+        filePath,
+        /*skipActualOutputReadOfReferencedFile*/ true
+      ),
+      compilation
     );
+  }
+}
 
-    declarationFiles.forEach(declarationFile => {
-      const assetPath = path.relative(
-        compilation.compiler.outputPath,
-        declarationFile.name
-      );
-      compilation.assets[assetPath] = {
-        source: () => declarationFile.text,
-        size: () => declarationFile.text.length
-      };
-    });
+function addDeclarationFilesAsAsset(
+  outputFiles: ts.OutputFile[] | IterableIterator<ts.OutputFile>,
+  compilation: webpack.compilation.Compilation
+) {
+  outputFilesToAsset(
+    outputFiles,
+    compilation,
+    outputFile => !outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+  );
+}
+
+function outputFileToAsset(
+  outputFile: ts.OutputFile,
+  compilation: webpack.compilation.Compilation
+) {
+  const assetPath = path.relative(
+    compilation.compiler.outputPath,
+    outputFile.name
+  );
+  compilation.assets[assetPath] = {
+    source: () => outputFile.text,
+    size: () => outputFile.text.length
+  };
+}
+
+function outputFilesToAsset(
+  outputFiles: ts.OutputFile[] | IterableIterator<ts.OutputFile>,
+  compilation: webpack.compilation.Compilation,
+  skipOutputFile?: (outputFile: ts.OutputFile) => boolean
+) {
+  for (const outputFile of outputFiles) {
+    if (!skipOutputFile || !skipOutputFile(outputFile)) {
+      outputFileToAsset(outputFile, compilation);
+    }
   }
 }
 
@@ -364,38 +394,35 @@ function provideTsBuildInfoFilesToWebpack(
   instance: TSInstance,
   compilation: webpack.compilation.Compilation
 ) {
-  if (instance.solutionBuilderHost) {
-    instance.solutionBuilderHost.tsbuildinfos.forEach(({ name, text }) => {
-      const assetPath = path.relative(
-        compilation.compiler.outputPath,
-        path.resolve(name)
-      );
-      compilation.assets[assetPath] = {
-        source: () => text,
-        size: () => text.length
-      };
-    });
-
-    instance.solutionBuilderHost.tsbuildinfos.length = 0;
-  }
-
   if (instance.watchHost) {
     // Ensure emit is complete
     getEmitFromWatchHost(instance);
     if (instance.watchHost.tsbuildinfo) {
-      const { tsbuildinfo } = instance.watchHost;
-      const assetPath = path.relative(
-        compilation.compiler.outputPath,
-        path.resolve(tsbuildinfo.name)
-      );
-      compilation.assets[assetPath] = {
-        source: () => tsbuildinfo.text,
-        size: () => tsbuildinfo.text.length
-      };
+      outputFileToAsset(instance.watchHost.tsbuildinfo, compilation);
     }
 
     instance.watchHost.outputFiles.clear();
     instance.watchHost.tsbuildinfo = undefined;
+  }
+}
+
+/**
+ * gather all solution builder assets
+ */
+function provideAssetsFromSolutionBuilderHost(
+  instance: TSInstance,
+  compilation: webpack.compilation.Compilation
+) {
+  if (instance.solutionBuilderHost) {
+    // written files
+    addDeclarationFilesAsAsset(
+      instance.solutionBuilderHost.outputFiles.values(),
+      compilation
+    );
+    // tsbuild infos
+    outputFilesToAsset(instance.solutionBuilderHost.tsbuildinfos, compilation);
+    instance.solutionBuilderHost.outputFiles.clear();
+    instance.solutionBuilderHost.tsbuildinfos.length = 0;
   }
 }
 

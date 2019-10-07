@@ -533,7 +533,8 @@ function getOutputFileNames(
 function getOutputFilesFromReference(
   program: typescript.Program,
   instance: TSInstance,
-  filePath: string
+  filePath: string,
+  skipActualOutputRead: boolean
 ): typescript.OutputFile[] | undefined {
   // May be api to get file
   return forEachResolvedProjectReference(
@@ -546,16 +547,25 @@ function getOutputFilesFromReference(
         fileNames.some(file => path.normalize(file) === filePath)
       ) {
         const outputFiles: typescript.OutputFile[] = [];
-        getOutputFileNames(
-          instance,
-          commandLine,
-          (instance.compiler as any).resolvePath(filePath)
-        ).forEach(name => {
-          const text = instance.compiler.sys.readFile(name);
-          if (text) {
-            outputFiles.push({ name, text, writeByteOrderMark: false });
-          }
-        });
+        if (!skipActualOutputRead) {
+          getOutputFileNames(
+            instance,
+            commandLine,
+            (instance.compiler as any).resolvePath(filePath)
+          ).forEach(name => {
+            const output = instance.solutionBuilderHost!.outputFiles.get(
+              path.resolve(name)
+            );
+            if (output) {
+              outputFiles.push(output);
+            } else {
+              const text = instance.compiler.sys.readFile(name);
+              if (text) {
+                outputFiles.push({ name, text, writeByteOrderMark: false });
+              }
+            }
+          });
+        }
         return outputFiles;
       }
       return undefined;
@@ -652,7 +662,11 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
   return undefined;
 }
 
-export function getEmitOutput(instance: TSInstance, filePath: string) {
+export function getEmitOutput(
+  instance: TSInstance,
+  filePath: string,
+  skipActualOutputReadOfReferencedFile: boolean
+) {
   if (fileExtensionIs(filePath, instance.compiler.Extension.Dts)) {
     return [];
   }
@@ -663,7 +677,8 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       const builtReferences = getOutputFilesFromReference(
         program,
         instance,
-        filePath
+        filePath,
+        skipActualOutputReadOfReferencedFile
       );
       if (builtReferences) {
         return builtReferences;
