@@ -447,7 +447,11 @@ function getEmit(
   instance: TSInstance,
   loaderContext: webpack.loader.LoaderContext
 ) {
-  const outputFiles = getEmitOutput(instance, filePath);
+  const outputFiles = getEmitOutput(
+    instance,
+    filePath,
+    /*skipActualOutputReadOfReferencedFile*/ false
+  );
 
   if (!isReferencedFile(instance, filePath)) {
     loaderContext.clearDependencies();

@@ -648,6 +648,7 @@ export function makeSolutionBuilderHost(
       )}${newLine + newLine}`
     );
   const tsbuildinfos = [] as typescript.OutputFile[];
+  const outputFiles = new Map<string, typescript.OutputFile>();
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...compiler.createSolutionBuilderWithWatchHost(
       compiler.sys,
@@ -669,10 +670,17 @@ export function makeSolutionBuilderHost(
           text,
           writeByteOrderMark: !!writeByteOrderMark
         });
+      } else {
+        outputFiles.set(path.resolve(name), {
+          name,
+          text,
+          writeByteOrderMark: !!writeByteOrderMark
+        });
       }
     },
     setTimeout: undefined,
     clearTimeout: undefined,
+    outputFiles,
     tsbuildinfos
   };
   solutionBuilderHost.trace = logData => log.logInfo(logData);
