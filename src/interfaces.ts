@@ -91,6 +91,7 @@ export interface SolutionBuilderWithWatchHost
     >,
     WatchFactory {
   diagnostics: SolutionDiagnostics;
+  tsbuildinfos: typescript.OutputFile[];
 }
 
 export interface TSInstance {
