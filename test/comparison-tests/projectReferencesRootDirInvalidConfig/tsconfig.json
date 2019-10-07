@@ -1,8 +1,11 @@
 {
-  "compilerOptions": {
-    "target": "esnext"
-  },
-  "references": [
-    { "path": "./lib" }
-  ]
+    "compilerOptions": {
+        "target": "esnext"
+    },
+    "files": [
+        "./app.ts"
+    ],
+    "references": [
+        { "path": "./lib" }
+    ]
 }
