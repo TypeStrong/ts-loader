@@ -502,7 +502,10 @@ function getEmit(
         defFilePath =>
           defFilePath +
           '@' +
-          (instance.files.get(defFilePath) || { version: '?' }).version
+          (
+            instance.files.get(defFilePath) ||
+            instance.otherFiles.get(defFilePath) || { version: '?' }
+          ).version
       );
   }
 

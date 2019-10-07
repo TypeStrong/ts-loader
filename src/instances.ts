@@ -370,6 +370,15 @@ function tryAndBuildSolutionReferences(
       { verbose: true }
     );
     instance.solutionBuilder.buildReferences(instance.configFilePath);
+    for (const [fileName] of instance.solutionBuilderHost.watchedFiles) {
+      instance.otherFiles.set(path.resolve(fileName), {
+        version: 0,
+        text: instance.solutionBuilderHost.readFile(fileName)
+      });
+      if (instance.loaderOptions.transpileOnly) {
+        loader.addDependency(fileName);
+      }
+    }
   }
 }
 

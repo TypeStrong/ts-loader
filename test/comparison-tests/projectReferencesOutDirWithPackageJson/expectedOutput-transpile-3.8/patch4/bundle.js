@@ -94,7 +94,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three, lib_1.lib.four, lib_1.lib.ffive); // consume new number\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4,\n    five: 5,\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 
