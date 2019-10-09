@@ -457,8 +457,13 @@ function getEmit(
     loaderContext.clearDependencies();
     loaderContext.addDependency(rawFilePath);
 
-    const allDefinitionFiles = [...instance.files.keys()].filter(defFilePath =>
-      defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+    const allDefinitionFiles = [...instance.files.keys()].filter(
+      defFilePath =>
+        defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
+        // Remove the project reference d.ts as we are adding dependency for .ts later
+        // This removed extra build pass (resulting in new stats object in initial build)
+        (!instance.solutionBuilderHost ||
+          !getInputFileNameFromOutput(instance, defFilePath))
     );
 
     // Make this file dependent on *all* definition files in the program
