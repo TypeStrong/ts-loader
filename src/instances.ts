@@ -48,7 +48,9 @@ export function getTypeScriptInstance(
 ): { instance?: TSInstance; error?: WebpackError } {
   if (instances.hasOwnProperty(loaderOptions.instance)) {
     const instance = instances[loaderOptions.instance];
+    console.log(`Before:: ${instance.version}`);
     ensureProgram(instance);
+    console.log(`After:: ${instance.version}`);
     return { instance: instances[loaderOptions.instance] };
   }
 

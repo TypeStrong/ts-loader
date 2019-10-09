@@ -31,10 +31,12 @@ export function makeAfterCompile(
   ) => {
     // Don't add errors for child compilations
     if (compilation.compiler.isChild()) {
+      console.log(`After compile skipping:: ${instance.version}`);
       callback();
       return;
     }
 
+    console.log(`After compile:: ${instance.version}`);
     removeTSLoaderErrors(compilation.errors);
 
     provideCompilerOptionDiagnosticErrorsToWebpack(

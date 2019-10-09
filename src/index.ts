@@ -37,6 +37,7 @@ function loader(this: webpack.loader.LoaderContext, contents: string) {
   this.cacheable && this.cacheable();
   const callback = this.async() as webpack.loader.loaderCallback;
   const options = getLoaderOptions(this);
+  console.log('Loader');
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
@@ -61,6 +62,7 @@ function successLoader(
   instance: TSInstance
 ) {
   const rawFilePath = path.normalize(loaderContext.resourcePath);
+  console.log(`Success loader:: ${rawFilePath} ${instance.version}`);
 
   const filePath =
     options.appendTsSuffixTo.length > 0 || options.appendTsxSuffixTo.length > 0
@@ -447,6 +449,14 @@ function getEmit(
   instance: TSInstance,
   loaderContext: webpack.loader.LoaderContext
 ) {
+  console.log(
+    `Emit: ${filePath} ${JSON.stringify(
+      ((loaderContext as any).getDependencies() as string[]).filter(
+        f => f.indexOf('node_module') === -1
+      )
+    )}`
+  );
+  debugger;
   const outputFiles = getEmitOutput(
     instance,
     filePath,
@@ -519,11 +529,19 @@ function getEmit(
     .pop();
   const outputText = outputFile === undefined ? undefined : outputFile.text;
 
+  console.log(`${outputText}`);
   const sourceMapFile = outputFiles
     .filter(file => file.name.match(constants.jsJsxMap))
     .pop();
   const sourceMapText =
     sourceMapFile === undefined ? undefined : sourceMapFile.text;
+  console.log(
+    `Emit End: ${filePath} ${JSON.stringify(
+      ((loaderContext as any).getDependencies() as string[]).filter(
+        f => f.indexOf('node_module') === -1
+      )
+    )}`
+  );
 
   return { outputText, sourceMapText };
 }
@@ -537,6 +555,7 @@ function getTranspilationEmit(
   instance: TSInstance,
   loaderContext: webpack.loader.LoaderContext
 ) {
+  console.log(`Transpile Emit: ${fileName}`);
   const {
     outputText,
     sourceMapText,
@@ -547,6 +566,8 @@ function getTranspilationEmit(
     reportDiagnostics: true,
     fileName
   });
+
+  console.log(`${outputText}`);
 
   // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
   if (
