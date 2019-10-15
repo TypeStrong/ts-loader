@@ -9,6 +9,7 @@
     "files": [
         "create-and-execute-test.js",
         "run-tests.js",
-        "newline.loader.js"
+        "newline.loader.js",
+        "copySync.js"         
     ]
 }

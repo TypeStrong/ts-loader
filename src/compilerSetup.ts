@@ -70,5 +70,13 @@ export function getCompilerOptions(
     compilerOptions.module = typescript.ModuleKind.CommonJS;
   }
 
+  if (configParseResult.options.configFile) {
+    Object.defineProperty(compilerOptions, 'configFile', {
+      enumerable: false,
+      writable: false,
+      value: configParseResult.options.configFile
+    });
+  }
+
   return compilerOptions;
 }

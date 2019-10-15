@@ -3,7 +3,11 @@ import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { getEmitOutput } from './instances';
+import {
+  forEachResolvedProjectReference,
+  getEmitFromWatchHost,
+  getEmitOutput
+} from './instances';
 import {
   TSFile,
   TSFiles,
@@ -68,10 +72,12 @@ export function makeAfterCompile(
       compilation
     );
 
-    instance.filesWithErrors = filesWithErrors;
-    instance.modifiedFiles = null;
-    instance.projectsMissingSourceMaps = new Set();
+    provideSolutionErrorsToWebpack(compilation, modules, instance);
+    provideTsBuildInfoFilesToWebpack(instance, compilation);
 
+    instance.filesWithErrors = filesWithErrors;
+    instance.modifiedFiles = undefined;
+    instance.projectsMissingSourceMaps = new Set();
     callback();
   };
 }
@@ -87,7 +93,6 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
 ) {
   if (getCompilerOptionDiagnostics) {
     const { languageService, loaderOptions, compiler, program } = instance;
-
     const errorsToAdd = formatErrors(
       program === undefined
         ? languageService!.getCompilerOptionsDiagnostics()
@@ -183,7 +188,7 @@ function provideErrorsToWebpack(
   } = instance;
 
   const filePathRegex =
-    compilerOptions.checkJs === true
+    compilerOptions.allowJs === true
       ? constants.dtsTsTsxJsJsxRegex
       : constants.dtsTsTsxRegex;
 
@@ -195,7 +200,6 @@ function provideErrorsToWebpack(
     }
 
     const sourceFile = program && program.getSourceFile(filePath);
-
     // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
     // which will have already produced a more useful error than the one we would get by proceeding here.
     // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
@@ -256,6 +260,76 @@ function provideErrorsToWebpack(
   }
 }
 
+function provideSolutionErrorsToWebpack(
+  compilation: webpack.compilation.Compilation,
+  modules: Map<string, WebpackModule[]>,
+  instance: TSInstance
+) {
+  if (
+    !instance.solutionBuilderHost ||
+    !(
+      instance.solutionBuilderHost.diagnostics.global.length ||
+      instance.solutionBuilderHost.diagnostics.perFile.size
+    )
+  ) {
+    return;
+  }
+
+  const {
+    compiler,
+    loaderOptions,
+    solutionBuilderHost: { diagnostics }
+  } = instance;
+
+  for (const [filePath, perFileDiagnostics] of diagnostics.perFile) {
+    // if we have access to a webpack module, use that
+    const associatedModules = modules.get(filePath);
+    if (associatedModules !== undefined) {
+      associatedModules.forEach(module => {
+        // remove any existing errors
+        removeTSLoaderErrors(module.errors);
+
+        // append errors
+        const formattedErrors = formatErrors(
+          perFileDiagnostics,
+          loaderOptions,
+          instance.colors,
+          compiler,
+          { module },
+          compilation.compiler.context
+        );
+
+        module.errors.push(...formattedErrors);
+        compilation.errors.push(...formattedErrors);
+      });
+    } else {
+      // otherwise it's a more generic error
+      const formattedErrors = formatErrors(
+        perFileDiagnostics,
+        loaderOptions,
+        instance.colors,
+        compiler,
+        { file: filePath },
+        compilation.compiler.context
+      );
+
+      compilation.errors.push(...formattedErrors);
+    }
+  }
+
+  // Add global solution errors
+  compilation.errors.push(
+    ...formatErrors(
+      diagnostics.global,
+      instance.loaderOptions,
+      instance.colors,
+      instance.compiler,
+      { file: 'tsconfig.json' },
+      compilation.compiler.context
+    )
+  );
+}
+
 /**
  * gather all declaration files from TypeScript and output them to webpack
  */
@@ -284,6 +358,76 @@ function provideDeclarationFilesToWebpack(
         size: () => declarationFile.text.length
       };
     });
+  }
+}
+
+function getOutputPathForBuildInfo(
+  compiler: typeof ts,
+  options: ts.CompilerOptions
+) {
+  return (compiler as any).getTsBuildInfoEmitOutputFilePath
+    ? (compiler as any).getTsBuildInfoEmitOutputFilePath(options)
+    : (compiler as any).getOutputPathForBuildInfo(options);
+}
+
+/**
+ * gather all .tsbuildinfo for the project
+ */
+function provideTsBuildInfoFilesToWebpack(
+  instance: TSInstance,
+  compilation: webpack.compilation.Compilation
+) {
+  if (instance.solutionBuilderHost && instance.modifiedFiles) {
+    const program = ensureProgram(instance);
+    if (program) {
+      forEachResolvedProjectReference(
+        program.getResolvedProjectReferences(),
+        resolvedRef => {
+          if (
+            resolvedRef.commandLine.fileNames.some(f =>
+              instance.modifiedFiles!.has(path.resolve(f))
+            )
+          ) {
+            const buildInfoPath = getOutputPathForBuildInfo(
+              instance.compiler,
+              resolvedRef.commandLine.options
+            );
+            if (buildInfoPath) {
+              const text = instance.compiler.sys.readFile(buildInfoPath);
+              if (text) {
+                const assetPath = path.relative(
+                  compilation.compiler.outputPath,
+                  path.resolve(buildInfoPath)
+                );
+                compilation.assets[assetPath] = {
+                  source: () => text,
+                  size: () => text.length
+                };
+              }
+            }
+          }
+        }
+      );
+    }
+  }
+
+  if (instance.watchHost) {
+    // Ensure emit is complete
+    getEmitFromWatchHost(instance);
+    if (instance.watchHost.tsbuildinfo) {
+      const { tsbuildinfo } = instance.watchHost;
+      const assetPath = path.relative(
+        compilation.compiler.outputPath,
+        path.resolve(tsbuildinfo.name)
+      );
+      compilation.assets[assetPath] = {
+        source: () => tsbuildinfo.text,
+        size: () => tsbuildinfo.text.length
+      };
+    }
+
+    instance.watchHost.outputFiles.clear();
+    instance.watchHost.tsbuildinfo = undefined;
   }
 }
 

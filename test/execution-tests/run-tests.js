@@ -14,6 +14,9 @@ process.env.NODE_ENV = 'test';
 var indexOfSingleTest = process.argv.indexOf('--single-test');
 var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
 var watch = process.argv.indexOf('--watch') !== -1 && !!singleTestToRun;
+const indexOfTestCriteria = process.argv.indexOf('--match-test');
+const testCriteria =
+  indexOfTestCriteria !== -1 && new RegExp(process.argv[indexOfTestCriteria + 1]);
 
 var passingTests = [];
 var failingTests = [];
@@ -32,6 +35,12 @@ else {
         .filter(isTestDirectory)
         .filter(isHighEnoughTypeScriptVersion)
         .filter(isNotHappyPackTest)
+        .filter(
+            /**
+             * @param {string} testName
+             */ testName =>
+                testCriteria ? !!testName.match(testCriteria) : true
+        )
         // .filter(isNotBabelTest)
         .forEach(runTests);
 }
@@ -140,7 +149,7 @@ function runTests(testName) {
             console.log('running webpack compilation');
             var webpackPath = path.resolve(__dirname, '../../node_modules/webpack/bin/webpack.js');
             var program = debug ? 'node --inspect-brk=5858 ' + webpackPath : 'webpack';
-            execSync(webpackPath + ' --bail', { cwd: testPath, stdio: 'inherit' });
+            execSync(`${program} --bail`, { cwd: testPath, stdio: 'inherit' });
             passingTests.push(testName);
         }
     }

@@ -4,6 +4,7 @@ import * as semver from 'semver';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
+import { getCompilerOptions } from './compilerSetup';
 import { LoaderOptions, WebpackError } from './interfaces';
 import * as logger from './logger';
 import { formatErrors } from './utils';
@@ -148,4 +149,27 @@ export function getConfigParseResult(
   }
 
   return configParseResult;
+}
+
+const extendedConfigCache = new Map() as typescript.Map<
+  typescript.ExtendedConfigCacheEntry
+>;
+export function getParsedCommandLine(
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions,
+  configFilePath: string
+): typescript.ParsedCommandLine | undefined {
+  const result = compiler.getParsedCommandLineOfConfigFile(
+    configFilePath,
+    loaderOptions.compilerOptions,
+    {
+      ...compiler.sys,
+      onUnRecoverableConfigFileDiagnostic: () => {} // tslint:disable-line no-empty
+    },
+    extendedConfigCache
+  );
+  if (result) {
+    result.options = getCompilerOptions(result);
+  }
+  return result;
 }

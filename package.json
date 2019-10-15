@@ -1,16 +1,17 @@
 {
   "name": "ts-loader",
-  "version": "6.0.4",
+  "version": "6.2.0",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist/types/index.d.ts",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "lint": "tslint --project \"./src\"",
-    "comparison-tests": "tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
-    "comparison-tests-generate": "node test/comparison-tests/stub-new-version.js",
-    "execution-tests": "node test/execution-tests/run-tests.js",
-    "test": "node test/run-tests.js",
+    "comparison-tests": "git clean -xfd test/comparison-tests && tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
+    "comparison-tests-generate": "git clean -xfd test/comparison-tests && node test/comparison-tests/stub-new-version.js",
+    "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
+    "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",
+    "clean": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests",
     "docker:build": "docker build -t ts-loader .",
     "postdocker:build": "docker run -it ts-loader yarn test"
   },
@@ -88,7 +89,7 @@
     "rimraf": "^2.6.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
-    "typescript": "^3.5.2",
+    "typescript": "^3.6.2",
     "webpack": "^4.5.0",
     "webpack-cli": "^3.1.1"
   },

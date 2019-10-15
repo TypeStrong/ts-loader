@@ -4,7 +4,11 @@ import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { getEmitOutput, getTypeScriptInstance } from './instances';
+import {
+  getEmitOutput,
+  getTypeScriptInstance,
+  isReferencedFile
+} from './instances';
 import {
   LoaderOptions,
   LoaderOptionsCache,
@@ -130,7 +134,8 @@ function successLoader(
       loaderContext,
       options,
       fileVersion,
-      callback
+      callback,
+      instance
     );
   } else {
     const { outputText, sourceMapText } = options.transpileOnly
@@ -145,7 +150,8 @@ function successLoader(
       loaderContext,
       options,
       fileVersion,
-      callback
+      callback,
+      instance
     );
   }
 }
@@ -158,15 +164,17 @@ function makeSourceMapAndFinish(
   loaderContext: webpack.loader.LoaderContext,
   options: LoaderOptions,
   fileVersion: number,
-  callback: webpack.loader.loaderCallback
+  callback: webpack.loader.loaderCallback,
+  instance: TSInstance
 ) {
   if (outputText === null || outputText === undefined) {
-    const additionalGuidance =
-      !options.allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
-        ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
-          'You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n' +
-          'See: https://github.com/Microsoft/TypeScript/issues/12358'
-        : '';
+    const additionalGuidance = isReferencedFile(instance, filePath)
+      ? ' The most common cause for this is having errors when building referenced projects.'
+      : !options.allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
+      ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
+        'You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n' +
+        'See: https://github.com/Microsoft/TypeScript/issues/12358'
+      : '';
 
     throw new Error(
       `TypeScript emitted no output for ${filePath}.${additionalGuidance}`
@@ -343,19 +351,33 @@ function updateFileInCache(
   if (file === undefined) {
     file = instance.otherFiles.get(filePath);
     if (file !== undefined) {
-      instance.otherFiles.delete(filePath);
-      instance.files.set(filePath, file);
+      if (!isReferencedFile(instance, filePath)) {
+        instance.otherFiles.delete(filePath);
+        instance.files.set(filePath, file);
+        instance.changedFilesList = true;
+      }
     } else {
-      if (instance.watchHost !== undefined) {
+      if (
+        instance.watchHost !== undefined ||
+        instance.solutionBuilderHost !== undefined
+      ) {
         fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
       }
       file = { version: 0 };
-      instance.files.set(filePath, file);
+      if (!isReferencedFile(instance, filePath)) {
+        instance.files.set(filePath, file);
+        instance.changedFilesList = true;
+      } else {
+        instance.otherFiles.set(filePath, file);
+      }
     }
-    instance.changedFilesList = true;
   }
 
-  if (instance.watchHost !== undefined && contents === undefined) {
+  if (
+    (instance.watchHost !== undefined ||
+      instance.solutionBuilderHost !== undefined) &&
+    contents === undefined
+  ) {
     fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Deleted;
   }
 
@@ -366,6 +388,7 @@ function updateFileInCache(
   //
   // See https://github.com/TypeStrong/ts-loader/issues/943
   if (
+    !isReferencedFile(instance, filePath) &&
     !instance.rootFileNames.has(filePath) &&
     // however, be careful not to add files from node_modules unless
     // it is allowed by the options.
@@ -380,7 +403,8 @@ function updateFileInCache(
     file.text = contents;
     instance.version!++;
     if (
-      instance.watchHost !== undefined &&
+      (instance.watchHost !== undefined ||
+        instance.solutionBuilderHost !== undefined) &&
       fileWatcherEventKind === undefined
     ) {
       fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Changed;
@@ -393,8 +417,22 @@ function updateFileInCache(
     instance.watchHost.invokeDirectoryWatcher(path.dirname(filePath), filePath);
   }
 
+  if (
+    instance.solutionBuilderHost !== undefined &&
+    fileWatcherEventKind !== undefined
+  ) {
+    instance.solutionBuilderHost.invokeFileWatcher(
+      filePath,
+      fileWatcherEventKind
+    );
+    instance.solutionBuilderHost.invokeDirectoryWatcher(
+      path.dirname(filePath),
+      filePath
+    );
+  }
+
   // push this file to modified files hash.
-  if (instance.modifiedFiles === null || instance.modifiedFiles === undefined) {
+  if (!instance.modifiedFiles) {
     instance.modifiedFiles = new Map<string, TSFile>();
   }
   instance.modifiedFiles.set(filePath, file);
@@ -410,50 +448,52 @@ function getEmit(
 ) {
   const outputFiles = getEmitOutput(instance, filePath);
 
-  loaderContext.clearDependencies();
-  loaderContext.addDependency(rawFilePath);
+  if (!isReferencedFile(instance, filePath)) {
+    loaderContext.clearDependencies();
+    loaderContext.addDependency(rawFilePath);
 
-  const allDefinitionFiles = [...instance.files.keys()].filter(defFilePath =>
-    defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex)
-  );
-
-  // Make this file dependent on *all* definition files in the program
-  const addDependency = loaderContext.addDependency.bind(loaderContext);
-  allDefinitionFiles.forEach(addDependency);
-
-  // Additionally make this file dependent on all imported files
-  const fileDependencies = instance.dependencyGraph[filePath];
-  const additionalDependencies =
-    fileDependencies === undefined
-      ? []
-      : fileDependencies.map(({ resolvedFileName, originalFileName }) => {
-          const projectReference = getAndCacheProjectReference(
-            resolvedFileName,
-            instance
-          );
-          // In the case of dependencies that are part of a project reference,
-          // the real dependency that webpack should watch is the JS output file.
-          return projectReference !== undefined
-            ? getAndCacheOutputJSFileName(
-                resolvedFileName,
-                projectReference,
-                instance
-              )
-            : originalFileName;
-        });
-
-  if (additionalDependencies.length > 0) {
-    additionalDependencies.forEach(addDependency);
-  }
-
-  loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = allDefinitionFiles
-    .concat(additionalDependencies)
-    .map(
-      defFilePath =>
-        defFilePath +
-        '@' +
-        (instance.files.get(defFilePath) || { version: '?' }).version
+    const allDefinitionFiles = [...instance.files.keys()].filter(defFilePath =>
+      defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex)
     );
+
+    // Make this file dependent on *all* definition files in the program
+    const addDependency = loaderContext.addDependency.bind(loaderContext);
+    allDefinitionFiles.forEach(addDependency);
+
+    // Additionally make this file dependent on all imported files
+    const fileDependencies = instance.dependencyGraph[filePath];
+    const additionalDependencies =
+      fileDependencies === undefined
+        ? []
+        : fileDependencies.map(({ resolvedFileName, originalFileName }) => {
+            const projectReference = getAndCacheProjectReference(
+              resolvedFileName,
+              instance
+            );
+            // In the case of dependencies that are part of a project reference,
+            // the real dependency that webpack should watch is the JS output file.
+            return projectReference !== undefined
+              ? getAndCacheOutputJSFileName(
+                  resolvedFileName,
+                  projectReference,
+                  instance
+                )
+              : originalFileName;
+          });
+
+    if (additionalDependencies.length > 0) {
+      additionalDependencies.forEach(addDependency);
+    }
+
+    loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = allDefinitionFiles
+      .concat(additionalDependencies)
+      .map(
+        defFilePath =>
+          defFilePath +
+          '@' +
+          (instance.files.get(defFilePath) || { version: '?' }).version
+      );
+  }
 
   const outputFile = outputFiles
     .filter(file => file.name.match(constants.jsJsx))
@@ -490,7 +530,10 @@ function getTranspilationEmit(
   });
 
   // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
-  if (!instance.loaderOptions.happyPackMode) {
+  if (
+    !instance.loaderOptions.happyPackMode &&
+    !isReferencedFile(instance, fileName)
+  ) {
     const errors = formatErrors(
       diagnostics,
       instance.loaderOptions,

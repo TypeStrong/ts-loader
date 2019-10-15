@@ -12,6 +12,7 @@ const semver = require('semver');
 const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
+const copySync = require('./copySync');
 
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 
@@ -51,10 +52,8 @@ if (fs.statSync(testPath).isDirectory() &&
 
     // @ts-ignore
     describe(`${testToRun}${extraOption ? ` - ${extraOption}: true` : ''}`, function () {
-        if (testToRun !== 'projectReferencesOutDir' || require('os').platform() !== 'win32') {
-            // @ts-ignore
-            it('should have the correct output', createTest(testToRun, testPath, {}));
-        }
+        // @ts-ignore
+        it('should have the correct output', createTest(testToRun, testPath, {}));
 
         if (testToRun === 'declarationOutput' ||
             testToRun === 'declarationOutputWithMaps' ||
@@ -78,7 +77,6 @@ if (fs.statSync(testPath).isDirectory() &&
 function createTest(test, testPath, options) {
     return function (done) {
         this.timeout(60000); // sometimes it just takes awhile
-
         const testState = createTestState();
         const paths = createPaths(stagingPath, test, options);
         const outputs = {
@@ -91,7 +89,28 @@ function createTest(test, testPath, options) {
 
         // copy all input to a staging area
         mkdirp.sync(paths.testStagingPath);
-        fs.copySync(testPath, paths.testStagingPath);
+        const nonWatchNonCompositePath = testPath.replace(/(_Composite)?_WatchApi$/, "");
+        if (nonWatchNonCompositePath !== testPath) {
+            const nonWatchPath = testPath.replace(/_WatchApi$/, "");
+            // Copy things from non watch path
+            copySync(nonWatchNonCompositePath, paths.testStagingPath);
+            if (nonWatchPath !== nonWatchNonCompositePath) {
+                // Change the tsconfig to be composite
+                const configPath = path.resolve(paths.testStagingPath, "tsconfig.json");
+                const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+                config.files = [ "./app.ts"];
+                config.compilerOptions = { composite: true };
+                fs.writeFileSync(configPath, JSON.stringify(config, /*replacer*/ undefined, " "));
+            }
+        }
+        copySync(testPath, paths.testStagingPath);
+        if (test.startsWith("projectReferencesWatchRefWithTwoFilesAlreadyBuilt")) {
+            // Copy output
+            copySync(path.resolve(paths.testStagingPath, "libOutput"), path.resolve(paths.testStagingPath, "lib"));
+            // Change the buildinfo to use typescript version we have
+            const buildInfoPath = path.resolve(paths.testStagingPath, "lib/tsconfig.tsbuildinfo");
+            fs.writeFileSync(buildInfoPath, fs.readFileSync(buildInfoPath, "utf8").replace("FakeTSVersion", typescript.version));
+        }
 
         // ensure output directories
         mkdirp.sync(paths.actualOutput);
@@ -99,7 +118,7 @@ function createTest(test, testPath, options) {
 
         // execute webpack
         testState.watcher = webpack(
-            createWebpackConfig(paths, options)
+            createWebpackConfig(paths, options, nonWatchNonCompositePath !== testPath)
         ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, outputs, options, test));
     };
 }
@@ -148,7 +167,7 @@ function storeSavedOutputs(saveOutputMode, outputs, test, options, paths) {
     }
 }
 
-function createWebpackConfig(paths, optionsOriginal) {
+function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
     const config = require(path.join(paths.testStagingPath, 'webpack.config'));
 
     const extraOptionMaybe = extraOption ? { [extraOption]: true } : {};
@@ -157,7 +176,8 @@ function createWebpackConfig(paths, optionsOriginal) {
         silent: true,
         compilerOptions: {
             newLine: 'LF'
-        }
+        },
+        experimentalWatchApi: !!useWatchApi
     }, optionsOriginal, extraOptionMaybe);
 
     const tsLoaderPath = require('path').join(__dirname, "../../index.js");
@@ -184,7 +204,7 @@ function createWebpackWatchHandler(done, paths, testState, outputs, options, tes
 
         saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch);
 
-        fs.copySync(paths.webpackOutput, paths.actualOutput);
+        copySync(paths.webpackOutput, paths.actualOutput);
         rimraf.sync(paths.webpackOutput);
 
         handleErrors(err, paths, outputs, patch, options);
@@ -230,7 +250,7 @@ function saveOutputIfRequired(saveOutputMode, paths, outputs, options, patch) {
             }
         });
 
-        fs.copySync(paths.webpackOutput, paths.originalExpectedOutput, { overwrite: true });
+        copySync(paths.webpackOutput, paths.originalExpectedOutput);
     }
 }
 
@@ -340,10 +360,9 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
     const patchPath = path.join(testStagingPath, 'patch' + testState.iteration);
     if (fs.existsSync(patchPath)) {
         testState.iteration++;
-
         // can get inconsistent results if copying right away
         setTimeout(function () {
-            fs.copySync(patchPath, testStagingPath, { overwrite: true });
+            copySync(patchPath, testStagingPath);
         }, 1000);
     }
     else {
@@ -384,7 +403,6 @@ function getNormalisedFileContent(file, location) {
     /** @type {string} */
     let fileContent;
     const filePath = path.join(location, file);
-
     try {
         const originalContent = fs.readFileSync(filePath).toString();
         fileContent = (file.indexOf('output.') === 0
@@ -396,9 +414,9 @@ function getNormalisedFileContent(file, location) {
                 .replace(/Module build failed \(from \//gm, 'Module build failed (from ')
                 .replace(/Module Warning \(from \//gm, 'Module Warning (from ')
                 // We don't want a difference in the number of kilobytes to fail the build
-                .replace(/[\d]+([.][\d]*)? KiB/g, 'A-NUMBER-OF KiB')
+                .replace(/\s+[\d]+([.][\d]*)? KiB\s+/g, ' A-NUMBER-OF KiB ')
                 // We also don't want a difference in the number of bytes to fail the build
-                .replace(/ \d+ bytes /g, ' A-NUMBER-OF bytes ')
+                .replace(/\s+\d+ bytes\s+/g, ' A-NUMBER-OF bytes ')
                 // Ignore whitespace between:     Asset     Size  Chunks             Chunk Names
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
                 .replace(/ test\/comparison-tests\//,' /test/comparison-tests/')
@@ -416,11 +434,11 @@ function getNormalisedFileContent(file, location) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/(C\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/g, '')
-            .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'webpack://comparison-tests/')
-            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//g, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
-            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '!*** /ts-loader/test/comparison-tests/')
-            .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//g, '/ /ts-loader/test/comparison-tests/')
+            .replace(/(C\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/ig, '')
+            .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********');
     } catch (e) {

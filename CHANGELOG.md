@@ -1,5 +1,19 @@
 # Changelog
 
+## v6.2.0
+* [Emitting .tsbuildinfo when using watch api](https://github.com/TypeStrong/ts-loader/pull/1017) - thanks @sheetalkamat!
+
+## v6.1.2
+* [don't emit declaration files for a declaration file](https://github.com/TypeStrong/ts-loader/pull/1015) (#1014) - thanks @gvinaccia!
+* [Consume typescript apis from typescript nightly](https://github.com/TypeStrong/ts-loader/pull/1016) - thanks @sheetalkamat!
+
+## v6.1.1
+* [Fix SolutionBuilder watches](https://github.com/TypeStrong/ts-loader/pull/1003) and [related fixes](https://github.com/TypeStrong/ts-loader/pull/1011) (#998) - thanks @sheetalkamat!
+* [fix: no errors reported if flagged with @ts-check](https://github.com/TypeStrong/ts-loader/pull/1008) (#1004) - thanks @reinholdk!
+
+## v6.1.0
+* [Build upstream project references with SolutionBuilder](https://github.com/TypeStrong/ts-loader/pull/935) (#851, #913) - thanks @sheetalkamat!
+
 ## v6.0.4
 * [Fix issue when handling files not included in tsconfig.json](https://github.com/TypeStrong/ts-loader/issues/943) (#934) - thanks @davazp!
 

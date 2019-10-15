@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.foo = 'foo';\n\n\n//# sourceURL=webpack:///./lib/foo.ts?");
+eval("\r\nexports.__esModule = true;\r\nexports.foo = 'foo';\r\n\n\n//# sourceURL=webpack:///./lib/foo.ts?");
 
 /***/ }),
 
@@ -118,7 +118,7 @@ eval("\nexports.__esModule = true;\nexports.foo = 'foo';\n\n\n//# sourceURL=webp
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./lib/foo.ts\");\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    foo: foo_1.foo\n    // I am adding this comment here by hand to ensure\n    // Webpack is using the JS output for project references\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\r\nexports.__esModule = true;\r\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./lib/foo.ts\");\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3,\r\n    foo: foo_1.foo\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 
