@@ -10,7 +10,8 @@
     "moduleResolution": "node",
     "declaration": true,
     "outDir": "../dist",
-    "declarationDir": "../dist/types",
+    "declarationDir": "../dist",
+    "declarationMap": true,
     "sourceMap": true
   }
 }
