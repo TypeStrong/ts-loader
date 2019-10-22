@@ -13,6 +13,9 @@ jobs:
         with:
           node-version: 12
 
+      - name: upgrade yarn
+        run: npm install yarn -g
+
       - name: install
         run: yarn install
 
