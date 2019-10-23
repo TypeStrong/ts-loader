@@ -1,6 +1,6 @@
 on:
   release:
-    types: [created, published]
+    types: [published]
 
 name: build, test and publish
 
