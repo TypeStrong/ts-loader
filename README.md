@@ -12,6 +12,35 @@ This is the TypeScript loader for webpack.
 
 ## Getting Started
 
+### Installation
+
+```
+yarn add ts-loader --dev
+```
+
+or
+
+```
+npm install ts-loader --save-dev
+```
+
+You will also need to install TypeScript if you have not already.
+
+```
+yarn add typescript --dev
+```
+
+or
+
+```
+npm install typescript --save-dev
+```
+
+### Running
+
+Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
+build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
+
 ### Examples
 
 We have a number of example setups to accommodate different workflows. Our examples can be found [here](examples/).
@@ -46,35 +75,6 @@ But if that's what you want to do, there's two ways to achieve this: [happypack]
 To read more, look at [this post](https://medium.com/webpack/typescript-webpack-super-pursuit-mode-83cc568dea79) by [@johnny_reilly](https://twitter.com/johnny_reilly) on the webpack publication channel.
 
 If you'd like find out further ways to improve your build using the watch API then take a look at [this post](https://medium.com/@kenneth_chau/speeding-up-webpack-typescript-incremental-builds-by-7x-3912ba4c1d15) by [@kenneth_chau](https://twitter.com/kenneth_chau).
-
-### Installation
-
-```
-yarn add ts-loader --dev
-```
-
-or
-
-```
-npm install ts-loader --save-dev
-```
-
-You will also need to install TypeScript if you have not already.
-
-```
-yarn add typescript --dev
-```
-
-or
-
-```
-npm install typescript --save-dev
-```
-
-### Running
-
-Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
-build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
 
 ### Compatibility
 
