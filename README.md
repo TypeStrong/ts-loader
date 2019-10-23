@@ -47,7 +47,7 @@ We have a number of example setups to accommodate different workflows. Our examp
 
 We probably have more examples than we need.  That said, here's a good way to get started:
 
-- I want the simplest setup going.  Use "[vanilla](examples/vanilla)" ts-loader
+- I want the simplest setup going.  Use "[vanilla](examples/vanilla)" `ts-loader`
 - I want the fastest compilation that's available.  Use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).  It performs type checking in a separate process with `ts-loader` just handling transpilation.
 
 ### Faster Builds
@@ -64,7 +64,7 @@ If you'd like to see a simple setup take a look at [our simple example](examples
 
 ### Babel
 
-ts-loader works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
+`ts-loader` works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
 
 ### Parallelising Builds
 
@@ -79,10 +79,10 @@ If you'd like find out further ways to improve your build using the watch API th
 ### Compatibility
 
 * TypeScript: 2.4.1+
-* webpack: 4.x+ (please use ts-loader 3.x if you need webpack 2 or 3 support)
+* webpack: 4.x+ (please use `ts-loader` 3.x if you need webpack 2 or 3 support)
 * node: 6.11.5 minimum (aligned with webpack 4)
 
-A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing ts-loader against major releases of TypeScript. The test suite also runs against TypeScript@next (because we want to use it as much as you do).
+A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing `ts-loader` against major releases of TypeScript. The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 
@@ -127,9 +127,9 @@ same options.
 
 #### `devtool` / sourcemaps
 
-If you want to be able to debug your original source then you can thanks to the magic of sourcemaps. There are 2 steps to getting this set up with ts-loader and webpack.
+If you want to be able to debug your original source then you can thanks to the magic of sourcemaps. There are 2 steps to getting this set up with `ts-loader` and webpack.
 
-First, for ts-loader to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap": true`.
+First, for `ts-loader` to produce **sourcemaps**, you will need to set the [tsconfig.json](http://www.typescriptlang.org/docs/handbook/tsconfig-json.html) option as `"sourceMap": true`.
 
 Second, you need to set the `devtool` option in your `webpack.config.js` to support the type of sourcemaps you want. To make your choice have a read of the [`devtool` webpack docs](https://webpack.js.org/configuration/devtool/). You may be somewhat daunted by the choice available. You may also want to vary the sourcemap strategy depending on your build environment. Here are some example strategies for different environments:
 
@@ -257,7 +257,7 @@ It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://git
         new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
 ```
 
-This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`). By default the plugin only checks for semantic errors (as when used with ts-loader in `transpileOnly` mode, ts-loader will still report syntactic errors).
+This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`). By default the plugin only checks for semantic errors (as when used with `ts-loader` in `transpileOnly` mode, `ts-loader` will still report syntactic errors).
 
 Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
 
@@ -330,7 +330,7 @@ If `false`, disables built-in colors in logger messages.
 
 #### errorFormatter _((message: ErrorInfo, colors: boolean) => string) (default=undefined)_
 
-By default ts-loader formats TypeScript compiler output for an error or a warning in the style:
+By default `ts-loader` formats TypeScript compiler output for an error or a warning in the style:
 
 ```
 [tsl] ERROR in myFile.ts(3,14)
@@ -489,7 +489,7 @@ Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
 
 #### onlyCompileBundledFiles _(boolean) (default=false)_
 
-The default behavior of ts-loader is to act as a drop-in replacement for the `tsc` command,
+The default behavior of `ts-loader` is to act as a drop-in replacement for the `tsc` command,
 so it respects the `include`, `files`, and `exclude` options in your `tsconfig.json`, loading
 any files specified by those options. The `onlyCompileBundledFiles` option modifies this behavior,
 loading only those files that are actually bundled by webpack, as well as any `.d.ts` files included
@@ -498,7 +498,7 @@ compilation without being explicitly imported, and therefore not picked up by we
 
 #### allowTsInNodeModules _(boolean) (default=false)_
 
-By default, ts-loader will not compile `.ts` files in `node_modules`.
+By default, `ts-loader` will not compile `.ts` files in `node_modules`.
 You should not need to recompile `.ts` files there, but if you really want to, use this option.
 Note that this option acts as a *whitelist* - any modules you desire to import must be included in
 the `"files"` or `"include"` block of your project's `tsconfig.json`.
@@ -569,7 +569,7 @@ This flag enables caching for some FS-functions like `fileExists`, `realpath` an
 
 #### projectReferences _(boolean) (default=false)_
 
-ts-loader has opt-in support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html). With this configuration option enabled, ts-loader will incrementally rebuild upstream projects the same way `tsc --build` does. Otherwise, source files in referenced projects will be treated as if they’re part of the root project.
+ts-loader has opt-in support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html). With this configuration option enabled, `ts-loader` will incrementally rebuild upstream projects the same way `tsc --build` does. Otherwise, source files in referenced projects will be treated as if they’re part of the root project.
 
 ### Usage with webpack watch
 
