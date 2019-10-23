@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.2.1
+* [Output types alongside JS files, enable declaration maps](https://github.com/TypeStrong/ts-loader/pull/1026) - thanks @meyer!
+
 ## v6.2.0
 * [Emitting .tsbuildinfo when using watch api](https://github.com/TypeStrong/ts-loader/pull/1017) - thanks @sheetalkamat!
 

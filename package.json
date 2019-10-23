@@ -1,9 +1,9 @@
 {
   "name": "ts-loader",
-  "version": "6.2.0",
+  "version": "6.2.1",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
-  "types": "dist/types/index.d.ts",
+  "types": "dist",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "lint": "tslint --project \"./src\"",
