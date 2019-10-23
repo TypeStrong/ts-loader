@@ -1,6 +1,6 @@
 on:
   release:
-    types: [published]
+    types: [created, published]
 
 name: build, test and publish
 
@@ -15,6 +15,11 @@ jobs:
         with:
           node-version: 12
           registry-url: https://registry.npmjs.org/
+
+      - name: install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
 
       - name: install
         run: yarn install
