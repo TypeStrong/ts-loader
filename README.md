@@ -8,7 +8,75 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![Join the chat at https://gitter.im/TypeStrong/ts-loader](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/TypeStrong/ts-loader)
 
-This is the TypeScript loader for webpack.
+<br />
+<p align="center">
+  <h3 align="center">ts-loader</h3>
+
+  <p align="center">
+    This is the TypeScript loader for webpack.
+    <br />
+    <br />
+    <a href="https://github.com/TypeStrong/ts-loader/issues">Installation</a>
+    ·
+    <a href="https://github.com/TypeStrong/ts-loader/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/TypeStrong/ts-loader/issues">Request Feature</a>
+  </p>
+</p>
+
+## Table of Contents
+
+<!--ts-->
+   * [TypeScript loader for webpack](#typescript-loader-for-webpack)
+         * [ts-loader](#ts-loader)
+      * [Table of Contents](#table-of-contents)
+      * [Getting Started](#getting-started)
+         * [Installation](#installation)
+         * [Running](#running)
+         * [Examples](#examples)
+         * [Faster Builds](#faster-builds)
+         * [Yarn Plug’n’Play](#yarn-plugnplay)
+         * [Babel](#babel)
+         * [Parallelising Builds](#parallelising-builds)
+         * [Compatibility](#compatibility)
+         * [Configuration](#configuration)
+            * [devtool / sourcemaps](#devtool--sourcemaps)
+         * [Code Splitting and Loading Other Resources](#code-splitting-and-loading-other-resources)
+         * [Declarations (.d.ts)](#declarations-dts)
+         * [Failing the build on TypeScript compilation error](#failing-the-build-on-typescript-compilation-error)
+         * [baseUrl / paths module resolution](#baseurl--paths-module-resolution)
+         * [Options](#options)
+         * [Loader Options](#loader-options)
+            * [transpileOnly <em>(boolean) (default=false)</em>](#transpileonly-boolean-defaultfalse)
+            * [happyPackMode <em>(boolean) (default=false)</em>](#happypackmode-boolean-defaultfalse)
+            * [resolveModuleName and resolveTypeReferenceDirective:](#resolvemodulename-and-resolvetypereferencedirective)
+            * [getCustomTransformers <em>( (program: Program) =&gt; { before?: TransformerFactory[]; after?: TransformerFactory[]; } )</em>](#getcustomtransformers--program-program---before-transformerfactory-after-transformerfactory--)
+            * [logInfoToStdOut <em>(boolean) (default=false)</em>](#loginfotostdout-boolean-defaultfalse)
+            * [logLevel <em>(string) (default=warn)</em>](#loglevel-string-defaultwarn)
+            * [silent <em>(boolean) (default=false)</em>](#silent-boolean-defaultfalse)
+            * [ignoreDiagnostics <em>(number[]) (default=[])</em>](#ignorediagnostics-number-default)
+            * [reportFiles <em>(string[]) (default=[])</em>](#reportfiles-string-default)
+            * [compiler <em>(string) (default='typescript')</em>](#compiler-string-defaulttypescript)
+            * [configFile <em>(string) (default='tsconfig.json')</em>](#configfile-string-defaulttsconfigjson)
+            * [colors <em>(boolean) (default=true)</em>](#colors-boolean-defaulttrue)
+            * [errorFormatter <em>((message: ErrorInfo, colors: boolean) =&gt; string) (default=undefined)</em>](#errorformatter-message-errorinfo-colors-boolean--string-defaultundefined)
+            * [compilerOptions <em>(object) (default={})</em>](#compileroptions-object-default)
+            * [instance <em>(string)</em>](#instance-string)
+            * [appendTsSuffixTo <em>(RegExp[]) (default=[])</em>](#appendtssuffixto-regexp-default)
+            * [appendTsxSuffixTo <em>(RegExp[]) (default=[])</em>](#appendtsxsuffixto-regexp-default)
+            * [onlyCompileBundledFiles <em>(boolean) (default=false)</em>](#onlycompilebundledfiles-boolean-defaultfalse)
+            * [allowTsInNodeModules <em>(boolean) (default=false)</em>](#allowtsinnodemodules-boolean-defaultfalse)
+            * [context <em>(string) (default=undefined)</em>](#context-string-defaultundefined)
+            * [experimentalFileCaching <em>(boolean) (default=true)</em>](#experimentalfilecaching-boolean-defaulttrue)
+            * [projectReferences <em>(boolean) (default=false)</em>](#projectreferences-boolean-defaultfalse)
+         * [Usage with webpack watch](#usage-with-webpack-watch)
+         * [Hot Module replacement](#hot-module-replacement)
+      * [Contributing](#contributing)
+      * [License](#license)
+
+<!-- Added by: jsjoeio, at: Mon Nov  4 13:51:02 MST 2019 -->
+
+<!--te-->
 
 ## Getting Started
 
