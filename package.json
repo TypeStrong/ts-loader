@@ -52,7 +52,7 @@
   },
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
-    "@moebius/ts-compiler-options": "^1.1.0",
+    "@moebius/ts-compiler-options": "^1.2.0",
     "chalk": "^2.3.0",
     "enhanced-resolve": "^4.0.0",
     "loader-utils": "^1.0.2",
