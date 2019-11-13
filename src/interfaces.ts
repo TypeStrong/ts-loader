@@ -1,7 +1,26 @@
-export { ModuleResolutionHost, FormatDiagnosticsHost } from 'typescript';
+import { Chalk } from 'chalk';
 import * as typescript from 'typescript';
 
-import { Chalk } from 'chalk';
+/**
+ * Importing custom compiler options types,
+ * because TypeScript doesn't provide correct ones
+ *
+ * See: https://github.com/TypeStrong/ts-loader/issues/962
+ */
+import { CompilerOptions } from '@moebius/ts-compiler-options';
+
+export { ModuleResolutionHost, FormatDiagnosticsHost } from 'typescript';
+
+// Re-exporting compiler options types
+export {
+  CompilerOptions,
+  EnumFields,
+  JsxEmit,
+  ModuleKind,
+  ModuleResolutionKind,
+  NewLineKind,
+  ScriptTarget
+} from '@moebius/ts-compiler-options';
 
 export interface ErrorInfo {
   code: number;
@@ -196,7 +215,7 @@ export interface LoaderOptions {
   errorFormatter: (message: ErrorInfo, colors: Chalk) => string;
   onlyCompileBundledFiles: boolean;
   colors: boolean;
-  compilerOptions: typescript.CompilerOptions;
+  compilerOptions: CompilerOptions;
   appendTsSuffixTo: RegExp[];
   appendTsxSuffixTo: RegExp[];
   happyPackMode: boolean;

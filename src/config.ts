@@ -1,3 +1,4 @@
+import { convertCompilerOptions } from '@moebius/ts-compiler-options';
 import { Chalk } from 'chalk';
 import * as path from 'path';
 import * as semver from 'semver';
@@ -159,9 +160,16 @@ export function getParsedCommandLine(
   loaderOptions: LoaderOptions,
   configFilePath: string
 ): typescript.ParsedCommandLine | undefined {
+  // Converting compiler options from external format
+  // to the one required by TypeScript
+  const internalCompilerOptions = convertCompilerOptions(
+    'external-to-internal',
+    loaderOptions.compilerOptions
+  );
+
   const result = compiler.getParsedCommandLineOfConfigFile(
     configFilePath,
-    loaderOptions.compilerOptions,
+    internalCompilerOptions,
     {
       ...compiler.sys,
       onUnRecoverableConfigFileDiagnostic: () => {} // tslint:disable-line no-empty
