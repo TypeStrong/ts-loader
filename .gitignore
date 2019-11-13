@@ -1,3 +1,4 @@
+/.idea/
 /*.js
 !index.js
 /src/*.js
