@@ -1,5 +1,6 @@
 export { ModuleResolutionHost, FormatDiagnosticsHost } from 'typescript';
 import * as typescript from 'typescript';
+import * as webpack from 'webpack';
 
 import { Chalk } from 'chalk';
 
@@ -203,7 +204,8 @@ export interface LoaderOptions {
   getCustomTransformers:
     | string
     | ((
-        program: typescript.Program
+        program: typescript.Program,
+        loader: webpack.loader.LoaderContext
       ) => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;

@@ -329,7 +329,7 @@ Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeo
 
 These options should be functions which will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. It's not intended that these will typically be used by a user of `ts-loader` - they exist to facilitate functionality such as [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).
 
-#### getCustomTransformers _( (program: Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } )_
+#### getCustomTransformers _( (program: Program, loaderContext: webpack.loader.LoaderContext) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } )_
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 

@@ -232,7 +232,7 @@ function successfulTypeScriptInstance(
       );
       loader._module.errors.push(...solutionErrors, ...errors);
     }
-    transpileInstance.transformers = getCustomTransformers(program);
+    transpileInstance.transformers = getCustomTransformers(program, loader);
     return { instance: transpileInstance };
   }
 
@@ -310,7 +310,7 @@ function successfulTypeScriptInstance(
     instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
     instance.program = instance.builderProgram.getProgram();
 
-    instance.transformers = getCustomTransformers(instance.program);
+    instance.transformers = getCustomTransformers(instance.program, loader);
   } else {
     const servicesHost = makeServicesHost(
       scriptRegex,
@@ -331,7 +331,8 @@ function successfulTypeScriptInstance(
     }
 
     instance.transformers = getCustomTransformers(
-      instance.languageService!.getProgram()
+      instance.languageService!.getProgram(),
+      loader
     );
   }
 

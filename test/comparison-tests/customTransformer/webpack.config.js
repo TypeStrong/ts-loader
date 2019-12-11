@@ -1,4 +1,5 @@
 var path = require('path')
+var assert = require('assert')
 
 var uppercaseStringLiteralTransformer = require('./uppercaseStringLiteralTransformer').default;
 
@@ -17,9 +18,12 @@ module.exports = {
                 test: /\.ts$/,
                 loader: 'ts-loader',
                 options: {
-                    getCustomTransformers: (program) => ({
-                        before: [uppercaseStringLiteralTransformer]
-                    })
+                    getCustomTransformers: (program, loaderContext) => {
+                        assert(loaderContext)
+                        return {
+                            before: [uppercaseStringLiteralTransformer]
+                        }
+                    }
                 }
             }
         ]
