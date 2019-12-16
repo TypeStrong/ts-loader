@@ -8,7 +8,71 @@
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![Join the chat at https://gitter.im/TypeStrong/ts-loader](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/TypeStrong/ts-loader)
 
-This is the TypeScript loader for webpack.
+<br />
+<p align="center">
+  <h3 align="center">ts-loader</h3>
+
+  <p align="center">
+    This is the TypeScript loader for webpack.
+    <br />
+    <br />
+    <a href="https://github.com/TypeStrong/ts-loader/issues">Installation</a>
+    ·
+    <a href="https://github.com/TypeStrong/ts-loader/issues">Report Bug</a>
+    ·
+    <a href="https://github.com/TypeStrong/ts-loader/issues">Request Feature</a>
+  </p>
+</p>
+
+## Table of Contents
+
+<!-- toc -->
+
+- [Getting Started](#getting-started)
+  * [Installation](#installation)
+  * [Running](#running)
+  * [Examples](#examples)
+  * [Faster Builds](#faster-builds)
+  * [Yarn Plug’n’Play](#yarn-plugnplay)
+  * [Babel](#babel)
+  * [Parallelising Builds](#parallelising-builds)
+  * [Compatibility](#compatibility)
+  * [Configuration](#configuration)
+    + [`devtool` / sourcemaps](#devtool--sourcemaps)
+  * [Code Splitting and Loading Other Resources](#code-splitting-and-loading-other-resources)
+  * [Declarations (.d.ts)](#declarations-dts)
+  * [Failing the build on TypeScript compilation error](#failing-the-build-on-typescript-compilation-error)
+  * [`baseUrl` / `paths` module resolution](#baseurl--paths-module-resolution)
+  * [Options](#options)
+  * [Loader Options](#loader-options)
+    + [transpileOnly _(boolean) (default=false)_](#transpileonly-_boolean-defaultfalse_)
+    + [happyPackMode _(boolean) (default=false)_](#happypackmode-_boolean-defaultfalse_)
+    + [resolveModuleName and resolveTypeReferenceDirective:](#resolvemodulename-and-resolvetypereferencedirective)
+    + [getCustomTransformers _( (program: Program) => { before?: TransformerFactory[]; after?: TransformerFactory[]; } )_](#getcustomtransformers-_-program-program---before-transformerfactory-after-transformerfactory--_)
+    + [logInfoToStdOut _(boolean) (default=false)_](#loginfotostdout-_boolean-defaultfalse_)
+    + [logLevel _(string) (default=warn)_](#loglevel-_string-defaultwarn_)
+    + [silent _(boolean) (default=false)_](#silent-_boolean-defaultfalse_)
+    + [ignoreDiagnostics _(number[]) (default=[])_](#ignorediagnostics-_number-default_)
+    + [reportFiles _(string[]) (default=[])_](#reportfiles-_string-default_)
+    + [compiler _(string) (default='typescript')_](#compiler-_string-defaulttypescript_)
+    + [configFile _(string) (default='tsconfig.json')_](#configfile-_string-defaulttsconfigjson_)
+    + [colors _(boolean) (default=true)_](#colors-_boolean-defaulttrue_)
+    + [errorFormatter _((message: ErrorInfo, colors: boolean) => string) (default=undefined)_](#errorformatter-_message-errorinfo-colors-boolean--string-defaultundefined_)
+    + [compilerOptions _(object) (default={})_](#compileroptions-_object-default_)
+    + [instance _(string)_](#instance-_string_)
+    + [appendTsSuffixTo _(RegExp[]) (default=[])_](#appendtssuffixto-_regexp-default_)
+    + [appendTsxSuffixTo _(RegExp[]) (default=[])_](#appendtsxsuffixto-_regexp-default_)
+    + [onlyCompileBundledFiles _(boolean) (default=false)_](#onlycompilebundledfiles-_boolean-defaultfalse_)
+    + [allowTsInNodeModules _(boolean) (default=false)_](#allowtsinnodemodules-_boolean-defaultfalse_)
+    + [context _(string) (default=undefined)_](#context-_string-defaultundefined_)
+    + [experimentalFileCaching _(boolean) (default=true)_](#experimentalfilecaching-_boolean-defaulttrue_)
+    + [projectReferences _(boolean) (default=false)_](#projectreferences-_boolean-defaultfalse_)
+  * [Usage with webpack watch](#usage-with-webpack-watch)
+  * [Hot Module replacement](#hot-module-replacement)
+- [Contributing](#contributing)
+- [License](#license)
+
+<!-- tocstop -->
 
 ## Getting Started
 
