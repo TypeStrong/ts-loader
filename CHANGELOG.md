@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.2.2
+* [Expose loader context to custom transformer](https://github.com/TypeStrong/ts-loader/pull/1040) - thanks @xbtsw!
+
 ## v6.2.1
 * [Output types alongside JS files, enable declaration maps](https://github.com/TypeStrong/ts-loader/pull/1026) - thanks @meyer!
 
