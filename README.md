@@ -47,7 +47,7 @@
   * [Loader Options](#loader-options)
     + [transpileOnly](#transpileonly)
     + [happyPackMode](#happypackmode)
-    + [resolveModuleName and resolveTypeReferenceDirective:](#resolvemodulename-and-resolvetypereferencedirective)
+    + [resolveModuleName and resolveTypeReferenceDirective](#resolvemodulename-and-resolvetypereferencedirective)
     + [getCustomTransformers](#getcustomtransformers)
     + [logInfoToStdOut](#loginfotostdout)
     + [logLevel](#loglevel)
