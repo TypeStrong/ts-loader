@@ -283,7 +283,10 @@ module.exports = {
 
 ### Loader Options
 
-#### transpileOnly _(boolean) (default=false)_
+#### transpileOnly
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between
