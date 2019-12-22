@@ -45,28 +45,28 @@
   * [`baseUrl` / `paths` module resolution](#baseurl--paths-module-resolution)
   * [Options](#options)
   * [Loader Options](#loader-options)
-    + [transpileOnly _(boolean) (default=false)_](#transpileonly-_boolean-defaultfalse_)
-    + [happyPackMode _(boolean) (default=false)_](#happypackmode-_boolean-defaultfalse_)
-    + [resolveModuleName and resolveTypeReferenceDirective:](#resolvemodulename-and-resolvetypereferencedirective)
-    + [getCustomTransformers _( (program: Program) => { before?: TransformerFactory[]; after?: TransformerFactory[]; } )_](#getcustomtransformers-_-program-program---before-transformerfactory-after-transformerfactory--_)
-    + [logInfoToStdOut _(boolean) (default=false)_](#loginfotostdout-_boolean-defaultfalse_)
-    + [logLevel _(string) (default=warn)_](#loglevel-_string-defaultwarn_)
-    + [silent _(boolean) (default=false)_](#silent-_boolean-defaultfalse_)
-    + [ignoreDiagnostics _(number[]) (default=[])_](#ignorediagnostics-_number-default_)
-    + [reportFiles _(string[]) (default=[])_](#reportfiles-_string-default_)
-    + [compiler _(string) (default='typescript')_](#compiler-_string-defaulttypescript_)
-    + [configFile _(string) (default='tsconfig.json')_](#configfile-_string-defaulttsconfigjson_)
-    + [colors _(boolean) (default=true)_](#colors-_boolean-defaulttrue_)
-    + [errorFormatter _((message: ErrorInfo, colors: boolean) => string) (default=undefined)_](#errorformatter-_message-errorinfo-colors-boolean--string-defaultundefined_)
-    + [compilerOptions _(object) (default={})_](#compileroptions-_object-default_)
-    + [instance _(string)_](#instance-_string_)
-    + [appendTsSuffixTo _(RegExp[]) (default=[])_](#appendtssuffixto-_regexp-default_)
-    + [appendTsxSuffixTo _(RegExp[]) (default=[])_](#appendtsxsuffixto-_regexp-default_)
-    + [onlyCompileBundledFiles _(boolean) (default=false)_](#onlycompilebundledfiles-_boolean-defaultfalse_)
-    + [allowTsInNodeModules _(boolean) (default=false)_](#allowtsinnodemodules-_boolean-defaultfalse_)
-    + [context _(string) (default=undefined)_](#context-_string-defaultundefined_)
-    + [experimentalFileCaching _(boolean) (default=true)_](#experimentalfilecaching-_boolean-defaulttrue_)
-    + [projectReferences _(boolean) (default=false)_](#projectreferences-_boolean-defaultfalse_)
+    + [transpileOnly](#transpileonly)
+    + [happyPackMode](#happypackmode)
+    + [resolveModuleName and resolveTypeReferenceDirective](#resolvemodulename-and-resolvetypereferencedirective)
+    + [getCustomTransformers](#getcustomtransformers)
+    + [logInfoToStdOut](#loginfotostdout)
+    + [logLevel](#loglevel)
+    + [silent](#silent)
+    + [ignoreDiagnostics](#ignorediagnostics)
+    + [reportFiles](#reportfiles)
+    + [compiler](#compiler)
+    + [configFile](#configfile)
+    + [colors](#colors)
+    + [errorFormatter](#errorformatter)
+    + [compilerOptions](#compileroptions)
+    + [instance](#instance)
+    + [appendTsSuffixTo](#appendtssuffixto)
+    + [appendTsxSuffixTo](#appendtsxsuffixto)
+    + [onlyCompileBundledFiles](#onlycompilebundledfiles)
+    + [allowTsInNodeModules](#allowtsinnodemodules)
+    + [context](#context)
+    + [experimentalFileCaching](#experimentalfilecaching)
+    + [projectReferences](#projectreferences)
   * [Usage with webpack watch](#usage-with-webpack-watch)
   * [Hot Module replacement](#hot-module-replacement)
 - [Contributing](#contributing)
@@ -283,7 +283,10 @@ module.exports = {
 
 ### Loader Options
 
-#### transpileOnly _(boolean) (default=false)_
+#### transpileOnly
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between
@@ -311,7 +314,10 @@ module.exports = {
 }
 ```
 
-#### happyPackMode _(boolean) (default=false)_
+#### happyPackMode
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
 
@@ -325,37 +331,55 @@ This will ensure that the plugin checks for both syntactic errors (eg `const arr
 
 Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
 
-#### resolveModuleName and resolveTypeReferenceDirective:
+#### resolveModuleName and resolveTypeReferenceDirective
 
 These options should be functions which will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. It's not intended that these will typically be used by a user of `ts-loader` - they exist to facilitate functionality such as [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).
 
-#### getCustomTransformers _( (program: Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } )_
+#### getCustomTransformers
+| Type |
+|------|
+| ` (program: Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } ` |
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 
 You can also pass a path string to locate a js module file which exports the function described above, this useful especially in `happyPackMode`. (Because forked processes cannot serialize functions see more at [related issue](https://github.com/Igorbek/typescript-plugin-styled-components/issues/6#issue-303387183))
 
-#### logInfoToStdOut _(boolean) (default=false)_
+#### logInfoToStdOut
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 This is important if you read from stdout or stderr and for proper error handling.
 The default value ensures that you can read from stdout e.g. via pipes or you use webpack -j to generate json output.
 
-#### logLevel _(string) (default=warn)_
+#### logLevel
+| Type | Default Value |
+|------|--------------|
+| `string` | `warn` |
 
 Can be `info`, `warn` or `error` which limits the log output to the specified log level.
 Beware of the fact that errors are written to stderr and everything else is written to stderr (or stdout if logInfoToStdOut is true).
 
-#### silent _(boolean) (default=false)_
+#### silent
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 If `true`, no console.log messages will be emitted. Note that most error
 messages are emitted via webpack which is not affected by this flag.
 
-#### ignoreDiagnostics _(number[]) (default=[])_
+#### ignoreDiagnostics
+| Type | Default Value |
+|------|--------------|
+| `number[]` | `[]`|
 
 You can squelch certain TypeScript errors by specifying an array of diagnostic
 codes to ignore.
 
-#### reportFiles _(string[]) (default=[])_
+#### reportFiles
+| Type | Default Value |
+|------|--------------|
+| `string[]` | `[]`|
 
 Only report errors on files matching these glob patterns.
 
@@ -370,12 +394,18 @@ Only report errors on files matching these glob patterns.
 
 This can be useful when certain types definitions have errors that are not fatal to your application.
 
-#### compiler _(string) (default='typescript')_
+#### compiler
+| Type | Default Value |
+|------|--------------|
+| `string` | `'typescript'`|
 
 Allows use of TypeScript compilers other than the official one. Should be
 set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basarat/ntypescript).
 
-#### configFile _(string) (default='tsconfig.json')_
+#### configFile
+| Type | Default Value |
+|------|--------------|
+| `string` | `'tsconfig.json'`|
 
 Allows you to specify where to find the TypeScript configuration file.
 
@@ -388,11 +418,17 @@ You may provide
 Please note, that if the configuration file is outside of your project directory, you might need to set the `context` option to avoid TypeScript issues (like TS18003).
 In this case the `configFile` should point to the `tsconfig.json` and `context` to the project root.
 
-#### colors _(boolean) (default=true)_
+#### colors
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `true`|
 
 If `false`, disables built-in colors in logger messages.
 
-#### errorFormatter _((message: ErrorInfo, colors: boolean) => string) (default=undefined)_
+#### errorFormatter
+| Type | Default Value |
+|------|--------------|
+| `(message: ErrorInfo, colors: boolean) => string` | `undefined`|
 
 By default `ts-loader` formats TypeScript compiler output for an error or a warning in the style:
 
@@ -435,20 +471,32 @@ Does not compute.... code: 2307,severity: error,content: Cannot find module 'com
 
 And the bit after "Does not compute.... " would be red.
 
-#### compilerOptions _(object) (default={})_
+#### compilerOptions
+| Type | Default Value |
+|------|--------------|
+| `object` | `{}`|
 
 Allows overriding TypeScript options. Should be specified in the same format
 as you would do for the `compilerOptions` property in tsconfig.json.
 
-#### instance _(string)_
+#### instance
+| Type | Default Value |
+|------|--------------|
+| `string` | `TODO`|
 
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
 of your code.
 
-#### appendTsSuffixTo _(RegExp[]) (default=[])_
+#### appendTsSuffixTo
+| Type | Default Value |
+|------|--------------|
+| `RegExp[]` | `[]`|
 
-#### appendTsxSuffixTo _(RegExp[]) (default=[])_
+#### appendTsxSuffixTo
+| Type | Default Value |
+|------|--------------|
+| `RegExp[]` | `[]`|
 
 A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
 
@@ -551,7 +599,10 @@ Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
             { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/\.vue$/] } }
 ```
 
-#### onlyCompileBundledFiles _(boolean) (default=false)_
+#### onlyCompileBundledFiles
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 The default behavior of `ts-loader` is to act as a drop-in replacement for the `tsc` command,
 so it respects the `include`, `files`, and `exclude` options in your `tsconfig.json`, loading
@@ -560,7 +611,10 @@ loading only those files that are actually bundled by webpack, as well as any `.
 by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
 compilation without being explicitly imported, and therefore not picked up by webpack.
 
-#### allowTsInNodeModules _(boolean) (default=false)_
+#### allowTsInNodeModules
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 By default, `ts-loader` will not compile `.ts` files in `node_modules`.
 You should not need to recompile `.ts` files there, but if you really want to, use this option.
@@ -591,7 +645,10 @@ And in your `tsconfig.json`:
   }
 ```
 
-#### context _(string) (default=undefined)_
+#### context
+| Type | Default Value |
+|------|--------------|
+| `string` | `undefined`|
 
 If set, will parse the TypeScript configuration file with given **absolute path** as base path.
 Per default the directory of the configuration file is used as base path. Relative paths in the configuration
@@ -624,14 +681,20 @@ Extending `tsconfig.json`:
 
 Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
 
-#### experimentalFileCaching _(boolean) (default=true)_
+#### experimentalFileCaching
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `true`|
 
 By default whenever the TypeScript compiler needs to check that a file/directory exists or resolve symlinks it makes syscalls. It does not cache the result of these operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
 In some cases it may produce performance degradation.
 
 This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler. Note that caches are cleared between compilations.
 
-#### projectReferences _(boolean) (default=false)_
+#### projectReferences
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
 
 ts-loader has opt-in support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html). With this configuration option enabled, `ts-loader` will incrementally rebuild upstream projects the same way `tsc --build` does. Otherwise, source files in referenced projects will be treated as if they’re part of the root project.
 
@@ -656,7 +719,7 @@ We do not support HMR as we did not yet work out a reliable way how to set it up
 
 If you want to give `webpack-dev-server` HMR a try, follow the official [webpack HMR guide](https://webpack.js.org/guides/hot-module-replacement/), then tweak a few config options for `ts-loader`:
 
-1. Set `transpileOnly` to `true` (see [transpileOnly](#transpileonly-boolean-defaultfalse) for config details and recommendations above).
+1. Set `transpileOnly` to `true` (see [transpileOnly](#transpileonly) for config details and recommendations above).
 2. Inside your HMR acceptance callback function, maybe re-require the module that was replaced.
 
 ## Contributing
