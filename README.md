@@ -331,7 +331,7 @@ This will ensure that the plugin checks for both syntactic errors (eg `const arr
 
 Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
 
-#### resolveModuleName and resolveTypeReferenceDirective:
+#### resolveModuleName and resolveTypeReferenceDirective
 
 These options should be functions which will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. It's not intended that these will typically be used by a user of `ts-loader` - they exist to facilitate functionality such as [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).
 
