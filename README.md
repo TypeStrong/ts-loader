@@ -45,7 +45,7 @@
   * [`baseUrl` / `paths` module resolution](#baseurl--paths-module-resolution)
   * [Options](#options)
   * [Loader Options](#loader-options)
-    + [transpileOnly _(boolean) (default=false)_](#transpileonly-_boolean-defaultfalse_)
+    + [transpileOnly](#transpileonly)
     + [happyPackMode _(boolean) (default=false)_](#happypackmode-_boolean-defaultfalse_)
     + [resolveModuleName and resolveTypeReferenceDirective:](#resolvemodulename-and-resolvetypereferencedirective)
     + [getCustomTransformers _( (program: Program) => { before?: TransformerFactory[]; after?: TransformerFactory[]; } )_](#getcustomtransformers-_-program-program---before-transformerfactory-after-transformerfactory--_)
