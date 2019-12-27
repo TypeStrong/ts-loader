@@ -114,8 +114,9 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  * based on filepath
  */
 function determineModules(compilation: webpack.compilation.Compilation) {
-  return compilation.modules.reduce<Map<string, WebpackModule[]>>(
-    (modules, module) => {
+  const modules = new Map<string, WebpackModule[]>();
+  compilation.modules.forEach(
+    (module) => {
       if (module.resource) {
         const modulePath = path.normalize(module.resource);
         const existingModules = modules.get(modulePath);
@@ -127,11 +128,9 @@ function determineModules(compilation: webpack.compilation.Compilation) {
           modules.set(modulePath, [module]);
         }
       }
-
-      return modules;
-    },
-    new Map<string, WebpackModule[]>()
+    }
   );
+  return modules;
 }
 
 function determineFilesToCheckForErrors(
@@ -229,7 +228,8 @@ function provideErrorsToWebpack(
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
         // remove any existing errors
-        removeTSLoaderErrors(module.errors);
+        // @ts-ignore
+        removeTSLoaderErrors(module.getErrors && module.getErrors() || module.errors);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -241,7 +241,7 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        module.errors.push(...formattedErrors);
+        // module.errors.push(...formattedErrors);
         compilation.errors.push(...formattedErrors);
       });
     } else {
@@ -287,7 +287,8 @@ function provideSolutionErrorsToWebpack(
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
         // remove any existing errors
-        removeTSLoaderErrors(module.errors);
+        // @ts-ignore
+        removeTSLoaderErrors(module.getErrors && module.getErrors() || module.errors);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -299,7 +300,7 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        module.errors.push(...formattedErrors);
+        // module.errors.push(...formattedErrors);
         compilation.errors.push(...formattedErrors);
       });
     } else {
