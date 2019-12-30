@@ -39,7 +39,8 @@ export function makeAfterCompile(
       return;
     }
 
-    removeTSLoaderErrors(compilation.errors);
+    // @ts-ignore
+    removeTSLoaderErrors(compilation.getErrors && compilation.getErrors() || compilation.errors);
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
       getCompilerOptionDiagnostics,
@@ -241,7 +242,7 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        // module.errors.push(...formattedErrors);
+        module.errors.push(...formattedErrors);
         compilation.errors.push(...formattedErrors);
       });
     } else {
@@ -300,7 +301,7 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        // module.errors.push(...formattedErrors);
+        module.errors.push(...formattedErrors);
         compilation.errors.push(...formattedErrors);
       });
     } else {
