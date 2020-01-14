@@ -10,7 +10,7 @@ const typescriptVersion = parseFloat(
   semver.major(typescript.version) + '.' + semver.minor(typescript.version)
 );
 // @ts-ignore
-if (typescriptVersion < 3.6 || typescriptVersion > 3.6) return;
+if (typescriptVersion < 3.7 || typescriptVersion > 3.7) return;
 
 // Parse command line arguments
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
