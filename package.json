@@ -18,8 +18,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn generate-toc"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
