@@ -14,12 +14,11 @@
     "clean": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests",
     "docker:build": "docker build -t ts-loader .",
     "postdocker:build": "docker run -it ts-loader yarn test",
-    "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m 'chore: update docs'"
+    "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\""
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged",
-      "pre-push": "yarn generate-toc"
+      "pre-commit": "lint-staged"
     }
   },
   "lint-staged": {
