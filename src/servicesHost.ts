@@ -790,7 +790,10 @@ function resolveModule(
     // tslint:disable-next-line:no-empty
   } catch (e) {}
 
-  const tsResolution = resolveModuleName(moduleName, containingFile);
+  const tsResolution = resolveModuleName(
+    moduleName.endsWith('.js') ? moduleName.slice(0, -3) : moduleName,
+    containingFile
+  );
 
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
