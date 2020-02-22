@@ -67,13 +67,15 @@ export interface WatchFactory {
   watchFile(
     path: string,
     callback: typescript.FileWatcherCallback,
-    pollingInterval?: number
+    pollingInterval?: number,
+    options?: typescript.CompilerOptions
   ): typescript.FileWatcher;
   /** Used to watch resolved module's failed lookup locations, config file specs, type roots where auto type reference directives are added */
   watchDirectory(
     path: string,
     callback: typescript.DirectoryWatcherCallback,
-    recursive?: boolean
+    recursive?: boolean,
+    options?: typescript.CompilerOptions
   ): typescript.FileWatcher;
 }
 
