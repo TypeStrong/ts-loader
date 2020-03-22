@@ -1,5 +1,8 @@
 # Changelog
 
+## v6.2.2
+* [Enable typescript 3.8.3 support when using `webpack.config.ts` files](https://github.com/TypeStrong/ts-loader/issues/1072) - thanks @vladimiry!
+
 ## v6.2.1
 * [Output types alongside JS files, enable declaration maps](https://github.com/TypeStrong/ts-loader/pull/1026) - thanks @meyer!
 
