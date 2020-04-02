@@ -48,7 +48,9 @@ export function getTypeScriptInstance(
 ): { instance?: TSInstance; error?: WebpackError } {
   if (instances.hasOwnProperty(loaderOptions.instance)) {
     const instance = instances[loaderOptions.instance];
-    ensureProgram(instance);
+    if (!instance.initialSetupPending) {
+      ensureProgram(instance);
+    }
     return { instance: instances[loaderOptions.instance] };
   }
 
@@ -148,39 +150,6 @@ function successfulTypeScriptInstance(
           )
       : (filePath: string) => filePath;
 
-  // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
-  let { getCustomTransformers: customerTransformers } = loaderOptions;
-  let getCustomTransformers = Function.prototype;
-
-  if (typeof customerTransformers === 'function') {
-    getCustomTransformers = customerTransformers;
-  } else if (typeof customerTransformers === 'string') {
-    try {
-      customerTransformers = require(customerTransformers);
-    } catch (err) {
-      throw new Error(
-        `Failed to load customTransformers from "${
-          loaderOptions.getCustomTransformers
-        }": ${err.message}`
-      );
-    }
-
-    if (typeof customerTransformers !== 'function') {
-      throw new Error(
-        `Custom transformers in "${
-          loaderOptions.getCustomTransformers
-        }" should export a function, got ${typeof getCustomTransformers}`
-      );
-    }
-    getCustomTransformers = customerTransformers;
-  }
-
-  // if allowJs is set then we should accept js(x) files
-  const scriptRegex =
-    configParseResult.options.allowJs === true
-      ? /\.tsx?$|\.jsx?$/i
-      : /\.tsx?$/i;
-
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
     // we do need to check for any issues with TS options though
@@ -192,47 +161,18 @@ function successfulTypeScriptInstance(
       rootFileNames,
       files,
       otherFiles,
+      version: 0,
       program: undefined, // temporary, to be set later
       dependencyGraph: {},
       reverseDependencyGraph: {},
       transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
-      colors
+      colors,
+      initialSetupPending: true,
+      configFilePath,
+      configParseResult,
+      log
     });
 
-    tryAndBuildSolutionReferences(
-      transpileInstance,
-      loader,
-      log,
-      scriptRegex,
-      configFilePath
-    );
-    const program = (transpileInstance.program =
-      configParseResult.projectReferences !== undefined
-        ? compiler!.createProgram({
-            rootNames: configParseResult.fileNames,
-            options: configParseResult.options,
-            projectReferences: configParseResult.projectReferences
-          })
-        : compiler!.createProgram([], compilerOptions));
-
-    // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
-    if (!loaderOptions.happyPackMode) {
-      const solutionErrors: WebpackError[] = getSolutionErrors(
-        transpileInstance,
-        loader.context
-      );
-      const diagnostics = program.getOptionsDiagnostics();
-      const errors = formatErrors(
-        diagnostics,
-        loaderOptions,
-        colors,
-        compiler!,
-        { file: configFilePath || 'tsconfig.json' },
-        loader.context
-      );
-      loader._module.errors.push(...solutionErrors, ...errors);
-    }
-    transpileInstance.transformers = getCustomTransformers(program);
     return { instance: transpileInstance };
   }
 
@@ -276,88 +216,166 @@ function successfulTypeScriptInstance(
     transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
     dependencyGraph: {},
     reverseDependencyGraph: {},
-    colors
+    colors,
+    initialSetupPending: true,
+    configFilePath,
+    configParseResult,
+    log
   });
-
-  if (!loader._compiler.hooks) {
-    throw new Error(
-      "You may be using an old version of webpack; please check you're using at least version 4"
-    );
-  }
-
-  tryAndBuildSolutionReferences(
-    instance,
-    loader,
-    log,
-    scriptRegex,
-    configFilePath
-  );
-
-  if (loaderOptions.experimentalWatchApi && compiler.createWatchProgram) {
-    log.logInfo('Using watch api');
-
-    // If there is api available for watch, use it instead of language service
-    instance.watchHost = makeWatchHost(
-      scriptRegex,
-      log,
-      loader,
-      instance,
-      configParseResult.projectReferences
-    );
-    instance.watchOfFilesAndCompilerOptions = compiler.createWatchProgram(
-      instance.watchHost
-    );
-    instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
-    instance.program = instance.builderProgram.getProgram();
-
-    instance.transformers = getCustomTransformers(instance.program);
-  } else {
-    const servicesHost = makeServicesHost(
-      scriptRegex,
-      log,
-      loader,
-      instance,
-      loaderOptions.experimentalFileCaching,
-      configParseResult.projectReferences
-    );
-
-    instance.languageService = compiler.createLanguageService(
-      servicesHost.servicesHost,
-      compiler.createDocumentRegistry()
-    );
-
-    if (servicesHost.clearCache !== null) {
-      loader._compiler.hooks.watchRun.tap('ts-loader', servicesHost.clearCache);
-    }
-
-    instance.transformers = getCustomTransformers(
-      instance.languageService!.getProgram()
-    );
-  }
-
-  loader._compiler.hooks.afterCompile.tapAsync(
-    'ts-loader',
-    makeAfterCompile(instance, configFilePath)
-  );
-  loader._compiler.hooks.watchRun.tapAsync('ts-loader', makeWatchRun(instance));
 
   return { instance };
 }
 
-function tryAndBuildSolutionReferences(
+export function initializeInstance(
+  loader: webpack.loader.LoaderContext,
+  instance: TSInstance
+) {
+  if (!instance.initialSetupPending) {
+    return;
+  }
+
+  instance.initialSetupPending = false;
+
+  // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
+  let { getCustomTransformers: customerTransformers } = instance.loaderOptions;
+  let getCustomTransformers = Function.prototype;
+
+  if (typeof customerTransformers === 'function') {
+    getCustomTransformers = customerTransformers;
+  } else if (typeof customerTransformers === 'string') {
+    try {
+      customerTransformers = require(customerTransformers);
+    } catch (err) {
+      throw new Error(
+        `Failed to load customTransformers from "${
+          instance.loaderOptions.getCustomTransformers
+        }": ${err.message}`
+      );
+    }
+
+    if (typeof customerTransformers !== 'function') {
+      throw new Error(
+        `Custom transformers in "${
+          instance.loaderOptions.getCustomTransformers
+        }" should export a function, got ${typeof getCustomTransformers}`
+      );
+    }
+    getCustomTransformers = customerTransformers;
+  }
+
+  if (instance.loaderOptions.transpileOnly) {
+    const program = (instance.program =
+      instance.configParseResult.projectReferences !== undefined
+        ? instance.compiler.createProgram({
+            rootNames: instance.configParseResult.fileNames,
+            options: instance.configParseResult.options,
+            projectReferences: instance.configParseResult.projectReferences
+          })
+        : instance.compiler.createProgram([], instance.compilerOptions));
+
+    // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
+    if (!instance.loaderOptions.happyPackMode) {
+      const solutionErrors: WebpackError[] = getSolutionErrors(
+        instance,
+        loader.context
+      );
+      const diagnostics = program.getOptionsDiagnostics();
+      const errors = formatErrors(
+        diagnostics,
+        instance.loaderOptions,
+        instance.colors,
+        instance.compiler,
+        { file: instance.configFilePath || 'tsconfig.json' },
+        loader.context
+      );
+      loader._module.errors.push(...solutionErrors, ...errors);
+    }
+    instance.transformers = getCustomTransformers(program);
+  } else {
+    if (!loader._compiler.hooks) {
+      throw new Error(
+        "You may be using an old version of webpack; please check you're using at least version 4"
+      );
+    }
+
+    if (
+      instance.loaderOptions.experimentalWatchApi &&
+      instance.compiler.createWatchProgram
+    ) {
+      instance.log.logInfo('Using watch api');
+
+      // If there is api available for watch, use it instead of language service
+      instance.watchHost = makeWatchHost(
+        getScriptRegexp(instance),
+        instance.log,
+        loader,
+        instance,
+        instance.configParseResult.projectReferences
+      );
+      instance.watchOfFilesAndCompilerOptions = instance.compiler.createWatchProgram(
+        instance.watchHost
+      );
+      instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
+      instance.program = instance.builderProgram.getProgram();
+
+      instance.transformers = getCustomTransformers(instance.program);
+    } else {
+      instance.servicesHost = makeServicesHost(
+        getScriptRegexp(instance),
+        instance.log,
+        loader,
+        instance,
+        instance.loaderOptions.experimentalFileCaching,
+        instance.configParseResult.projectReferences
+      );
+
+      instance.languageService = instance.compiler.createLanguageService(
+        instance.servicesHost.servicesHost,
+        instance.compiler.createDocumentRegistry()
+      );
+
+      if (instance.servicesHost.clearCache !== null) {
+        loader._compiler.hooks.watchRun.tap(
+          'ts-loader',
+          instance.servicesHost.clearCache
+        );
+      }
+
+      instance.transformers = getCustomTransformers(
+        instance.languageService!.getProgram()
+      );
+    }
+
+    loader._compiler.hooks.afterCompile.tapAsync(
+      'ts-loader',
+      makeAfterCompile(instance, instance.configFilePath)
+    );
+    loader._compiler.hooks.watchRun.tapAsync(
+      'ts-loader',
+      makeWatchRun(instance)
+    );
+  }
+}
+
+function getScriptRegexp(instance: TSInstance) {
+  // if allowJs is set then we should accept js(x) files
+  return instance.configParseResult.options.allowJs === true
+    ? /\.tsx?$|\.jsx?$/i
+    : /\.tsx?$/i;
+}
+
+export function buildSolutionReferences(
   instance: TSInstance,
   loader: webpack.loader.LoaderContext,
-  log: logger.Logger,
-  scriptRegex: RegExp,
-  configFilePath: string | undefined
+  log: logger.Logger
 ) {
-  if (
-    configFilePath &&
-    supportsSolutionBuild(instance.loaderOptions, instance.compiler)
-  ) {
+  if (!supportsSolutionBuild(instance)) {
+    return;
+  }
+  if (!instance.solutionBuilderHost) {
     // Use solution builder
     log.logInfo('Using SolutionBuilder api');
-    instance.configFilePath = configFilePath;
+    const scriptRegex = getScriptRegexp(instance);
     instance.solutionBuilderHost = makeSolutionBuilderHost(
       scriptRegex,
       log,
@@ -366,20 +384,11 @@ function tryAndBuildSolutionReferences(
     );
     instance.solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
       instance.solutionBuilderHost,
-      [configFilePath],
+      [instance.configFilePath!],
       { verbose: true }
     );
-    instance.solutionBuilder.buildReferences(instance.configFilePath);
-    for (const [fileName] of instance.solutionBuilderHost.watchedFiles) {
-      instance.otherFiles.set(path.resolve(fileName), {
-        version: 0,
-        text: instance.solutionBuilderHost.readFile(fileName)
-      });
-      if (instance.loaderOptions.transpileOnly) {
-        loader.addDependency(fileName);
-      }
-    }
   }
+  instance.solutionBuilder!.buildReferences(instance.configFilePath!);
 }
 
 export function forEachResolvedProjectReference<T>(
@@ -493,7 +502,7 @@ function getOutputJSFileName(
     : undefined;
 }
 
-function getOutputFileNames(
+export function getOutputFileNames(
   instance: TSInstance,
   configFile: typescript.ParsedCommandLine,
   inputFileName: string
@@ -539,49 +548,6 @@ function getOutputFileNames(
   return outputs;
 }
 
-function getOutputFilesFromReference(
-  program: typescript.Program,
-  instance: TSInstance,
-  filePath: string,
-  skipActualOutputRead: boolean
-): typescript.OutputFile[] | undefined {
-  // May be api to get file
-  return forEachResolvedProjectReference(
-    program.getResolvedProjectReferences(),
-    ({ commandLine }) => {
-      const { options, fileNames } = commandLine;
-      if (
-        !options.outFile &&
-        !options.out &&
-        fileNames.some(file => path.normalize(file) === filePath)
-      ) {
-        const outputFiles: typescript.OutputFile[] = [];
-        if (!skipActualOutputRead) {
-          getOutputFileNames(
-            instance,
-            commandLine,
-            (instance.compiler as any).resolvePath(filePath)
-          ).forEach(name => {
-            const output = instance.solutionBuilderHost!.outputFiles.get(
-              path.resolve(name)
-            );
-            if (output) {
-              outputFiles.push(output);
-            } else {
-              const text = instance.compiler.sys.readFile(name);
-              if (text) {
-                outputFiles.push({ name, text, writeByteOrderMark: false });
-              }
-            }
-          });
-        }
-        return outputFiles;
-      }
-      return undefined;
-    }
-  );
-}
-
 export function getInputFileNameFromOutput(
   instance: TSInstance,
   filePath: string
@@ -589,9 +555,13 @@ export function getInputFileNameFromOutput(
   if (filePath.match(tsTsxRegex) && !fileExtensionIs(filePath, '.d.ts')) {
     return undefined;
   }
+  if (instance.solutionBuilderHost) {
+    return instance.solutionBuilderHost.getInputFileNameFromOutput(filePath);
+  }
   const program = ensureProgram(instance);
   return (
     program &&
+    program.getResolvedProjectReferences &&
     forEachResolvedProjectReference(
       program.getResolvedProjectReferences(),
       ({ commandLine }) => {
@@ -671,11 +641,7 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
   return undefined;
 }
 
-export function getEmitOutput(
-  instance: TSInstance,
-  filePath: string,
-  skipActualOutputReadOfReferencedFile: boolean
-) {
+export function getEmitOutput(instance: TSInstance, filePath: string) {
   if (fileExtensionIs(filePath, instance.compiler.Extension.Dts)) {
     return [];
   }
@@ -683,15 +649,9 @@ export function getEmitOutput(
   if (program !== undefined) {
     const sourceFile = program.getSourceFile(filePath);
     if (isReferencedFile(instance, filePath)) {
-      const builtReferences = getOutputFilesFromReference(
-        program,
-        instance,
-        filePath,
-        skipActualOutputReadOfReferencedFile
+      return instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
+        filePath
       );
-      if (builtReferences) {
-        return builtReferences;
-      }
     }
     const outputFiles: typescript.OutputFile[] = [];
     const writeFile = (

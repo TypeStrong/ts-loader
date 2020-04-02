@@ -3,7 +3,11 @@ import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { getEmitFromWatchHost, getEmitOutput } from './instances';
+import {
+  getEmitFromWatchHost,
+  getEmitOutput,
+  isReferencedFile
+} from './instances';
 import {
   TSFile,
   TSFiles,
@@ -339,25 +343,24 @@ function provideDeclarationFilesToWebpack(
       continue;
     }
 
-    addDeclarationFilesAsAsset(
-      getEmitOutput(
-        instance,
-        filePath,
-        /*skipActualOutputReadOfReferencedFile*/ true
-      ),
-      compilation
-    );
+    if (!isReferencedFile(instance, filePath)) {
+      addDeclarationFilesAsAsset(
+        getEmitOutput(instance, filePath),
+        compilation
+      );
+    }
   }
 }
 
-function addDeclarationFilesAsAsset(
-  outputFiles: ts.OutputFile[] | IterableIterator<ts.OutputFile>,
-  compilation: webpack.compilation.Compilation
+function addDeclarationFilesAsAsset<T extends ts.OutputFile>(
+  outputFiles: T[] | IterableIterator<T>,
+  compilation: webpack.compilation.Compilation,
+  skipOutputFile?: (outputFile: T) => boolean
 ) {
-  outputFilesToAsset(
-    outputFiles,
-    compilation,
-    outputFile => !outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+  outputFilesToAsset(outputFiles, compilation, outputFile =>
+    skipOutputFile && skipOutputFile(outputFile)
+      ? true
+      : !outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
   );
 }
 
@@ -375,10 +378,10 @@ function outputFileToAsset(
   };
 }
 
-function outputFilesToAsset(
-  outputFiles: ts.OutputFile[] | IterableIterator<ts.OutputFile>,
+function outputFilesToAsset<T extends ts.OutputFile>(
+  outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.compilation.Compilation,
-  skipOutputFile?: (outputFile: ts.OutputFile) => boolean
+  skipOutputFile?: (outputFile: T) => boolean
 ) {
   for (const outputFile of outputFiles) {
     if (!skipOutputFile || !skipOutputFile(outputFile)) {
@@ -417,12 +420,21 @@ function provideAssetsFromSolutionBuilderHost(
     // written files
     addDeclarationFilesAsAsset(
       instance.solutionBuilderHost.outputFiles.values(),
-      compilation
+      compilation,
+      outputFile => !outputFile.isNew
     );
     // tsbuild infos
-    outputFilesToAsset(instance.solutionBuilderHost.tsbuildinfos, compilation);
-    instance.solutionBuilderHost.outputFiles.clear();
-    instance.solutionBuilderHost.tsbuildinfos.length = 0;
+    outputFilesToAsset(
+      instance.solutionBuilderHost.tsbuildinfos.values(),
+      compilation,
+      outputFile => !outputFile.isNew
+    );
+    instance.solutionBuilderHost.outputFiles.forEach(
+      outputFile => (outputFile.isNew = false)
+    );
+    instance.solutionBuilderHost.tsbuildinfos.forEach(
+      outputFile => (outputFile.isNew = false)
+    );
   }
 }
 
