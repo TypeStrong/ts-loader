@@ -7,6 +7,7 @@ import * as constants from './constants';
 import { getOutputFileNames } from './instances';
 import {
   Action,
+  ConfigFileInfo,
   CustomResolveModuleName,
   CustomResolveTypeReferenceDirective,
   FormatDiagnosticsHost,
@@ -24,7 +25,6 @@ import {
   WatchHost,
   WebpackError
 } from './interfaces';
-import * as logger from './logger';
 import { makeResolver } from './resolver';
 import { formatErrors, readFile, unorderedRemoveItem } from './utils';
 
@@ -52,7 +52,6 @@ function readFileWithInstance(
  */
 export function makeServicesHost(
   scriptRegex: RegExp,
-  log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   enableFileCaching: boolean,
@@ -218,8 +217,8 @@ export function makeServicesHost(
     getDefaultLibFileName: (options: typescript.CompilerOptions) =>
       compiler.getDefaultLibFilePath(options),
     getNewLine: () => newLine,
-    trace: log.log,
-    log: log.log,
+    trace: instance.log.log,
+    log: instance.log.log,
 
     // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
     resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
@@ -299,12 +298,7 @@ function makeResolvers(
   };
 }
 
-function createWatchFactory(
-  beforeCallbacks?: (
-    key: string,
-    cb: typescript.FileWatcherCallback[] | typescript.DirectoryWatcherCallback[]
-  ) => void
-): WatchFactory {
+function createWatchFactory(): WatchFactory {
   const watchedFiles: WatchCallbacks<
     typescript.FileWatcherCallback
   > = new Map();
@@ -338,9 +332,6 @@ function createWatchFactory(
       // The array copy is made to ensure that even if one of the callback removes the callbacks,
       // we dont miss any callbacks following it
       const cbs = callbacks.slice();
-      if (beforeCallbacks) {
-        beforeCallbacks(key, cbs);
-      }
       for (const cb of cbs) {
         cb(fileName, eventKind as typescript.FileWatcherEventKind);
       }
@@ -467,7 +458,6 @@ export function updateFileWithText(
  */
 export function makeWatchHost(
   scriptRegex: RegExp,
-  log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
@@ -550,7 +540,7 @@ export function makeWatchHost(
         depth
       ),
     realpath: dirPath => compiler.sys.resolvePath(path.normalize(dirPath)),
-    trace: logData => log.log(logData),
+    trace: logData => instance.log.log(logData),
 
     watchFile,
     watchDirectory,
@@ -634,18 +624,11 @@ function normalizeSlashes(file: string): string {
   return file.replace(/\\/g, '/');
 }
 
-interface ConfigFileInfo {
-  config: typescript.ParsedCommandLine | undefined;
-  outputFileNames?: Map<string, string[]>;
-  tsbuildInfoFile?: string;
-}
-
 /**
  * Create the TypeScript Watch host
  */
 export function makeSolutionBuilderHost(
   scriptRegex: RegExp,
-  log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance
 ): SolutionBuilderWithWatchHost {
@@ -696,17 +679,17 @@ export function makeSolutionBuilderHost(
     } else {
       diagnostics.global.push(d);
     }
-    log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+    instance.log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   };
 
   const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
-    log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+    instance.log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   const reportWatchStatus = (
     d: typescript.Diagnostic,
     newLine: string,
     _options: typescript.CompilerOptions
   ) =>
-    log.logInfo(
+    instance.log.logInfo(
       `${compiler.flattenDiagnosticMessageText(
         d.messageText,
         compiler.sys.newLine
@@ -715,6 +698,7 @@ export function makeSolutionBuilderHost(
   const tsbuildinfos = new Map<string, OutputFile>();
   const outputFiles = new Map<string, OutputFile>();
   const outputAffectingInstanceVersion = new Map<string, true>();
+  let timeoutId: [(...args: any[]) => void, any[]] | undefined;
 
   const configFileInfo = new Map<string, ConfigFileInfo>();
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
@@ -726,7 +710,7 @@ export function makeSolutionBuilderHost(
       reportWatchStatus
     ),
     diagnostics,
-    ...createWatchFactory(beforeWatchCallbacks),
+    ...createWatchFactory(),
     // Overrides
     getCurrentDirectory,
     // behave as if there is no tsbuild info on disk since we want to generate all outputs in memory and only use those
@@ -793,10 +777,7 @@ export function makeSolutionBuilderHost(
     fileExists: fileName => {
       const outputFile = getOutputFileFromReferencedProject(fileName);
       if (outputFile !== undefined) {
-        return true;
-      }
-      if (isOutputFromReferencedProject(fileName)) {
-        return false;
+        return !!outputFile;
       }
       const existing =
         instance.files.get(path.resolve(fileName)) ||
@@ -822,19 +803,27 @@ export function makeSolutionBuilderHost(
       }
       return false;
     },
-    setTimeout: undefined,
-    clearTimeout: undefined,
+    afterProgramEmitAndDiagnostics: transpileOnly ? undefined : storeDtsFiles,
+    setTimeout: (callback, _time, ...args) => {
+      timeoutId = [callback, args];
+      return timeoutId;
+    },
+    clearTimeout: _timeoutId => {
+      timeoutId = undefined;
+    },
     outputFiles,
     tsbuildinfos,
+    configFileInfo,
     outputAffectingInstanceVersion,
     getOutputFileFromReferencedProject,
     getInputFileNameFromOutput: fileName => {
       const result = getInputFileNameFromOutput(fileName);
       return typeof result === 'string' ? result : undefined;
     },
-    getOutputFilesFromReferencedProjectInput
+    getOutputFilesFromReferencedProjectInput,
+    buildReferences
   };
-  solutionBuilderHost.trace = logData => log.logInfo(logData);
+  solutionBuilderHost.trace = logData => instance.log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file => {
     const config = getParsedCommandLine(compiler, instance.loaderOptions, file);
     configFileInfo.set(path.resolve(file), { config });
@@ -861,10 +850,40 @@ export function makeSolutionBuilderHost(
 
   return solutionBuilderHost;
 
-  function beforeWatchCallbacks() {
+  function buildReferences() {
+    if (!timeoutId) {
+      return;
+    }
     diagnostics.global.length = 0;
     diagnostics.perFile.clear();
     diagnostics.transpileErrors.length = 0;
+
+    while (timeoutId) {
+      const [callback, args] = timeoutId;
+      timeoutId = undefined;
+      callback(...args);
+    }
+  }
+
+  function storeDtsFiles(
+    builderProgram: typescript.EmitAndSemanticDiagnosticsBuilderProgram
+  ) {
+    const program = builderProgram.getProgram();
+    for (const configInfo of configFileInfo.values()) {
+      if (
+        !configInfo.config ||
+        program.getRootFileNames() !== configInfo.config.fileNames ||
+        program.getCompilerOptions() !== configInfo.config.options ||
+        program.getProjectReferences() !== configInfo.config.projectReferences
+      ) {
+        continue;
+      }
+      configInfo.dtsFiles = program
+        .getSourceFiles()
+        .map(file => path.resolve(file.fileName))
+        .filter(fileName => fileName.match(constants.dtsDtsxOrDtsDtsxMapRegex));
+      return;
+    }
   }
 
   function findOutputFile(fileName: string) {

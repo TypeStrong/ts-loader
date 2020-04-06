@@ -10,7 +10,8 @@ import {
   getInputFileNameFromOutput,
   getTypeScriptInstance,
   initializeInstance,
-  isReferencedFile
+  isReferencedFile,
+  reportTranspileErrors
 } from './instances';
 import {
   LoaderOptions,
@@ -45,9 +46,8 @@ function loader(this: webpack.loader.LoaderContext, contents: string) {
     callback(new Error(instanceOrError.error.message));
     return;
   }
-
   const instance = instanceOrError.instance!;
-  buildSolutionReferences(instance, this, instance.log);
+  buildSolutionReferences(instance, this);
   successLoader(this, contents, callback, instance);
 }
 
@@ -58,6 +58,7 @@ function successLoader(
   instance: TSInstance
 ) {
   initializeInstance(loaderContext, instance);
+  reportTranspileErrors(instance, loaderContext);
   const rawFilePath = path.normalize(loaderContext.resourcePath);
 
   const filePath =
@@ -470,65 +471,70 @@ function getEmit(
   loaderContext.clearDependencies();
   loaderContext.addDependency(rawFilePath);
 
-  const allDefinitionFiles = isReferencedFile(instance, filePath)
-    ? []
-    : [...instance.files.keys()].filter(
-        defFilePath =>
-          defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
-          // Remove the project reference d.ts as we are adding dependency for .ts later
-          // This removed extra build pass (resulting in new stats object in initial build)
-          (!instance.solutionBuilderHost ||
-            instance.solutionBuilderHost.getOutputFileFromReferencedProject(
-              defFilePath
-            ) !== undefined)
-      );
+  const dependencies: string[] = [];
+  const addDependency = (file: string) => {
+    file = path.resolve(file);
+    loaderContext.addDependency(file);
+    dependencies.push(file);
+  };
 
   // Make this file dependent on *all* definition files in the program
-  const addDependency = loaderContext.addDependency.bind(loaderContext);
-  allDefinitionFiles.forEach(addDependency);
+  if (!isReferencedFile(instance, filePath)) {
+    for (const defFilePath of instance.files.keys()) {
+      if (
+        defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
+        // Remove the project reference d.ts as we are adding dependency for .ts later
+        // This removed extra build pass (resulting in new stats object in initial build)
+        (!instance.solutionBuilderHost ||
+          instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+            defFilePath
+          ) !== undefined)
+      ) {
+        addDependency(defFilePath);
+      }
+    }
+  }
 
   // Additionally make this file dependent on all imported files
   const fileDependencies = instance.dependencyGraph[filePath];
-  const additionalDependencies =
-    fileDependencies === undefined
-      ? []
-      : fileDependencies.map(({ resolvedFileName, originalFileName }) => {
-          const projectReference = getAndCacheProjectReference(
+  if (fileDependencies) {
+    for (const { resolvedFileName, originalFileName } of fileDependencies) {
+      const projectReference = getAndCacheProjectReference(
+        resolvedFileName,
+        instance
+      );
+      // In the case of dependencies that are part of a project reference,
+      // the real dependency that webpack should watch is the JS output file.
+      if (projectReference !== undefined) {
+        addDependency(
+          getAndCacheOutputJSFileName(
             resolvedFileName,
+            projectReference,
             instance
-          );
-          // In the case of dependencies that are part of a project reference,
-          // the real dependency that webpack should watch is the JS output file.
-          if (projectReference !== undefined) {
-            return getAndCacheOutputJSFileName(
-              resolvedFileName,
-              projectReference,
-              instance
-            );
-          }
-          return (
-            getInputFileNameFromOutput(
-              instance,
-              path.resolve(resolvedFileName)
-            ) || originalFileName
-          );
-        });
-
-  if (additionalDependencies.length > 0) {
-    additionalDependencies.forEach(addDependency);
+          )
+        );
+      } else {
+        addDependency(
+          getInputFileNameFromOutput(
+            instance,
+            path.resolve(resolvedFileName)
+          ) || originalFileName
+        );
+      }
+    }
   }
 
-  loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = allDefinitionFiles
-    .concat(additionalDependencies)
-    .map(
-      defFilePath =>
-        defFilePath +
-        '@' +
-        (
-          instance.files.get(defFilePath) ||
-          instance.otherFiles.get(defFilePath) || { version: '?' }
-        ).version
-    );
+  addDependenciesFromSolutionBuilder(instance, filePath, addDependency);
+
+  loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = dependencies.map(
+    defFilePath =>
+      defFilePath +
+      '@' +
+      (
+        instance.files.get(defFilePath) ||
+        instance.otherFiles.get(defFilePath) || { version: '?' }
+      ).version
+  );
 
   const outputFile = outputFiles
     .filter(file => file.name.match(constants.jsJsx))
@@ -540,8 +546,79 @@ function getEmit(
     .pop();
   const sourceMapText =
     sourceMapFile === undefined ? undefined : sourceMapFile.text;
-
   return { outputText, sourceMapText };
+}
+
+function addDependenciesFromSolutionBuilder(
+  instance: TSInstance,
+  filePath: string,
+  addDependency: (file: string) => void
+) {
+  if (!instance.solutionBuilderHost) {
+    return;
+  }
+  // Add all the input files from the references as
+  const resolvedFilePath = path.resolve(filePath);
+  for (const [
+    configFile,
+    configInfo
+  ] of instance.solutionBuilderHost.configFileInfo.entries()) {
+    if (
+      !configInfo.config ||
+      !configInfo.config.projectReferences ||
+      !configInfo.config.projectReferences.length
+    ) {
+      continue;
+    }
+    if (configInfo.outputFileNames) {
+      if (!configInfo.outputFileNames.has(resolvedFilePath)) {
+        continue;
+      }
+    } else if (
+      !configInfo.config.fileNames.some(
+        f => path.resolve(f) === resolvedFilePath
+      )
+    ) {
+      continue;
+    }
+
+    // This is the config for the input file
+    const seenMap = new Map<string, true>();
+    seenMap.set(configFile, true);
+
+    // Depend on all the dts files from the program
+    if (configInfo.dtsFiles) {
+      configInfo.dtsFiles.forEach(addDependency);
+    }
+
+    // Add dependencies to all the input files from the project reference files since building them
+    const queue = configInfo.config.projectReferences.slice();
+    while (true) {
+      const currentRef = queue.pop();
+      if (!currentRef) {
+        break;
+      }
+      const refConfigFile = path.resolve(
+        instance.compiler.resolveProjectReferencePath(currentRef)
+      );
+      if (seenMap.has(refConfigFile)) {
+        continue;
+      }
+      const refConfigInfo = instance.solutionBuilderHost.configFileInfo.get(
+        refConfigFile
+      );
+      if (!refConfigInfo) {
+        continue;
+      }
+      seenMap.set(refConfigFile, true);
+      if (refConfigInfo.config) {
+        refConfigInfo.config.fileNames.forEach(addDependency);
+        if (refConfigInfo.config.projectReferences) {
+          queue.push(...refConfigInfo.config.projectReferences);
+        }
+      }
+    }
+  }
 }
 
 /**
@@ -563,6 +640,10 @@ function getTranspilationEmit(
     reportDiagnostics: true,
     fileName
   });
+
+  addDependenciesFromSolutionBuilder(instance, fileName, file =>
+    loaderContext.addDependency(path.resolve(file))
+  );
 
   // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
   if (

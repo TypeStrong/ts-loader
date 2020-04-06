@@ -168,6 +168,7 @@ function successfulTypeScriptInstance(
       transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
       colors,
       initialSetupPending: true,
+      reportTranspileErrors: true,
       configFilePath,
       configParseResult,
       log
@@ -273,24 +274,14 @@ export function initializeInstance(
           })
         : instance.compiler.createProgram([], instance.compilerOptions));
 
-    // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
-    if (!instance.loaderOptions.happyPackMode) {
-      const solutionErrors: WebpackError[] = getSolutionErrors(
-        instance,
-        loader.context
-      );
-      const diagnostics = program.getOptionsDiagnostics();
-      const errors = formatErrors(
-        diagnostics,
-        instance.loaderOptions,
-        instance.colors,
-        instance.compiler,
-        { file: instance.configFilePath || 'tsconfig.json' },
-        loader.context
-      );
-      loader._module.errors.push(...solutionErrors, ...errors);
-    }
     instance.transformers = getCustomTransformers(program);
+    // Setup watch run for solution building
+    if (instance.solutionBuilderHost) {
+      loader._compiler.hooks.watchRun.tapAsync(
+        'ts-loader',
+        makeWatchRun(instance)
+      );
+    }
   } else {
     if (!loader._compiler.hooks) {
       throw new Error(
@@ -307,7 +298,6 @@ export function initializeInstance(
       // If there is api available for watch, use it instead of language service
       instance.watchHost = makeWatchHost(
         getScriptRegexp(instance),
-        instance.log,
         loader,
         instance,
         instance.configParseResult.projectReferences
@@ -322,7 +312,6 @@ export function initializeInstance(
     } else {
       instance.servicesHost = makeServicesHost(
         getScriptRegexp(instance),
-        instance.log,
         loader,
         instance,
         instance.loaderOptions.experimentalFileCaching,
@@ -364,21 +353,46 @@ function getScriptRegexp(instance: TSInstance) {
     : /\.tsx?$/i;
 }
 
+export function reportTranspileErrors(
+  instance: TSInstance,
+  loader: webpack.loader.LoaderContext
+) {
+  if (!instance.reportTranspileErrors) {
+    return;
+  }
+  instance.reportTranspileErrors = false;
+  // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
+  if (!instance.loaderOptions.happyPackMode) {
+    const solutionErrors: WebpackError[] = getSolutionErrors(
+      instance,
+      loader.context
+    );
+    const diagnostics = instance.program!.getOptionsDiagnostics();
+    const errors = formatErrors(
+      diagnostics,
+      instance.loaderOptions,
+      instance.colors,
+      instance.compiler,
+      { file: instance.configFilePath || 'tsconfig.json' },
+      loader.context
+    );
+    loader._module.errors.push(...solutionErrors, ...errors);
+  }
+}
+
 export function buildSolutionReferences(
   instance: TSInstance,
-  loader: webpack.loader.LoaderContext,
-  log: logger.Logger
+  loader: webpack.loader.LoaderContext
 ) {
   if (!supportsSolutionBuild(instance)) {
     return;
   }
   if (!instance.solutionBuilderHost) {
     // Use solution builder
-    log.logInfo('Using SolutionBuilder api');
+    instance.log.logInfo('Using SolutionBuilder api');
     const scriptRegex = getScriptRegexp(instance);
     instance.solutionBuilderHost = makeSolutionBuilderHost(
       scriptRegex,
-      log,
       loader,
       instance
     );
@@ -387,8 +401,35 @@ export function buildSolutionReferences(
       [instance.configFilePath!],
       { verbose: true }
     );
+    instance.solutionBuilder!.buildReferences(instance.configFilePath!);
+    ensureAllReferences(instance);
+  } else {
+    instance.solutionBuilderHost.buildReferences();
   }
-  instance.solutionBuilder!.buildReferences(instance.configFilePath!);
+}
+
+function ensureAllReferences(instance: TSInstance) {
+  // Return result from the json without errors so that the extra errors from config are digested here
+  const rootConfigInfo = instance.solutionBuilderHost!.configFileInfo.get(
+    instance.configFilePath!
+  );
+  for (const configInfo of instance.solutionBuilderHost!.configFileInfo.values()) {
+    if (configInfo === rootConfigInfo || !configInfo.config) {
+      continue;
+    }
+    // Load all the input files
+    configInfo.config.fileNames.forEach(file => {
+      const resolvedFileName = path.resolve(file);
+      const existing = instance.otherFiles.get(resolvedFileName);
+      if (!existing) {
+        instance.otherFiles.set(resolvedFileName, {
+          version: 1,
+          text: instance.compiler.sys.readFile(file),
+          modifiedTime: instance.compiler.sys.getModifiedTime!(file)
+        });
+      }
+    });
+  }
 }
 
 export function forEachResolvedProjectReference<T>(

@@ -91,12 +91,21 @@ export interface SolutionBuilderWithWatchHost
   diagnostics: SolutionDiagnostics;
   outputFiles: Map<string, OutputFile>;
   tsbuildinfos: Map<string, OutputFile>;
+  configFileInfo: Map<string, ConfigFileInfo>;
   outputAffectingInstanceVersion: Map<string, true>;
   getOutputFileFromReferencedProject(
     outputFileName: string
   ): OutputFile | false | undefined;
   getInputFileNameFromOutput(outputFileName: string): string | undefined;
   getOutputFilesFromReferencedProjectInput(inputFileName: string): OutputFile[];
+  buildReferences(): void;
+}
+
+export interface ConfigFileInfo {
+  config: typescript.ParsedCommandLine | undefined;
+  outputFileNames?: Map<string, string[]>;
+  tsbuildInfoFile?: string;
+  dtsFiles?: string[];
 }
 
 export interface OutputFile extends typescript.OutputFile {
@@ -145,6 +154,7 @@ export interface TSInstance {
   hasUnaccountedModifiedFiles?: boolean;
   changedFilesList?: boolean;
 
+  reportTranspileErrors?: boolean;
   solutionBuilderHost?: SolutionBuilderWithWatchHost;
   solutionBuilder?: typescript.SolutionBuilder<
     typescript.EmitAndSemanticDiagnosticsBuilderProgram
