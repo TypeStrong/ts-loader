@@ -14,15 +14,15 @@ export function makeWatchRun(instance: TSInstance) {
   const startTime = 0;
 
   return (compiler: webpack.Compiler, callback: () => void) => {
-    const times = compiler.fileTimestamps;
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;
     } else {
+      const times = compiler.fileTimestamps;
+
       for (const [filePath, date] of times) {
-        if (
-          date > (lastTimes.get(filePath) || startTime) &&
-          filePath.match(constants.tsTsxJsJsxRegex) !== null
-        ) {
+        const lastTime = lastTimes.get(filePath) || startTime;
+
+        if (date <= lastTime) {
           continue;
         }
 

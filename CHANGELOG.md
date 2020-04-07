@@ -1,5 +1,8 @@
 # Changelog
 
+## v7.0.1
+* [fix: watch-run](https://github.com/TypeStrong/ts-loader/pull/1083) - thanks @zn4rk
+
 ## v7.0.0
 * [Project reference support enhancements](https://github.com/TypeStrong/ts-loader/pull/1076) - thanks @sheetalkamat!
 * Following the end of life of Node 8, `ts-loader` no longer supports Node 8 **BREAKING CHANGE**
