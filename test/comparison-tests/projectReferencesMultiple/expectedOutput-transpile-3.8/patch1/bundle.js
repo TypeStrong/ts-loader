@@ -94,7 +94,19 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ./utils */ \"./utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\nutils_1.utils();\n\n\n//# sourceURL=webpack:///./app.ts?");
+
+/***/ }),
+
+/***/ "./common/index.ts":
+/*!*************************!*\
+  !*** ./common/index.ts ***!
+  \*************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\r\nexports.__esModule = true;\r\nfunction common() {\r\n    return 30;\r\n}\r\nexports.common = common;\r\n\n\n//# sourceURL=webpack:///./common/index.ts?");
 
 /***/ }),
 
@@ -103,9 +115,22 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
   !*** ./lib/index.ts ***!
   \**********************/
 /*! no static exports found */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-eval("throw new Error(\"Module build failed (from c:/github/ts-loader/index.js):/nError: TypeScript emitted no output for c://github//ts-loader//.test//projectReferencesNotBuilt_SyntaxErrorInReference_WatchApi.transpile//lib//index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (c://github//ts-loader//dist//index.js:87:18)/n    at successLoader (c://github//ts-loader//dist//index.js:73:9)/n    at Object.loader (c://github//ts-loader//dist//index.js:24:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
+"use strict";
+eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+
+/***/ }),
+
+/***/ "./utils/index.ts":
+/*!************************!*\
+  !*** ./utils/index.ts ***!
+  \************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\r\nexports.__esModule = true;\r\nvar common_1 = __webpack_require__(/*! ../common */ \"./common/index.ts\");\r\nfunction utils() {\r\n    common_1.common();\r\n}\r\nexports.utils = utils;\r\n\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 

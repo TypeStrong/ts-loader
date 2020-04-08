@@ -98,27 +98,14 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
 
 /***/ }),
 
-/***/ "./common/index.ts":
-/*!*************************!*\
-  !*** ./common/index.ts ***!
-  \*************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nfunction common() {\n    return 30;\n}\nexports.common = common;\n\n\n//# sourceURL=webpack:///./common/index.ts?");
-
-/***/ }),
-
 /***/ "./lib/index.ts":
 /*!**********************!*\
   !*** ./lib/index.ts ***!
   \**********************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("throw new Error(\"Module build failed (from c:/github/ts-loader/index.js):/nError: TypeScript emitted no output for c://github//ts-loader//.test//projectReferencesMultiple.transpile//lib//index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (c://github//ts-loader//dist//index.js:87:18)/n    at successLoader (c://github//ts-loader//dist//index.js:73:9)/n    at Object.loader (c://github//ts-loader//dist//index.js:24:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ }),
 
@@ -127,10 +114,9 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexport
   !*** ./utils/index.ts ***!
   \************************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar common_1 = __webpack_require__(/*! ../common */ \"./common/index.ts\");\nfunction utils() {\n    common_1.common();\n}\nexports.utils = utils;\n\n\n//# sourceURL=webpack:///./utils/index.ts?");
+eval("throw new Error(\"Module build failed (from c:/github/ts-loader/index.js):/nError: TypeScript emitted no output for c://github//ts-loader//.test//projectReferencesMultiple.transpile//utils//index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (c://github//ts-loader//dist//index.js:87:18)/n    at successLoader (c://github//ts-loader//dist//index.js:73:9)/n    at Object.loader (c://github//ts-loader//dist//index.js:24:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 

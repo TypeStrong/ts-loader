@@ -686,14 +686,14 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
   if (fileExtensionIs(filePath, instance.compiler.Extension.Dts)) {
     return [];
   }
+  if (isReferencedFile(instance, filePath)) {
+    return instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
+      filePath
+    );
+  }
   const program = ensureProgram(instance);
   if (program !== undefined) {
     const sourceFile = program.getSourceFile(filePath);
-    if (isReferencedFile(instance, filePath)) {
-      return instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
-        filePath
-      );
-    }
     const outputFiles: typescript.OutputFile[] = [];
     const writeFile = (
       fileName: string,

@@ -536,6 +536,12 @@ function getEmit(
       ).version
   );
 
+  return getOutputAndSourceMapFromOutputFiles(outputFiles);
+}
+
+function getOutputAndSourceMapFromOutputFiles(
+  outputFiles: typescript.OutputFile[]
+) {
   const outputFile = outputFiles
     .filter(file => file.name.match(constants.jsJsx))
     .pop();
@@ -630,6 +636,16 @@ function getTranspilationEmit(
   instance: TSInstance,
   loaderContext: webpack.loader.LoaderContext
 ) {
+  if (isReferencedFile(instance, fileName)) {
+    const outputFiles = instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
+      fileName
+    );
+    addDependenciesFromSolutionBuilder(instance, fileName, file =>
+      loaderContext.addDependency(path.resolve(file))
+    );
+    return getOutputAndSourceMapFromOutputFiles(outputFiles);
+  }
+
   const {
     outputText,
     sourceMapText,
@@ -646,10 +662,7 @@ function getTranspilationEmit(
   );
 
   // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
-  if (
-    !instance.loaderOptions.happyPackMode &&
-    !isReferencedFile(instance, fileName)
-  ) {
+  if (!instance.loaderOptions.happyPackMode) {
     const errors = formatErrors(
       diagnostics,
       instance.loaderOptions,
