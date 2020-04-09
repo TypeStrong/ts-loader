@@ -13,6 +13,7 @@ const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
 const copySync = require('./copySync');
+const { Compiler } = require("webpack");
 
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 
@@ -99,12 +100,17 @@ function createTest(test, testPath, options) {
             }
         }
         copySync(testPath, paths.testStagingPath);
-        if (test.startsWith("projectReferencesWatchRefWithTwoFilesAlreadyBuilt")) {
-            // Copy output
-            copySync(path.resolve(paths.testStagingPath, "libOutput"), path.resolve(paths.testStagingPath, "lib"));
-            // Change the buildinfo to use typescript version we have
-            const buildInfoPath = path.resolve(paths.testStagingPath, "lib/tsconfig.tsbuildinfo");
-            fs.writeFileSync(buildInfoPath, fs.readFileSync(buildInfoPath, "utf8").replace("FakeTSVersion", typescript.version));
+        if (test.indexOf("AlreadyBuilt") !== -1) {
+            const parsedCommandLine = typescript.getParsedCommandLineOfConfigFile(path.resolve(paths.testStagingPath, "lib/tsconfig.json"), {}, {
+                fileExists: typescript.sys.fileExists,
+                getCurrentDirectory: typescript.sys.getCurrentDirectory,
+                onUnRecoverableConfigFileDiagnostic: function () {  throw new Error("Error building project")},
+                readFile: typescript.sys.readFile,
+                readDirectory: typescript.sys.readDirectory,
+                useCaseSensitiveFileNames: typescript.sys.useCaseSensitiveFileNames,
+            });
+            const program = typescript.createProgram({ rootNames: parsedCommandLine.fileNames, options: parsedCommandLine.options });
+            program.emit();
         }
 
         // ensure output directories
