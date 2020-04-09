@@ -695,8 +695,7 @@ export function makeSolutionBuilderHost(
         compiler.sys.newLine
       )}${newLine + newLine}`
     );
-  const tsbuildinfos = new Map<string, OutputFile>();
-  const outputFiles = new Map<string, OutputFile>();
+  const outputFiles = new Map<string, OutputFile | false>();
   const outputAffectingInstanceVersion = new Map<string, true>();
   let timeoutId: [(...args: any[]) => void, any[]] | undefined;
 
@@ -715,7 +714,7 @@ export function makeSolutionBuilderHost(
     getCurrentDirectory,
     // behave as if there is no tsbuild info on disk since we want to generate all outputs in memory and only use those
     readFile: (fileName, encoding) => {
-      const outputFile = getOutputFileFromReferencedProject(fileName);
+      const outputFile = ensureOutputFile(fileName);
       return outputFile !== undefined
         ? outputFile
           ? outputFile.text
@@ -724,10 +723,9 @@ export function makeSolutionBuilderHost(
     },
     writeFile: (name, text, writeByteOrderMark) => {
       updateFileWithText(instance, name, () => text);
-      const map = name.endsWith('.tsbuildinfo') ? tsbuildinfos : outputFiles;
       const resolvedFileName = path.resolve(name);
-      const existing = map.get(resolvedFileName);
-      map.set(resolvedFileName, {
+      const existing = outputFiles.get(resolvedFileName);
+      outputFiles.set(resolvedFileName, {
         name,
         text,
         writeByteOrderMark: !!writeByteOrderMark,
@@ -747,7 +745,7 @@ export function makeSolutionBuilderHost(
       }
     },
     getModifiedTime: fileName => {
-      const outputFile = getOutputFileFromReferencedProject(fileName);
+      const outputFile = ensureOutputFile(fileName);
       if (outputFile !== undefined) {
         return outputFile ? outputFile.time : undefined;
       }
@@ -759,14 +757,13 @@ export function makeSolutionBuilderHost(
         : compiler.sys.getModifiedTime!(fileName);
     },
     setModifiedTime: (fileName, time) => {
-      const outputFile = getOutputFileFromReferencedProject(fileName);
+      const outputFile = ensureOutputFile(fileName);
       if (outputFile !== undefined) {
         if (outputFile) {
           outputFile.time = time;
         }
-      } else {
-        compiler.sys.setModifiedTime!(fileName, time);
       }
+      compiler.sys.setModifiedTime!(fileName, time);
       const existing =
         instance.files.get(path.resolve(fileName)) ||
         instance.otherFiles.get(path.resolve(fileName));
@@ -775,7 +772,7 @@ export function makeSolutionBuilderHost(
       }
     },
     fileExists: fileName => {
-      const outputFile = getOutputFileFromReferencedProject(fileName);
+      const outputFile = ensureOutputFile(fileName);
       if (outputFile !== undefined) {
         return !!outputFile;
       }
@@ -796,11 +793,6 @@ export function makeSolutionBuilderHost(
           return true;
         }
       }
-      for (const tsbuildInfo of tsbuildinfos.keys()) {
-        if (normalizeSlashes(tsbuildInfo).startsWith(resolvedDirectory)) {
-          return true;
-        }
-      }
       return false;
     },
     afterProgramEmitAndDiagnostics: transpileOnly ? undefined : storeDtsFiles,
@@ -812,7 +804,6 @@ export function makeSolutionBuilderHost(
       timeoutId = undefined;
     },
     outputFiles,
-    tsbuildinfos,
     configFileInfo,
     outputAffectingInstanceVersion,
     getOutputFileFromReferencedProject,
@@ -886,19 +877,12 @@ export function makeSolutionBuilderHost(
     }
   }
 
-  function findOutputFile(fileName: string) {
-    const resolvedFileName = path.resolve(fileName);
-    return fileName.endsWith('.tsbuildinfo')
-      ? tsbuildinfos.get(resolvedFileName)
-      : outputFiles.get(resolvedFileName);
-  }
-
   function getInputFileNameFromOutput(
     outputFileName: string
   ): string | true | undefined {
     const resolvedFileName = path.resolve(outputFileName);
-    for (const [configFile, configInfo] of configFileInfo.entries()) {
-      ensureInputOutputInfo(configFile, configInfo);
+    for (const configInfo of configFileInfo.values()) {
+      ensureInputOutputInfo(configInfo);
       if (configInfo.outputFileNames) {
         for (const [
           inputFileName,
@@ -919,19 +903,8 @@ export function makeSolutionBuilderHost(
     return undefined;
   }
 
-  function isOutputFromReferencedProject(fileName: string) {
-    return !!getInputFileNameFromOutput(fileName);
-  }
-
-  function ensureInputOutputInfo(
-    configFile: string,
-    configInfo: ConfigFileInfo
-  ) {
-    if (
-      configInfo.outputFileNames ||
-      !configInfo.config ||
-      path.resolve(configFile) === path.resolve(instance.configFilePath!)
-    ) {
+  function ensureInputOutputInfo(configInfo: ConfigFileInfo) {
+    if (configInfo.outputFileNames || !configInfo.config) {
       return;
     }
     configInfo.outputFileNames = new Map();
@@ -958,22 +931,49 @@ export function makeSolutionBuilderHost(
   function getOutputFileFromReferencedProject(
     outputFileName: string
   ): OutputFile | false | undefined {
-    return (
-      findOutputFile(outputFileName) ||
-      (isOutputFromReferencedProject(outputFileName) ? false : undefined)
-    );
+    const resolvedFileName = path.resolve(outputFileName);
+    return outputFiles.get(resolvedFileName);
+  }
+
+  function ensureOutputFile(
+    outputFileName: string,
+    encoding?: string
+  ): OutputFile | false | undefined {
+    const outputFile = getOutputFileFromReferencedProject(outputFileName);
+    if (outputFile !== undefined) {
+      return outputFile;
+    }
+    if (!getInputFileNameFromOutput(outputFileName)) {
+      return undefined;
+    }
+    const resolvedFileName = path.resolve(outputFileName);
+    const text = compiler.sys.readFile(outputFileName, encoding);
+    if (text === undefined) {
+      outputFiles.set(resolvedFileName, false);
+      return false;
+    }
+    const newOutputFile: OutputFile = {
+      name: outputFileName,
+      text,
+      writeByteOrderMark: false,
+      time: compiler.sys.getModifiedTime!(outputFileName)!,
+      isNew: false,
+      version: 0
+    };
+    outputFiles.set(resolvedFileName, newOutputFile);
+    return newOutputFile;
   }
 
   function getOutputFilesFromReferencedProjectInput(inputFileName: string) {
     const resolvedFileName = path.resolve(inputFileName);
-    for (const [configFile, configInfo] of configFileInfo.entries()) {
-      ensureInputOutputInfo(configFile, configInfo);
+    for (const configInfo of configFileInfo.values()) {
+      ensureInputOutputInfo(configInfo);
       if (configInfo.outputFileNames) {
         const result = configInfo.outputFileNames.get(resolvedFileName);
         if (result) {
           return result
             .map(outputFile => outputFiles.get(outputFile)!)
-            .filter(output => !!output);
+            .filter(output => !!output) as OutputFile[];
         }
       }
     }

@@ -277,6 +277,10 @@ export function initializeInstance(
     instance.transformers = getCustomTransformers(program);
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
+      loader._compiler.hooks.afterCompile.tapAsync(
+        'ts-loader',
+        makeAfterCompile(instance, instance.configFilePath)
+      );
       loader._compiler.hooks.watchRun.tapAsync(
         'ts-loader',
         makeWatchRun(instance)
@@ -398,10 +402,10 @@ export function buildSolutionReferences(
     );
     instance.solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
       instance.solutionBuilderHost,
-      [instance.configFilePath!],
+      instance.configParseResult.projectReferences!.map(ref => ref.path),
       { verbose: true }
     );
-    instance.solutionBuilder!.buildReferences(instance.configFilePath!);
+    instance.solutionBuilder!.build();
     ensureAllReferences(instance);
   } else {
     instance.solutionBuilderHost.buildReferences();
@@ -410,11 +414,8 @@ export function buildSolutionReferences(
 
 function ensureAllReferences(instance: TSInstance) {
   // Return result from the json without errors so that the extra errors from config are digested here
-  const rootConfigInfo = instance.solutionBuilderHost!.configFileInfo.get(
-    instance.configFilePath!
-  );
   for (const configInfo of instance.solutionBuilderHost!.configFileInfo.values()) {
-    if (configInfo === rootConfigInfo || !configInfo.config) {
+    if (!configInfo.config) {
       continue;
     }
     // Load all the input files

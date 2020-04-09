@@ -89,8 +89,7 @@ export interface SolutionBuilderWithWatchHost
     >,
     WatchFactory {
   diagnostics: SolutionDiagnostics;
-  outputFiles: Map<string, OutputFile>;
-  tsbuildinfos: Map<string, OutputFile>;
+  outputFiles: Map<string, false | OutputFile>;
   configFileInfo: Map<string, ConfigFileInfo>;
   outputAffectingInstanceVersion: Map<string, true>;
   getOutputFileFromReferencedProject(
@@ -162,11 +161,7 @@ export interface TSInstance {
   configFilePath: string | undefined;
 
   initialSetupPending: boolean;
-  configParseResult: {
-    options: typescript.CompilerOptions;
-    fileNames: string[];
-    projectReferences?: ReadonlyArray<typescript.ProjectReference>;
-  };
+  configParseResult: typescript.ParsedCommandLine;
   log: logger.Logger;
 }
 

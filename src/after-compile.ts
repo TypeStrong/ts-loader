@@ -39,6 +39,12 @@ export function makeAfterCompile(
       return;
     }
 
+    if (instance.loaderOptions.transpileOnly) {
+      provideAssetsFromSolutionBuilderHost(instance, compilation);
+      callback();
+      return;
+    }
+
     removeTSLoaderErrors(compilation.errors);
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
@@ -418,23 +424,14 @@ function provideAssetsFromSolutionBuilderHost(
 ) {
   if (instance.solutionBuilderHost) {
     // written files
-    addDeclarationFilesAsAsset(
-      instance.solutionBuilderHost.outputFiles.values(),
-      compilation,
-      outputFile => !outputFile.isNew
-    );
-    // tsbuild infos
-    outputFilesToAsset(
-      instance.solutionBuilderHost.tsbuildinfos.values(),
-      compilation,
-      outputFile => !outputFile.isNew
-    );
-    instance.solutionBuilderHost.outputFiles.forEach(
-      outputFile => (outputFile.isNew = false)
-    );
-    instance.solutionBuilderHost.tsbuildinfos.forEach(
-      outputFile => (outputFile.isNew = false)
-    );
+    for (const outputFile of instance.solutionBuilderHost.outputFiles.values()) {
+      if (outputFile) {
+        if (outputFile.isNew) {
+          outputFileToAsset(outputFile, compilation);
+        }
+        outputFile.isNew = false;
+      }
+    }
   }
 }
 

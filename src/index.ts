@@ -563,8 +563,26 @@ function addDependenciesFromSolutionBuilder(
   if (!instance.solutionBuilderHost) {
     return;
   }
+
   // Add all the input files from the references as
   const resolvedFilePath = path.resolve(filePath);
+  if (!isReferencedFile(instance, filePath)) {
+    if (
+      instance.configParseResult.fileNames.some(
+        f => path.resolve(f) === resolvedFilePath
+      )
+    ) {
+      addDependenciesFromProjectReferences(
+        instance,
+        path.resolve(instance.configFilePath!),
+        instance.configParseResult.projectReferences,
+        addDependency
+      );
+    }
+    return;
+  }
+
+  // Referenced file find the config for it
   for (const [
     configFile,
     configInfo
@@ -588,40 +606,57 @@ function addDependenciesFromSolutionBuilder(
       continue;
     }
 
-    // This is the config for the input file
-    const seenMap = new Map<string, true>();
-    seenMap.set(configFile, true);
-
     // Depend on all the dts files from the program
     if (configInfo.dtsFiles) {
       configInfo.dtsFiles.forEach(addDependency);
     }
+    addDependenciesFromProjectReferences(
+      instance,
+      configFile,
+      configInfo.config.projectReferences,
+      addDependency
+    );
+    break;
+  }
+}
 
-    // Add dependencies to all the input files from the project reference files since building them
-    const queue = configInfo.config.projectReferences.slice();
-    while (true) {
-      const currentRef = queue.pop();
-      if (!currentRef) {
-        break;
-      }
-      const refConfigFile = path.resolve(
-        instance.compiler.resolveProjectReferencePath(currentRef)
-      );
-      if (seenMap.has(refConfigFile)) {
-        continue;
-      }
-      const refConfigInfo = instance.solutionBuilderHost.configFileInfo.get(
-        refConfigFile
-      );
-      if (!refConfigInfo) {
-        continue;
-      }
-      seenMap.set(refConfigFile, true);
-      if (refConfigInfo.config) {
-        refConfigInfo.config.fileNames.forEach(addDependency);
-        if (refConfigInfo.config.projectReferences) {
-          queue.push(...refConfigInfo.config.projectReferences);
-        }
+function addDependenciesFromProjectReferences(
+  instance: TSInstance,
+  configFile: string,
+  projectReferences: readonly typescript.ProjectReference[] | undefined,
+  addDependency: (file: string) => void
+) {
+  if (!projectReferences || !projectReferences.length) {
+    return;
+  }
+  // This is the config for the input file
+  const seenMap = new Map<string, true>();
+  seenMap.set(configFile, true);
+
+  // Add dependencies to all the input files from the project reference files since building them
+  const queue = projectReferences.slice();
+  while (true) {
+    const currentRef = queue.pop();
+    if (!currentRef) {
+      break;
+    }
+    const refConfigFile = path.resolve(
+      instance.compiler.resolveProjectReferencePath(currentRef)
+    );
+    if (seenMap.has(refConfigFile)) {
+      continue;
+    }
+    const refConfigInfo = instance.solutionBuilderHost!.configFileInfo.get(
+      refConfigFile
+    );
+    if (!refConfigInfo) {
+      continue;
+    }
+    seenMap.set(refConfigFile, true);
+    if (refConfigInfo.config) {
+      refConfigInfo.config.fileNames.forEach(addDependency);
+      if (refConfigInfo.config.projectReferences) {
+        queue.push(...refConfigInfo.config.projectReferences);
       }
     }
   }
