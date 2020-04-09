@@ -424,14 +424,8 @@ function provideAssetsFromSolutionBuilderHost(
 ) {
   if (instance.solutionBuilderHost) {
     // written files
-    for (const outputFile of instance.solutionBuilderHost.outputFiles.values()) {
-      if (outputFile) {
-        if (outputFile.isNew) {
-          outputFileToAsset(outputFile, compilation);
-        }
-        outputFile.isNew = false;
-      }
-    }
+    outputFilesToAsset(instance.solutionBuilderHost.writtenFiles, compilation);
+    instance.solutionBuilderHost.writtenFiles.length = 0;
   }
 }
 

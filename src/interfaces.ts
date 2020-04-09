@@ -89,7 +89,7 @@ export interface SolutionBuilderWithWatchHost
     >,
     WatchFactory {
   diagnostics: SolutionDiagnostics;
-  outputFiles: Map<string, false | OutputFile>;
+  writtenFiles: OutputFile[];
   configFileInfo: Map<string, ConfigFileInfo>;
   outputAffectingInstanceVersion: Map<string, true>;
   getOutputFileFromReferencedProject(
@@ -110,7 +110,6 @@ export interface ConfigFileInfo {
 export interface OutputFile extends typescript.OutputFile {
   time: Date;
   version: number;
-  isNew: boolean;
 }
 
 export interface TSInstance {

@@ -696,6 +696,7 @@ export function makeSolutionBuilderHost(
       )}${newLine + newLine}`
     );
   const outputFiles = new Map<string, OutputFile | false>();
+  const writtenFiles: OutputFile[] = [];
   const outputAffectingInstanceVersion = new Map<string, true>();
   let timeoutId: [(...args: any[]) => void, any[]] | undefined;
 
@@ -725,18 +726,19 @@ export function makeSolutionBuilderHost(
       updateFileWithText(instance, name, () => text);
       const resolvedFileName = path.resolve(name);
       const existing = outputFiles.get(resolvedFileName);
-      outputFiles.set(resolvedFileName, {
+      const newOutputFile: OutputFile = {
         name,
         text,
         writeByteOrderMark: !!writeByteOrderMark,
         time: new Date(),
-        isNew: true,
         version: existing
           ? existing.text !== text
             ? existing.version + 1
             : existing.version
           : 0
-      });
+      };
+      outputFiles.set(resolvedFileName, newOutputFile);
+      writtenFiles.push(newOutputFile);
       if (
         outputAffectingInstanceVersion.has(resolvedFileName) &&
         (!existing || existing.text !== text)
@@ -803,7 +805,7 @@ export function makeSolutionBuilderHost(
     clearTimeout: _timeoutId => {
       timeoutId = undefined;
     },
-    outputFiles,
+    writtenFiles,
     configFileInfo,
     outputAffectingInstanceVersion,
     getOutputFileFromReferencedProject,
@@ -957,7 +959,6 @@ export function makeSolutionBuilderHost(
       text,
       writeByteOrderMark: false,
       time: compiler.sys.getModifiedTime!(outputFileName)!,
-      isNew: false,
       version: 0
     };
     outputFiles.set(resolvedFileName, newOutputFile);
