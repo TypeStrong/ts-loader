@@ -489,7 +489,7 @@ function getEmit(
       .concat(additionalDependencies)
       .map(
         defFilePath =>
-          defFilePath +
+          path.relative(loaderContext.rootContext,defFilePath) +
           '@' +
           (instance.files.get(defFilePath) || { version: '?' }).version
       );
