@@ -35,3 +35,40 @@ Error: TypeScript emitted no output for utils\index.ts. The most common cause fo
     at successLoader (dist\index.js:73:9)
     at Object.loader (dist\index.js:24:5)
  @ ./app.ts 4:14-32
+
+    Asset      Size  Chunks  Chunk Names
+bundle.js  5.57 KiB    main  main
+Entrypoint main = bundle.js
+[./app.ts] 218 bytes {main} [2 errors]
+[./lib/index.ts] 493 bytes {main} [built] [failed] [3 errors]
+[./utils/index.ts] 495 bytes {main} [built] [failed] [1 error]
+
+ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError\fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'false' is not assignable to type 'string'.[39m[22m
+
+ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError\fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'false' is not assignable to type 'string'.[39m[22m
+ @ ./app.ts 3:12-28
+
+ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib\fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'false' is not assignable to type 'string'.[39m[22m
+
+ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib\fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'false' is not assignable to type 'string'.[39m[22m
+ @ ./app.ts 3:12-28
+
+ERROR in ./lib/index.ts
+Module build failed (from /index.js):
+Error: TypeScript emitted no output for lib\index.ts. The most common cause for this is having errors when building referenced projects.
+    at makeSourceMapAndFinish (dist\index.js:87:18)
+    at successLoader (dist\index.js:73:9)
+    at Object.loader (dist\index.js:24:5)
+ @ ./app.ts 3:12-28
+
+ERROR in ./utils/index.ts
+Module build failed (from /index.js):
+Error: TypeScript emitted no output for utils\index.ts. The most common cause for this is having errors when building referenced projects.
+    at makeSourceMapAndFinish (dist\index.js:87:18)
+    at successLoader (dist\index.js:73:9)
+    at Object.loader (dist\index.js:24:5)
+ @ ./app.ts 4:14-32

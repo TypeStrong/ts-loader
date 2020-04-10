@@ -177,21 +177,38 @@ function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
 }
 
 function createWebpackWatchHandler(done, paths, testState, options, test) {
+    let timoutId;
+    let statsString;
+    let errString;
     return function (err, stats) {
+        if (timoutId) {
+            clearTimeout(timoutId);
+            timoutId = undefined;
+        }
         const patch = setPathsAndGetPatch(paths, testState, options);
+        const currentErrString = errToString(err, paths);
+        if (currentErrString) {
+            errString = errString ? errString + "\n\n" + currentErrString : currentErrString;
+        }
+        const currentStatsString = statsToString(stats, testState, paths);
+        if (currentStatsString) {
+            statsString = statsString ? statsString + "\n\n" + currentStatsString : currentStatsString;
+        }
+        timoutId = setTimeout(function () {
+            cleanHashFromOutput(stats, paths.webpackOutput);
 
-        cleanHashFromOutput(stats, paths.webpackOutput);
+            copySync(paths.webpackOutput, paths.actualOutput);
+            rimraf.sync(paths.webpackOutput);
 
-        copySync(paths.webpackOutput, paths.actualOutput);
-        rimraf.sync(paths.webpackOutput);
+            handleErrors(errString, paths);
+            errString = undefined;
 
-        handleErrors(err, paths);
+            storeStats(statsString, paths);
+            statsString = undefined;
 
-        storeStats(stats, testState, paths);
-
-        compareFiles(paths, test, patch);
-
-        copyPatchOrEndTest(paths.testStagingPath, testState.watcher, testState, done);
+            compareFiles(paths, test, patch);
+            copyPatchOrEndTest(paths.testStagingPath, testState.watcher, testState, done);
+        }, 2000);
     }
 }
 
@@ -210,25 +227,34 @@ function setPathsAndGetPatch(paths, testState, options) {
     return patch;
 }
 
-function handleErrors(err, paths) {
-    if (err) {
+function handleErrors(errString, paths) {
+    if (errString) {
         const errFileName = 'err.txt';
+        fs.writeFileSync(path.join(paths.actualOutput, errFileName), errString);
+    }
+}
 
+function errToString(err, paths) {
+    if (err) {
         const errString = err.toString()
             .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
             .replace(/\.transpile/g, '');
-
-        fs.writeFileSync(path.join(paths.actualOutput, errFileName), errString);
+        return errString;
     }
 }
 
-function storeStats(stats, testState, paths) {
+function storeStats(statsString, paths) {
+    if (statsString) {
+        const statsFileName = 'output.txt';
+        fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
+    }
+}
+
+function statsToString(stats, testState, paths) {
     if (stats && stats.hash !== testState.lastHash) {
         testState.lastHash = stats.hash;
-
-        const statsFileName = 'output.txt';
 
         // do a little magic to normalize `\` to `/` for asset output
         const newAssets = {};
@@ -244,8 +270,7 @@ function storeStats(stats, testState, paths) {
             .replace(new RegExp(regexEscape(rootPath), 'g'), '')
             .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
             .replace(/\.transpile/g, '');
-
-        fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
+        return statsString;
     }
 }
 

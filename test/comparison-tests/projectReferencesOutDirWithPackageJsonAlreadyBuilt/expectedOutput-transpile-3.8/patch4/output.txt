@@ -2,4 +2,4 @@
 bundle.js  4.45 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
 [./app.ts] 222 bytes {main} [built]
-[./lib/out/index.js] 156 bytes {main} [built]
+[./lib/out/index.js] 156 bytes {main}

@@ -7,3 +7,9 @@
 Entrypoint main = bundle.js
 [./app.ts] 131 bytes {main} [built]
 [./lib/out/index.js] 130 bytes {main}
+
+    Asset      Size  Chunks             Chunk Names
+bundle.js  4.37 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 131 bytes {main}
+[./lib/out/index.js] 161 bytes {main} [built]
