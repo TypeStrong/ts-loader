@@ -2,7 +2,7 @@
 bundle.js  4.42 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
 [./app.ts] 186 bytes {main} [built] [1 error]
-[./lib/out/index.js] 156 bytes {main}
+[./lib/out/index.js] 156 bytes {main} [built]
 
 ERROR in app.ts
 ./app.ts
