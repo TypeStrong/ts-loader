@@ -15,26 +15,30 @@ export function makeWatchRun(instance: TSInstance) {
 
   return (compiler: webpack.Compiler, callback: () => void) => {
     const times = compiler.fileTimestamps;
-    for (const [filePath, date] of times) {
-      if (
-        date > (lastTimes.get(filePath) || startTime) &&
-        filePath.match(constants.tsTsxJsJsxRegex) !== null
-      ) {
-        continue;
+    if (instance.loaderOptions.transpileOnly) {
+      instance.reportTranspileErrors = true;
+    } else {
+      for (const [filePath, date] of times) {
+        if (
+          date > (lastTimes.get(filePath) || startTime) &&
+          filePath.match(constants.tsTsxJsJsxRegex) !== null
+        ) {
+          continue;
+        }
+
+        lastTimes.set(filePath, date);
+        updateFile(instance, filePath);
       }
 
-      lastTimes.set(filePath, date);
-      updateFile(instance, filePath);
-    }
-
-    // On watch update add all known dts files expect the ones in node_modules
-    // (skip @types/* and modules with typings)
-    for (const filePath of instance.files.keys()) {
-      if (
-        filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
-        filePath.match(constants.nodeModules) === null
-      ) {
-        updateFile(instance, filePath);
+      // On watch update add all known dts files expect the ones in node_modules
+      // (skip @types/* and modules with typings)
+      for (const filePath of instance.files.keys()) {
+        if (
+          filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
+          filePath.match(constants.nodeModules) === null
+        ) {
+          updateFile(instance, filePath);
+        }
       }
     }
 

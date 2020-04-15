@@ -4,6 +4,7 @@ const rimraf = require('rimraf');
 const typescript = require('typescript');
 const semver = require('semver');
 const execSync = require('child_process').execSync;
+const getProgram = require('./getProgram');
 
 // We only want to run comparison tests for the latest released version
 const typescriptVersion = parseFloat(
@@ -11,6 +12,23 @@ const typescriptVersion = parseFloat(
 );
 // @ts-ignore
 if (typescriptVersion < 3.8 || typescriptVersion > 3.8) return;
+
+// Build
+const program = getProgram(path.resolve(__dirname, "tsconfig.json"));
+const diagnostics = typescript.getPreEmitDiagnostics(program);
+if (diagnostics.length) {
+  const formatDiagnosticHost = {
+    getCurrentDirectory: typescript.sys.getCurrentDirectory,
+    getCanonicalFileName: typescript.sys.useCaseSensitiveFileNames
+      ? s => s
+      : s => s.toLowerCase(),
+    getNewLine: () => typescript.sys.newLine
+  };
+  for (const d of diagnostics) {
+    typescript.sys.write(typescript.formatDiagnostic(d, formatDiagnosticHost));
+  }
+  throw new Error("Errors in the tests");
+}
 
 // Parse command line arguments
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;

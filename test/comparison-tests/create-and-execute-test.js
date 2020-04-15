@@ -13,6 +13,7 @@ const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
 const copySync = require('./copySync');
+const getProgram = require('./getProgram');
 
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
 
@@ -99,12 +100,9 @@ function createTest(test, testPath, options) {
             }
         }
         copySync(testPath, paths.testStagingPath);
-        if (test.startsWith("projectReferencesWatchRefWithTwoFilesAlreadyBuilt")) {
-            // Copy output
-            copySync(path.resolve(paths.testStagingPath, "libOutput"), path.resolve(paths.testStagingPath, "lib"));
-            // Change the buildinfo to use typescript version we have
-            const buildInfoPath = path.resolve(paths.testStagingPath, "lib/tsconfig.tsbuildinfo");
-            fs.writeFileSync(buildInfoPath, fs.readFileSync(buildInfoPath, "utf8").replace("FakeTSVersion", typescript.version));
+        if (test.indexOf("AlreadyBuilt") !== -1) {
+            const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"));
+            program.emit();
         }
 
         // ensure output directories
@@ -245,7 +243,14 @@ function storeStats(stats, testState, paths) {
 
 function compareFiles(paths, test, patch) {
     if (saveOutputMode) {
-        copySync(paths.actualOutput, paths.originalExpectedOutput);
+        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true });
+        actualFiles.forEach(function (file) {
+            const actual = getNormalisedFileContent(file, paths.actualOutput);
+            const expected = getNormalisedFileContent(file, paths.expectedOutput);
+            if (actual !== expected) {
+                fs.copyFileSync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
+            }
+        });
     }
     else {
         // compare actual to expected

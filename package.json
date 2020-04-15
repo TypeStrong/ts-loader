@@ -1,13 +1,13 @@
 {
   "name": "ts-loader",
-  "version": "6.2.2",
+  "version": "7.0.0",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "lint": "tslint --project \"./src\"",
-    "comparison-tests": "git clean -xfd test/comparison-tests && tsc --project \"./test/comparison-tests\" && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
+    "comparison-tests": "git clean -xfd test/comparison-tests && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "git clean -xfd test/comparison-tests && node test/comparison-tests/stub-new-version.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
     "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",

@@ -12,10 +12,6 @@ Error: TypeScript emitted no output for lib\index.ts. The most common cause for 
     at Object.loader (dist\index.js:22:12)
  @ ./app.ts 3:12-28
 
-ERROR in tsconfig.json
-[90m[tsl] [39m[1m[31mERROR[39m[22m
-[1m[31m      TS6305: Output file '/.test/projectReferencesNotBuilt_SyntaxErrorInReference_WatchApi/lib/index.d.ts' has not been built from source file '/.test/projectReferencesNotBuilt_SyntaxErrorInReference_WatchApi/lib/index.ts'.[39m[22m
-
 ERROR in lib\index.ts
 ./lib/index.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib\index.ts(4,12)[39m[22m
