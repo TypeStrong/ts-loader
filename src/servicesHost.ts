@@ -4,13 +4,18 @@ import * as webpack from 'webpack';
 
 import { getParsedCommandLine } from './config';
 import * as constants from './constants';
+import { getOutputFileNames } from './instances';
 import {
+  Action,
+  ConfigFileInfo,
   CustomResolveModuleName,
   CustomResolveTypeReferenceDirective,
   FormatDiagnosticsHost,
   ModuleResolutionHost,
+  OutputFile,
   ResolvedModule,
   ResolveSync,
+  ServiceHostWhichMayBeCacheable,
   SolutionBuilderWithWatchHost,
   SolutionDiagnostics,
   TSFile,
@@ -20,15 +25,26 @@ import {
   WatchHost,
   WebpackError
 } from './interfaces';
-import * as logger from './logger';
 import { makeResolver } from './resolver';
 import { formatErrors, readFile, unorderedRemoveItem } from './utils';
 
-export type Action = () => void;
-
-export interface ServiceHostWhichMayBeCacheable {
-  servicesHost: typescript.LanguageServiceHost;
-  clearCache: Action | null;
+function readFileWithInstance(
+  instance: TSInstance,
+  filePath: string,
+  encoding?: string | undefined
+): string | undefined {
+  if (instance.solutionBuilderHost) {
+    const outputFile = instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+      filePath
+    );
+    if (outputFile !== undefined) {
+      return outputFile ? outputFile.text : undefined;
+    }
+  }
+  return (
+    instance.compiler.sys.readFile(filePath, encoding) ||
+    readFile(filePath, encoding)
+  );
 }
 
 /**
@@ -36,7 +52,6 @@ export interface ServiceHostWhichMayBeCacheable {
  */
 export function makeServicesHost(
   scriptRegex: RegExp,
-  log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   enableFileCaching: boolean,
@@ -66,12 +81,22 @@ export function makeServicesHost(
   const readFileWithFallback = (
     filePath: string,
     encoding?: string | undefined
-  ): string | undefined =>
-    compiler.sys.readFile(filePath, encoding) || readFile(filePath, encoding);
+  ): string | undefined => readFileWithInstance(instance, filePath, encoding);
 
-  const fileExists = (filePathToCheck: string) =>
-    compiler.sys.fileExists(filePathToCheck) ||
-    readFile(filePathToCheck) !== undefined;
+  const fileExists = (filePathToCheck: string) => {
+    if (instance.solutionBuilderHost) {
+      const outputFile = instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+        filePathToCheck
+      );
+      if (outputFile !== undefined) {
+        return !!outputFile;
+      }
+    }
+    return (
+      compiler.sys.fileExists(filePathToCheck) ||
+      readFile(filePathToCheck) !== undefined
+    );
+  };
 
   let clearCache: Action | null = null;
   let moduleResolutionHost: ModuleResolutionHost = {
@@ -115,7 +140,21 @@ export function makeServicesHost(
     getScriptVersion: (fileName: string) => {
       fileName = path.normalize(fileName);
       const file = files.get(fileName);
-      return file === undefined ? '' : file.version.toString();
+      if (file) {
+        return file.version.toString();
+      }
+      const outputFile =
+        instance.solutionBuilderHost &&
+        instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+          fileName
+        );
+      if (outputFile !== undefined) {
+        instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
+          path.resolve(fileName),
+          true
+        );
+      }
+      return outputFile ? outputFile.version.toString() : '';
     },
 
     getScriptSnapshot: (fileName: string) => {
@@ -125,6 +164,21 @@ export function makeServicesHost(
       let file = files.get(fileName);
 
       if (file === undefined) {
+        if (instance.solutionBuilderHost) {
+          const outputFile = instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+            fileName
+          );
+          if (outputFile !== undefined) {
+            instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
+              path.resolve(fileName),
+              true
+            );
+            return outputFile
+              ? compiler.ScriptSnapshot.fromString(outputFile.text)
+              : undefined;
+          }
+        }
+
         const text = readFile(fileName);
         if (text === undefined) {
           return undefined;
@@ -163,8 +217,8 @@ export function makeServicesHost(
     getDefaultLibFileName: (options: typescript.CompilerOptions) =>
       compiler.getDefaultLibFilePath(options),
     getNewLine: () => newLine,
-    trace: log.log,
-    log: log.log,
+    trace: instance.log.log,
+    log: instance.log.log,
 
     // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
     resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
@@ -244,12 +298,7 @@ function makeResolvers(
   };
 }
 
-function createWatchFactory(
-  beforeCallbacks?: (
-    key: string,
-    cb: typescript.FileWatcherCallback[] | typescript.DirectoryWatcherCallback[]
-  ) => void
-): WatchFactory {
+function createWatchFactory(): WatchFactory {
   const watchedFiles: WatchCallbacks<
     typescript.FileWatcherCallback
   > = new Map();
@@ -283,9 +332,6 @@ function createWatchFactory(
       // The array copy is made to ensure that even if one of the callback removes the callbacks,
       // we dont miss any callbacks following it
       const cbs = callbacks.slice();
-      if (beforeCallbacks) {
-        beforeCallbacks(key, cbs);
-      }
       for (const cb of cbs) {
         cb(fileName, eventKind as typescript.FileWatcherEventKind);
       }
@@ -385,7 +431,8 @@ export function updateFileWithText(
     if (newText !== file.text) {
       file.text = newText;
       file.version++;
-      instance.version!++;
+      file.modifiedTime = new Date();
+      instance.version++;
       if (!instance.modifiedFiles) {
         instance.modifiedFiles = new Map<string, TSFile>();
       }
@@ -411,7 +458,6 @@ export function updateFileWithText(
  */
 export function makeWatchHost(
   scriptRegex: RegExp,
-  log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
@@ -441,8 +487,7 @@ export function makeWatchHost(
   const readFileWithFallback = (
     filePath: string,
     encoding?: string | undefined
-  ): string | undefined =>
-    compiler.sys.readFile(filePath, encoding) || readFile(filePath, encoding);
+  ): string | undefined => readFileWithInstance(instance, filePath, encoding);
 
   const moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
@@ -495,7 +540,7 @@ export function makeWatchHost(
         depth
       ),
     realpath: dirPath => compiler.sys.resolvePath(path.normalize(dirPath)),
-    trace: logData => log.log(logData),
+    trace: logData => instance.log.log(logData),
 
     watchFile,
     watchDirectory,
@@ -575,12 +620,15 @@ export function makeWatchHost(
   }
 }
 
+function normalizeSlashes(file: string): string {
+  return file.replace(/\\/g, '/');
+}
+
 /**
  * Create the TypeScript Watch host
  */
 export function makeSolutionBuilderHost(
   scriptRegex: RegExp,
-  log: logger.Logger,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance
 ): SolutionBuilderWithWatchHost {
@@ -631,22 +679,28 @@ export function makeSolutionBuilderHost(
     } else {
       diagnostics.global.push(d);
     }
-    log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+    instance.log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   };
 
   const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
-    log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+    instance.log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
   const reportWatchStatus = (
     d: typescript.Diagnostic,
     newLine: string,
     _options: typescript.CompilerOptions
   ) =>
-    log.logInfo(
+    instance.log.logInfo(
       `${compiler.flattenDiagnosticMessageText(
         d.messageText,
         compiler.sys.newLine
       )}${newLine + newLine}`
     );
+  const outputFiles = new Map<string, OutputFile | false>();
+  const writtenFiles: OutputFile[] = [];
+  const outputAffectingInstanceVersion = new Map<string, true>();
+  let timeoutId: [(...args: any[]) => void, any[]] | undefined;
+
+  const configFileInfo = new Map<string, ConfigFileInfo>();
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...compiler.createSolutionBuilderWithWatchHost(
       compiler.sys,
@@ -656,19 +710,118 @@ export function makeSolutionBuilderHost(
       reportWatchStatus
     ),
     diagnostics,
-    ...createWatchFactory(beforeWatchCallbacks),
+    ...createWatchFactory(),
     // Overrides
     getCurrentDirectory,
-    writeFile: (name, text, writeByteOrderMark) => {
-      compiler.sys.writeFile(name, text, writeByteOrderMark);
-      updateFileWithText(instance, name, () => text);
+    // behave as if there is no tsbuild info on disk since we want to generate all outputs in memory and only use those
+    readFile: (fileName, encoding) => {
+      const outputFile = ensureOutputFile(fileName);
+      return outputFile !== undefined
+        ? outputFile
+          ? outputFile.text
+          : undefined
+        : readInputFile(fileName, encoding).text;
     },
-    setTimeout: undefined,
-    clearTimeout: undefined
+    writeFile: (name, text, writeByteOrderMark) => {
+      updateFileWithText(instance, name, () => text);
+      const resolvedFileName = path.resolve(name);
+      const existing = outputFiles.get(resolvedFileName);
+      const newOutputFile: OutputFile = {
+        name,
+        text,
+        writeByteOrderMark: !!writeByteOrderMark,
+        time: new Date(),
+        version: existing
+          ? existing.text !== text
+            ? existing.version + 1
+            : existing.version
+          : 0
+      };
+      outputFiles.set(resolvedFileName, newOutputFile);
+      writtenFiles.push(newOutputFile);
+      if (
+        outputAffectingInstanceVersion.has(resolvedFileName) &&
+        (!existing || existing.text !== text)
+      ) {
+        instance.version++;
+      }
+    },
+    getModifiedTime: fileName => {
+      const outputFile = ensureOutputFile(fileName);
+      if (outputFile !== undefined) {
+        return outputFile ? outputFile.time : undefined;
+      }
+      const existing =
+        instance.files.get(path.resolve(fileName)) ||
+        instance.otherFiles.get(path.resolve(fileName));
+      return existing
+        ? existing.modifiedTime
+        : compiler.sys.getModifiedTime!(fileName);
+    },
+    setModifiedTime: (fileName, time) => {
+      const outputFile = ensureOutputFile(fileName);
+      if (outputFile !== undefined) {
+        if (outputFile) {
+          outputFile.time = time;
+        }
+      }
+      compiler.sys.setModifiedTime!(fileName, time);
+      const existing =
+        instance.files.get(path.resolve(fileName)) ||
+        instance.otherFiles.get(path.resolve(fileName));
+      if (existing) {
+        existing.modifiedTime = time;
+      }
+    },
+    fileExists: fileName => {
+      const outputFile = ensureOutputFile(fileName);
+      if (outputFile !== undefined) {
+        return !!outputFile;
+      }
+      const existing =
+        instance.files.get(path.resolve(fileName)) ||
+        instance.otherFiles.get(path.resolve(fileName));
+      return existing
+        ? existing.text !== undefined
+        : compiler.sys.fileExists(fileName);
+    },
+    directoryExists: directory => {
+      if (compiler.sys.directoryExists(directory)) {
+        return true;
+      }
+      const resolvedDirectory = normalizeSlashes(path.resolve(directory)) + '/';
+      for (const outputFile of outputFiles.keys()) {
+        if (normalizeSlashes(outputFile).startsWith(resolvedDirectory)) {
+          return true;
+        }
+      }
+      return false;
+    },
+    afterProgramEmitAndDiagnostics: transpileOnly ? undefined : storeDtsFiles,
+    setTimeout: (callback, _time, ...args) => {
+      timeoutId = [callback, args];
+      return timeoutId;
+    },
+    clearTimeout: _timeoutId => {
+      timeoutId = undefined;
+    },
+    writtenFiles,
+    configFileInfo,
+    outputAffectingInstanceVersion,
+    getOutputFileFromReferencedProject,
+    getInputFileNameFromOutput: fileName => {
+      const result = getInputFileNameFromOutput(fileName);
+      return typeof result === 'string' ? result : undefined;
+    },
+    getOutputFilesFromReferencedProjectInput,
+    buildReferences
   };
-  solutionBuilderHost.trace = logData => log.logInfo(logData);
-  solutionBuilderHost.getParsedCommandLine = file =>
-    getParsedCommandLine(compiler, instance.loaderOptions, file);
+  solutionBuilderHost.trace = logData => instance.log.logInfo(logData);
+  solutionBuilderHost.getParsedCommandLine = file => {
+    const config = getParsedCommandLine(compiler, instance.loaderOptions, file);
+    configFileInfo.set(path.resolve(file), { config });
+    return config;
+  };
 
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
@@ -690,10 +843,157 @@ export function makeSolutionBuilderHost(
 
   return solutionBuilderHost;
 
-  function beforeWatchCallbacks() {
+  function buildReferences() {
+    if (!timeoutId) {
+      return;
+    }
     diagnostics.global.length = 0;
     diagnostics.perFile.clear();
     diagnostics.transpileErrors.length = 0;
+
+    while (timeoutId) {
+      const [callback, args] = timeoutId;
+      timeoutId = undefined;
+      callback(...args);
+    }
+  }
+
+  function storeDtsFiles(
+    builderProgram: typescript.EmitAndSemanticDiagnosticsBuilderProgram
+  ) {
+    const program = builderProgram.getProgram();
+    for (const configInfo of configFileInfo.values()) {
+      if (
+        !configInfo.config ||
+        program.getRootFileNames() !== configInfo.config.fileNames ||
+        program.getCompilerOptions() !== configInfo.config.options ||
+        program.getProjectReferences() !== configInfo.config.projectReferences
+      ) {
+        continue;
+      }
+      configInfo.dtsFiles = program
+        .getSourceFiles()
+        .map(file => path.resolve(file.fileName))
+        .filter(fileName => fileName.match(constants.dtsDtsxOrDtsDtsxMapRegex));
+      return;
+    }
+  }
+
+  function getInputFileNameFromOutput(
+    outputFileName: string
+  ): string | true | undefined {
+    const resolvedFileName = path.resolve(outputFileName);
+    for (const configInfo of configFileInfo.values()) {
+      ensureInputOutputInfo(configInfo);
+      if (configInfo.outputFileNames) {
+        for (const [
+          inputFileName,
+          outputFilesOfInput
+        ] of configInfo.outputFileNames.entries()) {
+          if (outputFilesOfInput.indexOf(resolvedFileName) !== -1) {
+            return inputFileName;
+          }
+        }
+      }
+      if (
+        configInfo.tsbuildInfoFile &&
+        path.resolve(configInfo.tsbuildInfoFile) === resolvedFileName
+      ) {
+        return true;
+      }
+    }
+    return undefined;
+  }
+
+  function ensureInputOutputInfo(configInfo: ConfigFileInfo) {
+    if (configInfo.outputFileNames || !configInfo.config) {
+      return;
+    }
+    configInfo.outputFileNames = new Map();
+    configInfo.config.fileNames.forEach(inputFile =>
+      configInfo.outputFileNames!.set(
+        path.resolve(inputFile),
+        getOutputFileNames(instance, configInfo.config!, inputFile).map(
+          output => path.resolve(output)
+        )
+      )
+    );
+
+    configInfo.tsbuildInfoFile = instance.compiler
+      .getTsBuildInfoEmitOutputFilePath
+      ? instance.compiler.getTsBuildInfoEmitOutputFilePath(
+          configInfo.config.options
+        )
+      : // before api
+        (instance.compiler as any).getOutputPathForBuildInfo(
+          configInfo.config.options
+        );
+  }
+
+  function getOutputFileFromReferencedProject(
+    outputFileName: string
+  ): OutputFile | false | undefined {
+    const resolvedFileName = path.resolve(outputFileName);
+    return outputFiles.get(resolvedFileName);
+  }
+
+  function ensureOutputFile(
+    outputFileName: string,
+    encoding?: string
+  ): OutputFile | false | undefined {
+    const outputFile = getOutputFileFromReferencedProject(outputFileName);
+    if (outputFile !== undefined) {
+      return outputFile;
+    }
+    if (!getInputFileNameFromOutput(outputFileName)) {
+      return undefined;
+    }
+    const resolvedFileName = path.resolve(outputFileName);
+    const text = compiler.sys.readFile(outputFileName, encoding);
+    if (text === undefined) {
+      outputFiles.set(resolvedFileName, false);
+      return false;
+    }
+    const newOutputFile: OutputFile = {
+      name: outputFileName,
+      text,
+      writeByteOrderMark: false,
+      time: compiler.sys.getModifiedTime!(outputFileName)!,
+      version: 0
+    };
+    outputFiles.set(resolvedFileName, newOutputFile);
+    return newOutputFile;
+  }
+
+  function getOutputFilesFromReferencedProjectInput(inputFileName: string) {
+    const resolvedFileName = path.resolve(inputFileName);
+    for (const configInfo of configFileInfo.values()) {
+      ensureInputOutputInfo(configInfo);
+      if (configInfo.outputFileNames) {
+        const result = configInfo.outputFileNames.get(resolvedFileName);
+        if (result) {
+          return result
+            .map(outputFile => outputFiles.get(outputFile)!)
+            .filter(output => !!output) as OutputFile[];
+        }
+      }
+    }
+    return [];
+  }
+
+  function readInputFile(inputFileName: string, encoding: string | undefined) {
+    const resolvedFileName = path.resolve(inputFileName);
+    const existing = instance.otherFiles.get(resolvedFileName);
+    if (existing) {
+      return existing;
+    }
+    const tsFile: TSFile = {
+      version: 1,
+      text: compiler.sys.readFile(inputFileName, encoding),
+      modifiedTime: compiler.sys.getModifiedTime!(inputFileName)
+    };
+    instance.otherFiles.set(resolvedFileName, tsFile);
+    return tsFile;
   }
 }
 

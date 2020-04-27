@@ -94,7 +94,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nvar helper_1 = __webpack_require__(/*! ./lib/helper */ \"./lib/helper.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three, helper_1.helper.four); // consume new number\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nexports.helper = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3,\r\n    four: 4\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/helper.ts?");
+eval("\nexports.__esModule = true;\nexports.helper = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4\n};\n\n\n//# sourceURL=webpack:///./lib/helper.ts?");
 
 /***/ }),
 
@@ -118,7 +118,7 @@ eval("\r\nexports.__esModule = true;\r\nexports.helper = {\r\n    one: 1,\r\n   
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./lib/helper.ts\");\r\nexports.lib = {\r\n    one: helper_1.helper.one,\r\n    two: helper_1.helper.two,\r\n    three: helper_1.helper.three,\r\n    four: 4\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nexports.__esModule = true;\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./lib/helper.ts\");\nexports.lib = {\n    one: helper_1.helper.one,\n    two: helper_1.helper.two,\n    three: helper_1.helper.three,\n    four: 4\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 

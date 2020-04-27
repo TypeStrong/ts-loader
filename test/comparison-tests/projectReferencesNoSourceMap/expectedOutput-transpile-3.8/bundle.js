@@ -106,7 +106,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.foo = 'foo';\n\n\n//# sourceURL=webpack:///./lib/foo.ts?");
+eval("\r\nexports.__esModule = true;\r\nexports.foo = 'foo';\r\n\n\n//# sourceURL=webpack:///./lib/foo.ts?");
 
 /***/ }),
 
@@ -118,7 +118,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexport
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./lib/foo.ts\");\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    foo: foo_1.foo\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\r\nexports.__esModule = true;\r\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./lib/foo.ts\");\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3,\r\n    foo: foo_1.foo\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 
