@@ -1,5 +1,8 @@
 # Changelog
 
+## v7.0.2
+* [Make content hash consistent across machines](https://github.com/TypeStrong/ts-loader/pull/1085) - thanks @elyalvarado
+
 ## v7.0.1
 * [fix: watch-run](https://github.com/TypeStrong/ts-loader/pull/1083) - thanks @zn4rk
 

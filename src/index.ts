@@ -528,7 +528,7 @@ function getEmit(
 
   loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = dependencies.map(
     defFilePath =>
-      defFilePath +
+      path.relative(loaderContext.rootContext,defFilePath) +
       '@' +
       (
         instance.files.get(defFilePath) ||
