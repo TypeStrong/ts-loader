@@ -351,6 +351,13 @@ export function initializeInstance(
 }
 
 function getScriptRegexp(instance: TSInstance) {
+  // If resolveJsonModules is set, we should accept json files
+  if (instance.configParseResult.options.resolveJsonModule) {
+    // if allowJs is set then we should accept js(x) files
+    return instance.configParseResult.options.allowJs === true
+      ? /\.tsx?$|\.json$|\.jsx?$/i
+      : /\.tsx?$|\.json$/i;
+  }
   // if allowJs is set then we should accept js(x) files
   return instance.configParseResult.options.allowJs === true
     ? /\.tsx?$|\.jsx?$/i
