@@ -3,5 +3,5 @@
     "resolveJsonModule": true,
     "composite": true
   },
-  "include": ["ap.ts", "file.json"]
+  "include": ["app.ts", "file.json"]
 }

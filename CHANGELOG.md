@@ -1,5 +1,8 @@
 # Changelog
 
+## v7.0.3
+* [Ensure that JSON files are included in build module resolution](https://github.com/TypeStrong/ts-loader/pull/1101) - thanks @berickson1
+
 ## v7.0.2
 * [Make content hash consistent across machines](https://github.com/TypeStrong/ts-loader/pull/1085) - thanks @elyalvarado
 

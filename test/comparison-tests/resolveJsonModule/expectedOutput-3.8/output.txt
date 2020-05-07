@@ -1,17 +1,10 @@
-    Asset      Size  Chunks  Chunk Names
-bundle.js  1.12 KiB       0  main
+      Asset      Size  Chunks             Chunk Names
+  bundle.js     1 KiB       0  [emitted]  main
+../app.d.ts  11 bytes          [emitted]  
 Entrypoint main = bundle.js
-[0] ./app.ts 232 bytes {0} [built] [failed] [2 errors]
+[0] ./app.ts 99 bytes {0} [built]
+[1] ./file.json 18 bytes {0} [built]
 
 WARNING in configuration
 The 'mode' option has not been set, webpack will fallback to 'production' for this value. Set 'mode' option to 'development' or 'production' to enable defaults for each environment.
 You can also set it to 'none' to disable any default behavior. Learn more: https://webpack.js.org/concepts/mode/
-
-ERROR in tsconfig.json
-[90m[tsl] [39m[1m[31mERROR[39m[22m
-[1m[31m      TS18003: No inputs were found in config file 'tsconfig.json'. Specified 'include' paths were '["ap.ts","file.json"]' and 'exclude' paths were '[]'.[39m[22m
-
-ERROR in ./app.ts
-Module build failed (from index.js):
-Error: [31merror while parsing tsconfig.json[39m
-    at Object.loader (dist/index.js:19:18)
