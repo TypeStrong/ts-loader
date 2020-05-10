@@ -2,6 +2,7 @@ import * as loaderUtils from 'loader-utils';
 import * as path from 'path';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
+import * as crypto from 'crypto';
 
 import * as constants from './constants';
 import {
@@ -221,6 +222,22 @@ function setModuleMeta(
 }
 
 /**
+ * Get a unique hash based on the contents of the options
+ * Hash is created from the values converted to strings
+ * Values which are functions (such as getCustomTransformers) are
+ * converted to strings by this code, which JSON.stringify would not do.
+ */
+function getOptionsHash(loaderOptions: LoaderOptions) {
+  const hash = crypto.createHash('sha256');
+  Object.values(loaderOptions).map((v: any) => {
+    if (v) {
+      hash.update(v.toString());
+    }
+  });
+  return hash.digest('hex').substring(0, 16);
+}
+
+/**
  * either retrieves loader options from the cache
  * or creates them, adds them to the cache and returns
  */
@@ -235,8 +252,12 @@ function getLoaderOptions(loaderContext: webpack.loader.LoaderContext) {
     loaderUtils.getOptions<LoaderOptions>(loaderContext) ||
     ({} as LoaderOptions);
 
+  // If no instance name is given in the options, use the hash of the loader options
+  // In this way, if different options are given the instances will be different
   const instanceName =
-    webpackIndex + '_' + (loaderOptions.instance || 'default');
+    webpackIndex +
+    '_' +
+    (loaderOptions.instance || 'default_' + getOptionsHash(loaderOptions));
 
   if (!loaderOptionsCache.hasOwnProperty(instanceName)) {
     loaderOptionsCache[instanceName] = new WeakMap();
@@ -528,7 +549,7 @@ function getEmit(
 
   loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = dependencies.map(
     defFilePath =>
-      path.relative(loaderContext.rootContext,defFilePath) +
+      path.relative(loaderContext.rootContext, defFilePath) +
       '@' +
       (
         instance.files.get(defFilePath) ||
