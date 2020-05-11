@@ -1,5 +1,8 @@
 # Changelog
 
+## v7.0.4
+* [Ensure a separate webpack instance is created for different loader options](https://github.com/TypeStrong/ts-loader/pull/1104) - @appzuka
+
 ## v7.0.3
 * [Ensure that JSON files are included in build module resolution](https://github.com/TypeStrong/ts-loader/pull/1101) - thanks @berickson1
 
