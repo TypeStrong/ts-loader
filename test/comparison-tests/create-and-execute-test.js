@@ -109,10 +109,15 @@ function createTest(test, testPath, options) {
         mkdirp.sync(paths.actualOutput);
         mkdirp.sync(paths.webpackOutput);
 
-        // execute webpack
-        testState.watcher = webpack(
-            createWebpackConfig(paths, options, nonWatchNonCompositePath !== testPath)
-        ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
+
+        // Need to wait > FS_ACCURACY as defined in watchpack.
+        setTimeout(() => {
+            // execute webpack
+            testState.watcher = webpack(
+                createWebpackConfig(paths, options, nonWatchNonCompositePath !== testPath)
+            ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
+        }, 200);
+
     };
 }
 
