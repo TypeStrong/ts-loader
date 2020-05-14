@@ -1,7 +1,7 @@
 # Changelog
 
 ## v7.0.5
-* [Add a delay before starting the comparison tests to avoid failures under WSL](https://github.com/TypeStrong/ts-loader/pull/1105) - thanks @appzuka
+* [Add a delay before starting the comparison tests to avoid failures under WSL](https://github.com/TypeStrong/ts-loader/pull/1109) - thanks @appzuka
 
 ## v7.0.4
 * [Ensure a separate webpack instance is created for different loader options](https://github.com/TypeStrong/ts-loader/pull/1104) - thanks @appzuka
