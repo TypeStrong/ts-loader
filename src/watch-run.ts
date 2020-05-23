@@ -70,6 +70,10 @@ function updateFile(
   loaderIndex: number
 ) {
   return new Promise<void>((resolve, reject) => {
+    // When other loaders are specified after ts-loader
+    // (e.g. `{ test: /\.ts$/, use: ['ts-loader', 'other-loader'] }`),
+    // manually apply them to TypeScript files.
+    // Otherwise, files not 'preprocessed' by them may cause complication errors (#1111).
     if (
       loaderIndex + 1 < loader.loaders.length &&
       instance.rootFileNames.has(path.normalize(filePath))
