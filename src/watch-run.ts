@@ -1,4 +1,3 @@
-import Module = require('module');
 import * as path from 'path';
 import * as webpack from 'webpack';
 
@@ -75,7 +74,7 @@ function updateFile(
       loaderIndex + 1 < loader.loaders.length &&
       instance.rootFileNames.has(path.normalize(filePath))
     ) {
-      let request = '!!raw-loader?esModule=false!';
+      let request = `!!${path.resolve(__dirname, 'stringify-loader.js')}!`;
       for (let i = loaderIndex + 1; i < loader.loaders.length; ++i) {
         request += loader.loaders[i].request + '!';
       }
@@ -84,11 +83,7 @@ function updateFile(
         if (err) {
           reject(err);
         } else {
-          // Extract TypeScript code wrapped in a CommonJS module by 'raw-loader'.
-          // https://stackoverflow.com/questions/17581830/load-node-js-module-from-string-in-memory
-          const m = new Module('') as any;
-          m._compile(source, '');
-          const text = m.exports;
+          const text = JSON.parse(source);
           updateFileWithText(instance, filePath, () => text);
           resolve();
         }

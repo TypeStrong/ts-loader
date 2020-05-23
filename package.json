@@ -57,7 +57,6 @@
     "enhanced-resolve": "^4.0.0",
     "loader-utils": "^1.0.2",
     "micromatch": "^4.0.0",
-    "raw-loader": "^4.0.1",
     "semver": "^6.0.0"
   },
   "devDependencies": {
