@@ -1,5 +1,4 @@
-import * as fs from 'fs';
-import * as loaderRunner from 'loader-runner';
+import Module = require('module');
 import * as path from 'path';
 import * as webpack from 'webpack';
 
@@ -19,7 +18,7 @@ export function makeWatchRun(
   const lastTimes = new Map<string, number>();
   const startTime = 0;
 
-  // Save the loader index. 'loader.loaderIndex' is set to '-1' after all the loaders are run.
+  // Save the loader index.
   const loaderIndex = loader.loaderIndex;
 
   return (compiler: webpack.Compiler, callback: (err?: Error) => void) => {
@@ -37,7 +36,7 @@ export function makeWatchRun(
         }
 
         lastTimes.set(filePath, date);
-        promises.push(updateFile(instance, loader, loaderIndex, filePath));
+        promises.push(updateFile(instance, filePath, loader, loaderIndex));
       }
 
       // On watch update add all known dts files expect the ones in node_modules
@@ -47,7 +46,7 @@ export function makeWatchRun(
           filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
           filePath.match(constants.nodeModules) === null
         ) {
-          promises.push(updateFile(instance, loader, loaderIndex, filePath));
+          promises.push(updateFile(instance, filePath, loader, loaderIndex));
         }
       }
     }
@@ -55,7 +54,7 @@ export function makeWatchRun(
     // Update all the watched files from solution builder
     if (instance.solutionBuilderHost) {
       for (const filePath of instance.solutionBuilderHost.watchedFiles.keys()) {
-        promises.push(updateFile(instance, loader, loaderIndex, filePath));
+        promises.push(updateFile(instance, filePath, loader, loaderIndex));
       }
     }
 
@@ -67,31 +66,33 @@ export function makeWatchRun(
 
 function updateFile(
   instance: TSInstance,
+  filePath: string,
   loader: webpack.loader.LoaderContext,
-  loaderIndex: number,
-  filePath: string
+  loaderIndex: number
 ) {
   return new Promise<void>((resolve, reject) => {
-    if (instance.rootFileNames.has(path.normalize(filePath))) {
-      loaderRunner.runLoaders(
-        {
-          resource: filePath,
-          loaders: loader.loaders
-            .slice(loaderIndex + 1)
-            .map(l => ({ loader: l.path, options: l.options })),
-          context: {},
-          readResource: fs.readFile.bind(fs)
-        },
-        (err, result) => {
-          if (err) {
-            reject(err);
-          } else {
-            const text = result.result![0]!.toString();
-            updateFileWithText(instance, filePath, () => text);
-            resolve();
-          }
+    if (
+      loaderIndex + 1 < loader.loaders.length &&
+      instance.rootFileNames.has(path.normalize(filePath))
+    ) {
+      let request = '!!raw-loader?esModule=false!';
+      for (let i = loaderIndex + 1; i < loader.loaders.length; ++i) {
+        request += loader.loaders[i].request + '!';
+      }
+      request += filePath;
+      loader.loadModule(request, (err, source) => {
+        if (err) {
+          reject(err);
+        } else {
+          // Extract TypeScript code wrapped in a CommonJS module by 'raw-loader'.
+          // https://stackoverflow.com/questions/17581830/load-node-js-module-from-string-in-memory
+          const m = new Module('') as any;
+          m._compile(source, '');
+          const text = m.exports;
+          updateFileWithText(instance, filePath, () => text);
+          resolve();
         }
-      );
+      });
     } else {
       updateFileWithText(
         instance,
