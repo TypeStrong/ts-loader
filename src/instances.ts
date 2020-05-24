@@ -248,9 +248,7 @@ export function initializeInstance(
       customerTransformers = require(customerTransformers);
     } catch (err) {
       throw new Error(
-        `Failed to load customTransformers from "${
-          instance.loaderOptions.getCustomTransformers
-        }": ${err.message}`
+        `Failed to load customTransformers from "${instance.loaderOptions.getCustomTransformers}": ${err.message}`
       );
     }
 
@@ -283,7 +281,7 @@ export function initializeInstance(
       );
       loader._compiler.hooks.watchRun.tapAsync(
         'ts-loader',
-        makeWatchRun(instance)
+        makeWatchRun(instance, loader)
       );
     }
   } else {
@@ -345,7 +343,7 @@ export function initializeInstance(
     );
     loader._compiler.hooks.watchRun.tapAsync(
       'ts-loader',
-      makeWatchRun(instance)
+      makeWatchRun(instance, loader)
     );
   }
 }
