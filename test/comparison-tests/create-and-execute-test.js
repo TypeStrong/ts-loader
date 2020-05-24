@@ -111,6 +111,7 @@ function createTest(test, testPath, options) {
 
 
         // Need to wait > FS_ACCURACY as defined in watchpack.
+        // See PR 1109 for details: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(() => {
             // execute webpack
             testState.watcher = webpack(
@@ -280,6 +281,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
     if (fs.existsSync(patchPath)) {
         testState.iteration++;
         // can get inconsistent results if copying right away
+        // Probably due to the reaons in PR 1109: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(function () {
             copySync(patchPath, testStagingPath);
         }, 1000);
