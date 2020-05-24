@@ -1,5 +1,21 @@
 # Changelog
 
+## v7.0.4
+* [Ensure a separate webpack instance is created for different loader options](https://github.com/TypeStrong/ts-loader/pull/1104) - thanks @appzuka
+
+## v7.0.3
+* [Ensure that JSON files are included in build module resolution](https://github.com/TypeStrong/ts-loader/pull/1101) - thanks @berickson1
+
+## v7.0.2
+* [Make content hash consistent across machines](https://github.com/TypeStrong/ts-loader/pull/1085) - thanks @elyalvarado
+
+## v7.0.1
+* [fix: watch-run](https://github.com/TypeStrong/ts-loader/pull/1083) - thanks @zn4rk
+
+## v7.0.0
+* [Project reference support enhancements](https://github.com/TypeStrong/ts-loader/pull/1076) - thanks @sheetalkamat!
+* Following the end of life of Node 8, `ts-loader` no longer supports Node 8 **BREAKING CHANGE**
+
 ## v6.2.2
 * [Enable typescript 3.8.3 support when using `webpack.config.ts` files](https://github.com/TypeStrong/ts-loader/issues/1072) - thanks @vladimiry!
 

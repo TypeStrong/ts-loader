@@ -2,6 +2,7 @@ export { ModuleResolutionHost, FormatDiagnosticsHost } from 'typescript';
 import * as typescript from 'typescript';
 
 import { Chalk } from 'chalk';
+import * as logger from './logger';
 
 export interface ErrorInfo {
   code: number;
@@ -37,6 +38,13 @@ export type ResolveSync = (
   moduleName: string
 ) => string;
 
+export type Action = () => void;
+
+export interface ServiceHostWhichMayBeCacheable {
+  servicesHost: typescript.LanguageServiceHost;
+  clearCache: Action | null;
+}
+
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
     typescript.EmitAndSemanticDiagnosticsBuilderProgram
@@ -64,19 +72,9 @@ export interface WatchFactory {
   ): void;
   invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
   /** Used to watch changes in source files, missing files needed to update the program or config file */
-  watchFile(
-    path: string,
-    callback: typescript.FileWatcherCallback,
-    pollingInterval?: number,
-    options?: typescript.CompilerOptions
-  ): typescript.FileWatcher;
+  watchFile: typescript.WatchHost['watchFile'];
   /** Used to watch resolved module's failed lookup locations, config file specs, type roots where auto type reference directives are added */
-  watchDirectory(
-    path: string,
-    callback: typescript.DirectoryWatcherCallback,
-    recursive?: boolean,
-    options?: typescript.CompilerOptions
-  ): typescript.FileWatcher;
+  watchDirectory: typescript.WatchHost['watchDirectory'];
 }
 
 export interface SolutionDiagnostics {
@@ -91,6 +89,27 @@ export interface SolutionBuilderWithWatchHost
     >,
     WatchFactory {
   diagnostics: SolutionDiagnostics;
+  writtenFiles: OutputFile[];
+  configFileInfo: Map<string, ConfigFileInfo>;
+  outputAffectingInstanceVersion: Map<string, true>;
+  getOutputFileFromReferencedProject(
+    outputFileName: string
+  ): OutputFile | false | undefined;
+  getInputFileNameFromOutput(outputFileName: string): string | undefined;
+  getOutputFilesFromReferencedProjectInput(inputFileName: string): OutputFile[];
+  buildReferences(): void;
+}
+
+export interface ConfigFileInfo {
+  config: typescript.ParsedCommandLine | undefined;
+  outputFileNames?: Map<string, string[]>;
+  tsbuildInfoFile?: string;
+  dtsFiles?: string[];
+}
+
+export interface OutputFile extends typescript.OutputFile {
+  time: Date;
+  version: number;
 }
 
 export interface TSInstance {
@@ -114,8 +133,9 @@ export interface TSInstance {
    * warnings about source maps during a single compilation.
    */
   projectsMissingSourceMaps?: Set<string>;
+  servicesHost?: ServiceHostWhichMayBeCacheable;
   languageService?: typescript.LanguageService | null;
-  version?: number;
+  version: number;
   dependencyGraph: DependencyGraph;
   reverseDependencyGraph: ReverseDependencyGraph;
   filesWithErrors?: TSFiles;
@@ -132,11 +152,16 @@ export interface TSInstance {
   hasUnaccountedModifiedFiles?: boolean;
   changedFilesList?: boolean;
 
+  reportTranspileErrors?: boolean;
   solutionBuilderHost?: SolutionBuilderWithWatchHost;
   solutionBuilder?: typescript.SolutionBuilder<
     typescript.EmitAndSemanticDiagnosticsBuilderProgram
   >;
-  configFilePath?: string;
+  configFilePath: string | undefined;
+
+  initialSetupPending: boolean;
+  configParseResult: typescript.ParsedCommandLine;
+  log: logger.Logger;
 }
 
 export interface LoaderOptionsCache {
@@ -218,6 +243,7 @@ export interface LoaderOptions {
 export interface TSFile {
   text?: string;
   version: number;
+  modifiedTime?: Date;
   projectReference?: {
     /**
      * Undefined here means we’ve already checked and confirmed there is no

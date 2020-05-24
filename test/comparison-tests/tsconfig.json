@@ -7,6 +7,7 @@
         "lib": ["es2016"]
     },
     "files": [
+        "getProgram.js",
         "create-and-execute-test.js",
         "run-tests.js",
         "newline.loader.js",

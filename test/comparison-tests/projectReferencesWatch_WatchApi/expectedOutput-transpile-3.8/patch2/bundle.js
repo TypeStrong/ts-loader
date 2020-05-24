@@ -106,7 +106,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4,\n} // Add new number\n;\n;\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3,\r\n    four: 4 // Add new number\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 
