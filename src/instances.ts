@@ -283,7 +283,7 @@ export function initializeInstance(
       );
       loader._compiler.hooks.watchRun.tapAsync(
         'ts-loader',
-        makeWatchRun(instance)
+        makeWatchRun(instance, loader)
       );
     }
   } else {
@@ -345,7 +345,7 @@ export function initializeInstance(
     );
     loader._compiler.hooks.watchRun.tapAsync(
       'ts-loader',
-      makeWatchRun(instance)
+      makeWatchRun(instance, loader)
     );
   }
 }
