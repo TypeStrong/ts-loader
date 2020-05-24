@@ -14,7 +14,7 @@ const typescriptVersion = parseFloat(
 if (typescriptVersion < 3.9 || typescriptVersion > 3.9) return;
 
 // Build
-const program = getProgram(path.resolve(__dirname, "tsconfig.json"));
+const program = getProgram(path.resolve(__dirname, 'tsconfig.json'));
 const diagnostics = typescript.getPreEmitDiagnostics(program);
 if (diagnostics.length) {
   const formatDiagnosticHost = {
@@ -27,17 +27,24 @@ if (diagnostics.length) {
   for (const d of diagnostics) {
     typescript.sys.write(typescript.formatDiagnostic(d, formatDiagnosticHost));
   }
-  throw new Error("Errors in the tests");
+  throw new Error('Errors in the tests');
 }
 
 // Parse command line arguments
 const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
+
 const indexOfSingleTest = process.argv.indexOf('--single-test');
 const singleTestToRun =
   indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
+
+const indexOfStartAtTestName = process.argv.indexOf('--start-at');
+const startAtTestName =
+  indexOfStartAtTestName !== -1 && process.argv[indexOfStartAtTestName + 1];
+
 const indexOfTestCriteria = process.argv.indexOf('--match-test');
 const testCriteria =
-  indexOfTestCriteria !== -1 && new RegExp(process.argv[indexOfTestCriteria + 1]);
+  indexOfTestCriteria !== -1 &&
+  new RegExp(process.argv[indexOfTestCriteria + 1]);
 
 /** @type {string[]} */
 let passingTests = [];
@@ -71,39 +78,46 @@ function runTests() {
     // loop through each test directory triggering a test run as child process
 
     /** @type {string[]} */
-    const availableTests = fs.readdirSync(testDir)
+    const availableTests = fs
+      .readdirSync(testDir)
       .filter(
         /**
          * @param {string} testName
          */ testName => {
+          if (startAtTestName && testName < startAtTestName) {
+            return false;
+          }
+
           const testPath = path.join(testDir, testName);
-          return fs.statSync(testPath).isDirectory();
+          const isATest = fs.statSync(testPath).isDirectory();
+          return isATest;
         }
       )
       .filter(
         /**
          * @param {string} testName
-         */ testName =>
-          testCriteria ? !!testName.match(testCriteria) : true
+         */ testName => (testCriteria ? !!testName.match(testCriteria) : true)
       );
 
-      // Allow multiple attempts to pass tests as they're flaky
-      let attempt = 0;
-      while (++attempt <= 40 && passingTests.length < availableTests.length) {
-        if (attempt > 1) {
-          console.log(`Some tests failed; re-running (attempt ${attempt})`)
-        }
-
-        availableTests
-          .filter(testName => !passingTests.includes(testName))
-          .forEach(testName => {
-            if (runTestAsChildProcess(testName)) {
-              passingTests.push(testName);
-            }
-          });
+    // Allow multiple attempts to pass tests as they're flaky
+    let attempt = 0;
+    while (++attempt <= 40 && passingTests.length < availableTests.length) {
+      if (attempt > 1) {
+        console.log(`Some tests failed; re-running (attempt ${attempt})`);
       }
 
-      failingTests = availableTests.filter(testName => !passingTests.includes(testName));
+      availableTests
+        .filter(testName => !passingTests.includes(testName))
+        .forEach(testName => {
+          if (runTestAsChildProcess(testName)) {
+            passingTests.push(testName);
+          }
+        });
+    }
+
+    failingTests = availableTests.filter(
+      testName => !passingTests.includes(testName)
+    );
   }
 
   const end = new Date().getTime();
@@ -135,17 +149,27 @@ function runTests() {
 }
 
 /** @param {string} testNameOrPath */
-function getTestNameFromPath (testNameOrPath) {
+function getTestNameFromPath(testNameOrPath) {
   var tsLoaderPath = path.resolve(__dirname, '../..');
   var tsLoaderBasename = path.basename(tsLoaderPath);
   var comparisonTestsRelativeRoot = path.relative(tsLoaderPath, __dirname);
-  var comparisonTestsAbsoluteRoot = path.join(tsLoaderPath, comparisonTestsRelativeRoot);
+  var comparisonTestsAbsoluteRoot = path.join(
+    tsLoaderPath,
+    comparisonTestsRelativeRoot
+  );
   // It wasn’t a path in comparison-tests; assume it was a test name
-  if (testNameOrPath.indexOf(path.join(tsLoaderBasename, comparisonTestsRelativeRoot)) === -1) {
-      return testNameOrPath;
+  if (
+    testNameOrPath.indexOf(
+      path.join(tsLoaderBasename, comparisonTestsRelativeRoot)
+    ) === -1
+  ) {
+    return testNameOrPath;
   }
   // E.g. projectReferences/lib/index.ts
-  var testPathRelativeToComparisonTests = path.relative(comparisonTestsAbsoluteRoot, testNameOrPath);
+  var testPathRelativeToComparisonTests = path.relative(
+    comparisonTestsAbsoluteRoot,
+    testNameOrPath
+  );
   return testPathRelativeToComparisonTests.split(path.sep)[0];
 }
 

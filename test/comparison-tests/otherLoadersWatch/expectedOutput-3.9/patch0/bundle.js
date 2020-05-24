@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nvar message_1 = __webpack_require__(/*! ./me
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.message = 'Hello, world!';\n\n\n//# sourceURL=webpack:///./message.ts?");
+eval("\nexports.__esModule = true;\nexports.message = void 0;\nexports.message = 'Hello, world!';\n\n\n//# sourceURL=webpack:///./message.ts?");
 
 /***/ })
 

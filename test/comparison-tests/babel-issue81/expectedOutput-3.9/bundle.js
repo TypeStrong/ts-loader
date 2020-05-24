@@ -108,10 +108,13 @@ var __decorate = this && this.__decorate || function (decorators, target, key, d
 function bar(target) {
     return target;
 }
-var Foo = function Foo() {
-    _classCallCheck(this, Foo);
-};
-Foo = __decorate([bar], Foo);
+var Foo = /** @class */function () {
+    var Foo = function Foo() {
+        _classCallCheck(this, Foo);
+    };
+    Foo = __decorate([bar], Foo);
+    return Foo;
+}();
 
 /***/ })
 

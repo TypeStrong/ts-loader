@@ -94,7 +94,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\n__webpack_require__(/*! ./skip */ \"./skip.ts\");\nexports.a = '10';\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.a = void 0;\n__webpack_require__(/*! ./skip */ \"./skip.ts\");\nexports.a = '10';\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -106,7 +106,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\n__webp
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.a = '10';\n\n\n//# sourceURL=webpack:///./skip.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.a = void 0;\nexports.a = '10';\n\n\n//# sourceURL=webpack:///./skip.ts?");
 
 /***/ })
 

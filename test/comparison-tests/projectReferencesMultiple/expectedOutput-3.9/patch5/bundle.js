@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nfunction common() {\r\n    return 30;\r\n}\r\nexports.common = common;\r\n\n\n//# sourceURL=webpack:///./common/index.ts?");
+eval("\nexports.__esModule = true;\nexports.common = void 0;\nfunction common() {\n    return 30;\n}\nexports.common = common;\n\n\n//# sourceURL=webpack:///./common/index.ts?");
 
 /***/ }),
 
@@ -118,7 +118,7 @@ eval("\r\nexports.__esModule = true;\r\nfunction common() {\r\n    return 30;\r\
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ }),
 
@@ -130,7 +130,7 @@ eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    tw
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nvar common_1 = __webpack_require__(/*! ../common */ \"./common/index.ts\");\r\nfunction utils() {\r\n    common_1.common();\r\n}\r\nexports.utils = utils;\r\n\n\n//# sourceURL=webpack:///./utils/index.ts?");
+eval("\nexports.__esModule = true;\nexports.utils = void 0;\nvar common_1 = __webpack_require__(/*! ../common */ \"./common/index.ts\");\nfunction utils() {\n    common_1.common();\n}\nexports.utils = utils;\n\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 

@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nexports[\"default\"] = {\n    data: function
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//# sourceURL=webpack:///./helper.ts?");
+eval("\nexports.__esModule = true;\nexports.myMethod = void 0;\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//# sourceURL=webpack:///./helper.ts?");
 
 /***/ }),
 

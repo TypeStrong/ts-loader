@@ -106,7 +106,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4,\n    five: 5\n};\n//# sourceMappingURL=index.js.map\n\n//# sourceURL=webpack:///./lib/out/index.js?");
+eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4,\n    five: 5\n};\n//# sourceMappingURL=index.js.map\n\n//# sourceURL=webpack:///./lib/out/index.js?");
 
 /***/ })
 

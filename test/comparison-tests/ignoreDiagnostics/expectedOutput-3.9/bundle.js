@@ -94,7 +94,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nvar Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    return Foo;\n}());\nvar Bar = /** @class */ (function () {\n    function Bar() {\n    }\n    return Bar;\n}());\nvar a = 'b'; // this should error with 2322\nmodule.exports = Bar;\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.Foo = void 0;\nvar Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    return Foo;\n}());\nvar Bar = /** @class */ (function () {\n    function Bar() {\n    }\n    return Bar;\n}());\nvar a = 'b'; // this should error with 2322\nmodule.exports = Bar;\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

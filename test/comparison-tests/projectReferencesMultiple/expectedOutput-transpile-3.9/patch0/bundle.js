@@ -106,7 +106,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    two: 2,\r\n    three: 3\r\n};\r\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ }),
 
@@ -117,7 +117,7 @@ eval("\r\nexports.__esModule = true;\r\nexports.lib = {\r\n    one: 1,\r\n    tw
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed (from c:/github/ts-loader/index.js):/nError: TypeScript emitted no output for c://github//ts-loader//.test//projectReferencesMultiple.transpile//utils//index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (c://github//ts-loader//dist//index.js:87:18)/n    at successLoader (c://github//ts-loader//dist//index.js:73:9)/n    at Object.loader (c://github//ts-loader//dist//index.js:24:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
+eval("throw new Error(\"Module build failed (from /home/john/src/ts-loader/index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/utils/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/home/john/src/ts-loader/dist/index.js:88:18)/n    at successLoader (/home/john/src/ts-loader/dist/index.js:74:9)/n    at Object.loader (/home/john/src/ts-loader/dist/index.js:25:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 

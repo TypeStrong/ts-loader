@@ -106,7 +106,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar me
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.message = 'Hello, world!';\n\n\n//# sourceURL=webpack:///./message.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.message = void 0;\nexports.message = 'Hello, world!';\n\n\n//# sourceURL=webpack:///./message.ts?");
 
 /***/ })
 

@@ -94,7 +94,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar Class1 = /** @class */ (function () {\n    function Class1() {\n    }\n    Class1.prototype.foo = function () {\n        this.bar;\n    };\n    return Class1;\n}());\nexports.Class1 = Class1;\n\n\n//# sourceURL=webpack:///./src/error1.js?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.Class1 = void 0;\nvar Class1 = /** @class */ (function () {\n    function Class1() {\n    }\n    Class1.prototype.foo = function () {\n        this.bar;\n    };\n    return Class1;\n}());\nexports.Class1 = Class1;\n\n\n//# sourceURL=webpack:///./src/error1.js?");
 
 /***/ }),
 
@@ -106,7 +106,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar Cl
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\n// @ts-check\nvar Class2 = /** @class */ (function () {\n    function Class2() {\n    }\n    Class2.prototype.foo = function () {\n        this.bar;\n    };\n    return Class2;\n}());\nexports.Class2 = Class2;\n\n\n//# sourceURL=webpack:///./src/error2.js?");
+eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nexports.Class2 = void 0;\n// @ts-check\nvar Class2 = /** @class */ (function () {\n    function Class2() {\n    }\n    Class2.prototype.foo = function () {\n        this.bar;\n    };\n    return Class2;\n}());\nexports.Class2 = Class2;\n\n\n//# sourceURL=webpack:///./src/error2.js?");
 
 /***/ }),
 
