@@ -11,7 +11,7 @@ const typescriptVersion = parseFloat(
   semver.major(typescript.version) + '.' + semver.minor(typescript.version)
 );
 // @ts-ignore
-if (typescriptVersion < 3.8 || typescriptVersion > 3.8) return;
+if (typescriptVersion < 3.9 || typescriptVersion > 3.9) return;
 
 // Build
 const program = getProgram(path.resolve(__dirname, "tsconfig.json"));
