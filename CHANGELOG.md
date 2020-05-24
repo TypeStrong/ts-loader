@@ -1,5 +1,8 @@
 # Changelog
 
+## v7.0.5
+* [Apply other loaders when updating files in watch mode](https://github.com/TypeStrong/ts-loader/pull/1115) - thanks @iorate
+
 ## v7.0.4
 * [Ensure a separate webpack instance is created for different loader options](https://github.com/TypeStrong/ts-loader/pull/1104) - thanks @appzuka
 
