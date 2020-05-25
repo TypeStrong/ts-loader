@@ -17,3 +17,4 @@ npm-debug.log
 /**/debug.log
 .pnp
 .pnp.js
+!.eslintrc.js
