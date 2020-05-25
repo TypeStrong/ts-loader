@@ -14,7 +14,7 @@ import {
   Severity,
   TSInstance,
   WebpackError,
-  WebpackModule
+  WebpackModule,
 } from './interfaces';
 
 /**
@@ -91,7 +91,7 @@ export function formatErrors(
             file: file === undefined ? '' : path.normalize(file.fileName),
             line: position === undefined ? 0 : position.line + 1,
             character: position === undefined ? 0 : position.character + 1,
-            context
+            context,
           };
 
           const message =
@@ -132,7 +132,7 @@ export function makeError(
     message,
     location,
     file,
-    loaderSource: 'ts-loader'
+    loaderSource: 'ts-loader',
   };
 }
 
@@ -341,7 +341,7 @@ export function validateSourceMapOncePerProject(
     if (!instance.compiler.sys.fileExists(mapFileName)) {
       const [relativeJSPath, relativeProjectConfigPath] = [
         path.relative(loader.rootContext, jsFileName),
-        path.relative(loader.rootContext, project.sourceFile.fileName)
+        path.relative(loader.rootContext, project.sourceFile.fileName),
       ];
       loader.emitWarning(
         new Error(
@@ -386,7 +386,7 @@ export function getAndCacheOutputJSFileName(
 
   if (file !== undefined) {
     file.projectReference = file.projectReference || {
-      project: projectReference
+      project: projectReference,
     };
     file.projectReference.outputFileName = outputFileName;
   }
