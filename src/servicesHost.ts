@@ -23,7 +23,7 @@ import {
   WatchCallbacks,
   WatchFactory,
   WatchHost,
-  WebpackError
+  WebpackError,
 } from './interfaces';
 import { makeResolver } from './resolver';
 import { formatErrors, readFile, unorderedRemoveItem } from './utils';
@@ -64,8 +64,8 @@ export function makeServicesHost(
     files,
     loaderOptions: {
       resolveModuleName: customResolveModuleName,
-      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
-    }
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
+    },
   } = instance;
 
   const newLine =
@@ -105,7 +105,7 @@ export function makeServicesHost(
     realpath: compiler.sys.realpath,
     directoryExists: compiler.sys.directoryExists,
     getCurrentDirectory: compiler.sys.getCurrentDirectory,
-    getDirectories: compiler.sys.getDirectories
+    getDirectories: compiler.sys.getDirectories,
   };
 
   if (enableFileCaching) {
@@ -225,7 +225,7 @@ export function makeServicesHost(
 
     resolveModuleNames: resolvers.resolveModuleNames,
 
-    getCustomTransformers: () => instance.transformers
+    getCustomTransformers: () => instance.transformers,
   };
 
   return { servicesHost, clearCache };
@@ -294,20 +294,14 @@ function makeResolvers(
 
   return {
     resolveTypeReferenceDirectives,
-    resolveModuleNames
+    resolveModuleNames,
   };
 }
 
 function createWatchFactory(): WatchFactory {
-  const watchedFiles: WatchCallbacks<
-    typescript.FileWatcherCallback
-  > = new Map();
-  const watchedDirectories: WatchCallbacks<
-    typescript.DirectoryWatcherCallback
-  > = new Map();
-  const watchedDirectoriesRecursive: WatchCallbacks<
-    typescript.DirectoryWatcherCallback
-  > = new Map();
+  const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = new Map();
+  const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> = new Map();
+  const watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback> = new Map();
 
   return {
     watchedFiles,
@@ -316,7 +310,7 @@ function createWatchFactory(): WatchFactory {
     invokeFileWatcher,
     invokeDirectoryWatcher,
     watchFile,
-    watchDirectory
+    watchDirectory,
   };
 
   function invokeWatcherCallbacks(
@@ -385,7 +379,6 @@ function createWatchFactory(): WatchFactory {
     }
     return {
       close: () => {
-        // tslint:disable-next-line:no-shadowed-variable
         const existing = callbacks.get(file);
         if (existing !== undefined) {
           unorderedRemoveItem(existing, callback);
@@ -393,7 +386,7 @@ function createWatchFactory(): WatchFactory {
             callbacks.delete(file);
           }
         }
-      }
+      },
     };
   }
 
@@ -470,8 +463,8 @@ export function makeWatchHost(
     otherFiles,
     loaderOptions: {
       resolveModuleName: customResolveModuleName,
-      resolveTypeReferenceDirective: customResolveTypeReferenceDirective
-    }
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
+    },
   } = instance;
 
   const newLine =
@@ -492,7 +485,7 @@ export function makeWatchHost(
   const moduleResolutionHost: ModuleResolutionHost = {
     fileExists,
     readFile: readFileWithFallback,
-    realpath: compiler.sys.realpath
+    realpath: compiler.sys.realpath,
   };
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
@@ -502,7 +495,7 @@ export function makeWatchHost(
     watchFile,
     watchDirectory,
     invokeFileWatcher,
-    invokeDirectoryWatcher
+    invokeDirectoryWatcher,
   } = createWatchFactory();
   const resolvers = makeResolvers(
     compiler,
@@ -565,7 +558,7 @@ export function makeWatchHost(
         ? compiler.createEmitAndSemanticDiagnosticsBuilderProgram
         : createBuilderProgramWithReferences,
 
-    outputFiles: new Map()
+    outputFiles: new Map(),
   };
   return watchHost;
 
@@ -607,7 +600,7 @@ export function makeWatchHost(
       host,
       oldProgram: oldProgram && oldProgram.getProgram(),
       configFileParsingDiagnostics,
-      projectReferences
+      projectReferences,
     });
 
     const builderProgramHost: typescript.BuilderProgramHost = host!;
@@ -639,8 +632,8 @@ export function makeSolutionBuilderHost(
     loaderOptions: {
       resolveModuleName: customResolveModuleName,
       resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
-      transpileOnly
-    }
+      transpileOnly,
+    },
   } = instance;
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
@@ -650,13 +643,13 @@ export function makeSolutionBuilderHost(
     getCanonicalFileName: compiler.sys.useCaseSensitiveFileNames
       ? s => s
       : s => s.toLowerCase(),
-    getNewLine: () => compiler.sys.newLine
+    getNewLine: () => compiler.sys.newLine,
   };
 
   const diagnostics: SolutionDiagnostics = {
     global: [],
     perFile: new Map(),
-    transpileErrors: []
+    transpileErrors: [],
   };
   const reportDiagnostic = (d: typescript.Diagnostic) => {
     if (transpileOnly) {
@@ -735,7 +728,7 @@ export function makeSolutionBuilderHost(
           ? existing.text !== text
             ? existing.version + 1
             : existing.version
-          : 0
+          : 0,
       };
       outputFiles.set(resolvedFileName, newOutputFile);
       writtenFiles.push(newOutputFile);
@@ -814,7 +807,7 @@ export function makeSolutionBuilderHost(
       return typeof result === 'string' ? result : undefined;
     },
     getOutputFilesFromReferencedProjectInput,
-    buildReferences
+    buildReferences,
   };
   solutionBuilderHost.trace = logData => instance.log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file => {
@@ -888,7 +881,7 @@ export function makeSolutionBuilderHost(
       if (configInfo.outputFileNames) {
         for (const [
           inputFileName,
-          outputFilesOfInput
+          outputFilesOfInput,
         ] of configInfo.outputFileNames.entries()) {
           if (outputFilesOfInput.indexOf(resolvedFileName) !== -1) {
             return inputFileName;
@@ -913,9 +906,11 @@ export function makeSolutionBuilderHost(
     configInfo.config.fileNames.forEach(inputFile =>
       configInfo.outputFileNames!.set(
         path.resolve(inputFile),
-        getOutputFileNames(instance, configInfo.config!, inputFile).map(
-          output => path.resolve(output)
-        )
+        getOutputFileNames(
+          instance,
+          configInfo.config!,
+          inputFile
+        ).map(output => path.resolve(output))
       )
     );
 
@@ -959,7 +954,7 @@ export function makeSolutionBuilderHost(
       text,
       writeByteOrderMark: false,
       time: compiler.sys.getModifiedTime!(outputFileName)!,
-      version: 0
+      version: 0,
     };
     outputFiles.set(resolvedFileName, newOutputFile);
     return newOutputFile;
@@ -990,7 +985,7 @@ export function makeSolutionBuilderHost(
     const tsFile: TSFile = {
       version: 1,
       text: compiler.sys.readFile(inputFileName, encoding),
-      modifiedTime: compiler.sys.getModifiedTime!(inputFileName)
+      modifiedTime: compiler.sys.getModifiedTime!(inputFileName),
     };
     instance.otherFiles.set(resolvedFileName, tsFile);
     return tsFile;
@@ -1087,7 +1082,6 @@ function resolveModule(
     if (resolvedFileName.match(scriptRegex) !== null) {
       resolutionResult = { resolvedFileName, originalFileName };
     }
-    // tslint:disable-next-line:no-empty
   } catch (e) {}
 
   const tsResolution = resolveModuleName(moduleName, containingFile);
@@ -1100,7 +1094,7 @@ function resolveModule(
       originalFileName: resolvedFileName,
       resolvedFileName,
       isExternalLibraryImport:
-        tsResolution.resolvedModule.isExternalLibraryImport
+        tsResolution.resolvedModule.isExternalLibraryImport,
     };
 
     return resolutionResult! === undefined ||
@@ -1182,9 +1176,9 @@ function addCache(
       directoryExists:
         servicesHost.directoryExists &&
         createCache(servicesHost.directoryExists),
-      realpath: servicesHost.realpath && createCache(servicesHost.realpath)
+      realpath: servicesHost.realpath && createCache(servicesHost.realpath),
     },
-    clearCache: () => clearCacheFunctions.forEach(clear => clear())
+    clearCache: () => clearCacheFunctions.forEach(clear => clear()),
   };
 
   function createCache<TOut>(originalFunction: (arg: string) => TOut) {

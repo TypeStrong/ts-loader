@@ -2,7 +2,7 @@ import * as webpack from 'webpack';
 
 import { ResolveSync } from './interfaces';
 
-// tslint:disable-next-line:no-submodule-imports
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const node = require('enhanced-resolve/lib/node');
 
 export function makeResolver(options: webpack.Configuration): ResolveSync {

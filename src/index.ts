@@ -12,14 +12,14 @@ import {
   getTypeScriptInstance,
   initializeInstance,
   isReferencedFile,
-  reportTranspileErrors
+  reportTranspileErrors,
 } from './instances';
 import {
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
   TSFile,
-  TSInstance
+  TSInstance,
 } from './interfaces';
 import {
   appendSuffixesIfMatch,
@@ -27,7 +27,7 @@ import {
   formatErrors,
   getAndCacheOutputJSFileName,
   getAndCacheProjectReference,
-  validateSourceMapOncePerProject
+  validateSourceMapOncePerProject,
 } from './utils';
 
 const webpackInstances: webpack.Compiler[] = [];
@@ -37,7 +37,6 @@ const loaderOptionsCache: LoaderOptionsCache = {};
  * The entry point for ts-loader
  */
 function loader(this: webpack.loader.LoaderContext, contents: string) {
-  // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
   this.cacheable && this.cacheable();
   const callback = this.async() as webpack.loader.loaderCallback;
   const options = getLoaderOptions(this);
@@ -68,7 +67,7 @@ function successLoader(
       ? appendSuffixesIfMatch(
           {
             '.ts': instance.loaderOptions.appendTsSuffixTo,
-            '.tsx': instance.loaderOptions.appendTsxSuffixTo
+            '.tsx': instance.loaderOptions.appendTsxSuffixTo,
           },
           rawFilePath
         )
@@ -87,7 +86,7 @@ function successLoader(
         loaderContext.rootContext,
         referencedProject.sourceFile.fileName
       ),
-      path.relative(loaderContext.rootContext, filePath)
+      path.relative(loaderContext.rootContext, filePath),
     ];
     if (referencedProject.commandLine.options.outFile !== undefined) {
       throw new Error(
@@ -303,7 +302,7 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'experimentalFileCaching',
   'projectReferences',
   'resolveModuleName',
-  'resolveTypeReferenceDirective'
+  'resolveTypeReferenceDirective',
 ];
 
 /**
@@ -313,7 +312,6 @@ const validLoaderOptions: ValidLoaderOptions[] = [
  */
 function validateLoaderOptions(loaderOptions: LoaderOptions) {
   const loaderOptionKeys = Object.keys(loaderOptions);
-  // tslint:disable-next-line:prefer-for-of
   for (let i = 0; i < loaderOptionKeys.length; i++) {
     const option = loaderOptionKeys[i];
     const isUnexpectedOption =
@@ -332,9 +330,7 @@ ${validLoaderOptions.join(' / ')}
     !path.isAbsolute(loaderOptions.context)
   ) {
     throw new Error(
-      `Option 'context' has to be an absolute path. Given '${
-        loaderOptions.context
-      }'.`
+      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`
     );
   }
 }
@@ -361,7 +357,7 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
       experimentalWatchApi: false,
       allowTsInNodeModules: false,
-      experimentalFileCaching: true
+      experimentalFileCaching: true,
     } as Partial<LoaderOptions>,
     loaderOptions
   );
@@ -606,7 +602,7 @@ function addDependenciesFromSolutionBuilder(
   // Referenced file find the config for it
   for (const [
     configFile,
-    configInfo
+    configInfo,
   ] of instance.solutionBuilderHost.configFileInfo.entries()) {
     if (
       !configInfo.config ||
@@ -705,12 +701,12 @@ function getTranspilationEmit(
   const {
     outputText,
     sourceMapText,
-    diagnostics
+    diagnostics,
   } = instance.compiler.transpileModule(contents, {
     compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
     transformers: instance.transformers,
     reportDiagnostics: true,
-    fileName
+    fileName,
   });
 
   addDependenciesFromSolutionBuilder(instance, fileName, file =>
@@ -750,8 +746,8 @@ function makeSourceMap(
     sourceMap: Object.assign(JSON.parse(sourceMapText), {
       sources: [loaderUtils.getRemainingRequest(loaderContext)],
       file: filePath,
-      sourcesContent: [contents]
-    })
+      sourcesContent: [contents],
+    }),
   };
 }
 
@@ -760,8 +756,8 @@ export = loader;
 /**
  * expose public types via declaration merging
  */
-// tslint:disable-next-line:no-namespace
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace loader {
-  // tslint:disable-next-line:no-empty-interface
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   export interface Options extends LoaderOptions {}
 }
