@@ -58,8 +58,8 @@ export function getConfigFile(
     configFile = {
       config: {
         compilerOptions: {},
-        files: []
-      }
+        files: [],
+      },
     };
   }
 
@@ -74,7 +74,7 @@ export function getConfigFile(
   return {
     configFilePath,
     configFile,
-    configFileError
+    configFileError,
   };
 }
 
@@ -144,7 +144,7 @@ export function getConfigParseResult(
   if (semver.gte(compiler.version, '3.5.0')) {
     // set internal options.configFilePath flag on options to denote that we read this from a file
     configParseResult.options = Object.assign({}, configParseResult.options, {
-      configFilePath
+      configFilePath,
     });
   }
 
@@ -164,7 +164,8 @@ export function getParsedCommandLine(
     loaderOptions.compilerOptions,
     {
       ...compiler.sys,
-      onUnRecoverableConfigFileDiagnostic: () => {} // tslint:disable-line no-empty
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      onUnRecoverableConfigFileDiagnostic: () => {},
     },
     extendedConfigCache
   );

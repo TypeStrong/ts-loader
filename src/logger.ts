@@ -1,4 +1,4 @@
-// tslint:disable:no-empty
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { Chalk } from 'chalk';
 import { Console } from 'console';
 import { LoaderOptions } from './interfaces';
@@ -17,7 +17,7 @@ export interface Logger {
 export enum LogLevel {
   INFO = 1,
   WARN = 2,
-  ERROR = 3
+  ERROR = 3,
 }
 
 const stderrConsole = new Console(process.stderr);
@@ -29,7 +29,6 @@ const makeLoggerFunc = (loaderOptions: LoaderOptions): InternalLoggerFunc =>
   loaderOptions.silent
     ? (_whereToLog: any, _message: string) => {}
     : (whereToLog: any, message: string) =>
-        // tslint:disable-next-line:no-console
         console.log.call(whereToLog, message);
 
 const makeExternalLogger = (
@@ -81,6 +80,6 @@ export function makeLogger(
     log: makeExternalLogger(loaderOptions, logger),
     logInfo: makeLogInfo(loaderOptions, logger, colors.green),
     logWarning: makeLogWarning(loaderOptions, logger, colors.yellow),
-    logError: makeLogError(loaderOptions, logger, colors.red)
+    logError: makeLogError(loaderOptions, logger, colors.red),
   };
 }

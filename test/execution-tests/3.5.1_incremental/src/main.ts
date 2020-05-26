@@ -4,7 +4,6 @@ class Foo {
         this.message = 'hello world';
     }
     public write() {
-        // tslint:disable-next-line:no-console
         console.log(this.message);
     }
 }

@@ -14,14 +14,14 @@ import {
   TSFiles,
   TSInstance,
   TSInstances,
-  WebpackError
+  WebpackError,
 } from './interfaces';
 import * as logger from './logger';
 import {
   getSolutionErrors,
   makeServicesHost,
   makeSolutionBuilderHost,
-  makeWatchHost
+  makeWatchHost,
 } from './servicesHost';
 import {
   appendSuffixesIfMatch,
@@ -29,7 +29,7 @@ import {
   formatErrors,
   isUsingProjectReferences,
   makeError,
-  supportsSolutionBuild
+  supportsSolutionBuild,
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
@@ -98,7 +98,7 @@ function successfulTypeScriptInstance(
       error: makeError(
         colors.red('error while reading tsconfig.json:' + EOL + message),
         file
-      )
+      ),
     };
   }
 
@@ -128,7 +128,7 @@ function successfulTypeScriptInstance(
       error: makeError(
         colors.red('error while parsing tsconfig.json'),
         configFilePath
-      )
+      ),
     };
   }
 
@@ -144,7 +144,7 @@ function successfulTypeScriptInstance(
           appendSuffixesIfMatch(
             {
               '.ts': loaderOptions.appendTsSuffixTo,
-              '.tsx': loaderOptions.appendTsxSuffixTo
+              '.tsx': loaderOptions.appendTsxSuffixTo,
             },
             filePath
           )
@@ -171,7 +171,7 @@ function successfulTypeScriptInstance(
       reportTranspileErrors: true,
       configFilePath,
       configParseResult,
-      log
+      log,
     });
 
     return { instance: transpileInstance };
@@ -189,7 +189,7 @@ function successfulTypeScriptInstance(
       normalizedFilePath = path.normalize(filePath);
       files.set(normalizedFilePath, {
         text: fs.readFileSync(normalizedFilePath, 'utf-8'),
-        version: 0
+        version: 0,
       });
       rootFileNames.add(normalizedFilePath);
     });
@@ -200,7 +200,7 @@ function successfulTypeScriptInstance(
           `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
         ),
         normalizedFilePath!
-      )
+      ),
     };
   }
 
@@ -221,7 +221,7 @@ function successfulTypeScriptInstance(
     initialSetupPending: true,
     configFilePath,
     configParseResult,
-    log
+    log,
   });
 
   return { instance };
@@ -268,7 +268,7 @@ export function initializeInstance(
         ? instance.compiler.createProgram({
             rootNames: instance.configParseResult.fileNames,
             options: instance.configParseResult.options,
-            projectReferences: instance.configParseResult.projectReferences
+            projectReferences: instance.configParseResult.projectReferences,
           })
         : instance.compiler.createProgram([], instance.compilerOptions));
 
@@ -431,7 +431,7 @@ function ensureAllReferences(instance: TSInstance) {
         instance.otherFiles.set(resolvedFileName, {
           version: 1,
           text: instance.compiler.sys.readFile(file),
-          modifiedTime: instance.compiler.sys.getModifiedTime!(file)
+          modifiedTime: instance.compiler.sys.getModifiedTime!(file),
         });
       }
     });
@@ -655,7 +655,7 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
         instance.watchHost!.tsbuildinfo = {
           name: fileName,
           writeByteOrderMark,
-          text
+          text,
         };
       } else {
         outputFiles.push({ name: fileName, writeByteOrderMark, text });

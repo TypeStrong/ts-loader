@@ -6,20 +6,20 @@ import * as constants from './constants';
 import {
   getEmitFromWatchHost,
   getEmitOutput,
-  isReferencedFile
+  isReferencedFile,
 } from './instances';
 import {
   TSFile,
   TSFiles,
   TSInstance,
   WebpackError,
-  WebpackModule
+  WebpackModule,
 } from './interfaces';
 import {
   collectAllDependants,
   ensureProgram,
   formatErrors,
-  isUsingProjectReferences
+  isUsingProjectReferences,
 } from './utils';
 
 export function makeAfterCompile(
@@ -190,7 +190,7 @@ function provideErrorsToWebpack(
     files,
     loaderOptions,
     compilerOptions,
-    otherFiles
+    otherFiles,
   } = instance;
 
   const filePathRegex =
@@ -284,7 +284,7 @@ function provideSolutionErrorsToWebpack(
   const {
     compiler,
     loaderOptions,
-    solutionBuilderHost: { diagnostics }
+    solutionBuilderHost: { diagnostics },
   } = instance;
 
   for (const [filePath, perFileDiagnostics] of diagnostics.perFile) {
@@ -380,7 +380,7 @@ function outputFileToAsset(
   );
   compilation.assets[assetPath] = {
     source: () => outputFile.text,
-    size: () => outputFile.text.length
+    size: () => outputFile.text.length,
   };
 }
 
