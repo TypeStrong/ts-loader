@@ -1,9 +1,9 @@
-                      Asset       Size  Chunks             Chunk Names
-                  bundle.js   4.07 KiB    main  [emitted]  main
-       ../lib/dist/index.js  135 bytes          [emitted]  
-     ../lib/dist/index.d.ts   54 bytes          [emitted]  
-../lib/tsconfig.tsbuildinfo   72.6 KiB          [emitted]  
-Entrypoint main = bundle.js
+                         Asset       Size  Chunks             Chunk Names
+                      index.js   4.07 KiB    main  [emitted]  main
+       ../../lib/dist/index.js  135 bytes          [emitted]  
+     ../../lib/dist/index.d.ts   54 bytes          [emitted]  
+../../lib/tsconfig.tsbuildinfo   72.6 KiB          [emitted]  
+Entrypoint main = index.js
 [./src/index.ts] 144 bytes {main} [built]
 
 ERROR in ./src/index.ts

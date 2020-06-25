@@ -1,10 +1,13 @@
 {
-"files": [
-    "./app.ts"
-  ],
-  "references": [
-    { "path": "./lib" },
-    { "path": "./utils" },
-    { "path": "./unreferenced" },
-  ]
+    "compilerOptions": {
+        "types": []
+    },
+    "files": [
+        "./app.ts"
+    ],
+    "references": [
+        { "path": "./lib" },
+        { "path": "./utils" },
+        { "path": "./unreferenced" },
+    ]
 }

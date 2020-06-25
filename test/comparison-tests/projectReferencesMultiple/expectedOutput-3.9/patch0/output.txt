@@ -1,13 +1,13 @@
-                      Asset       Size  Chunks             Chunk Names
-                  bundle.js   5.14 KiB    main  [emitted]  main
-    ../lib/fileWithError.js  111 bytes          [emitted]  
-  ../lib/fileWithError.d.ts   40 bytes          [emitted]  
-            ../lib/index.js  104 bytes          [emitted]  
-          ../lib/index.d.ts   89 bytes          [emitted]  
-../lib/tsconfig.tsbuildinfo   67.8 KiB          [emitted]  
+                   Asset       Size  Chunks             Chunk Names
+               bundle.js   5.17 KiB    main  [emitted]  main
+    lib/fileWithError.js  134 bytes          [emitted]  
+  lib/fileWithError.d.ts   40 bytes          [emitted]  
+            lib/index.js  127 bytes          [emitted]  
+          lib/index.d.ts   89 bytes          [emitted]  
+lib/tsconfig.tsbuildinfo     73 KiB          [emitted]  
 Entrypoint main = bundle.js
 [./app.ts] 182 bytes {main} [built]
-[./lib/index.ts] 104 bytes {main} [built]
+[./lib/index.ts] 127 bytes {main} [built]
 [./utils/index.ts] 485 bytes {main} [built] [failed] [1 error]
 
 ERROR in ./utils/index.ts
