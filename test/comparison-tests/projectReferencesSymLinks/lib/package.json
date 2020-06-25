@@ -1,0 +1,9 @@
+{
+  "name": "lib",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^3.9.3"
+  }
+}

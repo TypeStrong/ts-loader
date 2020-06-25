@@ -100,6 +100,11 @@ function createTest(test, testPath, options) {
             }
         }
         copySync(testPath, paths.testStagingPath);
+        if (testPath.match("SymLinks")) {
+            // Setup symlinks
+            mkdirp.sync(path.resolve(paths.testStagingPath, "node_modules"));
+            fs.symlinkSync(path.resolve(paths.testStagingPath, "lib"), path.resolve(paths.testStagingPath, "node_modules/lib"), "junction");
+        }
         if (test.indexOf("AlreadyBuilt") !== -1) {
             const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"));
             program.emit();
@@ -146,7 +151,18 @@ function createPaths(stagingPath, test, options) {
 }
 
 function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
-    const config = require(path.join(paths.testStagingPath, 'webpack.config'));
+    let config;
+    let subFolder = "";
+    try {
+        config = require(path.join(paths.testStagingPath, 'webpack.config'));
+    }
+    catch {
+    }
+
+    if (!config) {
+        subFolder = "app";
+        config = require(path.join(paths.testStagingPath, subFolder, 'webpack.config'));
+    }
 
     const extraOptionMaybe = extraOption ? { [extraOption]: true } : {};
     const options = Object.assign({
@@ -158,12 +174,11 @@ function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
         experimentalWatchApi: !!useWatchApi
     }, optionsOriginal, extraOptionMaybe);
 
-    const tsLoaderPath = require('path').join(__dirname, "../../index.js");
-
+    const tsLoaderPath = path.join(__dirname, "../../index.js");
     aliasLoader(config, tsLoaderPath, options);
 
     config.output.path = paths.webpackOutput;
-    config.context = paths.testStagingPath;
+    config.context = path.join(paths.testStagingPath, subFolder);
     config.resolveLoader = config.resolveLoader || {};
     config.resolveLoader.alias = config.resolveLoader.alias || {};
     config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
@@ -254,7 +269,7 @@ function compareFiles(paths, test, patch) {
             const actual = getNormalisedFileContent(file, paths.actualOutput);
             const expected = getNormalisedFileContent(file, paths.expectedOutput);
             if (actual !== expected) {
-                fs.copyFileSync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
+                fs.copySync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
             }
         });
     }

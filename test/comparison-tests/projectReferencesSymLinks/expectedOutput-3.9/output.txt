@@ -1,0 +1,16 @@
+                      Asset       Size  Chunks             Chunk Names
+                  bundle.js   4.03 KiB    main  [emitted]  main
+       ../lib/dist/index.js  135 bytes          [emitted]  
+     ../lib/dist/index.d.ts   54 bytes          [emitted]  
+../lib/tsconfig.tsbuildinfo   72.6 KiB          [emitted]  
+Entrypoint main = bundle.js
+[./src/index.ts] 108 bytes {main} [built] [1 error]
+
+ERROR in ./src/index.ts
+Module not found: Error: Can't resolve 'lib' in 'app\src'
+ @ ./src/index.ts 3:12-26
+
+ERROR in app\src\index.ts
+./src/index.ts
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp\src\index.ts(1,34)[39m[22m
+[1m[31m      TS2307: Cannot find module 'lib' or its corresponding type declarations.[39m[22m
