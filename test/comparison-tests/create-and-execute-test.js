@@ -104,6 +104,7 @@ function createTest(test, testPath, options) {
             // Setup symlinks
             mkdirp.sync(path.resolve(paths.testStagingPath, "node_modules"));
             fs.symlinkSync(path.resolve(paths.testStagingPath, "lib"), path.resolve(paths.testStagingPath, "node_modules/lib"), "junction");
+            fs.symlinkSync(path.resolve(paths.testStagingPath, "common"), path.resolve(paths.testStagingPath, "node_modules/common"), "junction");
         }
         if (test.indexOf("AlreadyBuilt") !== -1) {
             const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"));

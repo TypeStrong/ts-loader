@@ -12,6 +12,7 @@ npm-debug.log
 !/test/**/expectedOutput-*/**
 /**/node_modules
 /dist
+/test/execution-tests/**/dist
 /**/.happypack
 /**/.cache-loader
 !build.js

@@ -27,8 +27,8 @@
         "affectsGlobalScope": true
       },
       "./src/index.ts": {
-        "version": "ff819252a76f1faad34a482bcc90fb6ec1c85dd836c06dbcbea0c2c405ef6315",
-        "signature": "c0374b8bd606e6c8e0156f10567ee0c6e08986bb37d64ed818d623829ec7e1c2",
+        "version": "04a941e6fe6c7eb7913fa3105993c5282e1401287cef79308eed0201ee2c9ef9",
+        "signature": "50f1420a801028c6fbac3bc9471d819b47f9475ca24d7920f3266e000d4a77b5",
         "affectsGlobalScope": false
       }
     },
@@ -36,6 +36,7 @@
       "composite": true,
       "outDir": "./dist",
       "rootDir": "./src",
+      "preserveSymlinks": true,
       "types": [],
       "newLine": "LF",
       "configFilePath": "./tsconfig.json",

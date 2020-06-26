@@ -1,0 +1,1 @@
+export const getMeaningOfLife2 = () => 45;
