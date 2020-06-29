@@ -15,10 +15,10 @@ import {
   reportTranspileErrors,
 } from './instances';
 import {
+  FilePathKey,
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
-  TSFile,
   TSInstance,
 } from './interfaces';
 import {
@@ -384,13 +384,14 @@ function updateFileInCache(
 ) {
   let fileWatcherEventKind: typescript.FileWatcherEventKind | undefined;
   // Update file contents
-  let file = instance.files.get(filePath);
+  const key = instance.filePathKeyMapper(filePath);
+  let file = instance.files.get(key);
   if (file === undefined) {
-    file = instance.otherFiles.get(filePath);
+    file = instance.otherFiles.get(key);
     if (file !== undefined) {
       if (!isReferencedFile(instance, filePath)) {
-        instance.otherFiles.delete(filePath);
-        instance.files.set(filePath, file);
+        instance.otherFiles.delete(key);
+        instance.files.set(key, file);
         instance.changedFilesList = true;
       }
     } else {
@@ -400,12 +401,12 @@ function updateFileInCache(
       ) {
         fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
       }
-      file = { version: 0 };
+      file = { fileName: filePath, version: 0 };
       if (!isReferencedFile(instance, filePath)) {
-        instance.files.set(filePath, file);
+        instance.files.set(key, file);
         instance.changedFilesList = true;
       } else {
-        instance.otherFiles.set(filePath, file);
+        instance.otherFiles.set(key, file);
       }
     }
   }
@@ -471,9 +472,9 @@ function updateFileInCache(
 
   // push this file to modified files hash.
   if (!instance.modifiedFiles) {
-    instance.modifiedFiles = new Map<string, TSFile>();
+    instance.modifiedFiles = new Map();
   }
-  instance.modifiedFiles.set(filePath, file);
+  instance.modifiedFiles.set(key, file);
 
   return file.version;
 }
@@ -497,7 +498,7 @@ function getEmit(
 
   // Make this file dependent on *all* definition files in the program
   if (!isReferencedFile(instance, filePath)) {
-    for (const defFilePath of instance.files.keys()) {
+    for (const { fileName: defFilePath } of instance.files.values()) {
       if (
         defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
         // Remove the project reference d.ts as we are adding dependency for .ts later
@@ -513,7 +514,9 @@ function getEmit(
   }
 
   // Additionally make this file dependent on all imported files
-  const fileDependencies = instance.dependencyGraph[filePath];
+  const fileDependencies = instance.dependencyGraph.get(
+    instance.filePathKeyMapper(filePath)
+  );
   if (fileDependencies) {
     for (const { resolvedFileName, originalFileName } of fileDependencies) {
       const projectReference = getAndCacheProjectReference(
@@ -531,6 +534,7 @@ function getEmit(
           )
         );
       } else {
+        // TODO:: Potentially handle symlinks
         addDependency(
           getInputFileNameFromOutput(
             instance,
@@ -548,8 +552,10 @@ function getEmit(
       path.relative(loaderContext.rootContext, defFilePath) +
       '@' +
       (
-        instance.files.get(defFilePath) ||
-        instance.otherFiles.get(defFilePath) || { version: '?' }
+        instance.files.get(instance.filePathKeyMapper(defFilePath)) ||
+        instance.otherFiles.get(instance.filePathKeyMapper(defFilePath)) || {
+          version: '?',
+        }
       ).version
   );
 
@@ -582,16 +588,16 @@ function addDependenciesFromSolutionBuilder(
   }
 
   // Add all the input files from the references as
-  const resolvedFilePath = path.resolve(filePath);
+  const resolvedFilePath = instance.filePathKeyMapper(filePath);
   if (!isReferencedFile(instance, filePath)) {
     if (
       instance.configParseResult.fileNames.some(
-        f => path.resolve(f) === resolvedFilePath
+        f => instance.filePathKeyMapper(f) === resolvedFilePath
       )
     ) {
       addDependenciesFromProjectReferences(
         instance,
-        path.resolve(instance.configFilePath!),
+        instance.configFilePath!,
         instance.configParseResult.projectReferences,
         addDependency
       );
@@ -617,7 +623,7 @@ function addDependenciesFromSolutionBuilder(
       }
     } else if (
       !configInfo.config.fileNames.some(
-        f => path.resolve(f) === resolvedFilePath
+        f => instance.filePathKeyMapper(f) === resolvedFilePath
       )
     ) {
       continue;
@@ -647,8 +653,8 @@ function addDependenciesFromProjectReferences(
     return;
   }
   // This is the config for the input file
-  const seenMap = new Map<string, true>();
-  seenMap.set(configFile, true);
+  const seenMap = new Map<FilePathKey, true>();
+  seenMap.set(instance.filePathKeyMapper(configFile), true);
 
   // Add dependencies to all the input files from the project reference files since building them
   const queue = projectReferences.slice();
@@ -657,7 +663,7 @@ function addDependenciesFromProjectReferences(
     if (!currentRef) {
       break;
     }
-    const refConfigFile = path.resolve(
+    const refConfigFile = instance.filePathKeyMapper(
       instance.compiler.resolveProjectReferencePath(currentRef)
     );
     if (seenMap.has(refConfigFile)) {

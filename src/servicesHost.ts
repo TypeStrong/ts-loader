@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
-
 import { getParsedCommandLine } from './config';
 import * as constants from './constants';
 import { getOutputFileNames } from './instances';
@@ -10,6 +9,7 @@ import {
   ConfigFileInfo,
   CustomResolveModuleName,
   CustomResolveTypeReferenceDirective,
+  FilePathKey,
   FormatDiagnosticsHost,
   ModuleResolutionHost,
   OutputFile,
@@ -20,48 +20,31 @@ import {
   SolutionDiagnostics,
   TSFile,
   TSInstance,
+  TypescriptHostMayBeCacheable,
   WatchCallbacks,
   WatchFactory,
   WatchHost,
   WebpackError,
 } from './interfaces';
 import { makeResolver } from './resolver';
-import { formatErrors, readFile, unorderedRemoveItem } from './utils';
+import {
+  ensureTrailingDirectorySeparator,
+  formatErrors,
+  fsReadFile,
+  unorderedRemoveItem,
+} from './utils';
 
-function readFileWithInstance(
-  instance: TSInstance,
-  filePath: string,
-  encoding?: string | undefined
-): string | undefined {
-  if (instance.solutionBuilderHost) {
-    const outputFile = instance.solutionBuilderHost.getOutputFileFromReferencedProject(
-      filePath
-    );
-    if (outputFile !== undefined) {
-      return outputFile ? outputFile.text : undefined;
-    }
-  }
-  return (
-    instance.compiler.sys.readFile(filePath, encoding) ||
-    readFile(filePath, encoding)
-  );
-}
-
-/**
- * Create the TypeScript language service
- */
-export function makeServicesHost(
+function makeResolversHandlingProjectReferences(
   scriptRegex: RegExp,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance,
-  enableFileCaching: boolean,
-  projectReferences?: ReadonlyArray<typescript.ProjectReference>
-): ServiceHostWhichMayBeCacheable {
+  originalFileExists: (fileName: string) => boolean,
+  enableFileCaching: boolean
+) {
   const {
     compiler,
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
-    files,
     loaderOptions: {
       resolveModuleName: customResolveModuleName,
       resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
@@ -75,49 +58,33 @@ export function makeServicesHost(
       ? constants.LineFeed
       : constants.EOL;
 
-  // make a (sync) resolver that follows webpack's rules
-  const resolveSync = makeResolver(loader._compiler.options);
-
-  const readFileWithFallback = (
-    filePath: string,
-    encoding?: string | undefined
-  ): string | undefined => readFileWithInstance(instance, filePath, encoding);
-
-  const fileExists = (filePathToCheck: string) => {
-    if (instance.solutionBuilderHost) {
-      const outputFile = instance.solutionBuilderHost.getOutputFileFromReferencedProject(
-        filePathToCheck
-      );
-      if (outputFile !== undefined) {
-        return !!outputFile;
-      }
-    }
-    return (
-      compiler.sys.fileExists(filePathToCheck) ||
-      readFile(filePathToCheck) !== undefined
-    );
-  };
-
-  let clearCache: Action | null = null;
-  let moduleResolutionHost: ModuleResolutionHost = {
-    fileExists,
-    readFile: readFileWithFallback,
-    realpath: compiler.sys.realpath,
-    directoryExists: compiler.sys.directoryExists,
-    getCurrentDirectory: compiler.sys.getCurrentDirectory,
-    getDirectories: compiler.sys.getDirectories,
-  };
-
-  if (enableFileCaching) {
-    const cached = addCache(moduleResolutionHost);
-    clearCache = cached.clearCache;
-    moduleResolutionHost = cached.moduleResolutionHost;
-  }
-
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
 
-  const resolvers = makeResolvers(
+  // make a (sync) resolver that follows webpack's rules
+  const resolveSync = makeResolver(loader._compiler.options);
+
+  const moduleResolutionHost: TypescriptHostMayBeCacheable = {
+    trace: logData => instance.log.log(logData),
+    fileExists,
+    readFile,
+    realpath,
+    directoryExists,
+    getCurrentDirectory,
+    getDirectories,
+    readDirectory,
+    clearCache: null,
+
+    useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
+    getNewLine: () => newLine,
+    getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
+  };
+
+  if (enableFileCaching) {
+    addCache(moduleResolutionHost);
+  }
+
+  return makeResolvers(
     compiler,
     compilerOptions,
     moduleResolutionHost,
@@ -129,17 +96,121 @@ export function makeServicesHost(
     instance
   );
 
-  const servicesHost: typescript.LanguageServiceHost = {
+  function fileExists(filePathToCheck: string) {
+    const outputFile = instance.solutionBuilderHost?.getOutputFileFromReferencedProject(
+      filePathToCheck
+    );
+    if (outputFile !== undefined) {
+      return !!outputFile;
+    }
+    return originalFileExists(filePathToCheck);
+  }
+
+  function readFile(
+    filePath: string,
+    encoding?: string | undefined
+  ): string | undefined {
+    const outputFile = instance.solutionBuilderHost?.getOutputFileFromReferencedProject(
+      filePath
+    );
+    if (outputFile !== undefined) {
+      return outputFile ? outputFile.text : undefined;
+    }
+    return (
+      instance.compiler.sys.readFile(filePath, encoding) ||
+      fsReadFile(filePath, encoding)
+    );
+  }
+
+  function directoryExists(directoryName: string) {
+    return instance.solutionBuilderHost
+      ? instance.solutionBuilderHost.directoryExists!(directoryName)
+      : compiler.sys.directoryExists(directoryName);
+  }
+
+  function realpath(path: string) {
+    return instance.solutionBuilderHost
+      ? instance.solutionBuilderHost.realpath!(path)
+      : compiler.sys.realpath?.(path) || path;
+  }
+
+  function getDirectories(path: string) {
+    return instance.solutionBuilderHost
+      ? instance.solutionBuilderHost.getDirectories!(path)
+      : compiler.sys.getDirectories(path);
+  }
+
+  function readDirectory(
+    path: string,
+    extensions?: readonly string[],
+    exclude?: readonly string[],
+    include?: readonly string[],
+    depth?: number
+  ) {
+    return instance.solutionBuilderHost
+      ? instance.solutionBuilderHost.readDirectory!(
+          path,
+          extensions,
+          exclude,
+          include,
+          depth
+        )
+      : compiler.sys.readDirectory(path, extensions, exclude, include, depth);
+  }
+}
+
+/**
+ * Create the TypeScript language service
+ */
+export function makeServicesHost(
+  scriptRegex: RegExp,
+  loader: webpack.loader.LoaderContext,
+  instance: TSInstance,
+  projectReferences?: ReadonlyArray<typescript.ProjectReference>
+): ServiceHostWhichMayBeCacheable {
+  const { compiler, compilerOptions, files, filePathKeyMapper } = instance;
+
+  const {
+    moduleResolutionHost: {
+      fileExists,
+      readFile,
+      trace,
+      directoryExists,
+      realpath,
+      getCurrentDirectory,
+      getDirectories,
+      clearCache,
+      useCaseSensitiveFileNames,
+      getNewLine,
+      getDefaultLibFileName,
+      readDirectory,
+    },
+    resolveModuleNames,
+    resolveTypeReferenceDirectives,
+  } = makeResolversHandlingProjectReferences(
+    scriptRegex,
+    loader,
+    instance,
+    filePathToCheck =>
+      compiler.sys.fileExists(filePathToCheck) ||
+      fsReadFile(filePathToCheck) !== undefined,
+    instance.loaderOptions.experimentalFileCaching
+  );
+
+  const servicesHost: ServiceHostWhichMayBeCacheable = {
     getProjectVersion: () => `${instance.version}`,
 
     getProjectReferences: () => projectReferences,
 
     getScriptFileNames: () =>
-      [...files.keys()].filter(filePath => filePath.match(scriptRegex)),
+      [...files.values()]
+        .map(({ fileName }) => fileName)
+        .filter(filePath => filePath.match(scriptRegex)),
 
     getScriptVersion: (fileName: string) => {
       fileName = path.normalize(fileName);
-      const file = files.get(fileName);
+      const key = filePathKeyMapper(fileName);
+      const file = files.get(key);
       if (file) {
         return file.version.toString();
       }
@@ -150,7 +221,7 @@ export function makeServicesHost(
         );
       if (outputFile !== undefined) {
         instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
-          path.resolve(fileName),
+          key,
           true
         );
       }
@@ -161,7 +232,8 @@ export function makeServicesHost(
       // This is called any time TypeScript needs a file's text
       // We either load from memory or from disk
       fileName = path.normalize(fileName);
-      let file = files.get(fileName);
+      const key = filePathKeyMapper(fileName);
+      let file = files.get(key);
 
       if (file === undefined) {
         if (instance.solutionBuilderHost) {
@@ -170,7 +242,7 @@ export function makeServicesHost(
           );
           if (outputFile !== undefined) {
             instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
-              path.resolve(fileName),
+              key,
               true
             );
             return outputFile
@@ -184,8 +256,8 @@ export function makeServicesHost(
           return undefined;
         }
 
-        file = { version: 0, text };
-        files.set(fileName, file);
+        file = { fileName, version: 0, text };
+        files.set(key, file);
       }
 
       return compiler.ScriptSnapshot.fromString(file.text!);
@@ -195,46 +267,46 @@ export function makeServicesHost(
      * getDirectories is also required for full import and type reference completions.
      * Without it defined, certain completions will not be provided
      */
-    getDirectories: compiler.sys.getDirectories,
+    getDirectories,
 
     /**
      * For @types expansion, these two functions are needed.
      */
-    directoryExists: moduleResolutionHost.directoryExists,
+    directoryExists,
 
-    useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
+    useCaseSensitiveFileNames,
 
-    realpath: moduleResolutionHost.realpath,
+    realpath,
 
     // The following three methods are necessary for @types resolution from TS 2.4.1 onwards see: https://github.com/Microsoft/TypeScript/issues/16772
-    fileExists: moduleResolutionHost.fileExists,
-    readFile: moduleResolutionHost.readFile,
-    readDirectory: compiler.sys.readDirectory,
+    fileExists,
+    readFile,
+    readDirectory,
 
     getCurrentDirectory,
 
     getCompilationSettings: () => compilerOptions,
-    getDefaultLibFileName: (options: typescript.CompilerOptions) =>
-      compiler.getDefaultLibFilePath(options),
-    getNewLine: () => newLine,
-    trace: instance.log.log,
-    log: instance.log.log,
+    getDefaultLibFileName,
+    getNewLine,
+    trace,
+    log: trace,
 
     // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
-    resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
+    resolveTypeReferenceDirectives,
 
-    resolveModuleNames: resolvers.resolveModuleNames,
+    resolveModuleNames,
 
     getCustomTransformers: () => instance.transformers,
+    clearCache,
   };
 
-  return { servicesHost, clearCache };
+  return servicesHost;
 }
 
-function makeResolvers(
+function makeResolvers<T extends typescript.ModuleResolutionHost>(
   compiler: typeof typescript,
   compilerOptions: typescript.CompilerOptions,
-  moduleResolutionHost: typescript.ModuleResolutionHost,
+  moduleResolutionHost: T,
   customResolveTypeReferenceDirective: CustomResolveTypeReferenceDirective,
   customResolveModuleName: CustomResolveModuleName,
   resolveSync: ResolveSync,
@@ -295,10 +367,13 @@ function makeResolvers(
   return {
     resolveTypeReferenceDirectives,
     resolveModuleNames,
+    moduleResolutionHost,
   };
 }
 
-function createWatchFactory(): WatchFactory {
+function createWatchFactory(
+  filePathKeyMapper: (fileName: string) => FilePathKey
+): WatchFactory {
   const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = new Map();
   const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> = new Map();
   const watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback> = new Map();
@@ -315,13 +390,13 @@ function createWatchFactory(): WatchFactory {
 
   function invokeWatcherCallbacks(
     map:
-      | Map<string, typescript.FileWatcherCallback[]>
-      | Map<string, typescript.DirectoryWatcherCallback[]>,
+      | WatchCallbacks<typescript.FileWatcherCallback>
+      | WatchCallbacks<typescript.DirectoryWatcherCallback>,
     key: string,
     fileName: string,
     eventKind?: typescript.FileWatcherEventKind
   ) {
-    const callbacks = map.get(key);
+    const callbacks = map.get(filePathKeyMapper(key))?.callbacks;
     if (callbacks !== undefined && callbacks.length) {
       // The array copy is made to ensure that even if one of the callback removes the callbacks,
       // we dont miss any callbacks following it
@@ -370,20 +445,23 @@ function createWatchFactory(): WatchFactory {
     callbacks: WatchCallbacks<T>,
     callback: T
   ): typescript.FileWatcher {
-    file = path.normalize(file);
-    const existing = callbacks.get(file);
+    const key = filePathKeyMapper(file);
+    const existing = callbacks.get(key);
     if (existing === undefined) {
-      callbacks.set(file, [callback]);
+      callbacks.set(key, {
+        fileName: path.normalize(file),
+        callbacks: [callback],
+      });
     } else {
-      existing.push(callback);
+      existing.callbacks.push(callback);
     }
     return {
       close: () => {
-        const existing = callbacks.get(file);
+        const existing = callbacks.get(key);
         if (existing !== undefined) {
-          unorderedRemoveItem(existing, callback);
-          if (!existing.length) {
-            callbacks.delete(file);
+          unorderedRemoveItem(existing.callbacks, callback);
+          if (!existing.callbacks.length) {
+            callbacks.delete(key);
           }
         }
       },
@@ -413,12 +491,12 @@ function createWatchFactory(): WatchFactory {
 
 export function updateFileWithText(
   instance: TSInstance,
+  key: FilePathKey,
   filePath: string,
   text: (nFilePath: string) => string
 ) {
   const nFilePath = path.normalize(filePath);
-  const file =
-    instance.files.get(nFilePath) || instance.otherFiles.get(nFilePath);
+  const file = instance.files.get(key) || instance.otherFiles.get(key);
   if (file !== undefined) {
     const newText = text(nFilePath);
     if (newText !== file.text) {
@@ -427,9 +505,9 @@ export function updateFileWithText(
       file.modifiedTime = new Date();
       instance.version++;
       if (!instance.modifiedFiles) {
-        instance.modifiedFiles = new Map<string, TSFile>();
+        instance.modifiedFiles = new Map();
       }
-      instance.modifiedFiles.set(nFilePath, file);
+      instance.modifiedFiles.set(key, file);
       if (instance.watchHost !== undefined) {
         instance.watchHost.invokeFileWatcher(
           nFilePath,
@@ -458,90 +536,67 @@ export function makeWatchHost(
   const {
     compiler,
     compilerOptions,
-    appendTsTsxSuffixesIfRequired,
     files,
     otherFiles,
-    loaderOptions: {
-      resolveModuleName: customResolveModuleName,
-      resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
-    },
+    filePathKeyMapper,
   } = instance;
-
-  const newLine =
-    compilerOptions.newLine === constants.CarriageReturnLineFeedCode
-      ? constants.CarriageReturnLineFeed
-      : compilerOptions.newLine === constants.LineFeedCode
-      ? constants.LineFeed
-      : constants.EOL;
-
-  // make a (sync) resolver that follows webpack's rules
-  const resolveSync = makeResolver(loader._compiler.options);
-
-  const readFileWithFallback = (
-    filePath: string,
-    encoding?: string | undefined
-  ): string | undefined => readFileWithInstance(instance, filePath, encoding);
-
-  const moduleResolutionHost: ModuleResolutionHost = {
-    fileExists,
-    readFile: readFileWithFallback,
-    realpath: compiler.sys.realpath,
-  };
-
-  // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
-  const getCurrentDirectory = () => loader.context;
 
   const {
     watchFile,
     watchDirectory,
     invokeFileWatcher,
     invokeDirectoryWatcher,
-  } = createWatchFactory();
-  const resolvers = makeResolvers(
-    compiler,
-    compilerOptions,
-    moduleResolutionHost,
-    customResolveTypeReferenceDirective,
-    customResolveModuleName,
-    resolveSync,
-    appendTsTsxSuffixesIfRequired,
+  } = createWatchFactory(filePathKeyMapper);
+  const {
+    moduleResolutionHost: {
+      fileExists,
+      readFile,
+      trace,
+      directoryExists,
+      realpath,
+      getCurrentDirectory,
+      getDirectories,
+      useCaseSensitiveFileNames,
+      getNewLine,
+      getDefaultLibFileName,
+      readDirectory,
+    },
+    resolveModuleNames,
+    resolveTypeReferenceDirectives,
+  } = makeResolversHandlingProjectReferences(
     scriptRegex,
-    instance
+    loader,
+    instance,
+    (fileName: string) => {
+      const filePath = filePathKeyMapper(fileName);
+      return files.has(filePath) || compiler.sys.fileExists(filePath);
+    },
+    /*enabledCaching*/ false
   );
 
   const watchHost: WatchHost = {
     rootFiles: getRootFileNames(),
     options: compilerOptions,
 
-    useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
-    getNewLine: () => newLine,
+    useCaseSensitiveFileNames,
+    getNewLine,
     getCurrentDirectory,
-    getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
+    getDefaultLibFileName,
 
     fileExists,
     readFile: readFileWithCachingText,
-    directoryExists: dirPath =>
-      compiler.sys.directoryExists(path.normalize(dirPath)),
-    getDirectories: dirPath =>
-      compiler.sys.getDirectories(path.normalize(dirPath)),
-    readDirectory: (dirPath, extensions, exclude, include, depth) =>
-      compiler.sys.readDirectory(
-        path.normalize(dirPath),
-        extensions,
-        exclude,
-        include,
-        depth
-      ),
-    realpath: dirPath => compiler.sys.resolvePath(path.normalize(dirPath)),
-    trace: logData => instance.log.log(logData),
+    directoryExists,
+    getDirectories,
+    readDirectory,
+    realpath,
+    trace,
 
     watchFile,
     watchDirectory,
 
     // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
-    resolveTypeReferenceDirectives: resolvers.resolveTypeReferenceDirectives,
-
-    resolveModuleNames: resolvers.resolveModuleNames,
+    resolveTypeReferenceDirectives,
+    resolveModuleNames,
 
     invokeFileWatcher,
     invokeDirectoryWatcher,
@@ -563,26 +618,24 @@ export function makeWatchHost(
   return watchHost;
 
   function getRootFileNames() {
-    return [...files.keys()].filter(filePath => filePath.match(scriptRegex));
+    return [...files.values()]
+      .map(({ fileName }) => fileName)
+      .filter(filePath => filePath.match(scriptRegex));
   }
 
   function readFileWithCachingText(fileName: string, encoding?: string) {
     fileName = path.normalize(fileName);
-    const file = files.get(fileName) || otherFiles.get(fileName);
+    const key = filePathKeyMapper(fileName);
+    const file = files.get(key) || otherFiles.get(key);
     if (file !== undefined) {
       return file.text;
     }
-    const text = readFileWithFallback(fileName, encoding);
+    const text = readFile(fileName, encoding);
     if (text === undefined) {
       return undefined;
     }
-    otherFiles.set(fileName, { version: 0, text });
+    otherFiles.set(key, { fileName, version: 0, text });
     return text;
-  }
-
-  function fileExists(fileName: string) {
-    const filePath = path.normalize(fileName);
-    return files.has(filePath) || compiler.sys.fileExists(filePath);
   }
 
   function createBuilderProgramWithReferences(
@@ -613,8 +666,8 @@ export function makeWatchHost(
   }
 }
 
-function normalizeSlashes(file: string): string {
-  return file.replace(/\\/g, '/');
+function normalizeSlashes<T extends string>(file: T): T {
+  return file.replace(/\\/g, '/') as T;
 }
 
 /**
@@ -634,6 +687,7 @@ export function makeSolutionBuilderHost(
       resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
       transpileOnly,
     },
+    filePathKeyMapper,
   } = instance;
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
@@ -653,7 +707,7 @@ export function makeSolutionBuilderHost(
   };
   const reportDiagnostic = (d: typescript.Diagnostic) => {
     if (transpileOnly) {
-      const filePath = d.file ? path.resolve(d.file.fileName) : undefined;
+      const filePath = d.file ? filePathKeyMapper(d.file.fileName) : undefined;
       const last =
         diagnostics.transpileErrors[diagnostics.transpileErrors.length - 1];
       if (diagnostics.transpileErrors.length && last[0] === filePath) {
@@ -662,7 +716,7 @@ export function makeSolutionBuilderHost(
         diagnostics.transpileErrors.push([filePath, [d]]);
       }
     } else if (d.file) {
-      const filePath = path.resolve(d.file.fileName);
+      const filePath = filePathKeyMapper(d.file.fileName);
       const existing = diagnostics.perFile.get(filePath);
       if (existing) {
         existing.push(d);
@@ -688,12 +742,12 @@ export function makeSolutionBuilderHost(
         compiler.sys.newLine
       )}${newLine + newLine}`
     );
-  const outputFiles = new Map<string, OutputFile | false>();
+  const outputFiles = new Map<FilePathKey, OutputFile | false>();
   const writtenFiles: OutputFile[] = [];
-  const outputAffectingInstanceVersion = new Map<string, true>();
+  const outputAffectingInstanceVersion = new Map<FilePathKey, true>();
   let timeoutId: [(...args: any[]) => void, any[]] | undefined;
 
-  const configFileInfo = new Map<string, ConfigFileInfo>();
+  const configFileInfo = new Map<FilePathKey, ConfigFileInfo>();
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...compiler.createSolutionBuilderWithWatchHost(
       compiler.sys,
@@ -703,7 +757,7 @@ export function makeSolutionBuilderHost(
       reportWatchStatus
     ),
     diagnostics,
-    ...createWatchFactory(),
+    ...createWatchFactory(filePathKeyMapper),
     // Overrides
     getCurrentDirectory,
     // behave as if there is no tsbuild info on disk since we want to generate all outputs in memory and only use those
@@ -716,9 +770,9 @@ export function makeSolutionBuilderHost(
         : readInputFile(fileName, encoding).text;
     },
     writeFile: (name, text, writeByteOrderMark) => {
-      updateFileWithText(instance, name, () => text);
-      const resolvedFileName = path.resolve(name);
-      const existing = outputFiles.get(resolvedFileName);
+      const key = filePathKeyMapper(name);
+      updateFileWithText(instance, key, name, () => text);
+      const existing = outputFiles.get(key);
       const newOutputFile: OutputFile = {
         name,
         text,
@@ -730,10 +784,10 @@ export function makeSolutionBuilderHost(
             : existing.version
           : 0,
       };
-      outputFiles.set(resolvedFileName, newOutputFile);
+      outputFiles.set(key, newOutputFile);
       writtenFiles.push(newOutputFile);
       if (
-        outputAffectingInstanceVersion.has(resolvedFileName) &&
+        outputAffectingInstanceVersion.has(key) &&
         (!existing || existing.text !== text)
       ) {
         instance.version++;
@@ -744,9 +798,8 @@ export function makeSolutionBuilderHost(
       if (outputFile !== undefined) {
         return outputFile ? outputFile.time : undefined;
       }
-      const existing =
-        instance.files.get(path.resolve(fileName)) ||
-        instance.otherFiles.get(path.resolve(fileName));
+      const key = filePathKeyMapper(fileName);
+      const existing = instance.files.get(key) || instance.otherFiles.get(key);
       return existing
         ? existing.modifiedTime
         : compiler.sys.getModifiedTime!(fileName);
@@ -759,9 +812,8 @@ export function makeSolutionBuilderHost(
         }
       }
       compiler.sys.setModifiedTime!(fileName, time);
-      const existing =
-        instance.files.get(path.resolve(fileName)) ||
-        instance.otherFiles.get(path.resolve(fileName));
+      const key = filePathKeyMapper(fileName);
+      const existing = instance.files.get(key) || instance.otherFiles.get(key);
       if (existing) {
         existing.modifiedTime = time;
       }
@@ -771,9 +823,9 @@ export function makeSolutionBuilderHost(
       if (outputFile !== undefined) {
         return !!outputFile;
       }
-      const existing =
-        instance.files.get(path.resolve(fileName)) ||
-        instance.otherFiles.get(path.resolve(fileName));
+      // TODO: handle symlinks
+      const key = filePathKeyMapper(fileName);
+      const existing = instance.files.get(key) || instance.otherFiles.get(key);
       return existing
         ? existing.text !== undefined
         : compiler.sys.fileExists(fileName);
@@ -782,7 +834,8 @@ export function makeSolutionBuilderHost(
       if (compiler.sys.directoryExists(directory)) {
         return true;
       }
-      const resolvedDirectory = normalizeSlashes(path.resolve(directory)) + '/';
+      // TODO: handle symlinks
+      const resolvedDirectory = trailingDirectorySeparatorPathKey(directory);
       for (const outputFile of outputFiles.keys()) {
         if (normalizeSlashes(outputFile).startsWith(resolvedDirectory)) {
           return true;
@@ -790,6 +843,16 @@ export function makeSolutionBuilderHost(
       }
       return false;
     },
+    getDirectories: directory =>
+      compiler.sys.directoryExists(directory)
+        ? compiler.sys.getDirectories(directory)
+        : [], // Fake for non present directories,
+    readDirectory: (path, extensions, exclude, include, depth) =>
+      compiler.sys.directoryExists(path)
+        ? compiler.sys.readDirectory(path, extensions, exclude, include, depth)
+        : [], // Fake for non present directories,
+    // TODO: Symlinks
+    realpath: path => compiler.sys.realpath?.(path) || path,
     afterProgramEmitAndDiagnostics: transpileOnly ? undefined : storeDtsFiles,
     setTimeout: (callback, _time, ...args) => {
       timeoutId = [callback, args];
@@ -801,18 +864,20 @@ export function makeSolutionBuilderHost(
     writtenFiles,
     configFileInfo,
     outputAffectingInstanceVersion,
+    // Handle symlinks
     getOutputFileFromReferencedProject,
     getInputFileNameFromOutput: fileName => {
       const result = getInputFileNameFromOutput(fileName);
       return typeof result === 'string' ? result : undefined;
     },
+    // Potentially Handle symlinks
     getOutputFilesFromReferencedProjectInput,
     buildReferences,
   };
   solutionBuilderHost.trace = logData => instance.log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file => {
     const config = getParsedCommandLine(compiler, instance.loaderOptions, file);
-    configFileInfo.set(path.resolve(file), { config });
+    configFileInfo.set(filePathKeyMapper(file), { config });
     return config;
   };
 
@@ -835,6 +900,12 @@ export function makeSolutionBuilderHost(
   solutionBuilderHost.resolveModuleNames = resolvers.resolveModuleNames;
 
   return solutionBuilderHost;
+
+  function trailingDirectorySeparatorPathKey(directory: string) {
+    return ensureTrailingDirectorySeparator(
+      normalizeSlashes(filePathKeyMapper(directory))
+    );
+  }
 
   function buildReferences() {
     if (!timeoutId) {
@@ -875,22 +946,23 @@ export function makeSolutionBuilderHost(
   function getInputFileNameFromOutput(
     outputFileName: string
   ): string | true | undefined {
-    const resolvedFileName = path.resolve(outputFileName);
+    // TODO: Potentially handle symlinks
+    const resolvedFileName = filePathKeyMapper(outputFileName);
     for (const configInfo of configFileInfo.values()) {
       ensureInputOutputInfo(configInfo);
       if (configInfo.outputFileNames) {
-        for (const [
+        for (const {
           inputFileName,
-          outputFilesOfInput,
-        ] of configInfo.outputFileNames.entries()) {
-          if (outputFilesOfInput.indexOf(resolvedFileName) !== -1) {
+          outputNames,
+        } of configInfo.outputFileNames.values()) {
+          if (outputNames.indexOf(resolvedFileName) !== -1) {
             return inputFileName;
           }
         }
       }
       if (
         configInfo.tsbuildInfoFile &&
-        path.resolve(configInfo.tsbuildInfoFile) === resolvedFileName
+        filePathKeyMapper(configInfo.tsbuildInfoFile) === resolvedFileName
       ) {
         return true;
       }
@@ -904,14 +976,14 @@ export function makeSolutionBuilderHost(
     }
     configInfo.outputFileNames = new Map();
     configInfo.config.fileNames.forEach(inputFile =>
-      configInfo.outputFileNames!.set(
-        path.resolve(inputFile),
-        getOutputFileNames(
+      configInfo.outputFileNames!.set(filePathKeyMapper(inputFile), {
+        inputFileName: path.resolve(inputFile),
+        outputNames: getOutputFileNames(
           instance,
           configInfo.config!,
           inputFile
-        ).map(output => path.resolve(output))
-      )
+        ).map(filePathKeyMapper),
+      })
     );
 
     configInfo.tsbuildInfoFile = instance.compiler
@@ -928,8 +1000,9 @@ export function makeSolutionBuilderHost(
   function getOutputFileFromReferencedProject(
     outputFileName: string
   ): OutputFile | false | undefined {
-    const resolvedFileName = path.resolve(outputFileName);
-    return outputFiles.get(resolvedFileName);
+    // TODO: symlinks
+    const key = filePathKeyMapper(outputFileName);
+    return outputFiles.get(key);
   }
 
   function ensureOutputFile(
@@ -940,13 +1013,14 @@ export function makeSolutionBuilderHost(
     if (outputFile !== undefined) {
       return outputFile;
     }
+    // Symnlinks?
     if (!getInputFileNameFromOutput(outputFileName)) {
       return undefined;
     }
-    const resolvedFileName = path.resolve(outputFileName);
+    const key = filePathKeyMapper(outputFileName);
     const text = compiler.sys.readFile(outputFileName, encoding);
     if (text === undefined) {
-      outputFiles.set(resolvedFileName, false);
+      outputFiles.set(key, false);
       return false;
     }
     const newOutputFile: OutputFile = {
@@ -956,18 +1030,19 @@ export function makeSolutionBuilderHost(
       time: compiler.sys.getModifiedTime!(outputFileName)!,
       version: 0,
     };
-    outputFiles.set(resolvedFileName, newOutputFile);
+    outputFiles.set(key, newOutputFile);
     return newOutputFile;
   }
 
   function getOutputFilesFromReferencedProjectInput(inputFileName: string) {
-    const resolvedFileName = path.resolve(inputFileName);
+    // TODO: Potential symlinks
+    const resolvedFileName = filePathKeyMapper(inputFileName);
     for (const configInfo of configFileInfo.values()) {
       ensureInputOutputInfo(configInfo);
       if (configInfo.outputFileNames) {
         const result = configInfo.outputFileNames.get(resolvedFileName);
         if (result) {
-          return result
+          return result.outputNames
             .map(outputFile => outputFiles.get(outputFile)!)
             .filter(output => !!output) as OutputFile[];
         }
@@ -977,12 +1052,14 @@ export function makeSolutionBuilderHost(
   }
 
   function readInputFile(inputFileName: string, encoding: string | undefined) {
-    const resolvedFileName = path.resolve(inputFileName);
+    const resolvedFileName = filePathKeyMapper(inputFileName);
     const existing = instance.otherFiles.get(resolvedFileName);
     if (existing) {
       return existing;
     }
+    inputFileName = path.resolve(inputFileName);
     const tsFile: TSFile = {
+      fileName: inputFileName,
       version: 1,
       text: compiler.sys.readFile(inputFileName, encoding),
       modifiedTime: compiler.sys.getModifiedTime!(inputFileName),
@@ -1147,39 +1224,27 @@ function populateDependencyGraphs(
     mod => mod !== null && mod !== undefined
   );
 
-  instance.dependencyGraph[path.normalize(containingFile)] = resolvedModules;
+  const containingFileKey = instance.filePathKeyMapper(containingFile);
+  instance.dependencyGraph.set(containingFileKey, resolvedModules);
 
   resolvedModules.forEach(resolvedModule => {
-    if (
-      instance.reverseDependencyGraph[resolvedModule.resolvedFileName] ===
-      undefined
-    ) {
-      instance.reverseDependencyGraph[resolvedModule.resolvedFileName] = {};
+    const key = instance.filePathKeyMapper(resolvedModule.resolvedFileName);
+    let map = instance.reverseDependencyGraph.get(key);
+    if (!map) {
+      map = new Map();
+      instance.reverseDependencyGraph.set(key, map);
     }
-    instance.reverseDependencyGraph[resolvedModule.resolvedFileName]![
-      path.normalize(containingFile)
-    ] = true;
+    map.set(containingFileKey, true);
   });
 }
 
-function addCache(
-  servicesHost: typescript.ModuleResolutionHost
-): {
-  moduleResolutionHost: typescript.ModuleResolutionHost;
-  clearCache: () => void;
-} {
+function addCache(host: TypescriptHostMayBeCacheable): void {
   const clearCacheFunctions: Action[] = [];
-  return {
-    moduleResolutionHost: {
-      ...servicesHost,
-      fileExists: createCache(servicesHost.fileExists),
-      directoryExists:
-        servicesHost.directoryExists &&
-        createCache(servicesHost.directoryExists),
-      realpath: servicesHost.realpath && createCache(servicesHost.realpath),
-    },
-    clearCache: () => clearCacheFunctions.forEach(clear => clear()),
-  };
+  host.fileExists = createCache(host.fileExists);
+  host.directoryExists =
+    host.directoryExists && createCache(host.directoryExists);
+  host.realpath = host.realpath && createCache(host.realpath);
+  host.clearCache = () => clearCacheFunctions.forEach(clear => clear());
 
   function createCache<TOut>(originalFunction: (arg: string) => TOut) {
     const cache = new Map<string, TOut>();

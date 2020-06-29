@@ -7,8 +7,8 @@ import * as webpack from 'webpack';
 
 import constants = require('./constants');
 import {
-  DependencyGraph,
   ErrorInfo,
+  FilePathKey,
   LoaderOptions,
   ReverseDependencyGraph,
   Severity,
@@ -111,7 +111,7 @@ export function formatErrors(
         });
 }
 
-export function readFile(
+export function fsReadFile(
   fileName: string,
   encoding: string | undefined = 'utf8'
 ) {
@@ -179,51 +179,19 @@ export function unorderedRemoveItem<T>(array: T[], item: T): boolean {
  */
 export function collectAllDependants(
   reverseDependencyGraph: ReverseDependencyGraph,
-  fileName: string,
-  collected: { [file: string]: boolean } = {}
-): string[] {
-  const result = {};
-  result[fileName] = true;
-  collected[fileName] = true;
-  const dependants = reverseDependencyGraph[fileName];
+  fileName: FilePathKey,
+  result: Map<FilePathKey, true> = new Map()
+): Map<FilePathKey, true> {
+  result.set(fileName, true);
+  const dependants = reverseDependencyGraph.get(fileName);
   if (dependants !== undefined) {
-    Object.keys(dependants).forEach(dependantFileName => {
-      if (!collected[dependantFileName]) {
-        collectAllDependants(
-          reverseDependencyGraph,
-          dependantFileName,
-          collected
-        ).forEach(fName => (result[fName] = true));
+    for (const dependantFileName of dependants.keys()) {
+      if (!result.has(dependantFileName)) {
+        collectAllDependants(reverseDependencyGraph, dependantFileName, result);
       }
-    });
+    }
   }
-  return Object.keys(result);
-}
-
-/**
- * Recursively collect all possible dependencies of passed file
- */
-export function collectAllDependencies(
-  dependencyGraph: DependencyGraph,
-  filePath: string,
-  collected: { [file: string]: boolean } = {}
-): string[] {
-  const result = {};
-  result[filePath] = true;
-  collected[filePath] = true;
-  const directDependencies = dependencyGraph[filePath];
-  if (directDependencies !== undefined) {
-    directDependencies.forEach(dependencyModule => {
-      if (!collected[dependencyModule.originalFileName]) {
-        collectAllDependencies(
-          dependencyGraph,
-          dependencyModule.resolvedFileName,
-          collected
-        ).forEach(depFilePath => (result[depFilePath] = true));
-      }
-    });
-  }
-  return Object.keys(result);
+  return result;
 }
 
 export function arrify<T>(val: T | T[]) {
@@ -232,6 +200,22 @@ export function arrify<T>(val: T | T[]) {
   }
 
   return Array.isArray(val) ? val : [val];
+}
+
+export function ensureTrailingDirectorySeparator<T extends string>(dir: T): T {
+  return hasTrailingDirectorySeparator(dir) ? dir : ((dir + '/') as T);
+}
+
+function isAnyDirectorySeparator(charCode: number): boolean {
+  return (
+    charCode === 0x2f || charCode === 0x5c // /
+  ); // \
+}
+
+function hasTrailingDirectorySeparator(dir: string) {
+  return (
+    dir.length > 0 && isAnyDirectorySeparator(dir.charCodeAt(dir.length - 1))
+  );
 }
 
 export function ensureProgram(instance: TSInstance) {
@@ -283,7 +267,7 @@ export function getAndCacheProjectReference(
     return undefined;
   }
 
-  const file = instance.files.get(filePath);
+  const file = instance.files.get(instance.filePathKeyMapper(filePath));
   if (file !== undefined && file.projectReference) {
     return file.projectReference.project;
   }
@@ -310,6 +294,7 @@ function getResolvedProjectReferences(
 
 function getProjectReferenceForFile(filePath: string, instance: TSInstance) {
   if (isUsingProjectReferences(instance)) {
+    const key = instance.filePathKeyMapper(filePath);
     const program = ensureProgram(instance);
     return (
       program &&
@@ -317,7 +302,7 @@ function getProjectReferenceForFile(filePath: string, instance: TSInstance) {
         ref =>
           (ref &&
             ref.commandLine.fileNames.some(
-              file => path.normalize(file) === filePath
+              file => instance.filePathKeyMapper(file) === key
             )) ||
           false
       )
@@ -374,7 +359,7 @@ export function getAndCacheOutputJSFileName(
   projectReference: typescript.ResolvedProjectReference,
   instance: TSInstance
 ) {
-  const file = instance.files.get(inputFileName);
+  const file = instance.files.get(instance.filePathKeyMapper(inputFileName));
   if (file && file.projectReference && file.projectReference.outputFileName) {
     return file.projectReference.outputFileName;
   }
