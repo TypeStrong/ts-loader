@@ -349,13 +349,6 @@ export function initializeInstance(
         instance.compiler.createDocumentRegistry()
       );
 
-      if (instance.servicesHost.clearCache !== null) {
-        loader._compiler.hooks.watchRun.tap(
-          'ts-loader',
-          instance.servicesHost.clearCache
-        );
-      }
-
       instance.transformers = getCustomTransformers(
         instance.languageService!.getProgram()
       );
@@ -627,7 +620,6 @@ export function getInputFileNameFromOutput(
   if (filePath.match(tsTsxRegex) && !fileExtensionIs(filePath, '.d.ts')) {
     return undefined;
   }
-  //TODO:: POtentially handle symlinks
   if (instance.solutionBuilderHost) {
     return instance.solutionBuilderHost.getInputFileNameFromOutput(filePath);
   }

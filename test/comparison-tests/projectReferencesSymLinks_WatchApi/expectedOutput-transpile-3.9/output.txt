@@ -1,14 +1,12 @@
                             Asset       Size  Chunks             Chunk Names
-                         index.js   4.07 KiB    main  [emitted]  main
+                         index.js   4.93 KiB    main  [emitted]  main
        ../../common/dist/index.js  137 bytes          [emitted]  
      ../../common/dist/index.d.ts   55 bytes          [emitted]  
 ../../common/tsconfig.tsbuildinfo   72.6 KiB          [emitted]  
+          ../../lib/dist/index.js  196 bytes          [emitted]  
+        ../../lib/dist/index.d.ts   54 bytes          [emitted]  
+   ../../lib/tsconfig.tsbuildinfo   73.3 KiB          [emitted]  
 Entrypoint main = index.js
-[./src/index.ts] 144 bytes {main} [built] [1 error]
-
-ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib\src\index.ts(1,35)[39m[22m
-[1m[31m      TS2307: Cannot find module 'common' or its corresponding type declarations.[39m[22m
-
-ERROR in ./src/index.ts
-Module not found: Error: Can't resolve 'lib' in 'app\src'
- @ ./src/index.ts 3:12-26
+[../common/dist/index.js] 133 bytes {main} [built]
+[../lib/dist/index.js] 191 bytes {main} [built]
+[./src/index.ts] 144 bytes {main} [built]

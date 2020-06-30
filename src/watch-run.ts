@@ -21,6 +21,8 @@ export function makeWatchRun(
   const loaderIndex = loader.loaderIndex;
 
   return (compiler: webpack.Compiler, callback: (err?: Error) => void) => {
+    instance.servicesHost?.clearCache?.();
+    instance.solutionBuilderHost?.clearCache();
     const promises = [];
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;

@@ -86,6 +86,30 @@
 /************************************************************************/
 /******/ ({
 
+/***/ "../common/dist/index.js":
+/*!*******************************!*\
+  !*** ../common/dist/index.js ***!
+  \*******************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nexports.__esModule = true;\nexports.getMeaningOfLife2 = void 0;\nexports.getMeaningOfLife2 = function () { return 45; };\n\n\n//# sourceURL=webpack:///../common/dist/index.js?");
+
+/***/ }),
+
+/***/ "../lib/dist/index.js":
+/*!****************************!*\
+  !*** ../lib/dist/index.js ***!
+  \****************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nexports.__esModule = true;\nexports.getMeaningOfLife = void 0;\nvar common_1 = __webpack_require__(/*! common */ \"../common/dist/index.js\");\nexports.getMeaningOfLife = function () { return common_1.getMeaningOfLife2(); };\n\n\n//# sourceURL=webpack:///../lib/dist/index.js?");
+
+/***/ }),
+
 /***/ "./src/index.ts":
 /*!**********************!*\
   !*** ./src/index.ts ***!
@@ -94,7 +118,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(!(function webpackMissingModule() { var e = new Error(\"Cannot find module 'lib'\"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));\nconsole.log(lib_1.getMeaningOfLife());\n\n\n//# sourceURL=webpack:///./src/index.ts?");
+eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! lib */ \"../lib/dist/index.js\");\nconsole.log(lib_1.getMeaningOfLife());\n\n\n//# sourceURL=webpack:///./src/index.ts?");
 
 /***/ })
 

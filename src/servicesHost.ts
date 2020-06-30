@@ -6,12 +6,12 @@ import * as constants from './constants';
 import { getOutputFileNames } from './instances';
 import {
   Action,
+  CacheableHost,
   ConfigFileInfo,
   CustomResolveModuleName,
   CustomResolveTypeReferenceDirective,
   FilePathKey,
-  FormatDiagnosticsHost,
-  ModuleResolutionHost,
+  ModuleResolutionHostMayBeCacheable,
   OutputFile,
   ResolvedModule,
   ResolveSync,
@@ -20,7 +20,6 @@ import {
   SolutionDiagnostics,
   TSFile,
   TSInstance,
-  TypescriptHostMayBeCacheable,
   WatchCallbacks,
   WatchFactory,
   WatchHost,
@@ -64,16 +63,15 @@ function makeResolversHandlingProjectReferences(
   // make a (sync) resolver that follows webpack's rules
   const resolveSync = makeResolver(loader._compiler.options);
 
-  const moduleResolutionHost: TypescriptHostMayBeCacheable = {
+  const moduleResolutionHost: ModuleResolutionHostMayBeCacheable = {
     trace: logData => instance.log.log(logData),
     fileExists,
     readFile,
-    realpath,
+    realpath: compiler.sys.realpath && realpath,
     directoryExists,
     getCurrentDirectory,
     getDirectories,
     readDirectory,
-    clearCache: null,
 
     useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
     getNewLine: () => newLine,
@@ -131,7 +129,7 @@ function makeResolversHandlingProjectReferences(
   function realpath(path: string) {
     return instance.solutionBuilderHost
       ? instance.solutionBuilderHost.realpath!(path)
-      : compiler.sys.realpath?.(path) || path;
+      : compiler.sys.realpath!(path);
   }
 
   function getDirectories(path: string) {
@@ -692,7 +690,7 @@ export function makeSolutionBuilderHost(
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
-  const formatDiagnosticHost: FormatDiagnosticsHost = {
+  const formatDiagnosticHost: typescript.FormatDiagnosticsHost = {
     getCurrentDirectory: compiler.sys.getCurrentDirectory,
     getCanonicalFileName: compiler.sys.useCaseSensitiveFileNames
       ? s => s
@@ -747,6 +745,15 @@ export function makeSolutionBuilderHost(
   const outputAffectingInstanceVersion = new Map<FilePathKey, true>();
   let timeoutId: [(...args: any[]) => void, any[]] | undefined;
 
+  const symlinkedDirectories = new Map<FilePathKey, string | false>();
+  const symlinkedFiles = new Map<FilePathKey, string | false>();
+  const cachedSys: CacheableHost = {
+    fileExists: fileName => compiler.sys.fileExists(fileName),
+    directoryExists: directory => compiler.sys.directoryExists(directory),
+    realpath: compiler.sys.realpath && (path => compiler.sys.realpath!(path)),
+  };
+  addCache(cachedSys);
+
   const configFileInfo = new Map<FilePathKey, ConfigFileInfo>();
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...compiler.createSolutionBuilderWithWatchHost(
@@ -792,6 +799,7 @@ export function makeSolutionBuilderHost(
       ) {
         instance.version++;
       }
+      compiler.sys.writeFile(name, text, writeByteOrderMark);
     },
     getModifiedTime: fileName => {
       const outputFile = ensureOutputFile(fileName);
@@ -823,36 +831,42 @@ export function makeSolutionBuilderHost(
       if (outputFile !== undefined) {
         return !!outputFile;
       }
-      // TODO: handle symlinks
       const key = filePathKeyMapper(fileName);
       const existing = instance.files.get(key) || instance.otherFiles.get(key);
       return existing
         ? existing.text !== undefined
-        : compiler.sys.fileExists(fileName);
+        : cachedSys.fileExists(fileName);
     },
     directoryExists: directory => {
-      if (compiler.sys.directoryExists(directory)) {
+      if (cachedSys.directoryExists(directory)) {
         return true;
       }
-      // TODO: handle symlinks
       const resolvedDirectory = trailingDirectorySeparatorPathKey(directory);
       for (const outputFile of outputFiles.keys()) {
         if (normalizeSlashes(outputFile).startsWith(resolvedDirectory)) {
           return true;
         }
       }
-      return false;
+
+      // see if this is symlink to in memory files's directory
+      const ancestor = findExistingAncestor(directory);
+      const ancestorRealpath = getRealpathOfExistingDirectory(ancestor);
+
+      return ancestorRealpath
+        ? solutionBuilderHost.directoryExists!(
+            path.resolve(ancestorRealpath, path.relative(ancestor, directory))
+          )
+        : false;
     },
     getDirectories: directory =>
-      compiler.sys.directoryExists(directory)
+      cachedSys.directoryExists(directory)
         ? compiler.sys.getDirectories(directory)
         : [], // Fake for non present directories,
     readDirectory: (path, extensions, exclude, include, depth) =>
-      compiler.sys.directoryExists(path)
+      cachedSys.directoryExists(path)
         ? compiler.sys.readDirectory(path, extensions, exclude, include, depth)
         : [], // Fake for non present directories,
-    // TODO: Symlinks
-    realpath: path => compiler.sys.realpath?.(path) || path,
+    realpath: cachedSys.realpath && (file => getRealpathOfFile(file) || file),
     afterProgramEmitAndDiagnostics: transpileOnly ? undefined : storeDtsFiles,
     setTimeout: (callback, _time, ...args) => {
       timeoutId = [callback, args];
@@ -864,7 +878,6 @@ export function makeSolutionBuilderHost(
     writtenFiles,
     configFileInfo,
     outputAffectingInstanceVersion,
-    // Handle symlinks
     getOutputFileFromReferencedProject,
     getInputFileNameFromOutput: fileName => {
       const result = getInputFileNameFromOutput(fileName);
@@ -873,6 +886,7 @@ export function makeSolutionBuilderHost(
     // Potentially Handle symlinks
     getOutputFilesFromReferencedProjectInput,
     buildReferences,
+    clearCache,
   };
   solutionBuilderHost.trace = logData => instance.log.logInfo(logData);
   solutionBuilderHost.getParsedCommandLine = file => {
@@ -905,6 +919,71 @@ export function makeSolutionBuilderHost(
     return ensureTrailingDirectorySeparator(
       normalizeSlashes(filePathKeyMapper(directory))
     );
+  }
+
+  function clearCache() {
+    cachedSys.clearCache!();
+    symlinkedDirectories.clear();
+    symlinkedFiles.clear();
+  }
+
+  function findExistingAncestor(fileOrDirectory: string) {
+    let ancestor = path.dirname(fileOrDirectory);
+    while (ancestor !== path.dirname(ancestor)) {
+      if (cachedSys.directoryExists(ancestor)) return ancestor;
+      ancestor = path.dirname(ancestor);
+    }
+    // Root should always be present
+    return ancestor;
+  }
+
+  function getRealpathOfExistingDirectory(
+    directory: string
+  ): string | undefined {
+    return getRealpath(directory, symlinkedDirectories, () =>
+      cachedSys.realpath!(directory)
+    );
+  }
+
+  function getRealpathOfFile(file: string): string | undefined {
+    return getRealpath(file, symlinkedFiles, () => {
+      if (cachedSys.fileExists(file)) return cachedSys.realpath!(file);
+
+      // see if this is symlink to in memory file
+      const ancestor = findExistingAncestor(file);
+      const ancestorRealpath = getRealpathOfExistingDirectory(ancestor);
+      if (!ancestorRealpath) return file;
+
+      const newFile = path.resolve(
+        ancestorRealpath,
+        path.relative(ancestor, file)
+      );
+      return getRealpathOfFile(newFile) || newFile;
+    });
+  }
+
+  function getRealpath(
+    fileOrDirectory: string,
+    symlinked: Map<FilePathKey, string | false>,
+    realpath: () => string
+  ): string | undefined {
+    if (!cachedSys.realpath) return undefined;
+    const fileOrDirectoryKey = filePathKeyMapper(fileOrDirectory);
+    const existing = symlinked.get(fileOrDirectoryKey);
+    if (existing !== undefined) return existing || undefined;
+
+    const real = realpath();
+    if (
+      real === fileOrDirectory ||
+      filePathKeyMapper(real) === fileOrDirectoryKey
+    ) {
+      // not symlinked
+      symlinked.set(fileOrDirectoryKey, false);
+      return undefined;
+    }
+
+    symlinked.set(fileOrDirectoryKey, real);
+    return real;
   }
 
   function buildReferences() {
@@ -946,7 +1025,6 @@ export function makeSolutionBuilderHost(
   function getInputFileNameFromOutput(
     outputFileName: string
   ): string | true | undefined {
-    // TODO: Potentially handle symlinks
     const resolvedFileName = filePathKeyMapper(outputFileName);
     for (const configInfo of configFileInfo.values()) {
       ensureInputOutputInfo(configInfo);
@@ -967,7 +1045,11 @@ export function makeSolutionBuilderHost(
         return true;
       }
     }
-    return undefined;
+
+    const symlinkedOutputFileName = getRealpathOfFile(outputFileName);
+    return symlinkedOutputFileName
+      ? getInputFileNameFromOutput(symlinkedOutputFileName)
+      : undefined;
   }
 
   function ensureInputOutputInfo(configInfo: ConfigFileInfo) {
@@ -1000,9 +1082,14 @@ export function makeSolutionBuilderHost(
   function getOutputFileFromReferencedProject(
     outputFileName: string
   ): OutputFile | false | undefined {
-    // TODO: symlinks
     const key = filePathKeyMapper(outputFileName);
-    return outputFiles.get(key);
+    const result = outputFiles.get(key);
+    if (result !== undefined) return result;
+
+    const symlinkedOutputFileName = getRealpathOfFile(outputFileName);
+    return symlinkedOutputFileName
+      ? getOutputFileFromReferencedProject(symlinkedOutputFileName)
+      : undefined;
   }
 
   function ensureOutputFile(
@@ -1013,10 +1100,11 @@ export function makeSolutionBuilderHost(
     if (outputFile !== undefined) {
       return outputFile;
     }
-    // Symnlinks?
     if (!getInputFileNameFromOutput(outputFileName)) {
       return undefined;
     }
+
+    outputFileName = getRealpathOfFile(outputFileName) || outputFileName;
     const key = filePathKeyMapper(outputFileName);
     const text = compiler.sys.readFile(outputFileName, encoding);
     if (text === undefined) {
@@ -1035,7 +1123,6 @@ export function makeSolutionBuilderHost(
   }
 
   function getOutputFilesFromReferencedProjectInput(inputFileName: string) {
-    // TODO: Potential symlinks
     const resolvedFileName = filePathKeyMapper(inputFileName);
     for (const configInfo of configFileInfo.values()) {
       ensureInputOutputInfo(configInfo);
@@ -1101,7 +1188,7 @@ type ResolveTypeReferenceDirective = (
 function makeResolveTypeReferenceDirective(
   compiler: typeof typescript,
   compilerOptions: typescript.CompilerOptions,
-  moduleResolutionHost: ModuleResolutionHost,
+  moduleResolutionHost: typescript.ModuleResolutionHost,
   customResolveTypeReferenceDirective:
     | CustomResolveTypeReferenceDirective
     | undefined
@@ -1162,7 +1249,6 @@ function resolveModule(
   } catch (e) {}
 
   const tsResolution = resolveModuleName(moduleName, containingFile);
-
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
       tsResolution.resolvedModule.resolvedFileName
@@ -1192,7 +1278,7 @@ type ResolveModuleName = (
 function makeResolveModuleName(
   compiler: typeof typescript,
   compilerOptions: typescript.CompilerOptions,
-  moduleResolutionHost: ModuleResolutionHost,
+  moduleResolutionHost: typescript.ModuleResolutionHost,
   customResolveModuleName: CustomResolveModuleName | undefined
 ): ResolveModuleName {
   if (customResolveModuleName === undefined) {
@@ -1238,11 +1324,10 @@ function populateDependencyGraphs(
   });
 }
 
-function addCache(host: TypescriptHostMayBeCacheable): void {
+function addCache(host: CacheableHost): void {
   const clearCacheFunctions: Action[] = [];
   host.fileExists = createCache(host.fileExists);
-  host.directoryExists =
-    host.directoryExists && createCache(host.directoryExists);
+  host.directoryExists = createCache(host.directoryExists);
   host.realpath = host.realpath && createCache(host.realpath);
   host.clearCache = () => clearCacheFunctions.forEach(clear => clear());
 

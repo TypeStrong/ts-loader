@@ -1,4 +1,3 @@
-export { ModuleResolutionHost, FormatDiagnosticsHost } from 'typescript';
 import * as typescript from 'typescript';
 
 import { Chalk } from 'chalk';
@@ -41,10 +40,18 @@ export type ResolveSync = (
 export type Action = () => void;
 
 export interface HostMayBeCacheable {
-  clearCache: Action | null;
+  clearCache?: Action;
 }
 
-export interface TypescriptHostMayBeCacheable
+export interface CacheableHost extends HostMayBeCacheable {
+  fileExists: typescript.ModuleResolutionHost['fileExists'];
+  directoryExists: NonNullable<
+    typescript.ModuleResolutionHost['directoryExists']
+  >;
+  realpath?: typescript.ModuleResolutionHost['realpath'];
+}
+
+export interface ModuleResolutionHostMayBeCacheable
   extends typescript.ModuleResolutionHost,
     HostMayBeCacheable {
   readFile(filePath: string, encoding?: string): string | undefined;
@@ -52,7 +59,6 @@ export interface TypescriptHostMayBeCacheable
   directoryExists: NonNullable<
     typescript.ModuleResolutionHost['directoryExists']
   >;
-  realpath: NonNullable<typescript.ModuleResolutionHost['realpath']>;
   getCurrentDirectory: NonNullable<
     typescript.ModuleResolutionHost['getCurrentDirectory']
   >;
@@ -133,6 +139,7 @@ export interface SolutionBuilderWithWatchHost
   getInputFileNameFromOutput(outputFileName: string): string | undefined;
   getOutputFilesFromReferencedProjectInput(inputFileName: string): OutputFile[];
   buildReferences(): void;
+  clearCache(): void;
 }
 
 export interface ConfigFileInfo {

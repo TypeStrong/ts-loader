@@ -534,7 +534,6 @@ function getEmit(
           )
         );
       } else {
-        // TODO:: Potentially handle symlinks
         addDependency(
           getInputFileNameFromOutput(
             instance,
