@@ -10,13 +10,14 @@ import {
   ErrorInfo,
   FilePathKey,
   LoaderOptions,
+  ResolvedModule,
   ReverseDependencyGraph,
   Severity,
   TSInstance,
   WebpackError,
   WebpackModule,
 } from './interfaces';
-
+import { getInputFileNameFromOutput } from './instances';
 /**
  * The default error formatter.
  */
@@ -172,6 +173,47 @@ export function unorderedRemoveItem<T>(array: T[], item: T): boolean {
     }
   }
   return false;
+}
+
+export function populateDependencyGraph(
+  resolvedModules: ResolvedModule[],
+  instance: TSInstance,
+  containingFile: string
+) {
+  resolvedModules = resolvedModules.filter(
+    mod => mod !== null && mod !== undefined
+  );
+  if (resolvedModules.length) {
+    const containingFileKey = instance.filePathKeyMapper(containingFile);
+    instance.dependencyGraph.set(containingFileKey, resolvedModules);
+  }
+}
+
+export function populateReverseDependencyGraph(instance: TSInstance) {
+  const reverseDependencyGraph: ReverseDependencyGraph = new Map();
+  for (const [fileKey, resolvedModules] of instance.dependencyGraph.entries()) {
+    const inputFileName =
+      instance.solutionBuilderHost &&
+      getInputFileNameFromOutput(instance, fileKey);
+    const containingFileKey = inputFileName
+      ? instance.filePathKeyMapper(inputFileName)
+      : fileKey;
+    resolvedModules.forEach(({ resolvedFileName }) => {
+      const key = instance.filePathKeyMapper(
+        instance.solutionBuilderHost
+          ? getInputFileNameFromOutput(instance, resolvedFileName) ||
+              resolvedFileName
+          : resolvedFileName
+      );
+      let map = reverseDependencyGraph.get(key);
+      if (!map) {
+        map = new Map();
+        reverseDependencyGraph.set(key, map);
+      }
+      map.set(containingFileKey, true);
+    });
+  }
+  return reverseDependencyGraph;
 }
 
 /**

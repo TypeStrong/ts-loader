@@ -20,6 +20,7 @@ import {
   ensureProgram,
   formatErrors,
   isUsingProjectReferences,
+  populateReverseDependencyGraph,
 } from './utils';
 
 export function makeAfterCompile(
@@ -158,11 +159,16 @@ function determineFilesToCheckForErrors(
     for (const [filePath, file] of otherFiles) {
       filesToCheckForErrors.set(filePath, file);
     }
-  } else if (modifiedFiles !== null && modifiedFiles !== undefined) {
+  } else if (
+    modifiedFiles !== null &&
+    modifiedFiles !== undefined &&
+    modifiedFiles.size
+  ) {
+    const reverseDependencyGraph = populateReverseDependencyGraph(instance);
     // check all modified files, and all dependants
     for (const modifiedFileName of modifiedFiles.keys()) {
       for (const fileName of collectAllDependants(
-        instance.reverseDependencyGraph,
+        reverseDependencyGraph,
         modifiedFileName
       ).keys()) {
         const fileToCheckForErrors =

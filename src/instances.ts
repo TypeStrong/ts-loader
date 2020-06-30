@@ -186,7 +186,6 @@ function successfulTypeScriptInstance(
       version: 0,
       program: undefined, // temporary, to be set later
       dependencyGraph: new Map(),
-      reverseDependencyGraph: new Map(),
       transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
       colors,
       initialSetupPending: true,
@@ -240,7 +239,6 @@ function successfulTypeScriptInstance(
     version: 0,
     transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
     dependencyGraph: new Map(),
-    reverseDependencyGraph: new Map(),
     colors,
     initialSetupPending: true,
     configFilePath,

@@ -451,9 +451,9 @@ function updateFileInCache(
   }
 
   if (instance.watchHost !== undefined && fileWatcherEventKind !== undefined) {
-    instance.hasUnaccountedModifiedFiles = true;
-    instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind);
-    instance.watchHost.invokeDirectoryWatcher(path.dirname(filePath), filePath);
+    instance.hasUnaccountedModifiedFiles =
+      instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind) ||
+      instance.hasUnaccountedModifiedFiles;
   }
 
   if (
@@ -464,17 +464,13 @@ function updateFileInCache(
       filePath,
       fileWatcherEventKind
     );
-    instance.solutionBuilderHost.invokeDirectoryWatcher(
-      path.dirname(filePath),
-      filePath
-    );
   }
 
   // push this file to modified files hash.
   if (!instance.modifiedFiles) {
     instance.modifiedFiles = new Map();
   }
-  instance.modifiedFiles.set(key, file);
+  instance.modifiedFiles.set(key, true);
 
   return file.version;
 }
@@ -504,9 +500,9 @@ function getEmit(
         // Remove the project reference d.ts as we are adding dependency for .ts later
         // This removed extra build pass (resulting in new stats object in initial build)
         (!instance.solutionBuilderHost ||
-          instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+          !instance.solutionBuilderHost.getOutputFileKeyFromReferencedProject(
             defFilePath
-          ) !== undefined)
+          ))
       ) {
         addDependency(defFilePath);
       }

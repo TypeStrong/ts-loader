@@ -85,11 +85,7 @@ export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
     typescript.EmitAndSemanticDiagnosticsBuilderProgram
   > {
-  invokeFileWatcher(
-    fileName: string,
-    eventKind: typescript.FileWatcherEventKind
-  ): void;
-  invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
+  invokeFileWatcher: WatchFactory['invokeFileWatcher'];
   updateRootFileNames(): void;
   outputFiles: Map<FilePathKey, typescript.OutputFile[]>;
   tsbuildinfo?: typescript.OutputFile;
@@ -108,8 +104,7 @@ export interface WatchFactory {
   invokeFileWatcher(
     fileName: string,
     eventKind: typescript.FileWatcherEventKind
-  ): void;
-  invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
+  ): boolean;
   /** Used to watch changes in source files, missing files needed to update the program or config file */
   watchFile: typescript.WatchHost['watchFile'];
   /** Used to watch resolved module's failed lookup locations, config file specs, type roots where auto type reference directives are added */
@@ -133,9 +128,15 @@ export interface SolutionBuilderWithWatchHost
   writtenFiles: OutputFile[];
   configFileInfo: Map<FilePathKey, ConfigFileInfo>;
   outputAffectingInstanceVersion: Map<FilePathKey, true>;
+  getOutputFileKeyFromReferencedProject(
+    outputFileName: string
+  ): FilePathKey | undefined;
   getOutputFileFromReferencedProject(
     outputFileName: string
   ): OutputFile | false | undefined;
+  getOutputFileAndKeyFromReferencedProject(
+    oututFileName: string
+  ): { key: FilePathKey; outputFile: OutputFile | false } | undefined;
   getInputFileNameFromOutput(outputFileName: string): string | undefined;
   getOutputFilesFromReferencedProjectInput(inputFileName: string): OutputFile[];
   buildReferences(): void;
@@ -171,7 +172,7 @@ export interface TSInstance {
   /**
    * contains the modified files - cleared each time after-compile is called
    */
-  modifiedFiles?: TSFiles;
+  modifiedFiles?: Map<FilePathKey, true>;
   /**
    * Paths to project references that are missing source maps.
    * Cleared each time after-compile is called. Used to dedupe
@@ -182,7 +183,6 @@ export interface TSInstance {
   languageService?: typescript.LanguageService | null;
   version: number;
   dependencyGraph: DependencyGraph;
-  reverseDependencyGraph: ReverseDependencyGraph;
   filesWithErrors?: TSFiles;
   transformers: typescript.CustomTransformers;
   colors: Chalk;

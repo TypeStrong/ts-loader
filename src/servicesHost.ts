@@ -30,6 +30,7 @@ import {
   ensureTrailingDirectorySeparator,
   formatErrors,
   fsReadFile,
+  populateDependencyGraph,
   unorderedRemoveItem,
 } from './utils';
 
@@ -212,18 +213,20 @@ export function makeServicesHost(
       if (file) {
         return file.version.toString();
       }
-      const outputFile =
+      const outputFileAndKey =
         instance.solutionBuilderHost &&
-        instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+        instance.solutionBuilderHost.getOutputFileAndKeyFromReferencedProject(
           fileName
         );
-      if (outputFile !== undefined) {
+      if (outputFileAndKey !== undefined) {
         instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
-          key,
+          outputFileAndKey.key,
           true
         );
       }
-      return outputFile ? outputFile.version.toString() : '';
+      return outputFileAndKey && outputFileAndKey.outputFile
+        ? outputFileAndKey.outputFile.version.toString()
+        : '';
     },
 
     getScriptSnapshot: (fileName: string) => {
@@ -235,16 +238,18 @@ export function makeServicesHost(
 
       if (file === undefined) {
         if (instance.solutionBuilderHost) {
-          const outputFile = instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+          const outputFileAndKey = instance.solutionBuilderHost.getOutputFileAndKeyFromReferencedProject(
             fileName
           );
-          if (outputFile !== undefined) {
+          if (outputFileAndKey !== undefined) {
             instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
-              key,
+              outputFileAndKey.key,
               true
             );
-            return outputFile
-              ? compiler.ScriptSnapshot.fromString(outputFile.text)
+            return outputFileAndKey && outputFileAndKey.outputFile
+              ? compiler.ScriptSnapshot.fromString(
+                  outputFileAndKey.outputFile.text
+                )
               : undefined;
           }
         }
@@ -357,7 +362,7 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
       )
     );
 
-    populateDependencyGraphs(resolvedModules, instance, containingFile);
+    populateDependencyGraph(resolvedModules, instance, containingFile);
 
     return resolvedModules;
   };
@@ -381,7 +386,6 @@ function createWatchFactory(
     watchedDirectories,
     watchedDirectoriesRecursive,
     invokeFileWatcher,
-    invokeDirectoryWatcher,
     watchFile,
     watchDirectory,
   };
@@ -393,7 +397,7 @@ function createWatchFactory(
     key: string,
     fileName: string,
     eventKind?: typescript.FileWatcherEventKind
-  ) {
+  ): boolean {
     const callbacks = map.get(filePathKeyMapper(key))?.callbacks;
     if (callbacks !== undefined && callbacks.length) {
       // The array copy is made to ensure that even if one of the callback removes the callbacks,
@@ -402,40 +406,49 @@ function createWatchFactory(
       for (const cb of cbs) {
         cb(fileName, eventKind as typescript.FileWatcherEventKind);
       }
+      return true;
     }
+    return false;
   }
 
   function invokeFileWatcher(
     fileName: string,
     eventKind: typescript.FileWatcherEventKind
-  ) {
+  ): boolean {
     fileName = path.normalize(fileName);
-    invokeWatcherCallbacks(watchedFiles, fileName, fileName, eventKind);
+    let result = invokeWatcherCallbacks(
+      watchedFiles,
+      fileName,
+      fileName,
+      eventKind
+    );
+    if (eventKind !== typescript.FileWatcherEventKind.Changed) {
+      const directory = path.dirname(fileName);
+      result =
+        invokeWatcherCallbacks(watchedDirectories, directory, fileName) ||
+        result;
+      result = invokeRecursiveDirectoryWatcher(directory, fileName) || result;
+    }
+    return result;
   }
-
-  function invokeDirectoryWatcher(
-    directory: string,
-    fileAddedOrRemoved: string
-  ) {
-    directory = path.normalize(directory);
-    invokeWatcherCallbacks(watchedDirectories, directory, fileAddedOrRemoved);
-    invokeRecursiveDirectoryWatcher(directory, fileAddedOrRemoved);
-  }
+  ``;
 
   function invokeRecursiveDirectoryWatcher(
     directory: string,
     fileAddedOrRemoved: string
-  ) {
+  ): boolean {
     directory = path.normalize(directory);
-    invokeWatcherCallbacks(
+    let result = invokeWatcherCallbacks(
       watchedDirectoriesRecursive,
       directory,
       fileAddedOrRemoved
     );
     const basePath = path.dirname(directory);
     if (directory !== basePath) {
-      invokeRecursiveDirectoryWatcher(basePath, fileAddedOrRemoved);
+      result =
+        invokeRecursiveDirectoryWatcher(basePath, fileAddedOrRemoved) || result;
     }
+    return result;
   }
 
   function createWatcher<T>(
@@ -505,7 +518,7 @@ export function updateFileWithText(
       if (!instance.modifiedFiles) {
         instance.modifiedFiles = new Map();
       }
-      instance.modifiedFiles.set(key, file);
+      instance.modifiedFiles.set(key, true);
       if (instance.watchHost !== undefined) {
         instance.watchHost.invokeFileWatcher(
           nFilePath,
@@ -539,12 +552,9 @@ export function makeWatchHost(
     filePathKeyMapper,
   } = instance;
 
-  const {
-    watchFile,
-    watchDirectory,
-    invokeFileWatcher,
-    invokeDirectoryWatcher,
-  } = createWatchFactory(filePathKeyMapper);
+  const { watchFile, watchDirectory, invokeFileWatcher } = createWatchFactory(
+    filePathKeyMapper
+  );
   const {
     moduleResolutionHost: {
       fileExists,
@@ -589,7 +599,28 @@ export function makeWatchHost(
     realpath,
     trace,
 
-    watchFile,
+    watchFile: (fileName, callback, pollingInterval, options) => {
+      const outputFileAndKey = instance.solutionBuilderHost?.getOutputFileAndKeyFromReferencedProject(
+        fileName
+      );
+      if (
+        !outputFileAndKey ||
+        outputFileAndKey.key === filePathKeyMapper(fileName)
+      ) {
+        return watchFile(fileName, callback, pollingInterval, options);
+      }
+
+      // Handle symlink to outputFile
+      const outputFileName = instance.solutionBuilderHost!.realpath!(fileName);
+      const watcher = watchFile(
+        outputFileName,
+        (_fileName, eventKind) => callback(fileName, eventKind),
+        pollingInterval,
+        options
+      );
+
+      return { close: () => watcher.close() };
+    },
     watchDirectory,
 
     // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
@@ -597,7 +628,6 @@ export function makeWatchHost(
     resolveModuleNames,
 
     invokeFileWatcher,
-    invokeDirectoryWatcher,
     updateRootFileNames: () => {
       instance.changedFilesList = false;
       if (instance.watchOfFilesAndCompilerOptions !== undefined) {
@@ -632,7 +662,13 @@ export function makeWatchHost(
     if (text === undefined) {
       return undefined;
     }
-    otherFiles.set(key, { fileName, version: 0, text });
+    if (
+      !instance.solutionBuilderHost?.getOutputFileKeyFromReferencedProject(
+        fileName
+      )
+    ) {
+      otherFiles.set(key, { fileName, version: 0, text });
+    }
     return text;
   }
 
@@ -799,6 +835,26 @@ export function makeSolutionBuilderHost(
       ) {
         instance.version++;
       }
+      if (
+        instance.watchHost &&
+        !instance.files.has(key) &&
+        !instance.otherFiles.has(key)
+      ) {
+        // If file wasnt updated in files or other files of instance, let watch host know of the change
+        if (!existing) {
+          instance.hasUnaccountedModifiedFiles =
+            instance.watchHost.invokeFileWatcher(
+              name,
+              typescript.FileWatcherEventKind.Created
+            ) || instance.hasUnaccountedModifiedFiles;
+        } else if (existing.version !== newOutputFile.version) {
+          instance.hasUnaccountedModifiedFiles =
+            instance.watchHost.invokeFileWatcher(
+              name,
+              typescript.FileWatcherEventKind.Changed
+            ) || instance.hasUnaccountedModifiedFiles;
+        }
+      }
       compiler.sys.writeFile(name, text, writeByteOrderMark);
     },
     getModifiedTime: fileName => {
@@ -878,12 +934,13 @@ export function makeSolutionBuilderHost(
     writtenFiles,
     configFileInfo,
     outputAffectingInstanceVersion,
+    getOutputFileKeyFromReferencedProject,
     getOutputFileFromReferencedProject,
+    getOutputFileAndKeyFromReferencedProject,
     getInputFileNameFromOutput: fileName => {
       const result = getInputFileNameFromOutput(fileName);
       return typeof result === 'string' ? result : undefined;
     },
-    // Potentially Handle symlinks
     getOutputFilesFromReferencedProjectInput,
     buildReferences,
     clearCache,
@@ -1079,16 +1136,30 @@ export function makeSolutionBuilderHost(
         );
   }
 
+  function getOutputFileAndKeyFromReferencedProject(
+    outputFileName: string
+  ): { key: FilePathKey; outputFile: OutputFile | false } | undefined {
+    const key = getOutputFileKeyFromReferencedProject(outputFileName);
+    return key && { key, outputFile: outputFiles.get(key)! };
+  }
+
   function getOutputFileFromReferencedProject(
     outputFileName: string
   ): OutputFile | false | undefined {
+    const key = getOutputFileKeyFromReferencedProject(outputFileName);
+    return key && outputFiles.get(key);
+  }
+
+  function getOutputFileKeyFromReferencedProject(
+    outputFileName: string
+  ): FilePathKey | undefined {
     const key = filePathKeyMapper(outputFileName);
-    const result = outputFiles.get(key);
-    if (result !== undefined) return result;
+    const result = outputFiles.has(key);
+    if (result) return key;
 
     const symlinkedOutputFileName = getRealpathOfFile(outputFileName);
     return symlinkedOutputFileName
-      ? getOutputFileFromReferencedProject(symlinkedOutputFileName)
+      ? getOutputFileKeyFromReferencedProject(symlinkedOutputFileName)
       : undefined;
   }
 
@@ -1299,29 +1370,6 @@ function makeResolveModuleName(
       moduleResolutionHost,
       compiler.resolveModuleName
     );
-}
-
-function populateDependencyGraphs(
-  resolvedModules: ResolvedModule[],
-  instance: TSInstance,
-  containingFile: string
-) {
-  resolvedModules = resolvedModules.filter(
-    mod => mod !== null && mod !== undefined
-  );
-
-  const containingFileKey = instance.filePathKeyMapper(containingFile);
-  instance.dependencyGraph.set(containingFileKey, resolvedModules);
-
-  resolvedModules.forEach(resolvedModule => {
-    const key = instance.filePathKeyMapper(resolvedModule.resolvedFileName);
-    let map = instance.reverseDependencyGraph.get(key);
-    if (!map) {
-      map = new Map();
-      instance.reverseDependencyGraph.set(key, map);
-    }
-    map.set(containingFileKey, true);
-  });
 }
 
 function addCache(host: CacheableHost): void {
