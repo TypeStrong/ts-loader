@@ -121,24 +121,23 @@ function determineModules(
   compilation: webpack.compilation.Compilation,
   { filePathKeyMapper }: TSInstance
 ) {
-  return compilation.modules.reduce<Map<FilePathKey, WebpackModule[]>>(
-    (modules, module) => {
-      if (module.resource) {
-        const modulePath = filePathKeyMapper(module.resource);
-        const existingModules = modules.get(modulePath);
-        if (existingModules !== undefined) {
-          if (existingModules.indexOf(module) === -1) {
-            existingModules.push(module);
-          }
-        } else {
-          modules.set(modulePath, [module]);
-        }
-      }
+  const modules: Map<FilePathKey, WebpackModule[]> = new Map();
 
-      return modules;
-    },
-    new Map()
-  );
+  compilation.modules.forEach(module => {
+    if (module.resource) {
+      const modulePath = filePathKeyMapper(module.resource);
+      const existingModules = modules.get(modulePath);
+      if (existingModules !== undefined) {
+        if (!existingModules.includes(module)) {
+          existingModules.push(module);
+        }
+      } else {
+        modules.set(modulePath, [module]);
+      }
+    }
+  });
+
+  return modules;
 }
 
 function determineFilesToCheckForErrors(
