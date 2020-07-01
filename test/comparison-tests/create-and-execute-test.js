@@ -268,8 +268,18 @@ function storeStats(stats, testState, paths) {
 
 function compareFiles(paths, test, patch) {
     if (saveOutputMode) {
-        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true });
-        actualFiles.forEach(function (file) {
+        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true }),
+            expectedFiles = glob.sync('**/*', { cwd: paths.originalExpectedOutput, nodir: true, dot: true })
+                .filter(function (file) { return !/^patch/.test(file); }),
+            allFiles = {};
+
+        actualFiles.forEach(function (file) { allFiles[file] = true });
+        expectedFiles.forEach(function (file) {
+            if (!allFiles.hasOwnProperty(file)) {
+                fs.removeSync(path.join(paths.originalExpectedOutput, file));
+            }
+         });
+        Object.keys(allFiles).forEach(function (file) {
             const actual = getNormalisedFileContent(file, paths.actualOutput);
             const expected = getNormalisedFileContent(file, paths.expectedOutput);
             if (actual !== expected) {
