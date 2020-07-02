@@ -3,23 +3,20 @@ import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import {
-  getEmitFromWatchHost,
-  getEmitOutput,
-  isReferencedFile,
-} from './instances';
+import { getEmitFromWatchHost, getEmitOutput } from './instances';
 import {
   FilePathKey,
   TSFiles,
   TSInstance,
   WebpackError,
   WebpackModule,
+  TSFile,
 } from './interfaces';
 import {
   collectAllDependants,
   ensureProgram,
   formatErrors,
-  isUsingProjectReferences,
+  isReferencedFile,
   populateReverseDependencyGraph,
 } from './utils';
 
@@ -154,10 +151,10 @@ function determineFilesToCheckForErrors(
   if (checkAllFilesForErrors) {
     // check all files on initial run
     for (const [filePath, file] of files) {
-      filesToCheckForErrors.set(filePath, file);
+      addFileToCheckForErrors(filePath, file);
     }
     for (const [filePath, file] of otherFiles) {
-      filesToCheckForErrors.set(filePath, file);
+      addFileToCheckForErrors(filePath, file);
     }
   } else if (
     modifiedFiles !== null &&
@@ -173,7 +170,7 @@ function determineFilesToCheckForErrors(
       ).keys()) {
         const fileToCheckForErrors =
           files.get(fileName) || otherFiles.get(fileName);
-        filesToCheckForErrors.set(fileName, fileToCheckForErrors!);
+        addFileToCheckForErrors(fileName, fileToCheckForErrors!);
       }
     }
   }
@@ -181,10 +178,16 @@ function determineFilesToCheckForErrors(
   // re-check files with errors from previous build
   if (filesWithErrors !== undefined) {
     for (const [fileWithErrorName, fileWithErrors] of filesWithErrors) {
-      filesToCheckForErrors.set(fileWithErrorName, fileWithErrors);
+      addFileToCheckForErrors(fileWithErrorName, fileWithErrors);
     }
   }
   return filesToCheckForErrors;
+
+  function addFileToCheckForErrors(filePath: FilePathKey, file: TSFile) {
+    if (!isReferencedFile(instance, filePath)) {
+      filesToCheckForErrors.set(filePath, file);
+    }
+  }
 }
 
 function provideErrorsToWebpack(
@@ -215,14 +218,6 @@ function provideErrorsToWebpack(
     }
 
     const sourceFile = program && program.getSourceFile(fileName);
-    // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
-    // which will have already produced a more useful error than the one we would get by proceeding here.
-    // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
-    // get a useful error about which file was unexpectedly missing.
-    if (isUsingProjectReferences(instance) && sourceFile === undefined) {
-      continue;
-    }
-
     const errors: ts.Diagnostic[] = [];
     if (program && sourceFile) {
       errors.push(
@@ -358,12 +353,7 @@ function provideDeclarationFilesToWebpack(
       continue;
     }
 
-    if (!isReferencedFile(instance, fileName)) {
-      addDeclarationFilesAsAsset(
-        getEmitOutput(instance, fileName),
-        compilation
-      );
-    }
+    addDeclarationFilesAsAsset(getEmitOutput(instance, fileName), compilation);
   }
 }
 

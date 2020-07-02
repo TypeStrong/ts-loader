@@ -27,7 +27,7 @@ import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
-  isUsingProjectReferences,
+  isReferencedFile,
   makeError,
   supportsSolutionBuild,
 } from './utils';
@@ -314,10 +314,7 @@ export function initializeInstance(
       );
     }
 
-    if (
-      instance.loaderOptions.experimentalWatchApi &&
-      instance.compiler.createWatchProgram
-    ) {
+    if (instance.loaderOptions.experimentalWatchApi) {
       instance.log.logInfo('Using watch api');
 
       // If there is api available for watch, use it instead of language service
@@ -643,15 +640,6 @@ export function getInputFileNameFromOutput(
   );
 }
 
-export function isReferencedFile(instance: TSInstance, filePath: string) {
-  return (
-    !!instance.solutionBuilderHost &&
-    !!instance.solutionBuilderHost.watchedFiles.get(
-      instance.filePathKeyMapper(filePath)
-    )
-  );
-}
-
 export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
   const program = ensureProgram(instance);
   const builderProgram = instance.builderProgram;
@@ -728,20 +716,17 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       text: string,
       writeByteOrderMark: boolean
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
-    // The source file will be undefined if it’s part of an unbuilt project reference
-    if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
-      const outputFilesFromWatch = getEmitFromWatchHost(instance, filePath);
-      if (outputFilesFromWatch) {
-        return outputFilesFromWatch;
-      }
-      program.emit(
-        sourceFile,
-        writeFile,
-        /*cancellationToken*/ undefined,
-        /*emitOnlyDtsFiles*/ false,
-        instance.transformers
-      );
+    const outputFilesFromWatch = getEmitFromWatchHost(instance, filePath);
+    if (outputFilesFromWatch) {
+      return outputFilesFromWatch;
     }
+    program.emit(
+      sourceFile,
+      writeFile,
+      /*cancellationToken*/ undefined,
+      /*emitOnlyDtsFiles*/ false,
+      instance.transformers
+    );
     return outputFiles;
   } else {
     // Emit Javascript
