@@ -130,7 +130,7 @@ function successfulTypeScriptInstance(
     configFile,
     basePath,
     configFilePath,
-    loaderOptions.projectReferences
+    loaderOptions
   );
 
   if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {

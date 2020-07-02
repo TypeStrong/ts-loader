@@ -94,7 +94,6 @@ function createTest(test, testPath, options) {
                 // Change the tsconfig to be composite
                 const configPath = path.resolve(paths.testStagingPath, "tsconfig.json");
                 const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-                config.files = [ "./app.ts"];
                 config.compilerOptions = { ...(config.compilerOptions || {}), composite: true };
                 fs.writeFileSync(configPath, JSON.stringify(config, /*replacer*/ undefined, " "));
             }

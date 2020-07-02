@@ -65,8 +65,7 @@ export function getConfigFile(
   if (configFileError === undefined) {
     configFile.config.compilerOptions = Object.assign(
       {},
-      configFile.config.compilerOptions,
-      loaderOptions.compilerOptions
+      configFile.config.compilerOptions
     );
   }
 
@@ -128,15 +127,21 @@ export function getConfigParseResult(
   configFile: ConfigFile,
   basePath: string,
   configFilePath: string | undefined,
-  enableProjectReferences: boolean
+  loaderOptions: LoaderOptions
 ) {
   const configParseResult = compiler.parseJsonConfigFileContent(
     configFile.config,
     compiler.sys,
-    basePath
+    basePath,
+    getCompilerOptionsToExtend(
+      compiler,
+      loaderOptions,
+      basePath,
+      configFilePath || 'tsconfig.json'
+    )
   );
 
-  if (!enableProjectReferences) {
+  if (!loaderOptions.projectReferences) {
     configParseResult.projectReferences = undefined;
   }
 
@@ -158,7 +163,12 @@ export function getParsedCommandLine(
 ): typescript.ParsedCommandLine | undefined {
   const result = compiler.getParsedCommandLineOfConfigFile(
     configFilePath,
-    loaderOptions.compilerOptions,
+    getCompilerOptionsToExtend(
+      compiler,
+      loaderOptions,
+      path.dirname(configFilePath),
+      configFilePath
+    ),
     {
       ...compiler.sys,
       // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -170,4 +180,17 @@ export function getParsedCommandLine(
     result.options = getCompilerOptions(result);
   }
   return result;
+}
+
+function getCompilerOptionsToExtend(
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions,
+  basePath: string,
+  configFileName: string
+) {
+  return compiler.convertCompilerOptionsFromJson(
+    loaderOptions.compilerOptions,
+    basePath,
+    configFileName
+  ).options;
 }

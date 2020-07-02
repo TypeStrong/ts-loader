@@ -28,14 +28,14 @@
       },
       "./index.ts": {
         "version": "d2b6e2d5879e5092e979620936598256494f23e7449ca2b326a2618f9b4488c2",
-        "signature": "4ef378092d53757f50da435f02bd8fbe215f1188c3978b9db24224a1cfdda817",
+        "signature": "5081781ea12d9924e909db967d29184ff3e0b8ca05d30ef60b8d696e0b50013e",
         "affectsGlobalScope": false
       }
     },
     "options": {
       "composite": true,
       "types": [],
-      "newLine": "LF",
+      "newLine": 1,
       "configFilePath": "./tsconfig.json",
       "skipLibCheck": true,
       "suppressOutputPathCheck": true

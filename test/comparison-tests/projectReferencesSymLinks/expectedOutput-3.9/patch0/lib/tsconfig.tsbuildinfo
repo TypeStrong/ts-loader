@@ -27,13 +27,13 @@
         "affectsGlobalScope": true
       },
       "../common/dist/index.d.ts": {
-        "version": "50f1420a801028c6fbac3bc9471d819b47f9475ca24d7920f3266e000d4a77b5",
-        "signature": "50f1420a801028c6fbac3bc9471d819b47f9475ca24d7920f3266e000d4a77b5",
+        "version": "ff3ea32a8da48d914c97453f41159f05f0eb54fefa17b664d412b6588d1ba729",
+        "signature": "ff3ea32a8da48d914c97453f41159f05f0eb54fefa17b664d412b6588d1ba729",
         "affectsGlobalScope": false
       },
       "./src/index.ts": {
         "version": "852833616e510f30b68b4efa8b8f0080c0936671acbf52967e72b6c4ab0a72e9",
-        "signature": "f4aed38b39d768d40d1a8c62105e87cb08b372540b80b4fa615291f2f37f2419",
+        "signature": "f99922acc37970b3e751734a37d730d1382695bab7ffb6730f1aad484ef3828a",
         "affectsGlobalScope": false
       }
     },
@@ -42,7 +42,7 @@
       "outDir": "./dist",
       "rootDir": "./src",
       "types": [],
-      "newLine": "LF",
+      "newLine": 1,
       "configFilePath": "./tsconfig.json",
       "skipLibCheck": true,
       "suppressOutputPathCheck": true

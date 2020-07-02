@@ -27,13 +27,13 @@
         "affectsGlobalScope": true
       },
       "../node_modules/common/dist/index.d.ts": {
-        "version": "50f1420a801028c6fbac3bc9471d819b47f9475ca24d7920f3266e000d4a77b5",
-        "signature": "50f1420a801028c6fbac3bc9471d819b47f9475ca24d7920f3266e000d4a77b5",
+        "version": "ff3ea32a8da48d914c97453f41159f05f0eb54fefa17b664d412b6588d1ba729",
+        "signature": "ff3ea32a8da48d914c97453f41159f05f0eb54fefa17b664d412b6588d1ba729",
         "affectsGlobalScope": false
       },
       "./src/index.ts": {
         "version": "1f22ba07ef5ca5b17da3030aee4582883803beb20e5bcc5b0cb29acb0289a635",
-        "signature": "c0374b8bd606e6c8e0156f10567ee0c6e08986bb37d64ed818d623829ec7e1c2",
+        "signature": "cb0c875cdccbe72f5bbcd75441105aaeeb7f2a8e425f0c4333fe810ec0259456",
         "affectsGlobalScope": false
       }
     },
@@ -43,7 +43,7 @@
       "rootDir": "./src",
       "preserveSymlinks": true,
       "types": [],
-      "newLine": "LF",
+      "newLine": 1,
       "configFilePath": "./tsconfig.json",
       "skipLibCheck": true,
       "suppressOutputPathCheck": true

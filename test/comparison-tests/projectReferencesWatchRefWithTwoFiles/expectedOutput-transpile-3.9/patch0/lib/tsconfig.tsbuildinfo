@@ -28,12 +28,12 @@
       },
       "./helper.ts": {
         "version": "1fb681e6157008026aa84db0d697833c02fcb11e4b1cb011820844edbffa703c",
-        "signature": "c79e448f78bd9c48a9e0aabefabef9bf362709376fa9153291947d0c73b3a707",
+        "signature": "695f3f9978b7c5a431d1c0d00791cee3d41b76f2a13fddf525fd5d34431cab6a",
         "affectsGlobalScope": false
       },
       "./index.ts": {
         "version": "bc4ed2b009cdf5f131d46c0ab70386155058ea9011c613bdf82b0b16dae6fa1c",
-        "signature": "0dd99d92de87be28f815ef57f516fb62cd7482c63a363827f154cf0821eaaf48",
+        "signature": "82b9c263edd140802d0afbd57d557b2c41db16c5ad9a744bca8c71ad5b10f66f",
         "affectsGlobalScope": false
       }
     },
@@ -41,7 +41,7 @@
       "composite": true,
       "sourceMap": true,
       "types": [],
-      "newLine": "LF",
+      "newLine": 1,
       "configFilePath": "./tsconfig.json",
       "skipLibCheck": true,
       "suppressOutputPathCheck": true

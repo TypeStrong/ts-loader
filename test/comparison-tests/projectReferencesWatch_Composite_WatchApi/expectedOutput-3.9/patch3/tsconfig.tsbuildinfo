@@ -27,8 +27,8 @@
         "affectsGlobalScope": true
       },
       "./lib/index.d.ts": {
-        "version": "7269182451",
-        "signature": "7269182451",
+        "version": "11496633944",
+        "signature": "11496633944",
         "affectsGlobalScope": false
       },
       "./app.ts": {
