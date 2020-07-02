@@ -375,7 +375,8 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
 }
 
 function createWatchFactory(
-  filePathKeyMapper: (fileName: string) => FilePathKey
+  filePathKeyMapper: (fileName: string) => FilePathKey,
+  compiler: typeof typescript
 ): WatchFactory {
   const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = new Map();
   const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> = new Map();
@@ -422,7 +423,7 @@ function createWatchFactory(
       fileName,
       eventKind
     );
-    if (eventKind !== typescript.FileWatcherEventKind.Changed) {
+    if (eventKind !== compiler.FileWatcherEventKind.Changed) {
       const directory = path.dirname(fileName);
       result =
         invokeWatcherCallbacks(watchedDirectories, directory, fileName) ||
@@ -553,7 +554,8 @@ export function makeWatchHost(
   } = instance;
 
   const { watchFile, watchDirectory, invokeFileWatcher } = createWatchFactory(
-    filePathKeyMapper
+    filePathKeyMapper,
+    compiler
   );
   const {
     moduleResolutionHost: {
@@ -800,7 +802,7 @@ export function makeSolutionBuilderHost(
       reportWatchStatus
     ),
     diagnostics,
-    ...createWatchFactory(filePathKeyMapper),
+    ...createWatchFactory(filePathKeyMapper, compiler),
     // Overrides
     getCurrentDirectory,
     // behave as if there is no tsbuild info on disk since we want to generate all outputs in memory and only use those
@@ -845,13 +847,13 @@ export function makeSolutionBuilderHost(
           instance.hasUnaccountedModifiedFiles =
             instance.watchHost.invokeFileWatcher(
               name,
-              typescript.FileWatcherEventKind.Created
+              compiler.FileWatcherEventKind.Created
             ) || instance.hasUnaccountedModifiedFiles;
         } else if (existing.version !== newOutputFile.version) {
           instance.hasUnaccountedModifiedFiles =
             instance.watchHost.invokeFileWatcher(
               name,
-              typescript.FileWatcherEventKind.Changed
+              compiler.FileWatcherEventKind.Changed
             ) || instance.hasUnaccountedModifiedFiles;
         }
       }
