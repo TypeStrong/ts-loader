@@ -32,6 +32,7 @@ import {
   fsReadFile,
   populateDependencyGraph,
   unorderedRemoveItem,
+  useCaseSensitiveFileNames,
 } from './utils';
 
 function makeResolversHandlingProjectReferences(
@@ -74,7 +75,8 @@ function makeResolversHandlingProjectReferences(
     getDirectories,
     readDirectory,
 
-    useCaseSensitiveFileNames: () => compiler.sys.useCaseSensitiveFileNames,
+    useCaseSensitiveFileNames: () =>
+      useCaseSensitiveFileNames(compiler, instance.loaderOptions),
     getNewLine: () => newLine,
     getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
   };
@@ -730,7 +732,10 @@ export function makeSolutionBuilderHost(
   const getCurrentDirectory = () => loader.context;
   const formatDiagnosticHost: typescript.FormatDiagnosticsHost = {
     getCurrentDirectory: compiler.sys.getCurrentDirectory,
-    getCanonicalFileName: compiler.sys.useCaseSensitiveFileNames
+    getCanonicalFileName: useCaseSensitiveFileNames(
+      compiler,
+      instance.loaderOptions
+    )
       ? s => s
       : s => s.toLowerCase(),
     getNewLine: () => compiler.sys.newLine,
@@ -801,6 +806,8 @@ export function makeSolutionBuilderHost(
       reportSolutionBuilderStatus,
       reportWatchStatus
     ),
+    useCaseSensitiveFileNames: () =>
+      useCaseSensitiveFileNames(compiler, instance.loaderOptions),
     diagnostics,
     ...createWatchFactory(filePathKeyMapper, compiler),
     // Overrides

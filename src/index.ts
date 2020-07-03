@@ -235,6 +235,7 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'projectReferences',
   'resolveModuleName',
   'resolveTypeReferenceDirective',
+  'useCaseSensitiveFileNames',
 ];
 
 /**

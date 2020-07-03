@@ -26,7 +26,7 @@
         "signature": "097a57355ded99c68e6df1b738990448e0bf170e606707df5a7c0481ff2427cd",
         "affectsGlobalScope": true
       },
-      "./filewitherror.ts": {
+      "./fileWithError.ts": {
         "version": "e8c36f5bf4681d8c0c1866ed04f823e66548c8a788b325b672026efb17e9a384",
         "signature": "3dee7bbd2b685bdcb66cfc9b45605d6689ea42852231fa79cac9a40643c0fa22",
         "affectsGlobalScope": false
@@ -48,7 +48,7 @@
     "referencedMap": {},
     "exportedModulesMap": {},
     "semanticDiagnosticsPerFile": [
-      "./filewitherror.ts",
+      "./fileWithError.ts",
       "./index.ts",
       "../../../node_modules/typescript/lib/lib.d.ts",
       "../../../node_modules/typescript/lib/lib.dom.d.ts",

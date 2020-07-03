@@ -30,6 +30,7 @@ import {
   isReferencedFile,
   makeError,
   supportsSolutionBuild,
+  useCaseSensitiveFileNames,
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
@@ -73,10 +74,13 @@ export function getTypeScriptInstance(
   );
 }
 
-function createFilePathKeyMapper(compiler: typeof typescript) {
+function createFilePathKeyMapper(
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions
+) {
   // FileName lowercasing copied from typescript
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g;
-  return compiler.sys.useCaseSensitiveFileNames
+  return useCaseSensitiveFileNames(compiler, loaderOptions)
     ? pathResolve
     : toFileNameLowerCase;
 
@@ -170,7 +174,7 @@ function successfulTypeScriptInstance(
             filePath
           )
       : (filePath: string) => filePath;
-  const filePathKeyMapper = createFilePathKeyMapper(compiler);
+  const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
 
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
@@ -567,7 +571,10 @@ export function getOutputFileNames(
   configFile: typescript.ParsedCommandLine,
   inputFileName: string
 ): string[] {
-  const ignoreCase = !instance.compiler.sys.useCaseSensitiveFileNames;
+  const ignoreCase = !useCaseSensitiveFileNames(
+    instance.compiler,
+    instance.loaderOptions
+  );
   if ((instance.compiler as any).getOutputFileNames) {
     return (instance.compiler as any).getOutputFileNames(
       configFile,

@@ -6,7 +6,7 @@ import * as webpack from 'webpack';
 import { getCompilerOptions } from './compilerSetup';
 import { LoaderOptions, WebpackError } from './interfaces';
 import * as logger from './logger';
-import { formatErrors } from './utils';
+import { formatErrors, useCaseSensitiveFileNames } from './utils';
 
 interface ConfigFile {
   config?: any;
@@ -131,7 +131,13 @@ export function getConfigParseResult(
 ) {
   const configParseResult = compiler.parseJsonConfigFileContent(
     configFile.config,
-    compiler.sys,
+    {
+      ...compiler.sys,
+      useCaseSensitiveFileNames: useCaseSensitiveFileNames(
+        compiler,
+        loaderOptions
+      ),
+    },
     basePath,
     getCompilerOptionsToExtend(
       compiler,
@@ -171,6 +177,10 @@ export function getParsedCommandLine(
     ),
     {
       ...compiler.sys,
+      useCaseSensitiveFileNames: useCaseSensitiveFileNames(
+        compiler,
+        loaderOptions
+      ),
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       onUnRecoverableConfigFileDiagnostic: () => {},
     },

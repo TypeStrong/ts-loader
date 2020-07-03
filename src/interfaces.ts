@@ -275,6 +275,7 @@ export interface LoaderOptions {
   projectReferences: boolean;
   resolveModuleName: CustomResolveModuleName;
   resolveTypeReferenceDirective: CustomResolveTypeReferenceDirective;
+  useCaseSensitiveFileNames?: boolean;
 }
 
 export interface TSFile {

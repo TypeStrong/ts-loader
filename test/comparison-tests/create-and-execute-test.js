@@ -171,7 +171,8 @@ function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
         compilerOptions: {
             newLine: 'LF'
         },
-        experimentalWatchApi: !!useWatchApi
+        experimentalWatchApi: !!useWatchApi,
+        useCaseSensitiveFileNames: true
     }, optionsOriginal, extraOptionMaybe);
 
     const tsLoaderPath = path.join(__dirname, "../../index.js");

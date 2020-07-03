@@ -296,3 +296,12 @@ export function isReferencedFile(instance: TSInstance, filePath: string) {
     )
   );
 }
+
+export function useCaseSensitiveFileNames(
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions
+) {
+  return loaderOptions.useCaseSensitiveFileNames !== undefined
+    ? loaderOptions.useCaseSensitiveFileNames
+    : compiler.sys.useCaseSensitiveFileNames;
+}
