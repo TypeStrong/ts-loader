@@ -1,5 +1,7 @@
 # fork-ts-checker-webpack-plugin / Jest
 
+This example uses [Fork TS Checker Webpack Plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) that performs type checking on a separate process.
+
 ## Getting started
 
 You'll need [node / npm](https://nodejs.org/) installed.  To get up and running just enter:
