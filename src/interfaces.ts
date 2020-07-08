@@ -1,4 +1,3 @@
-export { ModuleResolutionHost, FormatDiagnosticsHost } from 'typescript';
 import * as typescript from 'typescript';
 
 import { Chalk } from 'chalk';
@@ -40,26 +39,62 @@ export type ResolveSync = (
 
 export type Action = () => void;
 
-export interface ServiceHostWhichMayBeCacheable {
-  servicesHost: typescript.LanguageServiceHost;
-  clearCache: Action | null;
+export interface HostMayBeCacheable {
+  clearCache?: Action;
 }
+
+export interface CacheableHost extends HostMayBeCacheable {
+  fileExists: typescript.ModuleResolutionHost['fileExists'];
+  directoryExists: NonNullable<
+    typescript.ModuleResolutionHost['directoryExists']
+  >;
+  realpath?: typescript.ModuleResolutionHost['realpath'];
+}
+
+export interface ModuleResolutionHostMayBeCacheable
+  extends typescript.ModuleResolutionHost,
+    HostMayBeCacheable {
+  readFile(filePath: string, encoding?: string): string | undefined;
+  trace: NonNullable<typescript.ModuleResolutionHost['trace']>;
+  directoryExists: NonNullable<
+    typescript.ModuleResolutionHost['directoryExists']
+  >;
+  getCurrentDirectory: NonNullable<
+    typescript.ModuleResolutionHost['getCurrentDirectory']
+  >;
+  getDirectories: NonNullable<
+    typescript.ModuleResolutionHost['getDirectories']
+  >;
+
+  // Other common methods between WatchHost and LanguageServiceHost
+  useCaseSensitiveFileNames: NonNullable<
+    typescript.LanguageServiceHost['useCaseSensitiveFileNames']
+  >;
+  getNewLine: NonNullable<typescript.LanguageServiceHost['getNewLine']>;
+  getDefaultLibFileName: NonNullable<
+    typescript.LanguageServiceHost['getDefaultLibFileName']
+  >;
+  readDirectory: NonNullable<typescript.LanguageServiceHost['readDirectory']>;
+}
+
+export interface ServiceHostWhichMayBeCacheable
+  extends typescript.LanguageServiceHost,
+    HostMayBeCacheable {}
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
     typescript.EmitAndSemanticDiagnosticsBuilderProgram
   > {
-  invokeFileWatcher(
-    fileName: string,
-    eventKind: typescript.FileWatcherEventKind
-  ): void;
-  invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
+  invokeFileWatcher: WatchFactory['invokeFileWatcher'];
   updateRootFileNames(): void;
-  outputFiles: Map<string, typescript.OutputFile[]>;
+  outputFiles: Map<FilePathKey, typescript.OutputFile[]>;
   tsbuildinfo?: typescript.OutputFile;
 }
 
-export type WatchCallbacks<T> = Map<string, T[]>;
+export type WatchCallbacks<T> = Map<
+  FilePathKey,
+  { fileName: string; callbacks: T[] }
+>;
 export interface WatchFactory {
   watchedFiles: WatchCallbacks<typescript.FileWatcherCallback>;
   watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback>;
@@ -69,8 +104,7 @@ export interface WatchFactory {
   invokeFileWatcher(
     fileName: string,
     eventKind: typescript.FileWatcherEventKind
-  ): void;
-  invokeDirectoryWatcher(directory: string, fileAddedOrRemoved: string): void;
+  ): boolean;
   /** Used to watch changes in source files, missing files needed to update the program or config file */
   watchFile: typescript.WatchHost['watchFile'];
   /** Used to watch resolved module's failed lookup locations, config file specs, type roots where auto type reference directives are added */
@@ -79,9 +113,11 @@ export interface WatchFactory {
 
 export interface SolutionDiagnostics {
   global: typescript.Diagnostic[];
-  perFile: Map<string, typescript.Diagnostic[]>;
-  transpileErrors: [string | undefined, typescript.Diagnostic[]][];
+  perFile: Map<FilePathKey, typescript.Diagnostic[]>;
+  transpileErrors: [FilePathKey | undefined, typescript.Diagnostic[]][];
 }
+
+export type FilePathKey = string & { __filePathKeyBrand: any };
 
 export interface SolutionBuilderWithWatchHost
   extends typescript.SolutionBuilderWithWatchHost<
@@ -90,19 +126,29 @@ export interface SolutionBuilderWithWatchHost
     WatchFactory {
   diagnostics: SolutionDiagnostics;
   writtenFiles: OutputFile[];
-  configFileInfo: Map<string, ConfigFileInfo>;
-  outputAffectingInstanceVersion: Map<string, true>;
+  configFileInfo: Map<FilePathKey, ConfigFileInfo>;
+  outputAffectingInstanceVersion: Map<FilePathKey, true>;
+  getOutputFileKeyFromReferencedProject(
+    outputFileName: string
+  ): FilePathKey | undefined;
   getOutputFileFromReferencedProject(
     outputFileName: string
   ): OutputFile | false | undefined;
+  getOutputFileAndKeyFromReferencedProject(
+    oututFileName: string
+  ): { key: FilePathKey; outputFile: OutputFile | false } | undefined;
   getInputFileNameFromOutput(outputFileName: string): string | undefined;
   getOutputFilesFromReferencedProjectInput(inputFileName: string): OutputFile[];
   buildReferences(): void;
+  clearCache(): void;
 }
 
 export interface ConfigFileInfo {
   config: typescript.ParsedCommandLine | undefined;
-  outputFileNames?: Map<string, string[]>;
+  outputFileNames?: Map<
+    FilePathKey,
+    { inputFileName: string; outputNames: FilePathKey[] }
+  >;
   tsbuildInfoFile?: string;
   dtsFiles?: string[];
 }
@@ -126,7 +172,7 @@ export interface TSInstance {
   /**
    * contains the modified files - cleared each time after-compile is called
    */
-  modifiedFiles?: TSFiles;
+  modifiedFiles?: Map<FilePathKey, true>;
   /**
    * Paths to project references that are missing source maps.
    * Cleared each time after-compile is called. Used to dedupe
@@ -137,7 +183,6 @@ export interface TSInstance {
   languageService?: typescript.LanguageService | null;
   version: number;
   dependencyGraph: DependencyGraph;
-  reverseDependencyGraph: ReverseDependencyGraph;
   filesWithErrors?: TSFiles;
   transformers: typescript.CustomTransformers;
   colors: Chalk;
@@ -159,6 +204,8 @@ export interface TSInstance {
   >;
   configFilePath: string | undefined;
 
+  filePathKeyMapper: (fileName: string) => FilePathKey;
+
   initialSetupPending: boolean;
   configParseResult: typescript.ParsedCommandLine;
   log: logger.Logger;
@@ -171,18 +218,8 @@ export interface LoaderOptionsCache {
 export interface TSInstances {
   [name: string]: TSInstance;
 }
-
-export interface DependencyGraph {
-  [file: string]: ResolvedModule[] | undefined;
-}
-
-export interface ReverseDependencyGraph {
-  [file: string]:
-    | {
-        [file: string]: boolean;
-      }
-    | undefined;
-}
+export type DependencyGraph = Map<FilePathKey, ResolvedModule[]>;
+export type ReverseDependencyGraph = Map<FilePathKey, Map<FilePathKey, true>>;
 
 export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
 
@@ -238,9 +275,11 @@ export interface LoaderOptions {
   projectReferences: boolean;
   resolveModuleName: CustomResolveModuleName;
   resolveTypeReferenceDirective: CustomResolveTypeReferenceDirective;
+  useCaseSensitiveFileNames?: boolean;
 }
 
 export interface TSFile {
+  fileName: string;
   text?: string;
   version: number;
   modifiedTime?: Date;
@@ -255,7 +294,7 @@ export interface TSFile {
 }
 
 /** where key is filepath */
-export type TSFiles = Map<string, TSFile>;
+export type TSFiles = Map<FilePathKey, TSFile>;
 
 export interface ResolvedModule {
   originalFileName: string;

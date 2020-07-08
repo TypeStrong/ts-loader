@@ -1,6 +1,7 @@
 /*.js
 !index.js
 /src/*.js
+/src/.vscode
 /*.d.ts
 /*.log
 *.js.map
@@ -10,7 +11,8 @@ npm-debug.log
 /test/execution-tests/**/typings
 !/test/**/expectedOutput-*/**
 /**/node_modules
-/**/dist
+/dist
+/test/execution-tests/**/dist
 /**/.happypack
 /**/.cache-loader
 !build.js
@@ -18,3 +20,4 @@ npm-debug.log
 .pnp
 .pnp.js
 !.eslintrc.js
+.vs/**

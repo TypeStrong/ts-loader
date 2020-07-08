@@ -1,13 +1,12 @@
 import { Chalk } from 'chalk';
 import * as path from 'path';
-import * as semver from 'semver';
 import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { getCompilerOptions } from './compilerSetup';
 import { LoaderOptions, WebpackError } from './interfaces';
 import * as logger from './logger';
-import { formatErrors } from './utils';
+import { formatErrors, useCaseSensitiveFileNames } from './utils';
 
 interface ConfigFile {
   config?: any;
@@ -66,8 +65,7 @@ export function getConfigFile(
   if (configFileError === undefined) {
     configFile.config.compilerOptions = Object.assign(
       {},
-      configFile.config.compilerOptions,
-      loaderOptions.compilerOptions
+      configFile.config.compilerOptions
     );
   }
 
@@ -129,24 +127,34 @@ export function getConfigParseResult(
   configFile: ConfigFile,
   basePath: string,
   configFilePath: string | undefined,
-  enableProjectReferences: boolean
+  loaderOptions: LoaderOptions
 ) {
   const configParseResult = compiler.parseJsonConfigFileContent(
     configFile.config,
-    compiler.sys,
-    basePath
+    {
+      ...compiler.sys,
+      useCaseSensitiveFileNames: useCaseSensitiveFileNames(
+        compiler,
+        loaderOptions
+      ),
+    },
+    basePath,
+    getCompilerOptionsToExtend(
+      compiler,
+      loaderOptions,
+      basePath,
+      configFilePath || 'tsconfig.json'
+    )
   );
 
-  if (!enableProjectReferences) {
+  if (!loaderOptions.projectReferences) {
     configParseResult.projectReferences = undefined;
   }
 
-  if (semver.gte(compiler.version, '3.5.0')) {
-    // set internal options.configFilePath flag on options to denote that we read this from a file
-    configParseResult.options = Object.assign({}, configParseResult.options, {
-      configFilePath,
-    });
-  }
+  // set internal options.configFilePath flag on options to denote that we read this from a file
+  configParseResult.options = Object.assign({}, configParseResult.options, {
+    configFilePath,
+  });
 
   return configParseResult;
 }
@@ -161,9 +169,18 @@ export function getParsedCommandLine(
 ): typescript.ParsedCommandLine | undefined {
   const result = compiler.getParsedCommandLineOfConfigFile(
     configFilePath,
-    loaderOptions.compilerOptions,
+    getCompilerOptionsToExtend(
+      compiler,
+      loaderOptions,
+      path.dirname(configFilePath),
+      configFilePath
+    ),
     {
       ...compiler.sys,
+      useCaseSensitiveFileNames: useCaseSensitiveFileNames(
+        compiler,
+        loaderOptions
+      ),
       // eslint-disable-next-line @typescript-eslint/no-empty-function
       onUnRecoverableConfigFileDiagnostic: () => {},
     },
@@ -173,4 +190,17 @@ export function getParsedCommandLine(
     result.options = getCompilerOptions(result);
   }
   return result;
+}
+
+function getCompilerOptionsToExtend(
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions,
+  basePath: string,
+  configFileName: string
+) {
+  return compiler.convertCompilerOptionsFromJson(
+    loaderOptions.compilerOptions,
+    basePath,
+    configFileName
+  ).options;
 }

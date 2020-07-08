@@ -1,0 +1,9 @@
+                         Asset       Size  Chunks             Chunk Names
+                      index.js   4.93 KiB    main  [emitted]  main
+       ../../lib/dist/index.js  198 bytes          [emitted]  
+     ../../lib/dist/index.d.ts   55 bytes          [emitted]  
+../../lib/tsconfig.tsbuildinfo   73.4 KiB          [emitted]  
+Entrypoint main = index.js
+[../common/dist/index.js] 133 bytes {main} [built]
+[../lib/dist/index.js] 193 bytes {main} [built]
+[./src/index.ts] 144 bytes {main} [built]

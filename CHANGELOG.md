@@ -1,5 +1,9 @@
 # Changelog
 
+## v8.0.0
+* [Support for symlinks in project references](https://github.com/TypeStrong/ts-loader/pull/1136) - thanks @sheetalkamat!
+* `ts-loader` now supports TypeScript 3.6 and greater **BREAKING CHANGE**
+
 ## v7.0.5
 * [Add a delay before starting the comparison tests to avoid failures under WSL](https://github.com/TypeStrong/ts-loader/pull/1109) - thanks @appzuka
 * [Apply other loaders when updating files in watch mode](https://github.com/TypeStrong/ts-loader/pull/1115) - thanks @iorate

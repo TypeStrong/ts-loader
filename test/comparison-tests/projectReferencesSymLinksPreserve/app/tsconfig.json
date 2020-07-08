@@ -1,0 +1,11 @@
+{
+    "references": [
+        { "path": "../lib" }
+    ],
+    "compilerOptions": {
+        "outDir": "dist",
+        "rootDir": "src",
+        "preserveSymlinks": true,
+        "types": []
+    }
+}

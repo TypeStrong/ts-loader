@@ -2,9 +2,9 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { TSInstance } from './interfaces';
+import { FilePathKey, TSInstance } from './interfaces';
 import { updateFileWithText } from './servicesHost';
-import { readFile } from './utils';
+import { fsReadFile } from './utils';
 
 /**
  * Make function which will manually update changed files
@@ -14,13 +14,15 @@ export function makeWatchRun(
   loader: webpack.loader.LoaderContext
 ) {
   // Called Before starting compilation after watch
-  const lastTimes = new Map<string, number>();
+  const lastTimes = new Map<FilePathKey, number>();
   const startTime = 0;
 
   // Save the loader index.
   const loaderIndex = loader.loaderIndex;
 
   return (compiler: webpack.Compiler, callback: (err?: Error) => void) => {
+    instance.servicesHost?.clearCache?.();
+    instance.solutionBuilderHost?.clearCache();
     const promises = [];
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;
@@ -28,32 +30,38 @@ export function makeWatchRun(
       const times = compiler.fileTimestamps;
 
       for (const [filePath, date] of times) {
-        const lastTime = lastTimes.get(filePath) || startTime;
+        const key = instance.filePathKeyMapper(filePath);
+        const lastTime = lastTimes.get(key) || startTime;
 
         if (date <= lastTime) {
           continue;
         }
 
-        lastTimes.set(filePath, date);
-        promises.push(updateFile(instance, filePath, loader, loaderIndex));
+        lastTimes.set(key, date);
+        promises.push(updateFile(instance, key, filePath, loader, loaderIndex));
       }
 
       // On watch update add all known dts files expect the ones in node_modules
       // (skip @types/* and modules with typings)
-      for (const filePath of instance.files.keys()) {
+      for (const [key, { fileName }] of instance.files.entries()) {
         if (
-          filePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
-          filePath.match(constants.nodeModules) === null
+          fileName.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
+          fileName.match(constants.nodeModules) === null
         ) {
-          promises.push(updateFile(instance, filePath, loader, loaderIndex));
+          promises.push(
+            updateFile(instance, key, fileName, loader, loaderIndex)
+          );
         }
       }
     }
 
     // Update all the watched files from solution builder
     if (instance.solutionBuilderHost) {
-      for (const filePath of instance.solutionBuilderHost.watchedFiles.keys()) {
-        promises.push(updateFile(instance, filePath, loader, loaderIndex));
+      for (const [
+        key,
+        { fileName },
+      ] of instance.solutionBuilderHost.watchedFiles.entries()) {
+        promises.push(updateFile(instance, key, fileName, loader, loaderIndex));
       }
     }
 
@@ -65,6 +73,7 @@ export function makeWatchRun(
 
 function updateFile(
   instance: TSInstance,
+  key: FilePathKey,
   filePath: string,
   loader: webpack.loader.LoaderContext,
   loaderIndex: number
@@ -88,15 +97,16 @@ function updateFile(
           reject(err);
         } else {
           const text = JSON.parse(source);
-          updateFileWithText(instance, filePath, () => text);
+          updateFileWithText(instance, key, filePath, () => text);
           resolve();
         }
       });
     } else {
       updateFileWithText(
         instance,
+        key,
         filePath,
-        nFilePath => readFile(nFilePath) || ''
+        nFilePath => fsReadFile(nFilePath) || ''
       );
       resolve();
     }

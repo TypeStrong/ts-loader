@@ -27,7 +27,7 @@ export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
     if (loaderOptions.compiler === 'typescript') {
       if (
         compiler!.version !== undefined &&
-        semver.gte(compiler!.version, '2.4.1')
+        semver.gte(compiler!.version, '3.6.3')
       ) {
         // don't log yet in this case, if a tsconfig.json exists we want to combine the message
         compilerCompatible = true;

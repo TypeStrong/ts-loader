@@ -1,13 +1,13 @@
-                      Asset       Size  Chunks             Chunk Names
-                  bundle.js   5.19 KiB    main  [emitted]  main
-    ../lib/fileWithError.js  111 bytes          [emitted]  
-  ../lib/fileWithError.d.ts   40 bytes          [emitted]  
-            ../lib/index.js  104 bytes          [emitted]  
-          ../lib/index.d.ts   89 bytes          [emitted]  
-../lib/tsconfig.tsbuildinfo   67.8 KiB          [emitted]  
+                   Asset       Size  Chunks             Chunk Names
+               bundle.js   5.21 KiB    main  [emitted]  main
+    lib/fileWithError.js  134 bytes          [emitted]  
+  lib/fileWithError.d.ts   40 bytes          [emitted]  
+            lib/index.js  127 bytes          [emitted]  
+          lib/index.d.ts   89 bytes          [emitted]  
+lib/tsconfig.tsbuildinfo     73 KiB          [emitted]  
 Entrypoint main = bundle.js
 [./app.ts] 218 bytes {main} [built] [1 error]
-[./lib/index.ts] 104 bytes {main} [built]
+[./lib/index.ts] 127 bytes {main} [built]
 [./utils/index.ts] 495 bytes {main} [built] [failed] [1 error]
 
 ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError\fileWithError.ts(2,5)[39m[22m

@@ -81,32 +81,44 @@
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
+/******/ 	return __webpack_require__(__webpack_require__.s = "./src/index.ts");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ "./app.ts":
-/*!****************!*\
-  !*** ./app.ts ***!
-  \****************/
+/***/ "../common/dist/index.js":
+/*!*******************************!*\
+  !*** ../common/dist/index.js ***!
+  \*******************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three, lib_1.lib.four); // consume new number\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nexports.getMeaningOfLife2 = void 0;\nexports.getMeaningOfLife2 = function () { return 45; };\n\n\n//# sourceURL=webpack:///../common/dist/index.js?");
 
 /***/ }),
 
-/***/ "./lib/index.ts":
+/***/ "../lib/dist/index.js":
+/*!****************************!*\
+  !*** ../lib/dist/index.js ***!
+  \****************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nexports.__esModule = true;\nexports.getMeaningOfLife3 = void 0;\nvar common_1 = __webpack_require__(/*! common */ \"../common/dist/index.js\");\nexports.getMeaningOfLife3 = function () { return common_1.getMeaningOfLife2(); };\n\n\n//# sourceURL=webpack:///../lib/dist/index.js?");
+
+/***/ }),
+
+/***/ "./src/index.ts":
 /*!**********************!*\
-  !*** ./lib/index.ts ***!
+  !*** ./src/index.ts ***!
   \**********************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4 // Add new number\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! lib */ \"../lib/dist/index.js\");\nconsole.log(lib_1.getMeaningOfLife());\n\n\n//# sourceURL=webpack:///./src/index.ts?");
 
 /***/ })
 

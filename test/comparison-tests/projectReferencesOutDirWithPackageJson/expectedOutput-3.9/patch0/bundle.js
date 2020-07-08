@@ -94,19 +94,19 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/out/index.js\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
-/***/ "./lib/index.ts":
-/*!**********************!*\
-  !*** ./lib/index.ts ***!
-  \**********************/
+/***/ "./lib/out/index.js":
+/*!**************************!*\
+  !*** ./lib/out/index.js ***!
+  \**************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4 // Add new number\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4 // Add new number\n};\n//# sourceMappingURL=index.js.map\n\n//# sourceURL=webpack:///./lib/out/index.js?");
 
 /***/ })
 

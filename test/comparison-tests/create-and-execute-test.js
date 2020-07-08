@@ -94,20 +94,24 @@ function createTest(test, testPath, options) {
                 // Change the tsconfig to be composite
                 const configPath = path.resolve(paths.testStagingPath, "tsconfig.json");
                 const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-                config.files = [ "./app.ts"];
-                config.compilerOptions = { composite: true };
+                config.compilerOptions = { ...(config.compilerOptions || {}), composite: true };
                 fs.writeFileSync(configPath, JSON.stringify(config, /*replacer*/ undefined, " "));
             }
         }
         copySync(testPath, paths.testStagingPath);
+        if (test.match("SymLinks")) {
+            // Setup symlinks
+            mkdirp.sync(path.resolve(paths.testStagingPath, "node_modules"));
+            fs.symlinkSync(path.resolve(paths.testStagingPath, "lib"), path.resolve(paths.testStagingPath, "node_modules/lib"), "junction");
+            fs.symlinkSync(path.resolve(paths.testStagingPath, "common"), path.resolve(paths.testStagingPath, "node_modules/common"), "junction");
+        }
         if (test.indexOf("AlreadyBuilt") !== -1) {
-            const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"));
+            const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"), { newLine: typescript.NewLineKind.LineFeed });
             program.emit();
         }
 
         // ensure output directories
         mkdirp.sync(paths.actualOutput);
-        mkdirp.sync(paths.webpackOutput);
 
 
         // Need to wait > FS_ACCURACY as defined in watchpack.
@@ -140,13 +144,25 @@ function createPaths(stagingPath, test, options) {
         testStagingPath: testStagingPath,
         actualOutput: path.join(testStagingPath, 'actualOutput'),
         expectedOutput: path.join(testStagingPath, 'expectedOutput-' + transpilePath + typescriptVersion),
-        webpackOutput: path.join(testStagingPath, '.output'),
-        originalExpectedOutput: path.join(testPath, 'expectedOutput-' + transpilePath + typescriptVersion)
+        originalExpectedOutput: path.join(testPath, 'expectedOutput-' + transpilePath + typescriptVersion),
+        outputPath: testStagingPath,
     };
 }
 
 function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
-    const config = require(path.join(paths.testStagingPath, 'webpack.config'));
+    let config;
+    let subFolder = "";
+    try {
+        config = require(path.join(paths.testStagingPath, 'webpack.config'));
+    }
+    catch {
+    }
+
+    if (!config) {
+        subFolder = "app";
+        config = require(path.join(paths.testStagingPath, subFolder, 'webpack.config'));
+        paths.outputPath = path.join(paths.testStagingPath, subFolder);
+    }
 
     const extraOptionMaybe = extraOption ? { [extraOption]: true } : {};
     const options = Object.assign({
@@ -155,15 +171,15 @@ function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
         compilerOptions: {
             newLine: 'LF'
         },
-        experimentalWatchApi: !!useWatchApi
+        experimentalWatchApi: !!useWatchApi,
+        useCaseSensitiveFileNames: true
     }, optionsOriginal, extraOptionMaybe);
 
-    const tsLoaderPath = require('path').join(__dirname, "../../index.js");
-
+    const tsLoaderPath = path.join(__dirname, "../../index.js");
     aliasLoader(config, tsLoaderPath, options);
-
-    config.output.path = paths.webpackOutput;
-    config.context = paths.testStagingPath;
+    
+    config.context = paths.outputPath;
+    paths.outputPath = config.output.path = config.output.path || paths.outputPath;
     config.resolveLoader = config.resolveLoader || {};
     config.resolveLoader.alias = config.resolveLoader.alias || {};
     config.resolveLoader.alias.newLine = path.join(__dirname, 'newline.loader.js');
@@ -178,14 +194,10 @@ function createWebpackWatchHandler(done, paths, testState, options, test) {
     return function (err, stats) {
         const patch = setPathsAndGetPatch(paths, testState, options);
 
-        cleanHashFromOutput(stats, paths.webpackOutput);
-
-        copySync(paths.webpackOutput, paths.actualOutput);
-        rimraf.sync(paths.webpackOutput);
-
         handleErrors(err, paths);
 
         storeStats(stats, testState, paths);
+        cleanHashFromOutput(stats, paths.actualOutput);
 
         compareFiles(paths, test, patch);
 
@@ -231,6 +243,13 @@ function storeStats(stats, testState, paths) {
         // do a little magic to normalize `\` to `/` for asset output
         const newAssets = {};
         Object.keys(stats.compilation.assets).forEach(function (asset) {
+            if (stats.compilation.assets[asset].emitted) {
+                const diskAssetPath = path.join(paths.outputPath, asset);
+                const newPath = path.join(paths.actualOutput, path.relative(paths.testStagingPath, diskAssetPath));
+                if (diskAssetPath !== newPath) {
+                    fs.copySync(diskAssetPath, newPath);
+                }
+            }
             newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset];
         });
         stats.compilation.assets = newAssets;
@@ -249,19 +268,29 @@ function storeStats(stats, testState, paths) {
 
 function compareFiles(paths, test, patch) {
     if (saveOutputMode) {
-        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true });
-        actualFiles.forEach(function (file) {
+        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true }),
+            expectedFiles = glob.sync('**/*', { cwd: paths.originalExpectedOutput, nodir: true, dot: true })
+                .filter(function (file) { return !/^patch/.test(file); }),
+            allFiles = {};
+
+        actualFiles.forEach(function (file) { allFiles[file] = true });
+        expectedFiles.forEach(function (file) {
+            if (!allFiles.hasOwnProperty(file)) {
+                fs.removeSync(path.join(paths.originalExpectedOutput, file));
+            }
+         });
+        Object.keys(allFiles).forEach(function (file) {
             const actual = getNormalisedFileContent(file, paths.actualOutput);
             const expected = getNormalisedFileContent(file, paths.expectedOutput);
             if (actual !== expected) {
-                fs.copyFileSync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
+                fs.copySync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
             }
         });
     }
     else {
         // compare actual to expected
-        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true }),
-            expectedFiles = glob.sync('**/*', { cwd: paths.expectedOutput, nodir: true })
+        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true }),
+            expectedFiles = glob.sync('**/*', { cwd: paths.expectedOutput, nodir: true, dot: true })
                 .filter(function (file) { return !/^patch/.test(file); }),
             allFiles = {};
 
@@ -325,7 +354,24 @@ function getNormalisedFileContent(file, location) {
     let fileContent;
     const filePath = path.join(location, file);
     try {
-        const originalContent = fs.readFileSync(filePath).toString();
+        let originalContent = fs.readFileSync(filePath).toString();
+        if (filePath.endsWith(".tsbuildinfo")) {
+            try {
+                const json = JSON.parse(originalContent);
+                json.version = "FakeTsVersion";
+                const fileInfos = json.program && json.program.fileInfos;
+                if (fileInfos) {
+                    Object.keys(fileInfos).forEach(fileInfoName => {
+                        if (fileInfoName.indexOf("typescript") !== -1) {
+                            fileInfos[fileInfoName] = { version: fileInfoName, signature: fileInfoName, affectsGlobalScope: fileInfos[fileInfoName].affectsGlobalScope };
+                        }
+                    });
+                }
+                originalContent = JSON.stringify(json, undefined, 2);
+            }
+            catch {
+            }
+        }
         fileContent = (file.indexOf('output.') === 0
             ? normaliseString(originalContent)
                 // Built at: 2/15/2018 8:33:18 PM

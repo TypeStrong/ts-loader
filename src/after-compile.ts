@@ -3,23 +3,21 @@ import * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
+import { getEmitFromWatchHost, getEmitOutput } from './instances';
 import {
-  getEmitFromWatchHost,
-  getEmitOutput,
-  isReferencedFile,
-} from './instances';
-import {
-  TSFile,
+  FilePathKey,
   TSFiles,
   TSInstance,
   WebpackError,
   WebpackModule,
+  TSFile,
 } from './interfaces';
 import {
   collectAllDependants,
   ensureProgram,
   formatErrors,
-  isUsingProjectReferences,
+  isReferencedFile,
+  populateReverseDependencyGraph,
 } from './utils';
 
 export function makeAfterCompile(
@@ -55,7 +53,7 @@ export function makeAfterCompile(
     );
     getCompilerOptionDiagnostics = false;
 
-    const modules = determineModules(compilation);
+    const modules = determineModules(compilation, instance);
 
     const filesToCheckForErrors = determineFilesToCheckForErrors(
       checkAllFilesForErrors,
@@ -63,7 +61,7 @@ export function makeAfterCompile(
     );
     checkAllFilesForErrors = false;
 
-    const filesWithErrors: TSFiles = new Map<string, TSFile>();
+    const filesWithErrors: TSFiles = new Map();
     provideErrorsToWebpack(
       filesToCheckForErrors,
       filesWithErrors,
@@ -119,11 +117,14 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  * this is used for quick-lookup when trying to find modules
  * based on filepath
  */
-function determineModules(compilation: webpack.compilation.Compilation) {
-  return compilation.modules.reduce<Map<string, WebpackModule[]>>(
+function determineModules(
+  compilation: webpack.compilation.Compilation,
+  { filePathKeyMapper }: TSInstance
+) {
+  return compilation.modules.reduce<Map<FilePathKey, WebpackModule[]>>(
     (modules, module) => {
       if (module.resource) {
-        const modulePath = path.normalize(module.resource);
+        const modulePath = filePathKeyMapper(module.resource);
         const existingModules = modules.get(modulePath);
         if (existingModules !== undefined) {
           if (existingModules.indexOf(module) === -1) {
@@ -136,7 +137,7 @@ function determineModules(compilation: webpack.compilation.Compilation) {
 
       return modules;
     },
-    new Map<string, WebpackModule[]>()
+    new Map()
   );
 }
 
@@ -146,43 +147,54 @@ function determineFilesToCheckForErrors(
 ) {
   const { files, modifiedFiles, filesWithErrors, otherFiles } = instance;
   // calculate array of files to check
-  const filesToCheckForErrors: TSFiles = new Map<string, TSFile>();
+  const filesToCheckForErrors: TSFiles = new Map();
   if (checkAllFilesForErrors) {
     // check all files on initial run
     for (const [filePath, file] of files) {
-      filesToCheckForErrors.set(filePath, file);
+      addFileToCheckForErrors(filePath, file);
     }
     for (const [filePath, file] of otherFiles) {
-      filesToCheckForErrors.set(filePath, file);
+      addFileToCheckForErrors(filePath, file);
     }
-  } else if (modifiedFiles !== null && modifiedFiles !== undefined) {
+  } else if (
+    modifiedFiles !== null &&
+    modifiedFiles !== undefined &&
+    modifiedFiles.size
+  ) {
+    const reverseDependencyGraph = populateReverseDependencyGraph(instance);
     // check all modified files, and all dependants
     for (const modifiedFileName of modifiedFiles.keys()) {
-      collectAllDependants(
-        instance.reverseDependencyGraph,
+      for (const fileName of collectAllDependants(
+        reverseDependencyGraph,
         modifiedFileName
-      ).forEach(fileName => {
+      ).keys()) {
         const fileToCheckForErrors =
           files.get(fileName) || otherFiles.get(fileName);
-        filesToCheckForErrors.set(fileName, fileToCheckForErrors!);
-      });
+        addFileToCheckForErrors(fileName, fileToCheckForErrors!);
+      }
     }
   }
 
   // re-check files with errors from previous build
   if (filesWithErrors !== undefined) {
     for (const [fileWithErrorName, fileWithErrors] of filesWithErrors) {
-      filesToCheckForErrors.set(fileWithErrorName, fileWithErrors);
+      addFileToCheckForErrors(fileWithErrorName, fileWithErrors);
     }
   }
   return filesToCheckForErrors;
+
+  function addFileToCheckForErrors(filePath: FilePathKey, file: TSFile) {
+    if (!isReferencedFile(instance, filePath)) {
+      filesToCheckForErrors.set(filePath, file);
+    }
+  }
 }
 
 function provideErrorsToWebpack(
   filesToCheckForErrors: TSFiles,
   filesWithErrors: TSFiles,
   compilation: webpack.compilation.Compilation,
-  modules: Map<string, WebpackModule[]>,
+  modules: Map<FilePathKey, WebpackModule[]>,
   instance: TSInstance
 ) {
   const {
@@ -200,20 +212,12 @@ function provideErrorsToWebpack(
 
   // I’m pretty sure this will never be undefined here
   const program = ensureProgram(instance);
-  for (const filePath of filesToCheckForErrors.keys()) {
-    if (filePath.match(filePathRegex) === null) {
+  for (const [filePath, { fileName }] of filesToCheckForErrors.entries()) {
+    if (fileName.match(filePathRegex) === null) {
       continue;
     }
 
-    const sourceFile = program && program.getSourceFile(filePath);
-    // If the source file is undefined, that probably means it’s actually part of an unbuilt project reference,
-    // which will have already produced a more useful error than the one we would get by proceeding here.
-    // If it’s undefined and we’re not using project references at all, I guess carry on so the user will
-    // get a useful error about which file was unexpectedly missing.
-    if (isUsingProjectReferences(instance) && sourceFile === undefined) {
-      continue;
-    }
-
+    const sourceFile = program && program.getSourceFile(fileName);
     const errors: ts.Diagnostic[] = [];
     if (program && sourceFile) {
       errors.push(
@@ -231,7 +235,7 @@ function provideErrorsToWebpack(
     }
 
     // if we have access to a webpack module, use that
-    const associatedModules = modules.get(filePath);
+    const associatedModules = modules.get(instance.filePathKeyMapper(fileName));
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
         // remove any existing errors
@@ -257,7 +261,7 @@ function provideErrorsToWebpack(
         loaderOptions,
         instance.colors,
         compiler,
-        { file: filePath },
+        { file: fileName },
         compilation.compiler.context
       );
 
@@ -268,7 +272,7 @@ function provideErrorsToWebpack(
 
 function provideSolutionErrorsToWebpack(
   compilation: webpack.compilation.Compilation,
-  modules: Map<string, WebpackModule[]>,
+  modules: Map<FilePathKey, WebpackModule[]>,
   instance: TSInstance
 ) {
   if (
@@ -315,7 +319,7 @@ function provideSolutionErrorsToWebpack(
         loaderOptions,
         instance.colors,
         compiler,
-        { file: filePath },
+        { file: path.resolve(perFileDiagnostics[0].file!.fileName) },
         compilation.compiler.context
       );
 
@@ -344,17 +348,12 @@ function provideDeclarationFilesToWebpack(
   instance: TSInstance,
   compilation: webpack.compilation.Compilation
 ) {
-  for (const filePath of filesToCheckForErrors.keys()) {
-    if (filePath.match(constants.tsTsxRegex) === null) {
+  for (const { fileName } of filesToCheckForErrors.values()) {
+    if (fileName.match(constants.tsTsxRegex) === null) {
       continue;
     }
 
-    if (!isReferencedFile(instance, filePath)) {
-      addDeclarationFilesAsAsset(
-        getEmitOutput(instance, filePath),
-        compilation
-      );
-    }
+    addDeclarationFilesAsAsset(getEmitOutput(instance, fileName), compilation);
   }
 }
 

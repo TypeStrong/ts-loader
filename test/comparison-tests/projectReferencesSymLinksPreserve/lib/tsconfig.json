@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "composite": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "preserveSymlinks": true,
+        "types": []
+    },
+    "references": [
+        { "path": "../common" }
+    ]
+}
