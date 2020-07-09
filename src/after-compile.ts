@@ -8,7 +8,6 @@ import {
   FilePathKey,
   TSFiles,
   TSInstance,
-  WebpackError,
   WebpackModule,
   TSFile,
 } from './interfaces';
@@ -21,6 +20,7 @@ import {
 } from './utils';
 
 export function makeAfterCompile(
+  loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   configFilePath: string | undefined
 ) {
@@ -43,8 +43,6 @@ export function makeAfterCompile(
       return;
     }
 
-    removeTSLoaderErrors(compilation.errors);
-
     provideCompilerOptionDiagnosticErrorsToWebpack(
       getCompilerOptionDiagnostics,
       compilation,
@@ -63,6 +61,7 @@ export function makeAfterCompile(
 
     const filesWithErrors: TSFiles = new Map();
     provideErrorsToWebpack(
+      loader,
       filesToCheckForErrors,
       filesWithErrors,
       compilation,
@@ -76,7 +75,7 @@ export function makeAfterCompile(
     );
     provideTsBuildInfoFilesToWebpack(instance, compilation);
 
-    provideSolutionErrorsToWebpack(compilation, modules, instance);
+    provideSolutionErrorsToWebpack(loader, compilation, modules, instance);
     provideAssetsFromSolutionBuilderHost(instance, compilation);
 
     instance.filesWithErrors = filesWithErrors;
@@ -97,7 +96,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
 ) {
   if (getCompilerOptionDiagnostics) {
     const { languageService, loaderOptions, compiler, program } = instance;
-    const errorsToAdd = formatErrors(
+    const errors = formatErrors(
       program === undefined
         ? languageService!.getCompilerOptionsDiagnostics()
         : program.getOptionsDiagnostics(),
@@ -108,7 +107,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
       compilation.compiler.context
     );
 
-    compilation.errors.push(...errorsToAdd);
+    compilation.errors.push(...errors);
   }
 }
 
@@ -190,6 +189,7 @@ function determineFilesToCheckForErrors(
 }
 
 function provideErrorsToWebpack(
+  loader: webpack.loader.LoaderContext,
   filesToCheckForErrors: TSFiles,
   filesWithErrors: TSFiles,
   compilation: webpack.compilation.Compilation,
@@ -237,9 +237,6 @@ function provideErrorsToWebpack(
     const associatedModules = modules.get(instance.filePathKeyMapper(fileName));
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        // remove any existing errors
-        removeTSLoaderErrors(module.errors);
-
         // append errors
         const formattedErrors = formatErrors(
           errors,
@@ -249,8 +246,10 @@ function provideErrorsToWebpack(
           { module },
           compilation.compiler.context
         );
+        formattedErrors.forEach(({ message }) => {
+          loader.emitError(message);
+        });
 
-        module.errors.push(...formattedErrors);
         compilation.errors.push(...formattedErrors);
       });
     } else {
@@ -270,6 +269,7 @@ function provideErrorsToWebpack(
 }
 
 function provideSolutionErrorsToWebpack(
+  loader: webpack.loader.LoaderContext,
   compilation: webpack.compilation.Compilation,
   modules: Map<FilePathKey, WebpackModule[]>,
   instance: TSInstance
@@ -295,9 +295,6 @@ function provideSolutionErrorsToWebpack(
     const associatedModules = modules.get(filePath);
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        // remove any existing errors
-        removeTSLoaderErrors(module.errors);
-
         // append errors
         const formattedErrors = formatErrors(
           perFileDiagnostics,
@@ -307,8 +304,10 @@ function provideSolutionErrorsToWebpack(
           { module },
           compilation.compiler.context
         );
+        formattedErrors.forEach(({ message }) => {
+          loader.emitError(message);
+        });
 
-        module.errors.push(...formattedErrors);
         compilation.errors.push(...formattedErrors);
       });
     } else {
@@ -424,23 +423,5 @@ function provideAssetsFromSolutionBuilderHost(
     // written files
     outputFilesToAsset(instance.solutionBuilderHost.writtenFiles, compilation);
     instance.solutionBuilderHost.writtenFiles.length = 0;
-  }
-}
-
-/**
- * handle all other errors. The basic approach here to get accurate error
- * reporting is to start with a "blank slate" each compilation and gather
- * all errors from all files. Since webpack tracks errors in a module from
- * compilation-to-compilation, and since not every module always runs through
- * the loader, we need to detect and remove any pre-existing errors.
- */
-function removeTSLoaderErrors(errors: WebpackError[]) {
-  let index = -1;
-  let length = errors.length;
-  while (++index < length) {
-    if (errors[index].loaderSource === 'ts-loader') {
-      errors.splice(index--, 1);
-      length--;
-    }
   }
 }
