@@ -189,7 +189,7 @@ function determineFilesToCheckForErrors(
 }
 
 function provideErrorsToWebpack(
-  loader: webpack.loader.LoaderContext,
+  loader: webpack.loader.LoaderContext | null,
   filesToCheckForErrors: TSFiles,
   filesWithErrors: TSFiles,
   compilation: webpack.compilation.Compilation,
@@ -246,9 +246,12 @@ function provideErrorsToWebpack(
           { module },
           compilation.compiler.context
         );
-        formattedErrors.forEach(({ message }) => {
-          loader.emitError(message);
-        });
+
+        if (loader) {
+          formattedErrors.forEach(({ message }) => {
+            loader.emitError(message);
+          });
+        }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -269,7 +272,7 @@ function provideErrorsToWebpack(
 }
 
 function provideSolutionErrorsToWebpack(
-  loader: webpack.loader.LoaderContext,
+  loader: webpack.loader.LoaderContext | null,
   compilation: webpack.compilation.Compilation,
   modules: Map<FilePathKey, WebpackModule[]>,
   instance: TSInstance
@@ -304,9 +307,12 @@ function provideSolutionErrorsToWebpack(
           { module },
           compilation.compiler.context
         );
-        formattedErrors.forEach(({ message }) => {
-          loader.emitError(message);
-        });
+
+        if (loader) {
+          formattedErrors.forEach(({ message }) => {
+            loader.emitError(message);
+          });
+        }
 
         compilation.errors.push(...formattedErrors);
       });
