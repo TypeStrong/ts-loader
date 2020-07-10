@@ -33,6 +33,13 @@ module.exports = {
         extensions: ['.ts', '.tsx', 'js']
     },
     plugins: [
-        new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
+        new ForkTsCheckerWebpackPlugin({
+          typescript: {
+            diagnosticOptions: {
+              semantic: true,
+              syntactic: true
+            }
+          }
+        })
     ]
 };
