@@ -11,23 +11,20 @@ import {
   getInputFileNameFromOutput,
   getTypeScriptInstance,
   initializeInstance,
-  isReferencedFile,
-  reportTranspileErrors
+  reportTranspileErrors,
 } from './instances';
 import {
+  FilePathKey,
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
-  TSFile,
-  TSInstance
+  TSInstance,
 } from './interfaces';
 import {
   appendSuffixesIfMatch,
   arrify,
   formatErrors,
-  getAndCacheOutputJSFileName,
-  getAndCacheProjectReference,
-  validateSourceMapOncePerProject
+  isReferencedFile,
 } from './utils';
 
 const webpackInstances: webpack.Compiler[] = [];
@@ -37,7 +34,6 @@ const loaderOptionsCache: LoaderOptionsCache = {};
  * The entry point for ts-loader
  */
 function loader(this: webpack.loader.LoaderContext, contents: string) {
-  // tslint:disable-next-line:no-unused-expression strict-boolean-expressions
   this.cacheable && this.cacheable();
   const callback = this.async() as webpack.loader.loaderCallback;
   const options = getLoaderOptions(this);
@@ -68,7 +64,7 @@ function successLoader(
       ? appendSuffixesIfMatch(
           {
             '.ts': instance.loaderOptions.appendTsSuffixTo,
-            '.tsx': instance.loaderOptions.appendTsxSuffixTo
+            '.tsx': instance.loaderOptions.appendTsxSuffixTo,
           },
           rawFilePath
         )
@@ -80,85 +76,20 @@ function successLoader(
     contents,
     instance
   );
-  const referencedProject = getAndCacheProjectReference(filePath, instance);
-  if (referencedProject !== undefined) {
-    const [relativeProjectConfigPath, relativeFilePath] = [
-      path.relative(
-        loaderContext.rootContext,
-        referencedProject.sourceFile.fileName
-      ),
-      path.relative(loaderContext.rootContext, filePath)
-    ];
-    if (referencedProject.commandLine.options.outFile !== undefined) {
-      throw new Error(
-        `The referenced project at ${relativeProjectConfigPath} is using ` +
-          `the outFile' option, which is not supported with ts-loader.`
-      );
-    }
+  const { outputText, sourceMapText } = instance.loaderOptions.transpileOnly
+    ? getTranspilationEmit(filePath, contents, instance, loaderContext)
+    : getEmit(rawFilePath, filePath, instance, loaderContext);
 
-    const jsFileName = getAndCacheOutputJSFileName(
-      filePath,
-      referencedProject,
-      instance
-    );
-
-    const relativeJSFileName = path.relative(
-      loaderContext.rootContext,
-      jsFileName
-    );
-    if (!instance.compiler.sys.fileExists(jsFileName)) {
-      throw new Error(
-        `Could not find output JavaScript file for input ` +
-          `${relativeFilePath} (looked at ${relativeJSFileName}).\n` +
-          `The input file is part of a project reference located at ` +
-          `${relativeProjectConfigPath}, so ts-loader is looking for the ` +
-          'project’s pre-built output on disk. Try running `tsc --build` ' +
-          'to build project references.'
-      );
-    }
-
-    // Since the output JS file is being read from disk instead of using the
-    // input TS file, we need to tell the loader that the compilation doesn’t
-    // actually depend on the current file, but depends on the JS file instead.
-    loaderContext.clearDependencies();
-    loaderContext.addDependency(jsFileName);
-
-    validateSourceMapOncePerProject(
-      instance,
-      loaderContext,
-      jsFileName,
-      referencedProject
-    );
-
-    const mapFileName = jsFileName + '.map';
-    const outputText = instance.compiler.sys.readFile(jsFileName);
-    const sourceMapText = instance.compiler.sys.readFile(mapFileName);
-    makeSourceMapAndFinish(
-      sourceMapText,
-      outputText,
-      filePath,
-      contents,
-      loaderContext,
-      fileVersion,
-      callback,
-      instance
-    );
-  } else {
-    const { outputText, sourceMapText } = instance.loaderOptions.transpileOnly
-      ? getTranspilationEmit(filePath, contents, instance, loaderContext)
-      : getEmit(rawFilePath, filePath, instance, loaderContext);
-
-    makeSourceMapAndFinish(
-      sourceMapText,
-      outputText,
-      filePath,
-      contents,
-      loaderContext,
-      fileVersion,
-      callback,
-      instance
-    );
-  }
+  makeSourceMapAndFinish(
+    sourceMapText,
+    outputText,
+    filePath,
+    contents,
+    loaderContext,
+    fileVersion,
+    callback,
+    instance
+  );
 }
 
 function makeSourceMapAndFinish(
@@ -303,7 +234,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'experimentalFileCaching',
   'projectReferences',
   'resolveModuleName',
-  'resolveTypeReferenceDirective'
+  'resolveTypeReferenceDirective',
+  'useCaseSensitiveFileNames',
 ];
 
 /**
@@ -313,7 +245,6 @@ const validLoaderOptions: ValidLoaderOptions[] = [
  */
 function validateLoaderOptions(loaderOptions: LoaderOptions) {
   const loaderOptionKeys = Object.keys(loaderOptions);
-  // tslint:disable-next-line:prefer-for-of
   for (let i = 0; i < loaderOptionKeys.length; i++) {
     const option = loaderOptionKeys[i];
     const isUnexpectedOption =
@@ -332,9 +263,7 @@ ${validLoaderOptions.join(' / ')}
     !path.isAbsolute(loaderOptions.context)
   ) {
     throw new Error(
-      `Option 'context' has to be an absolute path. Given '${
-        loaderOptions.context
-      }'.`
+      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`
     );
   }
 }
@@ -361,7 +290,7 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
       experimentalWatchApi: false,
       allowTsInNodeModules: false,
-      experimentalFileCaching: true
+      experimentalFileCaching: true,
     } as Partial<LoaderOptions>,
     loaderOptions
   );
@@ -388,13 +317,14 @@ function updateFileInCache(
 ) {
   let fileWatcherEventKind: typescript.FileWatcherEventKind | undefined;
   // Update file contents
-  let file = instance.files.get(filePath);
+  const key = instance.filePathKeyMapper(filePath);
+  let file = instance.files.get(key);
   if (file === undefined) {
-    file = instance.otherFiles.get(filePath);
+    file = instance.otherFiles.get(key);
     if (file !== undefined) {
       if (!isReferencedFile(instance, filePath)) {
-        instance.otherFiles.delete(filePath);
-        instance.files.set(filePath, file);
+        instance.otherFiles.delete(key);
+        instance.files.set(key, file);
         instance.changedFilesList = true;
       }
     } else {
@@ -404,12 +334,12 @@ function updateFileInCache(
       ) {
         fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
       }
-      file = { version: 0 };
+      file = { fileName: filePath, version: 0 };
       if (!isReferencedFile(instance, filePath)) {
-        instance.files.set(filePath, file);
+        instance.files.set(key, file);
         instance.changedFilesList = true;
       } else {
-        instance.otherFiles.set(filePath, file);
+        instance.otherFiles.set(key, file);
       }
     }
   }
@@ -454,9 +384,9 @@ function updateFileInCache(
   }
 
   if (instance.watchHost !== undefined && fileWatcherEventKind !== undefined) {
-    instance.hasUnaccountedModifiedFiles = true;
-    instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind);
-    instance.watchHost.invokeDirectoryWatcher(path.dirname(filePath), filePath);
+    instance.hasUnaccountedModifiedFiles =
+      instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind) ||
+      instance.hasUnaccountedModifiedFiles;
   }
 
   if (
@@ -467,17 +397,13 @@ function updateFileInCache(
       filePath,
       fileWatcherEventKind
     );
-    instance.solutionBuilderHost.invokeDirectoryWatcher(
-      path.dirname(filePath),
-      filePath
-    );
   }
 
   // push this file to modified files hash.
   if (!instance.modifiedFiles) {
-    instance.modifiedFiles = new Map<string, TSFile>();
+    instance.modifiedFiles = new Map();
   }
-  instance.modifiedFiles.set(filePath, file);
+  instance.modifiedFiles.set(key, true);
 
   return file.version;
 }
@@ -501,15 +427,15 @@ function getEmit(
 
   // Make this file dependent on *all* definition files in the program
   if (!isReferencedFile(instance, filePath)) {
-    for (const defFilePath of instance.files.keys()) {
+    for (const { fileName: defFilePath } of instance.files.values()) {
       if (
         defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
         // Remove the project reference d.ts as we are adding dependency for .ts later
         // This removed extra build pass (resulting in new stats object in initial build)
         (!instance.solutionBuilderHost ||
-          instance.solutionBuilderHost.getOutputFileFromReferencedProject(
+          !instance.solutionBuilderHost.getOutputFileKeyFromReferencedProject(
             defFilePath
-          ) !== undefined)
+          ))
       ) {
         addDependency(defFilePath);
       }
@@ -517,31 +443,17 @@ function getEmit(
   }
 
   // Additionally make this file dependent on all imported files
-  const fileDependencies = instance.dependencyGraph[filePath];
+  const fileDependencies = instance.dependencyGraph.get(
+    instance.filePathKeyMapper(filePath)
+  );
   if (fileDependencies) {
     for (const { resolvedFileName, originalFileName } of fileDependencies) {
-      const projectReference = getAndCacheProjectReference(
-        resolvedFileName,
-        instance
-      );
       // In the case of dependencies that are part of a project reference,
       // the real dependency that webpack should watch is the JS output file.
-      if (projectReference !== undefined) {
-        addDependency(
-          getAndCacheOutputJSFileName(
-            resolvedFileName,
-            projectReference,
-            instance
-          )
-        );
-      } else {
-        addDependency(
-          getInputFileNameFromOutput(
-            instance,
-            path.resolve(resolvedFileName)
-          ) || originalFileName
-        );
-      }
+      addDependency(
+        getInputFileNameFromOutput(instance, path.resolve(resolvedFileName)) ||
+          originalFileName
+      );
     }
   }
 
@@ -552,8 +464,10 @@ function getEmit(
       path.relative(loaderContext.rootContext, defFilePath) +
       '@' +
       (
-        instance.files.get(defFilePath) ||
-        instance.otherFiles.get(defFilePath) || { version: '?' }
+        instance.files.get(instance.filePathKeyMapper(defFilePath)) ||
+        instance.otherFiles.get(instance.filePathKeyMapper(defFilePath)) || {
+          version: '?',
+        }
       ).version
   );
 
@@ -586,16 +500,16 @@ function addDependenciesFromSolutionBuilder(
   }
 
   // Add all the input files from the references as
-  const resolvedFilePath = path.resolve(filePath);
+  const resolvedFilePath = instance.filePathKeyMapper(filePath);
   if (!isReferencedFile(instance, filePath)) {
     if (
       instance.configParseResult.fileNames.some(
-        f => path.resolve(f) === resolvedFilePath
+        f => instance.filePathKeyMapper(f) === resolvedFilePath
       )
     ) {
       addDependenciesFromProjectReferences(
         instance,
-        path.resolve(instance.configFilePath!),
+        instance.configFilePath!,
         instance.configParseResult.projectReferences,
         addDependency
       );
@@ -606,7 +520,7 @@ function addDependenciesFromSolutionBuilder(
   // Referenced file find the config for it
   for (const [
     configFile,
-    configInfo
+    configInfo,
   ] of instance.solutionBuilderHost.configFileInfo.entries()) {
     if (
       !configInfo.config ||
@@ -621,7 +535,7 @@ function addDependenciesFromSolutionBuilder(
       }
     } else if (
       !configInfo.config.fileNames.some(
-        f => path.resolve(f) === resolvedFilePath
+        f => instance.filePathKeyMapper(f) === resolvedFilePath
       )
     ) {
       continue;
@@ -651,8 +565,8 @@ function addDependenciesFromProjectReferences(
     return;
   }
   // This is the config for the input file
-  const seenMap = new Map<string, true>();
-  seenMap.set(configFile, true);
+  const seenMap = new Map<FilePathKey, true>();
+  seenMap.set(instance.filePathKeyMapper(configFile), true);
 
   // Add dependencies to all the input files from the project reference files since building them
   const queue = projectReferences.slice();
@@ -661,7 +575,7 @@ function addDependenciesFromProjectReferences(
     if (!currentRef) {
       break;
     }
-    const refConfigFile = path.resolve(
+    const refConfigFile = instance.filePathKeyMapper(
       instance.compiler.resolveProjectReferencePath(currentRef)
     );
     if (seenMap.has(refConfigFile)) {
@@ -705,12 +619,12 @@ function getTranspilationEmit(
   const {
     outputText,
     sourceMapText,
-    diagnostics
+    diagnostics,
   } = instance.compiler.transpileModule(contents, {
     compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
     transformers: instance.transformers,
     reportDiagnostics: true,
-    fileName
+    fileName,
   });
 
   addDependenciesFromSolutionBuilder(instance, fileName, file =>
@@ -750,8 +664,8 @@ function makeSourceMap(
     sourceMap: Object.assign(JSON.parse(sourceMapText), {
       sources: [loaderUtils.getRemainingRequest(loaderContext)],
       file: filePath,
-      sourcesContent: [contents]
-    })
+      sourcesContent: [contents],
+    }),
   };
 }
 
@@ -760,8 +674,8 @@ export = loader;
 /**
  * expose public types via declaration merging
  */
-// tslint:disable-next-line:no-namespace
+// eslint-disable-next-line @typescript-eslint/no-namespace
 namespace loader {
-  // tslint:disable-next-line:no-empty-interface
+  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   export interface Options extends LoaderOptions {}
 }

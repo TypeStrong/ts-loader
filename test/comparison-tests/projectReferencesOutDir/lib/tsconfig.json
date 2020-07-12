@@ -2,7 +2,8 @@
   "compilerOptions": {
     "composite": true,
     "sourceMap": true,
-    "outDir": "./out"
+    "outDir": "./out",
+    "types": []
   },
   "files": [
     "./index.ts"

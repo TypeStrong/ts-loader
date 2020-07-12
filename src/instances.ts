@@ -9,27 +9,28 @@ import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
 import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
 import {
+  FilePathKey,
   LoaderOptions,
-  TSFile,
   TSFiles,
   TSInstance,
   TSInstances,
-  WebpackError
+  WebpackError,
 } from './interfaces';
 import * as logger from './logger';
 import {
   getSolutionErrors,
   makeServicesHost,
   makeSolutionBuilderHost,
-  makeWatchHost
+  makeWatchHost,
 } from './servicesHost';
 import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
-  isUsingProjectReferences,
+  isReferencedFile,
   makeError,
-  supportsSolutionBuild
+  supportsSolutionBuild,
+  useCaseSensitiveFileNames,
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
@@ -73,6 +74,30 @@ export function getTypeScriptInstance(
   );
 }
 
+function createFilePathKeyMapper(
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions
+) {
+  // FileName lowercasing copied from typescript
+  const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g;
+  return useCaseSensitiveFileNames(compiler, loaderOptions)
+    ? pathResolve
+    : toFileNameLowerCase;
+
+  function pathResolve(x: string) {
+    return path.resolve(x) as FilePathKey;
+  }
+
+  function toFileNameLowerCase(x: string) {
+    const filePathKey = pathResolve(x);
+    return fileNameLowerCaseRegExp.test(filePathKey)
+      ? (filePathKey.replace(fileNameLowerCaseRegExp, ch =>
+          ch.toLowerCase()
+        ) as FilePathKey)
+      : filePathKey;
+  }
+}
+
 function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext,
@@ -98,7 +123,7 @@ function successfulTypeScriptInstance(
       error: makeError(
         colors.red('error while reading tsconfig.json:' + EOL + message),
         file
-      )
+      ),
     };
   }
 
@@ -109,7 +134,7 @@ function successfulTypeScriptInstance(
     configFile,
     basePath,
     configFilePath,
-    loaderOptions.projectReferences
+    loaderOptions
   );
 
   if (configParseResult.errors.length > 0 && !loaderOptions.happyPackMode) {
@@ -128,14 +153,14 @@ function successfulTypeScriptInstance(
       error: makeError(
         colors.red('error while parsing tsconfig.json'),
         configFilePath
-      )
+      ),
     };
   }
 
   const compilerOptions = getCompilerOptions(configParseResult);
   const rootFileNames = new Set<string>();
-  const files: TSFiles = new Map<string, TSFile>();
-  const otherFiles: TSFiles = new Map<string, TSFile>();
+  const files: TSFiles = new Map();
+  const otherFiles: TSFiles = new Map();
 
   const appendTsTsxSuffixesIfRequired =
     loaderOptions.appendTsSuffixTo.length > 0 ||
@@ -144,11 +169,12 @@ function successfulTypeScriptInstance(
           appendSuffixesIfMatch(
             {
               '.ts': loaderOptions.appendTsSuffixTo,
-              '.tsx': loaderOptions.appendTsxSuffixTo
+              '.tsx': loaderOptions.appendTsxSuffixTo,
             },
             filePath
           )
       : (filePath: string) => filePath;
+  const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
 
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
@@ -163,15 +189,15 @@ function successfulTypeScriptInstance(
       otherFiles,
       version: 0,
       program: undefined, // temporary, to be set later
-      dependencyGraph: {},
-      reverseDependencyGraph: {},
+      dependencyGraph: new Map(),
       transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
       colors,
       initialSetupPending: true,
       reportTranspileErrors: true,
       configFilePath,
       configParseResult,
-      log
+      log,
+      filePathKeyMapper,
     });
 
     return { instance: transpileInstance };
@@ -187,9 +213,10 @@ function successfulTypeScriptInstance(
       : configParseResult.fileNames;
     filesToLoad.forEach(filePath => {
       normalizedFilePath = path.normalize(filePath);
-      files.set(normalizedFilePath, {
+      files.set(filePathKeyMapper(normalizedFilePath), {
+        fileName: normalizedFilePath,
         text: fs.readFileSync(normalizedFilePath, 'utf-8'),
-        version: 0
+        version: 0,
       });
       rootFileNames.add(normalizedFilePath);
     });
@@ -200,7 +227,7 @@ function successfulTypeScriptInstance(
           `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
         ),
         normalizedFilePath!
-      )
+      ),
     };
   }
 
@@ -215,13 +242,13 @@ function successfulTypeScriptInstance(
     languageService: null,
     version: 0,
     transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
-    dependencyGraph: {},
-    reverseDependencyGraph: {},
+    dependencyGraph: new Map(),
     colors,
     initialSetupPending: true,
     configFilePath,
     configParseResult,
-    log
+    log,
+    filePathKeyMapper,
   });
 
   return { instance };
@@ -248,9 +275,7 @@ export function initializeInstance(
       customerTransformers = require(customerTransformers);
     } catch (err) {
       throw new Error(
-        `Failed to load customTransformers from "${
-          instance.loaderOptions.getCustomTransformers
-        }": ${err.message}`
+        `Failed to load customTransformers from "${instance.loaderOptions.getCustomTransformers}": ${err.message}`
       );
     }
 
@@ -270,7 +295,7 @@ export function initializeInstance(
         ? instance.compiler.createProgram({
             rootNames: instance.configParseResult.fileNames,
             options: instance.configParseResult.options,
-            projectReferences: instance.configParseResult.projectReferences
+            projectReferences: instance.configParseResult.projectReferences,
           })
         : instance.compiler.createProgram([], instance.compilerOptions));
 
@@ -283,7 +308,7 @@ export function initializeInstance(
       );
       loader._compiler.hooks.watchRun.tapAsync(
         'ts-loader',
-        makeWatchRun(instance)
+        makeWatchRun(instance, loader)
       );
     }
   } else {
@@ -293,10 +318,7 @@ export function initializeInstance(
       );
     }
 
-    if (
-      instance.loaderOptions.experimentalWatchApi &&
-      instance.compiler.createWatchProgram
-    ) {
+    if (instance.loaderOptions.experimentalWatchApi) {
       instance.log.logInfo('Using watch api');
 
       // If there is api available for watch, use it instead of language service
@@ -318,21 +340,13 @@ export function initializeInstance(
         getScriptRegexp(instance),
         loader,
         instance,
-        instance.loaderOptions.experimentalFileCaching,
         instance.configParseResult.projectReferences
       );
 
       instance.languageService = instance.compiler.createLanguageService(
-        instance.servicesHost.servicesHost,
+        instance.servicesHost,
         instance.compiler.createDocumentRegistry()
       );
-
-      if (instance.servicesHost.clearCache !== null) {
-        loader._compiler.hooks.watchRun.tap(
-          'ts-loader',
-          instance.servicesHost.clearCache
-        );
-      }
 
       instance.transformers = getCustomTransformers(
         instance.languageService!.getProgram()
@@ -345,7 +359,7 @@ export function initializeInstance(
     );
     loader._compiler.hooks.watchRun.tapAsync(
       'ts-loader',
-      makeWatchRun(instance)
+      makeWatchRun(instance, loader)
     );
   }
 }
@@ -427,13 +441,14 @@ function ensureAllReferences(instance: TSInstance) {
     }
     // Load all the input files
     configInfo.config.fileNames.forEach(file => {
-      const resolvedFileName = path.resolve(file);
+      const resolvedFileName = instance.filePathKeyMapper(file);
       const existing = instance.otherFiles.get(resolvedFileName);
       if (!existing) {
         instance.otherFiles.set(resolvedFileName, {
+          fileName: path.resolve(file),
           version: 1,
           text: instance.compiler.sys.readFile(file),
-          modifiedTime: instance.compiler.sys.getModifiedTime!(file)
+          modifiedTime: instance.compiler.sys.getModifiedTime!(file),
         });
       }
     });
@@ -556,7 +571,10 @@ export function getOutputFileNames(
   configFile: typescript.ParsedCommandLine,
   inputFileName: string
 ): string[] {
-  const ignoreCase = !instance.compiler.sys.useCaseSensitiveFileNames;
+  const ignoreCase = !useCaseSensitiveFileNames(
+    instance.compiler,
+    instance.loaderOptions
+  );
   if ((instance.compiler as any).getOutputFileNames) {
     return (instance.compiler as any).getOutputFileNames(
       configFile,
@@ -629,19 +647,14 @@ export function getInputFileNameFromOutput(
   );
 }
 
-export function isReferencedFile(instance: TSInstance, filePath: string) {
-  return (
-    !!instance.solutionBuilderHost &&
-    !!instance.solutionBuilderHost.watchedFiles.get(filePath)
-  );
-}
-
 export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
   const program = ensureProgram(instance);
   const builderProgram = instance.builderProgram;
   if (builderProgram && program) {
     if (filePath) {
-      const existing = instance.watchHost!.outputFiles.get(filePath);
+      const existing = instance.watchHost!.outputFiles.get(
+        instance.filePathKeyMapper(filePath)
+      );
       if (existing) {
         return existing;
       }
@@ -657,7 +670,7 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
         instance.watchHost!.tsbuildinfo = {
           name: fileName,
           writeByteOrderMark,
-          text
+          text,
         };
       } else {
         outputFiles.push({ name: fileName, writeByteOrderMark, text });
@@ -678,7 +691,9 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
       }
       if ((result.affected as typescript.SourceFile).fileName) {
         instance.watchHost!.outputFiles.set(
-          path.resolve((result.affected as typescript.SourceFile).fileName),
+          instance.filePathKeyMapper(
+            (result.affected as typescript.SourceFile).fileName
+          ),
           outputFiles.slice()
         );
       }
@@ -708,20 +723,17 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       text: string,
       writeByteOrderMark: boolean
     ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
-    // The source file will be undefined if it’s part of an unbuilt project reference
-    if (sourceFile !== undefined || !isUsingProjectReferences(instance)) {
-      const outputFilesFromWatch = getEmitFromWatchHost(instance, filePath);
-      if (outputFilesFromWatch) {
-        return outputFilesFromWatch;
-      }
-      program.emit(
-        sourceFile,
-        writeFile,
-        /*cancellationToken*/ undefined,
-        /*emitOnlyDtsFiles*/ false,
-        instance.transformers
-      );
+    const outputFilesFromWatch = getEmitFromWatchHost(instance, filePath);
+    if (outputFilesFromWatch) {
+      return outputFilesFromWatch;
     }
+    program.emit(
+      sourceFile,
+      writeFile,
+      /*cancellationToken*/ undefined,
+      /*emitOnlyDtsFiles*/ false,
+      instance.transformers
+    );
     return outputFiles;
   } else {
     // Emit Javascript

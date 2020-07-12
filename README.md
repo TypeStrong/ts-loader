@@ -321,10 +321,17 @@ module.exports = {
 
 If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
 
-It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple thread-loader example](examples/thread-loader). **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `checkSyntacticErrors` option like so:
+It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple thread-loader example](examples/thread-loader). **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
 
 ```javascript
-        new ForkTsCheckerWebpackPlugin({ checkSyntacticErrors: true })
+        new ForkTsCheckerWebpackPlugin({
+          typescript: {
+            diagnosticOptions: {
+              semantic: true,
+              syntactic: true,
+            },
+          },
+        })
 ```
 
 This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`). By default the plugin only checks for semantic errors (as when used with `ts-loader` in `transpileOnly` mode, `ts-loader` will still report syntactic errors).

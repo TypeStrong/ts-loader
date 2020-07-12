@@ -1,6 +1,7 @@
 {
     "compilerOptions": {
-        "target": "esnext"
+        "target": "esnext",
+        "types": []
     },
     "files": [
         "./app.ts"
