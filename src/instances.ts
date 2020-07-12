@@ -304,7 +304,7 @@ export function initializeInstance(
     if (instance.solutionBuilderHost) {
       loader._compiler.hooks.afterCompile.tapAsync(
         'ts-loader',
-        makeAfterCompile(loader, instance, instance.configFilePath)
+        makeAfterCompile(instance, instance.configFilePath)
       );
       loader._compiler.hooks.watchRun.tapAsync(
         'ts-loader',
@@ -355,7 +355,7 @@ export function initializeInstance(
 
     loader._compiler.hooks.afterCompile.tapAsync(
       'ts-loader',
-      makeAfterCompile(loader, instance, instance.configFilePath)
+      makeAfterCompile(instance, instance.configFilePath)
     );
     loader._compiler.hooks.watchRun.tapAsync(
       'ts-loader',

@@ -20,7 +20,6 @@ import {
 } from './utils';
 
 export function makeAfterCompile(
-  loader: webpack.loader.LoaderContext,
   instance: TSInstance,
   configFilePath: string | undefined
 ) {
@@ -61,7 +60,6 @@ export function makeAfterCompile(
 
     const filesWithErrors: TSFiles = new Map();
     provideErrorsToWebpack(
-      loader,
       filesToCheckForErrors,
       filesWithErrors,
       compilation,
@@ -75,7 +73,7 @@ export function makeAfterCompile(
     );
     provideTsBuildInfoFilesToWebpack(instance, compilation);
 
-    provideSolutionErrorsToWebpack(loader, compilation, modules, instance);
+    provideSolutionErrorsToWebpack(compilation, modules, instance);
     provideAssetsFromSolutionBuilderHost(instance, compilation);
 
     instance.filesWithErrors = filesWithErrors;
@@ -189,7 +187,6 @@ function determineFilesToCheckForErrors(
 }
 
 function provideErrorsToWebpack(
-  loader: webpack.loader.LoaderContext | null,
   filesToCheckForErrors: TSFiles,
   filesWithErrors: TSFiles,
   compilation: webpack.compilation.Compilation,
@@ -247,11 +244,13 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (loader) {
-          formattedErrors.forEach(({ message }) => {
-            loader.emitError(message);
-          });
-        }
+        formattedErrors.forEach(error => {
+          if (module.addError) {
+            module.addError(new Error(error.message));
+          } else {
+            module.errors.push(error);
+          }
+        });
 
         compilation.errors.push(...formattedErrors);
       });
@@ -272,7 +271,6 @@ function provideErrorsToWebpack(
 }
 
 function provideSolutionErrorsToWebpack(
-  loader: webpack.loader.LoaderContext | null,
   compilation: webpack.compilation.Compilation,
   modules: Map<FilePathKey, WebpackModule[]>,
   instance: TSInstance
@@ -308,11 +306,13 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (loader) {
-          formattedErrors.forEach(({ message }) => {
-            loader.emitError(message);
-          });
-        }
+        formattedErrors.forEach(error => {
+          if (module.addError) {
+            module.addError(new Error(error.message));
+          } else {
+            module.errors.push(error);
+          }
+        });
 
         compilation.errors.push(...formattedErrors);
       });

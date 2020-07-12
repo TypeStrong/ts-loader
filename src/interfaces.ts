@@ -25,6 +25,7 @@ export interface WebpackError {
 export interface WebpackModule {
   resource: string;
   errors: WebpackError[];
+  addError?(error: string | Error): void;
   buildMeta: {
     tsLoaderFileVersion: number;
     tsLoaderDefinitionFileVersions: string[];
