@@ -21,3 +21,4 @@ npm-debug.log
 .pnp.js
 !.eslintrc.js
 .vs/**
+.pnpm-store
