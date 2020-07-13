@@ -41,6 +41,7 @@ export function makeAfterCompile(
       callback();
       return;
     }
+    removeCompilationTSLoaderErrors(compilation);
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
       getCompilerOptionDiagnostics,
@@ -234,6 +235,8 @@ function provideErrorsToWebpack(
     const associatedModules = modules.get(instance.filePathKeyMapper(fileName));
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
+        removeModuleTSLoaderError(module);
+
         // append errors
         const formattedErrors = formatErrors(
           errors,
@@ -246,7 +249,7 @@ function provideErrorsToWebpack(
 
         formattedErrors.forEach(error => {
           if (module.addError) {
-            module.addError(new Error(error.message));
+            module.addError(error);
           } else {
             module.errors.push(error);
           }
@@ -296,6 +299,8 @@ function provideSolutionErrorsToWebpack(
     const associatedModules = modules.get(filePath);
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
+        removeModuleTSLoaderError(module);
+
         // append errors
         const formattedErrors = formatErrors(
           perFileDiagnostics,
@@ -308,7 +313,7 @@ function provideSolutionErrorsToWebpack(
 
         formattedErrors.forEach(error => {
           if (module.addError) {
-            module.addError(new Error(error.message));
+            module.addError(error);
           } else {
             module.errors.push(error);
           }
@@ -429,5 +434,41 @@ function provideAssetsFromSolutionBuilderHost(
     // written files
     outputFilesToAsset(instance.solutionBuilderHost.writtenFiles, compilation);
     instance.solutionBuilderHost.writtenFiles.length = 0;
+  }
+}
+
+/**
+ * handle all other errors. The basic approach here to get accurate error
+ * reporting is to start with a "blank slate" each compilation and gather
+ * all errors from all files. Since webpack tracks errors in a module from
+ * compilation-to-compilation, and since not every module always runs through
+ * the loader, we need to detect and remove any pre-existing errors.
+ */
+function removeCompilationTSLoaderErrors(
+  compilation: webpack.compilation.Compilation
+) {
+  compilation.errors = compilation.errors.filter(
+    error => error.loaderSource !== 'ts-loader'
+  );
+}
+
+function removeModuleTSLoaderError(module: WebpackModule) {
+  /**
+   * Since webpack 5, the `errors` property is deprecated,
+   * so we can check if some methods for reporting errors exist.
+   */
+  if (!!module.addError) {
+    const warnings = module.getWarnings();
+    const errors = module.getErrors();
+    module.clearWarningsAndErrors();
+
+    Array.from(warnings || []).forEach(warning => module.addWarning(warning));
+    Array.from(errors || [])
+      .filter((error: any) => error.loaderSource !== 'ts-loader')
+      .forEach(error => module.addError(error));
+  } else {
+    module.errors = module.errors.filter(
+      error => error.loaderSource !== 'ts-loader'
+    );
   }
 }
