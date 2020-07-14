@@ -1,4 +1,4 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 environment:
   FORCE_COLOR: 1
   nodejs_version: "14"
