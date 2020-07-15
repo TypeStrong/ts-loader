@@ -7,8 +7,8 @@ jobs:
     name: Test
     strategy:
       matrix:
-        node: [10, 12, 14]
         os: [ubuntu-latest]
+        node: [10, 12, 14]
         ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, next]
         include:
           - os: windows-latest
@@ -35,6 +35,7 @@ jobs:
 
       - name: test
         run: yarn test
+        shell: bash
 
   lint:
     name: Lint
