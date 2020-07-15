@@ -8,7 +8,6 @@ import {
   FilePathKey,
   TSFiles,
   TSInstance,
-  WebpackError,
   WebpackModule,
   TSFile,
 } from './interfaces';
@@ -42,8 +41,7 @@ export function makeAfterCompile(
       callback();
       return;
     }
-
-    removeTSLoaderErrors(compilation.errors);
+    removeCompilationTSLoaderErrors(compilation);
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
       getCompilerOptionDiagnostics,
@@ -97,7 +95,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
 ) {
   if (getCompilerOptionDiagnostics) {
     const { languageService, loaderOptions, compiler, program } = instance;
-    const errorsToAdd = formatErrors(
+    const errors = formatErrors(
       program === undefined
         ? languageService!.getCompilerOptionsDiagnostics()
         : program.getOptionsDiagnostics(),
@@ -108,7 +106,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
       compilation.compiler.context
     );
 
-    compilation.errors.push(...errorsToAdd);
+    compilation.errors.push(...errors);
   }
 }
 
@@ -121,24 +119,23 @@ function determineModules(
   compilation: webpack.compilation.Compilation,
   { filePathKeyMapper }: TSInstance
 ) {
-  return compilation.modules.reduce<Map<FilePathKey, WebpackModule[]>>(
-    (modules, module) => {
-      if (module.resource) {
-        const modulePath = filePathKeyMapper(module.resource);
-        const existingModules = modules.get(modulePath);
-        if (existingModules !== undefined) {
-          if (existingModules.indexOf(module) === -1) {
-            existingModules.push(module);
-          }
-        } else {
-          modules.set(modulePath, [module]);
-        }
-      }
+  const modules: Map<FilePathKey, WebpackModule[]> = new Map();
 
-      return modules;
-    },
-    new Map()
-  );
+  compilation.modules.forEach(module => {
+    if (module.resource) {
+      const modulePath = filePathKeyMapper(module.resource);
+      const existingModules = modules.get(modulePath);
+      if (existingModules !== undefined) {
+        if (!existingModules.includes(module)) {
+          existingModules.push(module);
+        }
+      } else {
+        modules.set(modulePath, [module]);
+      }
+    }
+  });
+
+  return modules;
 }
 
 function determineFilesToCheckForErrors(
@@ -238,8 +235,7 @@ function provideErrorsToWebpack(
     const associatedModules = modules.get(instance.filePathKeyMapper(fileName));
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        // remove any existing errors
-        removeTSLoaderErrors(module.errors);
+        removeModuleTSLoaderError(module);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -251,7 +247,14 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        module.errors.push(...formattedErrors);
+        formattedErrors.forEach(error => {
+          if (module.addError) {
+            module.addError(error);
+          } else {
+            module.errors.push(error);
+          }
+        });
+
         compilation.errors.push(...formattedErrors);
       });
     } else {
@@ -296,8 +299,7 @@ function provideSolutionErrorsToWebpack(
     const associatedModules = modules.get(filePath);
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        // remove any existing errors
-        removeTSLoaderErrors(module.errors);
+        removeModuleTSLoaderError(module);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -309,7 +311,14 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        module.errors.push(...formattedErrors);
+        formattedErrors.forEach(error => {
+          if (module.addError) {
+            module.addError(error);
+          } else {
+            module.errors.push(error);
+          }
+        });
+
         compilation.errors.push(...formattedErrors);
       });
     } else {
@@ -435,13 +444,31 @@ function provideAssetsFromSolutionBuilderHost(
  * compilation-to-compilation, and since not every module always runs through
  * the loader, we need to detect and remove any pre-existing errors.
  */
-function removeTSLoaderErrors(errors: WebpackError[]) {
-  let index = -1;
-  let length = errors.length;
-  while (++index < length) {
-    if (errors[index].loaderSource === 'ts-loader') {
-      errors.splice(index--, 1);
-      length--;
-    }
+function removeCompilationTSLoaderErrors(
+  compilation: webpack.compilation.Compilation
+) {
+  compilation.errors = compilation.errors.filter(
+    error => error.loaderSource !== 'ts-loader'
+  );
+}
+
+function removeModuleTSLoaderError(module: WebpackModule) {
+  /**
+   * Since webpack 5, the `errors` property is deprecated,
+   * so we can check if some methods for reporting errors exist.
+   */
+  if (!!module.addError) {
+    const warnings = module.getWarnings();
+    const errors = module.getErrors();
+    module.clearWarningsAndErrors();
+
+    Array.from(warnings || []).forEach(warning => module.addWarning(warning));
+    Array.from(errors || [])
+      .filter((error: any) => error.loaderSource !== 'ts-loader')
+      .forEach(error => module.addError(error));
+  } else {
+    module.errors = module.errors.filter(
+      error => error.loaderSource !== 'ts-loader'
+    );
   }
 }
