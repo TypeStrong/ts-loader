@@ -10,9 +10,9 @@ jobs:
         node: [10, 12, 14]
         os: [ubuntu-latest]
         ts: [3.6.5, 3.7.5, 3.8.3, 3.9.6, next]
-      include:
-        - os: windows-latest
-          node: 14
+        include:
+          - os: windows-latest
+            node: 14
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
