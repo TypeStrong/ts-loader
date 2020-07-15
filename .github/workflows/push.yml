@@ -23,10 +23,13 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - name: install
-        run: yarn install && yarn add typescript@${{ matrix.ts }}
+        run: yarn install
 
       - name: build
         run: yarn build
+
+      - name: install typescript
+        run: yarn add typescript@${{ matrix.ts }}
 
       - name: test
         run: yarn test
