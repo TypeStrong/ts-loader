@@ -4,26 +4,41 @@ name: build and test
 
 jobs:
   build_and_test:
-    runs-on: ubuntu-latest
+    name: Test
+    strategy:
+      matrix:
+        node: [10, 12, 14]
+        os: [ubuntu-latest]
+        ts: [3.6.5, 3.7.5, 3.8.3, 3.9.6, next]
+      include:
+        - os: windows-latest
+          node: 14
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: install node
         uses: actions/setup-node@v1
         with:
-          node-version: 12
-
-      - name: upgrade yarn
-        run: npm install yarn -g
+          node-version: ${{ matrix.node }}
 
       - name: install
-        run: yarn install
+        run: yarn install && yarn add typescript@${{ matrix.ts }}
 
       - name: build
         run: yarn build
 
-      - name: install chrome
-        uses: ./.github/node-chrome
-
       - name: test
-        run: yarn execution-tests
+        run: yarn test
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install
+        run: yarn install
+
+      - name: lint
+        run: yarn lint
