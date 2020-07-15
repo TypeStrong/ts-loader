@@ -68,9 +68,9 @@ if (fs.statSync(testPath).isDirectory() &&
 
 /**
  * Create a Jasmine test
- * @param {string} test 
- * @param {string} testPath 
- * @param {any} options 
+ * @param {string} test
+ * @param {string} testPath
+ * @param {any} options
  */
 function createTest(test, testPath, options) {
     return function (done) {
@@ -177,7 +177,7 @@ function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
 
     const tsLoaderPath = path.join(__dirname, "../../index.js");
     aliasLoader(config, tsLoaderPath, options);
-    
+
     config.context = paths.outputPath;
     paths.outputPath = config.output.path = config.output.path || paths.outputPath;
     config.resolveLoader = config.resolveLoader || {};
@@ -401,11 +401,11 @@ function getNormalisedFileContent(file, location) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/(C\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/ig, '')
-            .replace(/webpack:\/\/(C:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
-            .replace(/WEBPACK FOOTER\/n\/ (C:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
-            .replace(/!\** (C\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
-            .replace(/\/ (C\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
+            .replace(/([A-Z]\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/ig, '')
+            .replace(/webpack:\/\/([A-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ ([A-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** ([A-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/\/ ([A-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********');
     } catch (e) {
