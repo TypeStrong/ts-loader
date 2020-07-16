@@ -1,22 +1,9 @@
-os:
-  - linux
+os: windows
 addons:
   chrome: stable
 language: node_js
-node_js:
-  - "10"
-  - "12"
-  - "14"
-sudo: required
+node_js: 14
 install:
   - yarn install
   - yarn build
-  - yarn lint
-  - yarn add $TYPESCRIPT
-env:
-  - TYPESCRIPT=typescript@3.9.3
-  - TYPESCRIPT=typescript@next
-  - TYPESCRIPT=typescript@3.8.2
-  - TYPESCRIPT=typescript@3.7.4
-  - TYPESCRIPT=typescript@3.6.3
- 
+  - yarn add typescript@3.9.3

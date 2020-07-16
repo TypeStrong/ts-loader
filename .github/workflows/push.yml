@@ -7,14 +7,9 @@ jobs:
     name: Test
     strategy:
       matrix:
-        os: [ubuntu-latest]
         node: [10, 12, 14]
         ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, next]
-        include:
-          - os: windows-latest
-            node: 14
-            ts: 3.9.3
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v2
