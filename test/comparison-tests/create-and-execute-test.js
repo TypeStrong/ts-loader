@@ -401,11 +401,11 @@ function getNormalisedFileContent(file, location) {
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/([A-Z]\:\/)?[\w|\/]*\/(ts-loader|workspace)\/\.test/ig, '')
-            .replace(/webpack:\/\/([A-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
-            .replace(/WEBPACK FOOTER\/n\/ ([A-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
-            .replace(/!\** ([A-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
-            .replace(/\/ ([A-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
+            .replace(/([a-zA-Z]\:\/)?[\w|\/]*\/(ts-(loader)?|workspace)\/\.test/ig, '')
+            .replace(/webpack:\/\/([a-zA-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ ([a-zA-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** ([a-zA-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/\/ ([a-zA-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********');
     } catch (e) {
@@ -425,9 +425,9 @@ function normaliseString(platformSpecificContent) {
         .replace(new RegExp(regexEscape('\\'), 'g'), '/')
         .replace(new RegExp(regexEscape('//'), 'g'), '/')
         // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\](ts-loader|workspace)[\/|\\]index.js/g, 'ts-loader')
+        .replace(/ \S+[\/|\\](ts-(loader)?|workspace)[\/|\\]index.js/g, 'ts-loader')
         // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\](ts-loader|workspace)[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
+        .replace(/\(\S+[\/|\\](ts-(loader)?|workspace)[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
 }
 
 /**
