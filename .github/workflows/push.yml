@@ -20,7 +20,7 @@ jobs:
         run: yarn add typescript@3.9.3
 
       - name: test
-        run: yarn comparison-tests
+        run: sudo yarn comparison-tests
 
   windows:
     name: Windows Test
