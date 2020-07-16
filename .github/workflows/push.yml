@@ -31,6 +31,35 @@ jobs:
       - name: test
         run: yarn test
 
+  windows:
+    name: Windows Test
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: copy files
+        shell: pwsh
+        run: |
+          New-Item C:\source\ts-loader -ItemType Directory
+          Copy-Item .\* C:\source\ts-loader -Recurse
+
+      - name: install
+        run: yarn install
+        working-directory: C:\source\ts-loader
+
+      - name: build
+        run: yarn build
+        working-directory: C:\source\ts-loader
+
+      - name: install typescript
+        run: yarn add typescript@3.9.3
+        working-directory: C:\source\ts-loader
+
+      - name: test
+        run: yarn test
+        working-directory: C:\source\ts-loader
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
