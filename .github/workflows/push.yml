@@ -42,7 +42,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item C:\source\ts-loader -ItemType Directory
-          Copy-Item .\* C:\source\ts-loader -Recurse
+          Copy-Item .\* C:\source\ts-loader -Recurse -Force
 
       - name: install
         run: yarn install
