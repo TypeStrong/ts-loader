@@ -182,7 +182,7 @@ function runTestAsChildProcess(testName) {
   const testToRun = ' --test-to-run ' + testName;
   const debug = process.argv.indexOf('--debug') > -1;
   const testCommand =
-    'mocha --reporter spec ' +
+    'mocha -c --reporter spec ' +
     (debug ? '--inspect-brk=5858 ' : '') +
     'test/comparison-tests/create-and-execute-test.js ' +
     testToRun;

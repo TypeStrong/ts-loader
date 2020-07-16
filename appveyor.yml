@@ -8,7 +8,7 @@ environment:
   - TYPESCRIPT: typescript@3.8.2
   - TYPESCRIPT: typescript@3.7.4
   - TYPESCRIPT: typescript@3.6.3
-  
+
 install:
   - ps: Install-Product node $env:nodejs_version
   - yarn install

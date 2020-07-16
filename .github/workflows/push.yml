@@ -1,20 +1,14 @@
+name: CI
+
 on: [push, pull_request]
 
-name: build and test
-
 jobs:
-  build_and_test:
+  comparison_test:
+    name: Comparison Test
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v1
-
-      - name: install node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
-
-      - name: upgrade yarn
-        run: npm install yarn -g
+      - uses: actions/checkout@v2
 
       - name: install
         run: yarn install
@@ -22,8 +16,81 @@ jobs:
       - name: build
         run: yarn build
 
-      - name: install chrome
-        uses: ./.github/node-chrome
+      - name: install typescript
+        run: yarn add typescript@3.9.3
+
+      - name: test
+        run: sudo yarn comparison-tests
+
+  windows:
+    name: Windows Test
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: copy files
+        shell: pwsh
+        run: |
+          New-Item C:\source\ts-loader -ItemType Directory
+          Copy-Item .\* C:\source\ts-loader -Recurse -Force
+
+      - name: install
+        run: yarn install
+        working-directory: C:\source\ts-loader
+
+      - name: build
+        run: yarn build
+        working-directory: C:\source\ts-loader
+
+      - name: install typescript
+        run: yarn add typescript@3.9.3
+        working-directory: C:\source\ts-loader
+
+      - name: test
+        run: yarn comparison-tests
+        working-directory: C:\source\ts-loader
+
+  execution_test:
+    name: Execution Test
+    strategy:
+      matrix:
+        os: [ubuntu]
+        node: [10, 12, 14]
+        ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, next]
+        include:
+          - os: windows
+            node: 14
+            ts: 3.9.3
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: install
+        run: yarn install
+
+      - name: build
+        run: yarn build
+
+      - name: install typescript
+        run: yarn add typescript@${{ matrix.ts }}
 
       - name: test
         run: yarn execution-tests
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install
+        run: yarn install
+
+      - name: lint
+        run: yarn lint
