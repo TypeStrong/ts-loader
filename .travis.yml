@@ -1,9 +1,0 @@
-os: windows
-addons:
-  chrome: stable
-language: node_js
-node_js: 14
-install:
-  - yarn install
-  - yarn build
-  - yarn add typescript@3.9.3
