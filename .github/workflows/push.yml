@@ -1,23 +1,14 @@
+name: CI
+
 on: [push, pull_request]
 
-name: build and test
-
 jobs:
-  build_and_test:
-    name: Test
-    strategy:
-      matrix:
-        node: [10, 12, 14]
-        ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, next]
+  comparison_test:
+    name: Comparison Test
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v2
-
-      - name: install node
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node }}
 
       - name: install
         run: yarn install
@@ -26,15 +17,15 @@ jobs:
         run: yarn build
 
       - name: install typescript
-        run: yarn add typescript@${{ matrix.ts }}
+        run: yarn add typescript@3.9.3
 
       - name: test
-        run: yarn test
+        run: yarn comparison-tests
 
   windows:
     name: Windows Test
     runs-on: windows-latest
-    timeout-minutes: 35
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v2
 
@@ -57,8 +48,40 @@ jobs:
         working-directory: C:\source\ts-loader
 
       - name: test
-        run: yarn test
+        run: yarn comparison-tests
         working-directory: C:\source\ts-loader
+
+  execution_test:
+    name: Execution Test
+    strategy:
+      matrix:
+        os: [ubuntu]
+        node: [10, 12, 14]
+        ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, next]
+        include:
+          - os: windows
+            node: 14
+            ts: 3.9.3
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: install
+        run: yarn install
+
+      - name: build
+        run: yarn build
+
+      - name: install typescript
+        run: yarn add typescript@${{ matrix.ts }}
+
+      - name: test
+        run: yarn execution-tests
 
   lint:
     name: Lint
