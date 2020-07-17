@@ -1,14 +1,14 @@
-image: Visual Studio 2017
+image: Visual Studio 2019
 environment:
   FORCE_COLOR: 1
-  nodejs_version: "10"
+  nodejs_version: "14"
   matrix:
   - TYPESCRIPT: typescript@3.9.3
   - TYPESCRIPT: typescript@next
   - TYPESCRIPT: typescript@3.8.2
   - TYPESCRIPT: typescript@3.7.4
   - TYPESCRIPT: typescript@3.6.3
-  
+
 install:
   - ps: Install-Product node $env:nodejs_version
   - yarn install

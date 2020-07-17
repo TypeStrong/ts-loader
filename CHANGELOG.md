@@ -1,5 +1,9 @@
 # Changelog
 
+## v8.0.1
+
+* [Fix webpack deprecations](https://github.com/TypeStrong/ts-loader/pull/1135) - thanks @g-plane
+
 ## v8.0.0
 * [Support for symlinks in project references](https://github.com/TypeStrong/ts-loader/pull/1136) - thanks @sheetalkamat!
 * `ts-loader` now supports TypeScript 3.6 and greater **BREAKING CHANGE**
