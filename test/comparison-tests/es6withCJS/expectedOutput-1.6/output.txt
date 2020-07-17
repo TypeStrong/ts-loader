@@ -1,6 +1,0 @@
-
-ERROR in ./.test/es6withCJS/app.ts
-Module parse failed: index.js!app.ts Line 1: Unexpected token
-You may need an appropriate loader to handle this file type.
-| export default 'a';
-| 
