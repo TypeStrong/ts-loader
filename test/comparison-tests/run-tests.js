@@ -93,6 +93,9 @@ function runTests() {
           return isATest;
         }
       )
+      .filter(/** @param {string} testName */ testName => {
+        return !fs.readdirSync(path.join(testDir, testName)).includes('__snapshots__')
+      })
       .filter(
         /**
          * @param {string} testName
