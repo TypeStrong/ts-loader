@@ -5,9 +5,10 @@ import { LoaderOptions } from '../../src/interfaces'
 
 const RE_STACK = /\((?:[a-zA-Z]:)?[\w-_\\\/\.]+:\d+:\d+\)/g
 const RE_SIZE = /\d+(?:\.\d+)?\s(?:KiB|bytes)/g
-const RE_CWD = new RegExp(process.cwd(), 'g')
+const RE_CWD = new RegExp(process.cwd().replace(/\\/g, '\\\\'), 'g')
 const RE_PATH = /\.[\w-_\\\/\.]+\.\w+/g
 const RE_WINDOWS_PATH_SEPARATOR = /\\/g
+const RE_WINDOWS_LINEBREAK = /\r\n/g
 
 export function webpackConfig(entry: string, options: Partial<LoaderOptions> = {}): webpack.Configuration {
   return {
@@ -50,6 +51,7 @@ export function createMemfs(): IFs {
 
 export function normalizeBundle(content: string | Buffer): string {
   return content.toString()
+    .replace(RE_WINDOWS_LINEBREAK, '\n')
     .replace(RE_CWD, '.')
     .replace(RE_PATH, path => path.replace(RE_WINDOWS_PATH_SEPARATOR, '/'))
     .replace(RE_STACK, '(ts-loader)')
@@ -57,6 +59,7 @@ export function normalizeBundle(content: string | Buffer): string {
 
 export function serializeStats(stats: webpack.Stats): string {
   return stats.toString({ hash: false, version: false, timings: false, builtAt: false })
+    .replace(RE_WINDOWS_LINEBREAK, '\n')
     .replace(RE_CWD, '.')
     .replace(RE_PATH, path => path.replace(RE_WINDOWS_PATH_SEPARATOR, '/'))
     .replace(RE_STACK, '(ts-loader)')
