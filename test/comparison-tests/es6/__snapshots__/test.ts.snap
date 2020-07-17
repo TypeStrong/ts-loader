@@ -104,10 +104,10 @@ eval(\\"({ get x() { return 1; } });\\\\nSymbol;\\\\n\\\\n\\\\n//# sourceURL=web
 `;
 
 exports[`build: stats 1`] = `
-"    Asset      Size  Chunks             Chunk Names
-bundle.js    <size>    main  [emitted]  main
+"    Asset    Size  Chunks             Chunk Names
+bundle.js  <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/es6/src/app.ts]   <size> {main} [built]"
+[./test/comparison-tests/es6/src/app.ts] <size> {main} [built]"
 `;
 
 exports[`transpile only: bundle 1`] = `
@@ -214,8 +214,8 @@ eval(\\"({ get x() { return 1; } });\\\\nSymbol;\\\\n\\\\n\\\\n//# sourceURL=web
 `;
 
 exports[`transpile only: stats 1`] = `
-"    Asset      Size  Chunks             Chunk Names
-bundle.js    <size>    main  [emitted]  main
+"    Asset    Size  Chunks             Chunk Names
+bundle.js  <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/es6/src/app.ts]   <size> {main} [built]"
+[./test/comparison-tests/es6/src/app.ts] <size> {main} [built]"
 `;

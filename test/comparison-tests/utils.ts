@@ -10,6 +10,9 @@ const RE_PATH = /\.[\w-_\\\/\.]+\.\w+/g
 const RE_WINDOWS_PATH_SEPARATOR = /\\/g
 const RE_WINDOWS_LINEBREAK = /\r\n/g
 const RE_WINDOWS_LINEBREAK_LITERAL = /\\r\\n/g
+const RE_TABLE_HEADER = /\s+Asset\s+Size\s+Chunks\s+Chunk\sNames/
+
+const TABLE_HEADER = '    Asset    Size  Chunks             Chunk Names'
 
 export function webpackConfig(entry: string, options: Partial<LoaderOptions> = {}): webpack.Configuration {
   return {
@@ -67,5 +70,6 @@ export function serializeStats(stats: webpack.Stats): string {
     .replace(RE_CWD, '.')
     .replace(RE_PATH, path => path.replace(RE_WINDOWS_PATH_SEPARATOR, '/'))
     .replace(RE_STACK, '(ts-loader)')
-    .replace(RE_SIZE, str => '<size>'.padStart(str.length))
+    .replace(RE_TABLE_HEADER, TABLE_HEADER)
+    .replace(RE_SIZE, '<size>')
 }

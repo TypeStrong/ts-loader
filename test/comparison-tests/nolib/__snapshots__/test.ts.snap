@@ -104,10 +104,10 @@ eval(\\"parseInt('10');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison
 `;
 
 exports[`build: stats 1`] = `
-"    Asset      Size  Chunks             Chunk Names
-bundle.js    <size>    main  [emitted]  main
+"    Asset    Size  Chunks             Chunk Names
+bundle.js  <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nolib/src/app.ts]   <size> {main} [built] [1 error]
+[./test/comparison-tests/nolib/src/app.ts] <size> {main} [built] [1 error]
 
 ERROR in ./test/comparison-tests/nolib/src/tsconfig.json
 [90m[tsl] [39m[1m[31mERROR[39m[22m
@@ -247,8 +247,8 @@ eval(\\"parseInt('10');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison
 `;
 
 exports[`transpile only: stats 1`] = `
-"    Asset      Size  Chunks             Chunk Names
-bundle.js    <size>    main  [emitted]  main
+"    Asset    Size  Chunks             Chunk Names
+bundle.js  <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nolib/src/app.ts]   <size> {main} [built]"
+[./test/comparison-tests/nolib/src/app.ts] <size> {main} [built]"
 `;
