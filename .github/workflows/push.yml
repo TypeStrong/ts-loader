@@ -19,6 +19,9 @@ jobs:
       - name: install typescript
         run: yarn add typescript@3.9.3
 
+      - name: snapshot test
+        run: yarn jest
+
       - name: test
         run: sudo yarn comparison-tests
 
@@ -45,6 +48,10 @@ jobs:
 
       - name: install typescript
         run: yarn add typescript@3.9.3
+        working-directory: C:\source\ts-loader
+
+      - name: snapshot test
+        run: yarn jest
         working-directory: C:\source\ts-loader
 
       - name: test
