@@ -20,7 +20,7 @@ jobs:
         run: yarn add typescript@3.9.3
 
       - name: snapshot test
-        run: yarn jest
+        run: yarn jest --color
 
       - name: test
         run: sudo yarn comparison-tests
@@ -51,7 +51,7 @@ jobs:
         working-directory: C:\source\ts-loader
 
       - name: snapshot test
-        run: yarn jest
+        run: yarn jest --color
         working-directory: C:\source\ts-loader
 
       - name: test
