@@ -116,8 +116,8 @@ eval(\\"throw new Error(\\\\\\"Module build failed (from ./dist/index.js):\\\\\\
 `;
 
 exports[`build: stats 1`] = `
-"    Asset    Size  Chunks             Chunk Names
-bundle.js  <size>    main  [emitted]  main
+"    Asset   Size  Chunks             Chunk Names
+bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
 [./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts] <size> {main} [built]
 [./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts] <size> {main} [built] [failed] [1 error]
@@ -250,8 +250,8 @@ eval(\\"\\\\nvar elephant = \\\\\\"In the room\\\\\\";\\\\nmodule.exports = elep
 `;
 
 exports[`transpile only: stats 1`] = `
-"    Asset    Size  Chunks             Chunk Names
-bundle.js  <size>    main  [emitted]  main
+"    Asset   Size  Chunks             Chunk Names
+bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
 [./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts] <size> {main} [built]
 [./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts] <size> {main} [built]"

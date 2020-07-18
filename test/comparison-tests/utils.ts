@@ -4,7 +4,7 @@ import { IFs, createFsFromVolume, Volume } from 'memfs'
 import { LoaderOptions } from '../../src/interfaces'
 
 const RE_STACK = /\((?:[a-zA-Z]:)?[\w-_\\\/\.]+:\d+:\d+\)/g
-const RE_SIZE = /\d+(?:\.\d+)?\s(?:KiB|bytes)/g
+const RE_SIZE = /\s+\d+(?:\.\d+)?\s(?:KiB|bytes)/g
 const RE_CWD = new RegExp(process.cwd().replace(/\\/g, '\\\\'), 'g')
 const RE_PATH = /\.[\w-_\\\/\.]+\.\w+/g
 const RE_WINDOWS_PATH_SEPARATOR = /\\/g
@@ -12,7 +12,7 @@ const RE_WINDOWS_LINEBREAK = /\r\n/g
 const RE_WINDOWS_LINEBREAK_LITERAL = /\\r\\n/g
 const RE_TABLE_HEADER = /\s+Asset\s+Size\s+Chunks\s+Chunk\sNames/
 
-const TABLE_HEADER = '    Asset    Size  Chunks             Chunk Names'
+const TABLE_HEADER = '    Asset   Size  Chunks             Chunk Names'
 
 export function webpackConfig(entry: string, options: Partial<LoaderOptions> = {}): webpack.Configuration {
   return {
@@ -71,5 +71,5 @@ export function serializeStats(stats: webpack.Stats): string {
     .replace(RE_PATH, path => path.replace(RE_WINDOWS_PATH_SEPARATOR, '/'))
     .replace(RE_STACK, '(ts-loader)')
     .replace(RE_TABLE_HEADER, TABLE_HEADER)
-    .replace(RE_SIZE, '<size>')
+    .replace(RE_SIZE, ' <size>')
 }

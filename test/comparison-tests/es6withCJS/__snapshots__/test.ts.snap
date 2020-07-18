@@ -105,8 +105,8 @@ eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: t
 `;
 
 exports[`build: stats 1`] = `
-"    Asset    Size  Chunks             Chunk Names
-bundle.js  <size>    main  [emitted]  main
+"    Asset   Size  Chunks             Chunk Names
+bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
 [./test/comparison-tests/es6withCJS/app.ts] <size> {main} [built]"
 `;
@@ -216,8 +216,8 @@ eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: t
 `;
 
 exports[`transpile only: stats 1`] = `
-"    Asset    Size  Chunks             Chunk Names
-bundle.js  <size>    main  [emitted]  main
+"    Asset   Size  Chunks             Chunk Names
+bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
 [./test/comparison-tests/es6withCJS/app.ts] <size> {main} [built]"
 `;

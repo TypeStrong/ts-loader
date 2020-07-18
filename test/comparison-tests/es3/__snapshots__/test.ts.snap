@@ -104,8 +104,8 @@ eval(\\"({ get x() { return 1; } });\\\\n\\\\n\\\\n//# sourceURL=webpack:///./te
 `;
 
 exports[`build: stats 1`] = `
-"    Asset    Size  Chunks             Chunk Names
-bundle.js  <size>    main  [emitted]  main
+"    Asset   Size  Chunks             Chunk Names
+bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
 [./test/comparison-tests/es3/app.ts] <size> {main} [built] [1 error]
 
@@ -219,8 +219,8 @@ eval(\\"({ get x() { return 1; } });\\\\n\\\\n\\\\n//# sourceURL=webpack:///./te
 `;
 
 exports[`transpile only: stats 1`] = `
-"    Asset    Size  Chunks             Chunk Names
-bundle.js  <size>    main  [emitted]  main
+"    Asset   Size  Chunks             Chunk Names
+bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
 [./test/comparison-tests/es3/app.ts] <size> {main} [built]"
 `;
