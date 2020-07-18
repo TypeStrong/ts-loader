@@ -37,7 +37,7 @@ test('transpile only', async () => {
   const memfs = utils.createMemfs()
 
   const stats = await utils.runSingleBuild(memfs, compiler)
-  const bundle = memfs.readFileSync('/bundle.js', 'utf8')
+  const bundle = await utils.readFile(memfs, '/bundle.js')
   const html = await utils.readFile(memfs, '/index.html')
 
   expect(utils.normalizeBundle(bundle)).toMatchSnapshot('bundle')
