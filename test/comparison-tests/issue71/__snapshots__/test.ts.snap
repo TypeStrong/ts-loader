@@ -1,4 +1,7 @@
-/******/ (function(modules) { // webpackBootstrap
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`build: bundle 1`] = `
+"/******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -77,48 +80,58 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
+/******/ 	__webpack_require__.p = \\"\\";
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = "./app.ts");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/issue71/app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ "./app.ts":
-/*!****************!*\
-  !*** ./app.ts ***!
-  \****************/
+/***/ \\"./test/comparison-tests/issue71/app.ts\\":
+/*!**********************************************!*\\\\
+  !*** ./test/comparison-tests/issue71/app.ts ***!
+  \\\\**********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nvar b = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a);\nconsole.log(b);\n\n\n//# sourceURL=webpack:///./app.ts?");
+\\"use strict\\";
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/issue71/node_modules/a/index.js\\\\\\");\\\\nvar b = __webpack_require__(/*! ./b */ \\\\\\"./test/comparison-tests/issue71/b.ts\\\\\\");\\\\nconsole.log(a);\\\\nconsole.log(b);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue71/app.ts?\\");
 
 /***/ }),
 
-/***/ "./b.ts":
-/*!**************!*\
-  !*** ./b.ts ***!
-  \**************/
+/***/ \\"./test/comparison-tests/issue71/b.ts\\":
+/*!********************************************!*\\\\
+  !*** ./test/comparison-tests/issue71/b.ts ***!
+  \\\\********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-eval("\nmodule.exports = 'b';\n\n\n//# sourceURL=webpack:///./b.ts?");
+\\"use strict\\";
+eval(\\"\\\\nmodule.exports = 'b';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue71/b.ts?\\");
 
 /***/ }),
 
-/***/ "./node_modules/a/index.js":
-/*!*********************************!*\
-  !*** ./node_modules/a/index.js ***!
-  \*********************************/
+/***/ \\"./test/comparison-tests/issue71/node_modules/a/index.js\\":
+/*!***************************************************************!*\\\\
+  !*** ./test/comparison-tests/issue71/node_modules/a/index.js ***!
+  \\\\***************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("module.exports = 'a';\n\n//# sourceURL=webpack:///./node_modules/a/index.js?");
+eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue71/node_modules/a/index.js?\\");
 
 /***/ })
 
-/******/ });
+/******/ });"
+`;
+
+exports[`build: stats 1`] = `
+"    Asset   Size  Chunks             Chunk Names
+bundle.js <size>    main  [emitted]  main
+Entrypoint main = bundle.js
+[./test/comparison-tests/issue71/app.ts] <size> {main} [built]
+[./test/comparison-tests/issue71/b.ts] <size> {main} [built]
+[./test/comparison-tests/issue71/node_modules/a/index.js] <size> {main} [built]"
+`;
