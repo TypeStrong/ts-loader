@@ -7,8 +7,8 @@ test('build', async () => {
   const memfs = utils.createMemfs()
 
   const stats = await utils.runSingleBuild(memfs, compiler)
-  const bundle = memfs.readFileSync('/bundle.js', 'utf8')
-  const bundle0 = memfs.readFileSync('/0.bundle.js', 'utf8')
+  const bundle = await utils.readFile(memfs, '/bundle.js')
+  const bundle0 = await utils.readFile(memfs, '/0.bundle.js')
 
   expect(utils.normalizeBundle(bundle)).toMatchSnapshot('bundle')
   expect(utils.normalizeBundle(bundle0)).toMatchSnapshot('bundle')
@@ -20,8 +20,8 @@ test('transpile only', async () => {
   const memfs = utils.createMemfs()
 
   const stats = await utils.runSingleBuild(memfs, compiler)
-  const bundle = memfs.readFileSync('/bundle.js', 'utf8')
-  const bundle0 = memfs.readFileSync('/0.bundle.js', 'utf8')
+  const bundle = await utils.readFile(memfs, '/bundle.js')
+  const bundle0 = await utils.readFile(memfs, '/0.bundle.js')
 
   expect(utils.normalizeBundle(bundle)).toMatchSnapshot('bundle')
   expect(utils.normalizeBundle(bundle0)).toMatchSnapshot('bundle')

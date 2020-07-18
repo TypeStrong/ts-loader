@@ -1,4 +1,5 @@
 import * as path from 'path'
+import { promisify } from 'util'
 import * as webpack from 'webpack'
 import { IFs, createFsFromVolume, Volume } from 'memfs'
 import { LoaderOptions } from '../../src/interfaces'
@@ -51,6 +52,11 @@ export function runSingleBuild(memfs: IFs, compiler: webpack.Compiler): Promise<
 
 export function createMemfs(): IFs {
   return createFsFromVolume(new Volume())
+}
+
+export function readFile(memfs: IFs, path: string): Promise<string> {
+  // @ts-ignore
+  return promisify(memfs.readFile)(path, 'utf8')
 }
 
 export function normalizeBundle(content: string | Buffer): string {
