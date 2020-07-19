@@ -1,4 +1,6 @@
 import * as path from 'path'
+import * as fs from 'fs'
+import { PassThrough } from 'stream'
 import { promisify } from 'util'
 import * as webpack from 'webpack'
 import { IFs, createFsFromVolume, Volume } from 'memfs'
@@ -48,6 +50,56 @@ export function runSingleBuild(memfs: IFs, compiler: webpack.Compiler): Promise<
       }
     })
   })
+}
+
+const copyFile = promisify(fs.copyFile)
+
+interface WatchBuildOptions {
+  iteration: number
+  directory: string
+  path: string
+}
+
+export function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, options: WatchBuildOptions) {
+  // @ts-ignore TODO: remove this in webpack 5
+  memfs.join = path.join.bind(memfs)
+  compiler.outputFileSystem = memfs as IFs & { join(...paths: string[]): string }
+
+  const stream = new PassThrough({ objectMode: true })
+  let lastHash = ''
+
+  const targetPath = path.join(options.directory, options.path)
+  let timer: NodeJS.Timeout
+
+  const watcher = compiler.watch({ aggregateTimeout: 10 }, async (err, stats) => {
+    if (err) {
+      watcher.close(() => {
+        stream.end(() => {
+          clearTimeout(timer)
+          stream.emit('error', err)
+        })
+      })
+      return
+    }
+
+    if (stats.hash === lastHash) {
+      return
+    }
+
+    stream.write(stats)
+    lastHash = stats.hash
+
+    timer = setTimeout(async function copy(it: number) {
+      if (it >= 0) {
+        await copyFile(path.join(options.directory, `patch${it}`, options.path), targetPath)
+        setTimeout(copy, 200, it - 1)
+      } else {
+        watcher.close(() => stream.end())
+      }
+    }, 200, options.iteration - 1)
+  })
+
+  return stream
 }
 
 export function createMemfs(): IFs {
