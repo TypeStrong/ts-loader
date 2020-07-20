@@ -74,7 +74,8 @@ export async function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, opti
   const watcher = compiler.watch({}, async (err, stats) => {
     if (err) {
       watcher.close(() => {
-        stream.end(() => {
+        stream.end(async () => {
+          await fs.writeFile(targetPath, originalFileContent)
           clearTimeout(timer)
           stream.emit('error', err)
         })
