@@ -1,6 +1,7 @@
 import * as path from 'path'
 import * as webpack from 'webpack'
 import * as utils from '../utils'
+import { inspect } from 'util'
 
 test('build', async () => {
   const config = utils.webpackConfig({
@@ -24,6 +25,14 @@ test('build', async () => {
   const memfs = utils.createMemfs()
 
   const stats = await utils.runSingleBuild(memfs, compiler)
+  const error0 = stats.compilation.errors[0]
+  const error1 = stats.compilation.errors[1]
+  // correct the errors order for Windows
+  if (error0 && error0.module.id.endsWith('b.ts') && error1 && error1.module.id.endsWith('a.ts')) {
+    stats.compilation.errors[0] = error1
+    stats.compilation.errors[1] = error0
+  }
+
   const bundle = await utils.readFile(memfs, '/bundle.js')
 
   expect(utils.normalizeBundle(bundle)).toMatchSnapshot('bundle')
