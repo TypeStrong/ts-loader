@@ -4,6 +4,7 @@
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
+    "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
     "strict": true,
     "module": "commonjs",
