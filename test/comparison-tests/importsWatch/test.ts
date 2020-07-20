@@ -17,4 +17,4 @@ test('build', async () => {
     expect(utils.normalizeBundle(bundle)).toMatchSnapshot('bundle')
     expect(utils.serializeStats(stats)).toMatchSnapshot('stats')
   }
-})
+}, 10000)
