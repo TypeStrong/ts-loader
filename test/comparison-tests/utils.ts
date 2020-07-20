@@ -71,7 +71,7 @@ export async function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, opti
   const targetPath = path.join(options.directory, options.path)
   const originalFileContent = await fs.readFile(targetPath)
 
-  const watcher = compiler.watch({ aggregateTimeout: 10 }, async (err, stats) => {
+  const watcher = compiler.watch({}, async (err, stats) => {
     if (err) {
       watcher.close(() => {
         stream.end(() => {
@@ -96,7 +96,7 @@ export async function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, opti
         await fs.writeFile(targetPath, originalFileContent)
         watcher.close(() => stream.end())
       }
-    }, 500, iteration)
+    }, 250, iteration)
     iteration += 1
   })
 

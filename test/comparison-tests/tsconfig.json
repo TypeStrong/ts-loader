@@ -4,6 +4,7 @@
         "checkJs": true,
         "module": "commonjs",
         "noEmit": true,
+        "skipLibCheck": true,
         "lib": ["es2016"]
     },
     "files": [
@@ -11,6 +12,6 @@
         "create-and-execute-test.js",
         "run-tests.js",
         "newline.loader.js",
-        "copySync.js"         
+        "copySync.js"
     ]
 }
