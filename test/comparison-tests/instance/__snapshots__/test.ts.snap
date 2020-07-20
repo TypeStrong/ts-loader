@@ -96,7 +96,7 @@ exports[`build: bundle 1`] = `
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"throw new Error(\\\\\\"Module build failed (from ./dist/index.js):\\\\\\\\nError: \\\\\\\\u001b[31mA file specified in tsconfig.json could not be found: ./test/comparison-tests/instance/i-dont-exist\\\\\\\\u001b[39m\\\\\\\\n    at Object.loader (ts-loader)\\\\\\");\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/instance/a.ts?\\");
+eval(\\"throw new Error(\\\\\\"Module build failed (from ./dist/index.js):\\\\\\\\nError: \\\\\\\\u001b[31mA file specified in tsconfig.json could not be found: ./test/comparison-tests/instance/i-dont-exist.ts//u001b[39m\\\\\\\\n    at Object.loader (ts-loader)\\\\\\");\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/instance/a.ts?\\");
 
 /***/ })
 
@@ -113,12 +113,12 @@ Entrypoint b =
 
 ERROR in ./test/comparison-tests/instance/a.ts
 Module build failed (from ./dist/index.js):
-Error: [31mA file specified in tsconfig.json could not be found: ./test/comparison-tests/instance/i-dont-exist[39m
+Error: [31mA file specified in tsconfig.json could not be found: ./test/comparison-tests/instance/i-dont-exist.ts[39m
     at Object.loader (ts-loader)
 
 ERROR in ./test/comparison-tests/instance/b.ts
 Module build failed (from ./dist/index.js):
-Error: [31mA file specified in tsconfig.json could not be found: ./test/comparison-tests/instance/i-dont-exist[39m
+Error: [31mA file specified in tsconfig.json could not be found: ./test/comparison-tests/instance/i-dont-exist.ts[39m
     at Object.loader (ts-loader)
 
 ERROR in chunk b [entry]
