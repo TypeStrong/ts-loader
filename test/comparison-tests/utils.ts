@@ -17,7 +17,7 @@ const RE_TABLE_HEADER = /\s+Asset\s+Size\s+Chunks\s+Chunk\sNames/
 
 const TABLE_HEADER = '    Asset   Size  Chunks             Chunk Names'
 
-export function webpackConfig(entry: string, options: Partial<LoaderOptions> = {}): webpack.Configuration {
+export function webpackConfig(entry: webpack.Configuration['entry'], options: Partial<LoaderOptions> = {}): webpack.Configuration {
   return {
     mode: 'development',
     entry,
