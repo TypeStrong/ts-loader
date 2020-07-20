@@ -1,5 +1,5 @@
 import * as path from 'path'
-import * as fs from 'fs'
+import * as fs from 'fs-extra'
 import { PassThrough } from 'stream'
 import { promisify } from 'util'
 import * as webpack from 'webpack'
@@ -52,24 +52,24 @@ export function runSingleBuild(memfs: IFs, compiler: webpack.Compiler): Promise<
   })
 }
 
-const copyFile = promisify(fs.copyFile)
-
 interface WatchBuildOptions {
   iteration: number
   directory: string
   path: string
 }
 
-export function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, options: WatchBuildOptions) {
+export async function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, options: WatchBuildOptions) {
   // @ts-ignore TODO: remove this in webpack 5
   memfs.join = path.join.bind(memfs)
   compiler.outputFileSystem = memfs as IFs & { join(...paths: string[]): string }
 
   const stream = new PassThrough({ objectMode: true })
+  let timer: NodeJS.Timer
   let lastHash = ''
+  let iteration = 0
 
   const targetPath = path.join(options.directory, options.path)
-  let timer: NodeJS.Timeout
+  const originalFileContent = await fs.readFile(targetPath)
 
   const watcher = compiler.watch({ aggregateTimeout: 10 }, async (err, stats) => {
     if (err) {
@@ -89,14 +89,15 @@ export function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, options: W
     stream.write(stats)
     lastHash = stats.hash
 
-    timer = setTimeout(async function copy(it: number) {
-      if (it >= 0) {
-        await copyFile(path.join(options.directory, `patch${it}`, options.path), targetPath)
-        setTimeout(copy, 200, it - 1)
+    timer = setTimeout(async (iteration: number) => {
+      if (iteration < options.iteration) {
+        await fs.copyFile(path.join(options.directory, `patch${iteration}`, options.path), targetPath)
       } else {
+        await fs.writeFile(targetPath, originalFileContent)
         watcher.close(() => stream.end())
       }
-    }, 200, options.iteration - 1)
+    }, 500, iteration)
+    iteration += 1
   })
 
   return stream

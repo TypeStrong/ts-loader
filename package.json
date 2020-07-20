@@ -61,6 +61,7 @@
     "semver": "^6.0.0"
   },
   "devDependencies": {
+    "@types/fs-extra": "^9.0.1",
     "@types/jest": "^26.0.4",
     "@types/micromatch": "^3.1.0",
     "@types/node": "*",

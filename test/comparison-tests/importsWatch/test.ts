@@ -6,8 +6,8 @@ test('build', async () => {
   const compiler = webpack(utils.webpackConfig(path.join(__dirname, 'app.ts')))
   const memfs = utils.createMemfs()
 
-  const build = utils.runWatchBuild(memfs, compiler, {
-    iteration: 2,
+  const build = await utils.runWatchBuild(memfs, compiler, {
+    iteration: 1,
     directory: __dirname,
     path: 'foo.ts',
   })
