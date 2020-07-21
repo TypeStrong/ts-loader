@@ -8,7 +8,8 @@ import { LoaderOptions } from '../../src/interfaces'
 
 const RE_STACK = /\((?:[a-zA-Z]:)?[\w-_\\\/\.]+:\d+:\d+\)/g
 const RE_SIZE = /\s+\d+(?:\.\d+)?\s(?:KiB|bytes)/g
-const RE_CWD = new RegExp(process.cwd().replace(/\\/g, '\\\\'), 'g')
+const RE_CWD = new RegExp(process.cwd().replace(/\\/g, '/'), 'g')
+const RE_WINDOWS_CWD = new RegExp(process.cwd().replace(/\\/g, String.raw`\\`), 'g')
 const RE_PATH = /\.[\w-_\\\/\.]+\.\w+/g
 const RE_WINDOWS_PATH_SEPARATOR = /\\/g
 const RE_WINDOWS_LINEBREAK = /\r\n/g
@@ -120,6 +121,7 @@ export function normalizeBundle(content: string | Buffer): string {
     .replace(RE_WINDOWS_LINEBREAK, '\n')
     .replace(RE_WINDOWS_LINEBREAK_LITERAL, '\\n')
     .replace(RE_CWD, '.')
+    .replace(RE_WINDOWS_CWD, '.')
     .replace(RE_PATH, path => path.replace(RE_WINDOWS_PATH_SEPARATOR, '/'))
     .replace(RE_STACK, '(ts-loader)')
 }
@@ -129,6 +131,7 @@ export function serializeStats(stats: webpack.Stats): string {
     .replace(RE_WINDOWS_LINEBREAK, '\n')
     .replace(RE_WINDOWS_LINEBREAK_LITERAL, '\\n')
     .replace(RE_CWD, '.')
+    .replace(RE_WINDOWS_CWD, '.')
     .replace(RE_PATH, path => path.replace(RE_WINDOWS_PATH_SEPARATOR, '/'))
     .replace(RE_STACK, '(ts-loader)')
     .replace(RE_TABLE_HEADER, TABLE_HEADER)
