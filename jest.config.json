@@ -1,5 +1,6 @@
 {
   "preset": "ts-jest",
+  "testRunner": "jest-circus/runner",
   "globals": {
     "ts-jest": {
       "isolatedModules": true

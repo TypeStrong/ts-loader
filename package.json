@@ -87,6 +87,7 @@
     "husky": "^2.0.0",
     "jasmine-core": "^3.0.0",
     "jest": "^26.1.0",
+    "jest-circus": "^26.1.0",
     "karma": "^4.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-jasmine": "^2.0.0",

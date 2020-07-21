@@ -2,6 +2,8 @@ import * as path from 'path'
 import * as webpack from 'webpack'
 import * as utils from '../utils'
 
+jest.retryTimes(4)
+
 test('build', async () => {
   const compiler = webpack(utils.webpackConfig(path.join(__dirname, 'app.ts')))
   const memfs = utils.createMemfs()
