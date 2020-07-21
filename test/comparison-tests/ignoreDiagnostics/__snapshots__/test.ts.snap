@@ -84,20 +84,20 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/ignoreDiagnostics/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/ignoreDiagnostics/app.ts\\":
-/*!********************************************************!*\\\\
-  !*** ./test/comparison-tests/ignoreDiagnostics/app.ts ***!
-  \\\\********************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.Foo = void 0;\\\\nvar Foo = /** @class */ (function () {\\\\n    function Foo() {\\\\n    }\\\\n    return Foo;\\\\n}());\\\\nvar Bar = /** @class */ (function () {\\\\n    function Bar() {\\\\n    }\\\\n    return Bar;\\\\n}());\\\\nvar a = 'b'; // this should error with 2322\\\\nmodule.exports = Bar;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/ignoreDiagnostics/app.ts?\\");
+eval(\\"\\\\nexports.Foo = void 0;\\\\nvar Foo = /** @class */ (function () {\\\\n    function Foo() {\\\\n    }\\\\n    return Foo;\\\\n}());\\\\nvar Bar = /** @class */ (function () {\\\\n    function Bar() {\\\\n    }\\\\n    return Bar;\\\\n}());\\\\nvar a = 'b'; // this should error with 2322\\\\nmodule.exports = Bar;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -108,10 +108,10 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/ignoreDiagnostics/app.ts] <size> {main} [built] [1 error]
+[./app.ts] <size> {main} [built] [1 error]
 
 ERROR in ./test/comparison-tests/ignoreDiagnostics/app.ts
-./test/comparison-tests/ignoreDiagnostics/app.ts
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m./test/comparison-tests/ignoreDiagnostics/app.ts(9,5)[39m[22m
 [1m[31m      TS2322: Type '\\"b\\"' is not assignable to type 'Number'.[39m[22m"
 `;
@@ -200,20 +200,20 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/ignoreDiagnostics/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/ignoreDiagnostics/app.ts\\":
-/*!********************************************************!*\\\\
-  !*** ./test/comparison-tests/ignoreDiagnostics/app.ts ***!
-  \\\\********************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.Foo = void 0;\\\\nvar Foo = /** @class */ (function () {\\\\n    function Foo() {\\\\n    }\\\\n    return Foo;\\\\n}());\\\\nvar Bar = /** @class */ (function () {\\\\n    function Bar() {\\\\n    }\\\\n    return Bar;\\\\n}());\\\\nvar a = 'b'; // this should error with 2322\\\\nmodule.exports = Bar;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/ignoreDiagnostics/app.ts?\\");
+eval(\\"\\\\nexports.Foo = void 0;\\\\nvar Foo = /** @class */ (function () {\\\\n    function Foo() {\\\\n    }\\\\n    return Foo;\\\\n}());\\\\nvar Bar = /** @class */ (function () {\\\\n    function Bar() {\\\\n    }\\\\n    return Bar;\\\\n}());\\\\nvar a = 'b'; // this should error with 2322\\\\nmodule.exports = Bar;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -224,5 +224,5 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/ignoreDiagnostics/app.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]"
 `;

@@ -84,31 +84,31 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts\\":
-/*!********************************************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts ***!
-  \\\\********************************************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.ts\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts\\":
-/*!*************************************************************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts ***!
-  \\\\*************************************************************************************************/
+/***/ \\"./node_modules/a/index.ts\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.ts ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"throw new Error(\\\\\\"Module build failed (from ./dist/index.js):\\\\\\\\nError: TypeScript emitted no output for ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts. By default, ts-loader will not compile .ts files in node_modules.\\\\\\\\nYou should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\\\\\\\\nSee: https://github.com/Microsoft/TypeScript/issues/12358\\\\\\\\n    at makeSourceMapAndFinish (ts-loader)\\\\\\\\n    at successLoader (ts-loader)\\\\\\\\n    at Object.loader (ts-loader)\\\\\\");\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts?\\");
+eval(\\"throw new Error(\\\\\\"Module build failed (from ./dist/index.js):\\\\\\\\nError: TypeScript emitted no output for ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts. By default, ts-loader will not compile .ts files in node_modules.\\\\\\\\nYou should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\\\\\\\\nSee: https://github.com/Microsoft/TypeScript/issues/12358\\\\\\\\n    at makeSourceMapAndFinish (ts-loader)\\\\\\\\n    at successLoader (ts-loader)\\\\\\\\n    at Object.loader (ts-loader)\\\\\\");\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.ts?\\");
 
 /***/ })
 
@@ -119,10 +119,10 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts] <size> {main} [built]
-[./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts] <size> {main} [built] [failed] [1 error]
+[./app.ts] <size> {main} [built]
+[./node_modules/a/index.ts] <size> {main} [built] [failed] [1 error]
 
-ERROR in ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts
+ERROR in ./node_modules/a/index.ts
 Module build failed (from ./dist/index.js):
 Error: TypeScript emitted no output for ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts. By default, ts-loader will not compile .ts files in node_modules.
 You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.
@@ -130,7 +130,7 @@ See: https://github.com/Microsoft/TypeScript/issues/12358
     at makeSourceMapAndFinish (ts-loader)
     at successLoader (ts-loader)
     at Object.loader (ts-loader)
- @ ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts 3:8-20"
+ @ ./app.ts 3:8-20"
 `;
 
 exports[`transpile only: bundle 1`] = `
@@ -217,32 +217,32 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts\\":
-/*!********************************************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts ***!
-  \\\\********************************************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.ts\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts\\":
-/*!*************************************************************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts ***!
-  \\\\*************************************************************************************************/
+/***/ \\"./node_modules/a/index.ts\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.ts ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nvar elephant = \\\\\\"In the room\\\\\\";\\\\nmodule.exports = elephant;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts?\\");
+eval(\\"\\\\nvar elephant = \\\\\\"In the room\\\\\\";\\\\nmodule.exports = elephant;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.ts?\\");
 
 /***/ })
 
@@ -253,6 +253,6 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/app.ts] <size> {main} [built]
-[./test/comparison-tests/nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./node_modules/a/index.ts] <size> {main} [built]"
 `;

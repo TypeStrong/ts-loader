@@ -84,19 +84,19 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/html-webpack-plugin/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/html-webpack-plugin/app.ts\\":
-/*!**********************************************************!*\\\\
-  !*** ./test/comparison-tests/html-webpack-plugin/app.ts ***!
-  \\\\**********************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"console.log(\\\\\\"hello\\\\\\");\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/html-webpack-plugin/app.ts?\\");
+eval(\\"console.log(\\\\\\"hello\\\\\\");\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -120,15 +120,15 @@ exports[`build: stats 1`] = `
  bundle.js <size>    main  [emitted]  main
 index.html <size>          [emitted]  
 Entrypoint main = bundle.js
-[./test/comparison-tests/html-webpack-plugin/app.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built]
 Child html-webpack-plugin for \\"index.html\\":
          Asset     Size  Chunks  Chunk Names
     index.html <size>       0  
     Entrypoint undefined = index.html
-    [./node_modules/html-webpack-plugin/lib/loader.js!./test/comparison-tests/html-webpack-plugin/index.html] <size> {0} [built]
-    [./node_modules/lodash/lodash.js] <size> {0} [built]
-    [./node_modules/webpack/buildin/global.js] (webpack)/buildin/global.js <size> {0} [built]
-    [./node_modules/webpack/buildin/module.js] (webpack)/buildin/module.js <size> {0} [built]"
+    [../../../node_modules/html-webpack-plugin/lib/loader.js!./index.html] ./node_modules/html-webpack-plugin/lib/loader.js!./index.html <size> {0} [built]
+    [../../../node_modules/lodash/lodash.js] ./node_modules/lodash/lodash.js <size> {0} [built]
+    [../../../node_modules/webpack/buildin/global.js] (webpack)/buildin/global.js <size> {0} [built]
+    [../../../node_modules/webpack/buildin/module.js] (webpack)/buildin/module.js <size> {0} [built]"
 `;
 
 exports[`transpile only: bundle 1`] = `
@@ -215,19 +215,19 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/html-webpack-plugin/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/html-webpack-plugin/app.ts\\":
-/*!**********************************************************!*\\\\
-  !*** ./test/comparison-tests/html-webpack-plugin/app.ts ***!
-  \\\\**********************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"console.log(\\\\\\"hello\\\\\\");\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/html-webpack-plugin/app.ts?\\");
+eval(\\"console.log(\\\\\\"hello\\\\\\");\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -251,13 +251,13 @@ exports[`transpile only: stats 1`] = `
  bundle.js <size>    main  [emitted]  main
 index.html <size>          [emitted]  
 Entrypoint main = bundle.js
-[./test/comparison-tests/html-webpack-plugin/app.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built]
 Child html-webpack-plugin for \\"index.html\\":
          Asset     Size  Chunks  Chunk Names
     index.html <size>       0  
     Entrypoint undefined = index.html
-    [./node_modules/html-webpack-plugin/lib/loader.js!./test/comparison-tests/html-webpack-plugin/index.html] <size> {0} [built]
-    [./node_modules/lodash/lodash.js] <size> {0} [built]
-    [./node_modules/webpack/buildin/global.js] (webpack)/buildin/global.js <size> {0} [built]
-    [./node_modules/webpack/buildin/module.js] (webpack)/buildin/module.js <size> {0} [built]"
+    [../../../node_modules/html-webpack-plugin/lib/loader.js!./index.html] ./node_modules/html-webpack-plugin/lib/loader.js!./index.html <size> {0} [built]
+    [../../../node_modules/lodash/lodash.js] ./node_modules/lodash/lodash.js <size> {0} [built]
+    [../../../node_modules/webpack/buildin/global.js] (webpack)/buildin/global.js <size> {0} [built]
+    [../../../node_modules/webpack/buildin/module.js] (webpack)/buildin/module.js <size> {0} [built]"
 `;

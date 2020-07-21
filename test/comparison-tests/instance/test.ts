@@ -8,6 +8,7 @@ test('build', async () => {
     a: path.join(__dirname, 'a.ts'),
     b: path.join(__dirname, 'b.ts'),
   })
+  config.context = __dirname
   config.module.rules = [
     {
       test: /a\.ts$/,
@@ -44,6 +45,7 @@ test('transpile only', async () => {
     a: path.join(__dirname, 'a.ts'),
     b: path.join(__dirname, 'b.ts'),
   })
+  config.context = __dirname
   config.module.rules = [
     {
       test: /a\.ts$/,

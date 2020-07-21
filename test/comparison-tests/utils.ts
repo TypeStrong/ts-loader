@@ -21,6 +21,7 @@ export function webpackConfig(entry: webpack.Configuration['entry'], options: Pa
   return {
     mode: 'development',
     entry,
+    context: typeof entry === 'string' ? path.dirname(entry) : undefined,
     output: {
       filename: 'bundle.js',
       path: '/',

@@ -199,44 +199,44 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/es6codeSplitting/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/a.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/a.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./a.ts\\":
+/*!**************!*\\\\
+  !*** ./a.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'a';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/a.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'a';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./a.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/app.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/app.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a_1 = __webpack_require__(/*! ./a */ \\\\\\"./test/comparison-tests/es6codeSplitting/a.ts\\\\\\");\\\\nvar b_1 = __webpack_require__(/*! ./b */ \\\\\\"./test/comparison-tests/es6codeSplitting/b.ts\\\\\\");\\\\nconsole.log(a_1.default);\\\\nconsole.log(b_1.default);\\\\n__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\\\\n    // These require calls are emitted (note these are NOT TypeScript\\\\n    // \`import ... from\` statements). \`require.ensure\` is defined in\\\\n    // require.d.ts. Webpack sees this and automatically puts c and d\\\\n    // into a separate chunk. \\\\n    // Note that requiring an ES6 module always returns an object\\\\n    // with the named exports. This means if you want to access\\\\n    // the default export you have to do so manually.\\\\n    // Since we used syntactic sugar for the default export for c, we\\\\n    // go ahead and access the default property.\\\\n    var cDefault = __webpack_require__(/*! ./c */ \\\\\\"./test/comparison-tests/es6codeSplitting/c.ts\\\\\\")[\\\\\\"default\\\\\\"];\\\\n    // For d, we imported the whole module so we don't access the default\\\\n    // property yet. \\\\n    var dModule = __webpack_require__(/*! ./d */ \\\\\\"./test/comparison-tests/es6codeSplitting/d.ts\\\\\\");\\\\n    console.log(cDefault);\\\\n    console.log(dModule[\\\\\\"default\\\\\\"]);\\\\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a_1 = __webpack_require__(/*! ./a */ \\\\\\"./a.ts\\\\\\");\\\\nvar b_1 = __webpack_require__(/*! ./b */ \\\\\\"./b.ts\\\\\\");\\\\nconsole.log(a_1.default);\\\\nconsole.log(b_1.default);\\\\n__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\\\\n    // These require calls are emitted (note these are NOT TypeScript\\\\n    // \`import ... from\` statements). \`require.ensure\` is defined in\\\\n    // require.d.ts. Webpack sees this and automatically puts c and d\\\\n    // into a separate chunk. \\\\n    // Note that requiring an ES6 module always returns an object\\\\n    // with the named exports. This means if you want to access\\\\n    // the default export you have to do so manually.\\\\n    // Since we used syntactic sugar for the default export for c, we\\\\n    // go ahead and access the default property.\\\\n    var cDefault = __webpack_require__(/*! ./c */ \\\\\\"./c.ts\\\\\\")[\\\\\\"default\\\\\\"];\\\\n    // For d, we imported the whole module so we don't access the default\\\\n    // property yet. \\\\n    var dModule = __webpack_require__(/*! ./d */ \\\\\\"./d.ts\\\\\\");\\\\n    console.log(cDefault);\\\\n    console.log(dModule[\\\\\\"default\\\\\\"]);\\\\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/b.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/b.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./b.ts\\":
+/*!**************!*\\\\
+  !*** ./b.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'b';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/b.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'b';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./b.ts?\\");
 
 /***/ })
 
@@ -246,27 +246,27 @@ eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: t
 exports[`build: bundle 2`] = `
 "(window[\\"webpackJsonp\\"] = window[\\"webpackJsonp\\"] || []).push([[0],{
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/c.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/c.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./c.ts\\":
+/*!**************!*\\\\
+  !*** ./c.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'c';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/c.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'c';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./c.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/d.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/d.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./d.ts\\":
+/*!**************!*\\\\
+  !*** ./d.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'd';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/d.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'd';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./d.ts?\\");
 
 /***/ })
 
@@ -278,11 +278,11 @@ exports[`build: stats 1`] = `
 0.bundle.js <size>       0  [emitted]  
   bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/es6codeSplitting/a.ts] <size> {main} [built]
-[./test/comparison-tests/es6codeSplitting/app.ts] <size> {main} [built]
-[./test/comparison-tests/es6codeSplitting/b.ts] <size> {main} [built]
-[./test/comparison-tests/es6codeSplitting/c.ts] <size> {0} [built]
-[./test/comparison-tests/es6codeSplitting/d.ts] <size> {0} [built]"
+[./a.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built]
+[./b.ts] <size> {main} [built]
+[./c.ts] <size> {0} [built]
+[./d.ts] <size> {0} [built]"
 `;
 
 exports[`transpile only: bundle 1`] = `
@@ -484,44 +484,44 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/es6codeSplitting/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/a.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/a.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./a.ts\\":
+/*!**************!*\\\\
+  !*** ./a.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'a';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/a.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'a';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./a.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/app.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/app.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a_1 = __webpack_require__(/*! ./a */ \\\\\\"./test/comparison-tests/es6codeSplitting/a.ts\\\\\\");\\\\nvar b_1 = __webpack_require__(/*! ./b */ \\\\\\"./test/comparison-tests/es6codeSplitting/b.ts\\\\\\");\\\\nconsole.log(a_1.default);\\\\nconsole.log(b_1.default);\\\\n__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\\\\n    // These require calls are emitted (note these are NOT TypeScript\\\\n    // \`import ... from\` statements). \`require.ensure\` is defined in\\\\n    // require.d.ts. Webpack sees this and automatically puts c and d\\\\n    // into a separate chunk. \\\\n    // Note that requiring an ES6 module always returns an object\\\\n    // with the named exports. This means if you want to access\\\\n    // the default export you have to do so manually.\\\\n    // Since we used syntactic sugar for the default export for c, we\\\\n    // go ahead and access the default property.\\\\n    var cDefault = __webpack_require__(/*! ./c */ \\\\\\"./test/comparison-tests/es6codeSplitting/c.ts\\\\\\")[\\\\\\"default\\\\\\"];\\\\n    // For d, we imported the whole module so we don't access the default\\\\n    // property yet. \\\\n    var dModule = __webpack_require__(/*! ./d */ \\\\\\"./test/comparison-tests/es6codeSplitting/d.ts\\\\\\");\\\\n    console.log(cDefault);\\\\n    console.log(dModule[\\\\\\"default\\\\\\"]);\\\\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a_1 = __webpack_require__(/*! ./a */ \\\\\\"./a.ts\\\\\\");\\\\nvar b_1 = __webpack_require__(/*! ./b */ \\\\\\"./b.ts\\\\\\");\\\\nconsole.log(a_1.default);\\\\nconsole.log(b_1.default);\\\\n__webpack_require__.e(/*! require.ensure */ 0).then((function (require) {\\\\n    // These require calls are emitted (note these are NOT TypeScript\\\\n    // \`import ... from\` statements). \`require.ensure\` is defined in\\\\n    // require.d.ts. Webpack sees this and automatically puts c and d\\\\n    // into a separate chunk. \\\\n    // Note that requiring an ES6 module always returns an object\\\\n    // with the named exports. This means if you want to access\\\\n    // the default export you have to do so manually.\\\\n    // Since we used syntactic sugar for the default export for c, we\\\\n    // go ahead and access the default property.\\\\n    var cDefault = __webpack_require__(/*! ./c */ \\\\\\"./c.ts\\\\\\")[\\\\\\"default\\\\\\"];\\\\n    // For d, we imported the whole module so we don't access the default\\\\n    // property yet. \\\\n    var dModule = __webpack_require__(/*! ./d */ \\\\\\"./d.ts\\\\\\");\\\\n    console.log(cDefault);\\\\n    console.log(dModule[\\\\\\"default\\\\\\"]);\\\\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/b.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/b.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./b.ts\\":
+/*!**************!*\\\\
+  !*** ./b.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'b';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/b.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'b';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./b.ts?\\");
 
 /***/ })
 
@@ -531,27 +531,27 @@ eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: t
 exports[`transpile only: bundle 2`] = `
 "(window[\\"webpackJsonp\\"] = window[\\"webpackJsonp\\"] || []).push([[0],{
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/c.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/c.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./c.ts\\":
+/*!**************!*\\\\
+  !*** ./c.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'c';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/c.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'c';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./c.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/es6codeSplitting/d.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/es6codeSplitting/d.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./d.ts\\":
+/*!**************!*\\\\
+  !*** ./d.ts ***!
+  \\\\**************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'd';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/es6codeSplitting/d.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.default = 'd';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./d.ts?\\");
 
 /***/ })
 
@@ -563,9 +563,9 @@ exports[`transpile only: stats 1`] = `
 0.bundle.js <size>       0  [emitted]  
   bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/es6codeSplitting/a.ts] <size> {main} [built]
-[./test/comparison-tests/es6codeSplitting/app.ts] <size> {main} [built]
-[./test/comparison-tests/es6codeSplitting/b.ts] <size> {main} [built]
-[./test/comparison-tests/es6codeSplitting/c.ts] <size> {0} [built]
-[./test/comparison-tests/es6codeSplitting/d.ts] <size> {0} [built]"
+[./a.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built]
+[./b.ts] <size> {main} [built]
+[./c.ts] <size> {0} [built]
+[./d.ts] <size> {0} [built]"
 `;

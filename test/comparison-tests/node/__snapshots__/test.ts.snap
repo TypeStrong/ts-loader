@@ -84,19 +84,19 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/node/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/node/app.ts\\":
-/*!*******************************************!*\\\\
-  !*** ./test/comparison-tests/node/app.ts ***!
-  \\\\*******************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"/// <reference path=\\\\\\"../../../node_modules/@types/node/index.d.ts\\\\\\" />\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/node/app.ts?\\");
+eval(\\"/// <reference path=\\\\\\"../../../node_modules/@types/node/index.d.ts\\\\\\" />\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -107,7 +107,7 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/node/app.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]"
 `;
 
 exports[`transpile only: bundle 1`] = `
@@ -194,19 +194,19 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/node/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/node/app.ts\\":
-/*!*******************************************!*\\\\
-  !*** ./test/comparison-tests/node/app.ts ***!
-  \\\\*******************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"/// <reference path=\\\\\\"../../../node_modules/@types/node/index.d.ts\\\\\\" />\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/node/app.ts?\\");
+eval(\\"/// <reference path=\\\\\\"../../../node_modules/@types/node/index.d.ts\\\\\\" />\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -217,5 +217,5 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/node/app.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]"
 `;

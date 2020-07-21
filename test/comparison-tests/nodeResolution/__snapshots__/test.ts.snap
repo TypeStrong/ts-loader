@@ -84,31 +84,31 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/nodeResolution/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/nodeResolution/app.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeResolution/app.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/nodeResolution/node_modules/a/index.js\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeResolution/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.js\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/nodeResolution/node_modules/a/index.js\\":
-/*!**********************************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeResolution/node_modules/a/index.js ***!
-  \\\\**********************************************************************/
+/***/ \\"./node_modules/a/index.js\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.js ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeResolution/node_modules/a/index.js?\\");
+eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.js?\\");
 
 /***/ })
 
@@ -119,8 +119,8 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nodeResolution/app.ts] <size> {main} [built]
-[./test/comparison-tests/nodeResolution/node_modules/a/index.js] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./node_modules/a/index.js] <size> {main} [built]"
 `;
 
 exports[`transpile only: bundle 1`] = `
@@ -207,31 +207,31 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/nodeResolution/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/nodeResolution/app.ts\\":
-/*!*****************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeResolution/app.ts ***!
-  \\\\*****************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/nodeResolution/node_modules/a/index.js\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeResolution/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar a = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.js\\\\\\");\\\\nconsole.log(a);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/nodeResolution/node_modules/a/index.js\\":
-/*!**********************************************************************!*\\\\
-  !*** ./test/comparison-tests/nodeResolution/node_modules/a/index.js ***!
-  \\\\**********************************************************************/
+/***/ \\"./node_modules/a/index.js\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.js ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nodeResolution/node_modules/a/index.js?\\");
+eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.js?\\");
 
 /***/ })
 
@@ -242,6 +242,6 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nodeResolution/app.ts] <size> {main} [built]
-[./test/comparison-tests/nodeResolution/node_modules/a/index.js] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./node_modules/a/index.js] <size> {main} [built]"
 `;

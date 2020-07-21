@@ -84,20 +84,20 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/importsWatch/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/importsWatch/app.ts\\":
-/*!***************************************************!*\\\\
-  !*** ./test/comparison-tests/importsWatch/app.ts ***!
-  \\\\***************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo;\\\\nfoo.bar = 'foobar';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/importsWatch/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo;\\\\nfoo.bar = 'foobar';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -188,20 +188,20 @@ exports[`build: bundle 2`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/importsWatch/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/importsWatch/app.ts\\":
-/*!***************************************************!*\\\\
-  !*** ./test/comparison-tests/importsWatch/app.ts ***!
-  \\\\***************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo;\\\\nfoo.bar = 'foobar';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/importsWatch/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo;\\\\nfoo.bar = 'foobar';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -212,17 +212,17 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/importsWatch/app.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]"
 `;
 
 exports[`build: stats 2`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/importsWatch/app.ts] <size> {main} [built] [1 error]
+[./app.ts] <size> {main} [built] [1 error]
 
 ERROR in ./test/comparison-tests/importsWatch/app.ts
-./test/comparison-tests/importsWatch/app.ts
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m./test/comparison-tests/importsWatch/app.ts(4,1)[39m[22m
 [1m[31m      TS2322: Type '\\"foobar\\"' is not assignable to type 'boolean'.[39m[22m"
 `;

@@ -84,32 +84,32 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/aliasResolution/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/aliasResolution/app.ts\\":
-/*!******************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/app.ts ***!
-  \\\\******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\":
-/*!********************************************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/common/components/myComponent.ts ***!
-  \\\\********************************************************************************/
+/***/ \\"./common/components/myComponent.ts\\":
+/*!******************************************!*\\\\
+  !*** ./common/components/myComponent.ts ***!
+  \\\\******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nmodule.exports = 'myComponent';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/common/components/myComponent.ts?\\");
+eval(\\"\\\\nmodule.exports = 'myComponent';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./common/components/myComponent.ts?\\");
 
 /***/ })
 
@@ -200,32 +200,32 @@ exports[`build: bundle 2`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/aliasResolution/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/aliasResolution/app.ts\\":
-/*!******************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/app.ts ***!
-  \\\\******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\":
-/*!********************************************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/common/components/myComponent.ts ***!
-  \\\\********************************************************************************/
+/***/ \\"./common/components/myComponent.ts\\":
+/*!******************************************!*\\\\
+  !*** ./common/components/myComponent.ts ***!
+  \\\\******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nmodule.exports = 'changed it';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/common/components/myComponent.ts?\\");
+eval(\\"\\\\nmodule.exports = 'changed it';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./common/components/myComponent.ts?\\");
 
 /***/ })
 
@@ -236,11 +236,11 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/aliasResolution/app.ts] <size> {main} [built] [1 error]
-[./test/comparison-tests/aliasResolution/common/components/myComponent.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built] [1 error]
+[./common/components/myComponent.ts] <size> {main} [built]
 
 ERROR in ./test/comparison-tests/aliasResolution/app.ts
-./test/comparison-tests/aliasResolution/app.ts
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m./test/comparison-tests/aliasResolution/app.ts(2,31)[39m[22m
 [1m[31m      TS2307: Cannot find module 'components/myComponent2' or its corresponding type declarations.[39m[22m"
 `;
@@ -249,11 +249,11 @@ exports[`build: stats 2`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/aliasResolution/app.ts] <size> {main} [built] [1 error]
-[./test/comparison-tests/aliasResolution/common/components/myComponent.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built] [1 error]
+[./common/components/myComponent.ts] <size> {main} [built]
 
 ERROR in ./test/comparison-tests/aliasResolution/app.ts
-./test/comparison-tests/aliasResolution/app.ts
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m./test/comparison-tests/aliasResolution/app.ts(2,31)[39m[22m
 [1m[31m      TS2307: Cannot find module 'components/myComponent2' or its corresponding type declarations.[39m[22m"
 `;
@@ -342,32 +342,32 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/aliasResolution/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/aliasResolution/app.ts\\":
-/*!******************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/app.ts ***!
-  \\\\******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\":
-/*!********************************************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/common/components/myComponent.ts ***!
-  \\\\********************************************************************************/
+/***/ \\"./common/components/myComponent.ts\\":
+/*!******************************************!*\\\\
+  !*** ./common/components/myComponent.ts ***!
+  \\\\******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nmodule.exports = 'myComponent';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/common/components/myComponent.ts?\\");
+eval(\\"\\\\nmodule.exports = 'myComponent';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./common/components/myComponent.ts?\\");
 
 /***/ })
 
@@ -458,32 +458,32 @@ exports[`transpile only: bundle 2`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/aliasResolution/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/aliasResolution/app.ts\\":
-/*!******************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/app.ts ***!
-  \\\\******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar myComponent = __webpack_require__(/*! components/myComponent */ \\\\\\"./common/components/myComponent.ts\\\\\\");\\\\nconsole.log(myComponent);\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/aliasResolution/common/components/myComponent.ts\\":
-/*!********************************************************************************!*\\\\
-  !*** ./test/comparison-tests/aliasResolution/common/components/myComponent.ts ***!
-  \\\\********************************************************************************/
+/***/ \\"./common/components/myComponent.ts\\":
+/*!******************************************!*\\\\
+  !*** ./common/components/myComponent.ts ***!
+  \\\\******************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nmodule.exports = 'changed it';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/aliasResolution/common/components/myComponent.ts?\\");
+eval(\\"\\\\nmodule.exports = 'changed it';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./common/components/myComponent.ts?\\");
 
 /***/ })
 
@@ -494,14 +494,14 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/aliasResolution/app.ts] <size> {main} [built]
-[./test/comparison-tests/aliasResolution/common/components/myComponent.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./common/components/myComponent.ts] <size> {main} [built]"
 `;
 
 exports[`transpile only: stats 2`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/aliasResolution/app.ts] <size> {main}
-[./test/comparison-tests/aliasResolution/common/components/myComponent.ts] <size> {main} [built]"
+[./app.ts] <size> {main}
+[./common/components/myComponent.ts] <size> {main} [built]"
 `;

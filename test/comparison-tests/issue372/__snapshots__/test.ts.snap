@@ -84,43 +84,43 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/issue372/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/issue372/app.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/app.ts ***!
-  \\\\***********************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./test/comparison-tests/issue372/foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/foo.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/foo.ts ***!
-  \\\\***********************************************/
+/***/ \\"./foo.ts\\":
+/*!****************!*\\\\
+  !*** ./foo.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/issue372/node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/foo.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./foo.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/node_modules/a/index.js\\":
-/*!****************************************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/node_modules/a/index.js ***!
-  \\\\****************************************************************/
+/***/ \\"./node_modules/a/index.js\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.js ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/node_modules/a/index.js?\\");
+eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.js?\\");
 
 /***/ })
 
@@ -211,43 +211,43 @@ exports[`build: bundle 2`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/issue372/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/issue372/app.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/app.ts ***!
-  \\\\***********************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./test/comparison-tests/issue372/foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar_patch0' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar_patch0' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/foo.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/foo.ts ***!
-  \\\\***********************************************/
+/***/ \\"./foo.ts\\":
+/*!****************!*\\\\
+  !*** ./foo.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/issue372/node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/foo.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./foo.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/node_modules/a/index.js\\":
-/*!****************************************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/node_modules/a/index.js ***!
-  \\\\****************************************************************/
+/***/ \\"./node_modules/a/index.js\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.js ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/node_modules/a/index.js?\\");
+eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.js?\\");
 
 /***/ })
 
@@ -258,18 +258,18 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/issue372/app.ts] <size> {main} [built]
-[./test/comparison-tests/issue372/foo.ts] <size> {main} [built]
-[./test/comparison-tests/issue372/node_modules/a/index.js] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./foo.ts] <size> {main} [built]
+[./node_modules/a/index.js] <size> {main} [built]"
 `;
 
 exports[`build: stats 2`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/issue372/app.ts] <size> {main} [built]
-[./test/comparison-tests/issue372/foo.ts] <size> {main}
-[./test/comparison-tests/issue372/node_modules/a/index.js] <size> {main}"
+[./app.ts] <size> {main} [built]
+[./foo.ts] <size> {main}
+[./node_modules/a/index.js] <size> {main}"
 `;
 
 exports[`transpile only: bundle 1`] = `
@@ -356,43 +356,43 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/issue372/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/issue372/app.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/app.ts ***!
-  \\\\***********************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./test/comparison-tests/issue372/foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/foo.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/foo.ts ***!
-  \\\\***********************************************/
+/***/ \\"./foo.ts\\":
+/*!****************!*\\\\
+  !*** ./foo.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/issue372/node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/foo.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./foo.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/node_modules/a/index.js\\":
-/*!****************************************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/node_modules/a/index.js ***!
-  \\\\****************************************************************/
+/***/ \\"./node_modules/a/index.js\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.js ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/node_modules/a/index.js?\\");
+eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.js?\\");
 
 /***/ })
 
@@ -483,43 +483,43 @@ exports[`transpile only: bundle 2`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/issue372/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/issue372/app.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/app.ts ***!
-  \\\\***********************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./test/comparison-tests/issue372/foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar_patch0' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar foo_1 = __webpack_require__(/*! ./foo */ \\\\\\"./foo.ts\\\\\\");\\\\nvar foo;\\\\nfoo.bar = 'foobar_patch0' + foo_1.s;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/foo.ts\\":
-/*!***********************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/foo.ts ***!
-  \\\\***********************************************/
+/***/ \\"./foo.ts\\":
+/*!****************!*\\\\
+  !*** ./foo.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./test/comparison-tests/issue372/node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/foo.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nexports.s = void 0;\\\\nvar sString = __webpack_require__(/*! a */ \\\\\\"./node_modules/a/index.js\\\\\\");\\\\nexports.s = sString;\\\\n\\\\n\\\\n//# sourceURL=webpack:///./foo.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/issue372/node_modules/a/index.js\\":
-/*!****************************************************************!*\\\\
-  !*** ./test/comparison-tests/issue372/node_modules/a/index.js ***!
-  \\\\****************************************************************/
+/***/ \\"./node_modules/a/index.js\\":
+/*!*********************************!*\\\\
+  !*** ./node_modules/a/index.js ***!
+  \\\\*********************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/issue372/node_modules/a/index.js?\\");
+eval(\\"module.exports = 'a';\\\\n\\\\n//# sourceURL=webpack:///./node_modules/a/index.js?\\");
 
 /***/ })
 
@@ -530,16 +530,16 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/issue372/app.ts] <size> {main} [built]
-[./test/comparison-tests/issue372/foo.ts] <size> {main} [built]
-[./test/comparison-tests/issue372/node_modules/a/index.js] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./foo.ts] <size> {main} [built]
+[./node_modules/a/index.js] <size> {main} [built]"
 `;
 
 exports[`transpile only: stats 2`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/issue372/app.ts] <size> {main} [built]
-[./test/comparison-tests/issue372/foo.ts] <size> {main}
-[./test/comparison-tests/issue372/node_modules/a/index.js] <size> {main}"
+[./app.ts] <size> {main} [built]
+[./foo.ts] <size> {main}
+[./node_modules/a/index.js] <size> {main}"
 `;

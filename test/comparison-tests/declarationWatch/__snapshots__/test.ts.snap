@@ -84,32 +84,32 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/declarationWatch/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/declarationWatch/app.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/declarationWatch/app.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar dep = __webpack_require__(/*! ./dep */ \\\\\\"./test/comparison-tests/declarationWatch/dep.ts\\\\\\");\\\\nconsole.log(dep);\\\\nThing.doSomething();\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/declarationWatch/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar dep = __webpack_require__(/*! ./dep */ \\\\\\"./dep.ts\\\\\\");\\\\nconsole.log(dep);\\\\nThing.doSomething();\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/declarationWatch/dep.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/declarationWatch/dep.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./dep.ts\\":
+/*!****************!*\\\\
+  !*** ./dep.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nThing.doSomething();\\\\nmodule.exports = 'dep';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/declarationWatch/dep.ts?\\");
+eval(\\"\\\\nThing.doSomething();\\\\nmodule.exports = 'dep';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./dep.ts?\\");
 
 /***/ })
 
@@ -200,32 +200,32 @@ exports[`build: bundle 2`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/declarationWatch/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/declarationWatch/app.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/declarationWatch/app.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar dep = __webpack_require__(/*! ./dep */ \\\\\\"./test/comparison-tests/declarationWatch/dep.ts\\\\\\");\\\\nconsole.log(dep);\\\\nThing.doSomething();\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/declarationWatch/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar dep = __webpack_require__(/*! ./dep */ \\\\\\"./dep.ts\\\\\\");\\\\nconsole.log(dep);\\\\nThing.doSomething();\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/declarationWatch/dep.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/declarationWatch/dep.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./dep.ts\\":
+/*!****************!*\\\\
+  !*** ./dep.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nThing.doSomething();\\\\nmodule.exports = 'dep';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/declarationWatch/dep.ts?\\");
+eval(\\"\\\\nThing.doSomething();\\\\nmodule.exports = 'dep';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./dep.ts?\\");
 
 /***/ })
 
@@ -316,32 +316,32 @@ exports[`build: bundle 3`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/declarationWatch/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/declarationWatch/app.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/declarationWatch/app.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar dep = __webpack_require__(/*! ./dep */ \\\\\\"./test/comparison-tests/declarationWatch/dep.ts\\\\\\");\\\\nconsole.log(dep);\\\\nThing.doSomething();\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/declarationWatch/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar dep = __webpack_require__(/*! ./dep */ \\\\\\"./dep.ts\\\\\\");\\\\nconsole.log(dep);\\\\nThing.doSomething();\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
-/***/ \\"./test/comparison-tests/declarationWatch/dep.ts\\":
-/*!*******************************************************!*\\\\
-  !*** ./test/comparison-tests/declarationWatch/dep.ts ***!
-  \\\\*******************************************************/
+/***/ \\"./dep.ts\\":
+/*!****************!*\\\\
+  !*** ./dep.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nThing.doSomething();\\\\nmodule.exports = 'dep';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/declarationWatch/dep.ts?\\");
+eval(\\"\\\\nThing.doSomething();\\\\nmodule.exports = 'dep';\\\\n\\\\n\\\\n//# sourceURL=webpack:///./dep.ts?\\");
 
 /***/ })
 
@@ -352,24 +352,24 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/declarationWatch/app.ts] <size> {main} [built]
-[./test/comparison-tests/declarationWatch/dep.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./dep.ts] <size> {main} [built]"
 `;
 
 exports[`build: stats 2`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/declarationWatch/app.ts] <size> {main} [built] [1 error]
-[./test/comparison-tests/declarationWatch/dep.ts] <size> {main} [built] [1 error]
+[./app.ts] <size> {main} [built] [1 error]
+[./dep.ts] <size> {main} [built] [1 error]
 
 ERROR in ./test/comparison-tests/declarationWatch/app.ts
-./test/comparison-tests/declarationWatch/app.ts
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m./test/comparison-tests/declarationWatch/app.ts(5,7)[39m[22m
 [1m[31m      TS2339: Property 'doSomething' does not exist on type 'typeof Thing'.[39m[22m
 
 ERROR in ./test/comparison-tests/declarationWatch/dep.ts
-./test/comparison-tests/declarationWatch/dep.ts
+./dep.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m./test/comparison-tests/declarationWatch/dep.ts(1,7)[39m[22m
 [1m[31m      TS2339: Property 'doSomething' does not exist on type 'typeof Thing'.[39m[22m"
 `;
@@ -378,6 +378,6 @@ exports[`build: stats 3`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/declarationWatch/app.ts] <size> {main} [built]
-[./test/comparison-tests/declarationWatch/dep.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]
+[./dep.ts] <size> {main} [built]"
 `;

@@ -84,19 +84,19 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/nolib/src/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/nolib/src/app.ts\\":
-/*!************************************************!*\\\\
-  !*** ./test/comparison-tests/nolib/src/app.ts ***!
-  \\\\************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"parseInt('10');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nolib/src/app.ts?\\");
+eval(\\"parseInt('10');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -107,7 +107,7 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nolib/src/app.ts] <size> {main} [built] [1 error]
+[./app.ts] <size> {main} [built] [1 error]
 
 ERROR in ./test/comparison-tests/nolib/src/tsconfig.json
 [90m[tsl] [39m[1m[31mERROR[39m[22m
@@ -138,7 +138,7 @@ ERROR in ./test/comparison-tests/nolib/src/tsconfig.json
 [1m[31m      TS2318: Cannot find global type 'RegExp'.[39m[22m
 
 ERROR in ./test/comparison-tests/nolib/src/app.ts
-./test/comparison-tests/nolib/src/app.ts
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36m./test/comparison-tests/nolib/src/app.ts(1,1)[39m[22m
 [1m[31m      TS2304: Cannot find name 'parseInt'.[39m[22m"
 `;
@@ -227,19 +227,19 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/nolib/src/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/nolib/src/app.ts\\":
-/*!************************************************!*\\\\
-  !*** ./test/comparison-tests/nolib/src/app.ts ***!
-  \\\\************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval(\\"parseInt('10');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/nolib/src/app.ts?\\");
+eval(\\"parseInt('10');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ })
 
@@ -250,5 +250,5 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/nolib/src/app.ts] <size> {main} [built]"
+[./app.ts] <size> {main} [built]"
 `;

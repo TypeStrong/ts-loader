@@ -84,20 +84,20 @@ exports[`build: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/externals/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/externals/app.ts\\":
-/*!************************************************!*\\\\
-  !*** ./test/comparison-tests/externals/app.ts ***!
-  \\\\************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nexports.__esModule = true;\\\\nvar hello = __webpack_require__(/*! hello */ \\\\\\"hello\\\\\\");\\\\nvar msg = hello.sayHello('World');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/externals/app.ts?\\");
+eval(\\"\\\\nexports.__esModule = true;\\\\nvar hello = __webpack_require__(/*! hello */ \\\\\\"hello\\\\\\");\\\\nvar msg = hello.sayHello('World');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
@@ -119,7 +119,7 @@ exports[`build: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/externals/app.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built]
 [hello] external \\"hello\\" <size> {main} [built]"
 `;
 
@@ -207,20 +207,20 @@ exports[`transpile only: bundle 1`] = `
 /******/
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = \\"./test/comparison-tests/externals/app.ts\\");
+/******/ 	return __webpack_require__(__webpack_require__.s = \\"./app.ts\\");
 /******/ })
 /************************************************************************/
 /******/ ({
 
-/***/ \\"./test/comparison-tests/externals/app.ts\\":
-/*!************************************************!*\\\\
-  !*** ./test/comparison-tests/externals/app.ts ***!
-  \\\\************************************************/
+/***/ \\"./app.ts\\":
+/*!****************!*\\\\
+  !*** ./app.ts ***!
+  \\\\****************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 \\"use strict\\";
-eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar hello = __webpack_require__(/*! hello */ \\\\\\"hello\\\\\\");\\\\nvar msg = hello.sayHello('World');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./test/comparison-tests/externals/app.ts?\\");
+eval(\\"\\\\nObject.defineProperty(exports, \\\\\\"__esModule\\\\\\", { value: true });\\\\nvar hello = __webpack_require__(/*! hello */ \\\\\\"hello\\\\\\");\\\\nvar msg = hello.sayHello('World');\\\\n\\\\n\\\\n//# sourceURL=webpack:///./app.ts?\\");
 
 /***/ }),
 
@@ -242,6 +242,6 @@ exports[`transpile only: stats 1`] = `
 "    Asset   Size  Chunks             Chunk Names
 bundle.js <size>    main  [emitted]  main
 Entrypoint main = bundle.js
-[./test/comparison-tests/externals/app.ts] <size> {main} [built]
+[./app.ts] <size> {main} [built]
 [hello] external \\"hello\\" <size> {main} [built]"
 `;
