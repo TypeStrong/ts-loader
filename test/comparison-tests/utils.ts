@@ -3,6 +3,7 @@ import * as fs from 'fs-extra'
 import { PassThrough } from 'stream'
 import { promisify } from 'util'
 import * as webpack from 'webpack'
+import { Observable } from 'rxjs'
 import { IFs, createFsFromVolume, Volume } from 'memfs'
 import { LoaderOptions } from '../../src/interfaces'
 
@@ -60,50 +61,51 @@ interface WatchBuildOptions {
   path: string
 }
 
-export async function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, options: WatchBuildOptions) {
+export function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, options: WatchBuildOptions): Observable<webpack.Stats> {
   // @ts-ignore TODO: remove this in webpack 5
   memfs.join = path.join.bind(memfs)
   compiler.outputFileSystem = memfs as IFs & { join(...paths: string[]): string }
 
-  const stream = new PassThrough({ objectMode: true })
-  let timer: NodeJS.Timer
-  let lastHash = ''
-  let iteration = 0
+  // @ts-ignore
+  return new Observable(subscriber => {
+    const run = async () => {
+      let timer: NodeJS.Timer
+      let lastHash = ''
+      let iteration = 0
 
-  const targetPath = path.join(options.directory, options.path)
-  const originalFileContent = await fs.readFile(targetPath)
+      const targetPath = path.join(options.directory, options.path)
+      const originalFileContent = await fs.readFile(targetPath)
 
-  const watcher = compiler.watch({}, async (err, stats) => {
-    if (err) {
-      watcher.close(() => {
-        stream.end(async () => {
-          await fs.writeFile(targetPath, originalFileContent)
-          clearTimeout(timer)
-          stream.emit('error', err)
-        })
+      const watcher = compiler.watch({}, async (err, stats) => {
+        if (err) {
+          watcher.close(async () => {
+            await fs.writeFile(targetPath, originalFileContent)
+            clearTimeout(timer)
+            subscriber.error(err)
+          })
+          return
+        }
+
+        if (stats.hash === lastHash) {
+          return
+        }
+
+        subscriber.next(stats)
+        lastHash = stats.hash
+
+        timer = setTimeout(async (iteration: number) => {
+          if (iteration < options.iteration) {
+            await fs.copyFile(path.join(options.directory, `patch${iteration}`, options.path), targetPath)
+          } else {
+            await fs.writeFile(targetPath, originalFileContent)
+            watcher.close(() => subscriber.complete())
+          }
+        }, 250, iteration)
+        iteration += 1
       })
-      return
     }
-
-    if (stats.hash === lastHash) {
-      return
-    }
-
-    stream.write(stats)
-    lastHash = stats.hash
-
-    timer = setTimeout(async (iteration: number) => {
-      if (iteration < options.iteration) {
-        await fs.copyFile(path.join(options.directory, `patch${iteration}`, options.path), targetPath)
-      } else {
-        await fs.writeFile(targetPath, originalFileContent)
-        watcher.close(() => stream.end())
-      }
-    }, 250, iteration)
-    iteration += 1
+    run()
   })
-
-  return stream
 }
 
 export function createMemfs(): IFs {
