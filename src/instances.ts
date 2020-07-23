@@ -689,15 +689,16 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
       if (!result) {
         break;
       }
-      if ((result.affected as typescript.SourceFile).fileName) {
+
+      // Only put the output file in the cache if the source came from webpack and
+      // was processed by the loaders
+      if (result.affected === sourceFile) {
         instance.watchHost!.outputFiles.set(
           instance.filePathKeyMapper(
             (result.affected as typescript.SourceFile).fileName
           ),
           outputFiles.slice()
         );
-      }
-      if (result.affected === sourceFile) {
         return outputFiles;
       }
     }
