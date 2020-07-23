@@ -383,6 +383,11 @@ function updateFileInCache(
     }
   }
 
+  // Added in case the files were already updated by the watch API
+  if (instance.modifiedFiles && instance.modifiedFiles.get(key)) {
+    fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Changed;
+  }
+
   if (instance.watchHost !== undefined && fileWatcherEventKind !== undefined) {
     instance.hasUnaccountedModifiedFiles =
       instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind) ||
