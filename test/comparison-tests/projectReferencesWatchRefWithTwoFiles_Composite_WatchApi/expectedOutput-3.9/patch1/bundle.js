@@ -94,7 +94,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nvar helper_1 = __webpack_require__(/*! ./lib/helper */ \"./lib/helper.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three, helper_1.helper.four); // consume new number\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
