@@ -1,6 +1,5 @@
 import * as path from 'path'
 import * as fs from 'fs-extra'
-import { PassThrough } from 'stream'
 import { promisify } from 'util'
 import * as webpack from 'webpack'
 import { Observable } from 'rxjs'
@@ -61,50 +60,67 @@ interface WatchBuildOptions {
   path: string
 }
 
-export function runWatchBuild(memfs: IFs, compiler: webpack.Compiler, options: WatchBuildOptions): Observable<webpack.Stats> {
+export function runWatchBuild(
+  memfs: IFs,
+  compiler: webpack.Compiler,
+  options: WatchBuildOptions
+): Observable<webpack.Stats> {
   // @ts-ignore TODO: remove this in webpack 5
   memfs.join = path.join.bind(memfs)
   compiler.outputFileSystem = memfs as IFs & { join(...paths: string[]): string }
 
-  // @ts-ignore
   return new Observable(subscriber => {
-    const run = async () => {
-      let timer: NodeJS.Timer
-      let lastHash = ''
-      let iteration = 0
+    const targetPath = path.join(options.directory, options.path)
+    const originalFileContent = fs.readFileSync(targetPath)
+    let watcher: webpack.Watching | undefined
+    let closed = true
 
-      const targetPath = path.join(options.directory, options.path)
-      const originalFileContent = await fs.readFile(targetPath)
-
-      const watcher = compiler.watch({}, async (err, stats) => {
-        if (err) {
-          watcher.close(async () => {
-            await fs.writeFile(targetPath, originalFileContent)
-            clearTimeout(timer)
-            subscriber.error(err)
-          })
-          return
-        }
-
-        if (stats.hash === lastHash) {
-          return
-        }
-
-        subscriber.next(stats)
-        lastHash = stats.hash
-
-        timer = setTimeout(async (iteration: number) => {
-          if (iteration < options.iteration) {
-            await fs.copyFile(path.join(options.directory, `patch${iteration}`, options.path), targetPath)
-          } else {
-            await fs.writeFile(targetPath, originalFileContent)
-            watcher.close(() => subscriber.complete())
-          }
-        }, 250, iteration)
-        iteration += 1
-      })
+    const dispose = () => {
+      fs.writeFileSync(targetPath, originalFileContent)
+      if (watcher && !closed) {
+        watcher.close(() => {
+          closed = true
+        })
+      }
     }
-    run()
+
+    let timer: NodeJS.Timer
+    let lastHash = ''
+    let iteration = 0
+
+    closed = false
+    watcher = compiler.watch({}, async (err, stats) => {
+      if (err) {
+        clearTimeout(timer)
+        await dispose()
+        subscriber.error(err)
+        return
+      }
+
+      if (stats.hash === lastHash) {
+        return
+      }
+
+      subscriber.next(stats)
+      lastHash = stats.hash
+
+      timer = setTimeout(async (iteration: number) => {
+        if (iteration < options.iteration) {
+          await fs.copyFile(path.join(options.directory, `patch${iteration}`, options.path), targetPath)
+        } else {
+          dispose()
+          subscriber.complete()
+        }
+      }, 250, iteration)
+      iteration += 1
+    })
+
+    setTimeout(() => {
+      dispose()
+      subscriber.error(new Error('Timeout exceeded.'))
+    }, 9900)
+
+    return dispose
   })
 }
 
