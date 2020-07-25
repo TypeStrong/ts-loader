@@ -1,6 +1,10 @@
 {
   "preset": "ts-jest",
   "testRunner": "jest-circus/runner",
+  "modulePathIgnorePatterns": [
+    "<rootDir>/examples/.*",
+    "<rootDir>/test/execution-tests/.*"
+  ],
   "globals": {
     "ts-jest": {
       "isolatedModules": true
