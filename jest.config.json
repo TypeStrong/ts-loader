@@ -1,6 +1,7 @@
 {
   "preset": "ts-jest",
   "testRunner": "jest-circus/runner",
+  "testEnvironment": "node",
   "modulePathIgnorePatterns": [
     "<rootDir>/examples/.*",
     "<rootDir>/test/execution-tests/.*"
