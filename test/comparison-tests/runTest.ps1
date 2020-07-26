@@ -4,5 +4,5 @@ $tests = Get-ChildItem ./test/comparison-tests -Directory | Where-Object {
 }
 
 foreach ($test in $tests) {
-  yarn jest --testRegex="$test/test.ts" --testTimeout=8000
+  yarn jest --testRegex="$test/test.ts" --testTimeout=8000 --colors
 }
