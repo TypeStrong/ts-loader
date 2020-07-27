@@ -8,7 +8,6 @@
     "build": "tsc --version && tsc --project \"./src\"",
     "lint": "eslint -c .eslintrc.js --ext .ts ./src",
     "comparison-tests": "git clean -xfd test/comparison-tests && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
-    "comparison-testsnd": "npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "comparison-tests-generate": "git clean -xfd test/comparison-tests && node test/comparison-tests/stub-new-version.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
     "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",
