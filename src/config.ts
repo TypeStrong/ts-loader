@@ -57,7 +57,6 @@ export function getConfigFile(
     configFile = {
       config: {
         compilerOptions: {},
-        files: [],
       },
     };
   }

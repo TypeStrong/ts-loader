@@ -1,0 +1,13 @@
+     Asset       Size  Chunks             Chunk Names
+ bundle.js    2.57 kB       0  [emitted]  main
+index.html  182 bytes          [emitted]  
+chunk    {0} bundle.js (main) 36 bytes [entry] [rendered]
+    [0] ./.test/html-webpack-plugin/app.ts 36 bytes {0} [built]
+Child html-webpack-plugin for "index.html":
+         Asset    Size  Chunks  Chunk Names
+    index.html  544 kB       0  
+    chunk    {0} index.html 541 kB [entry] [rendered]
+        [0] ./~/lodash/lodash.js 540 kB {0} [built]
+        [1] (webpack)/buildin/global.js 488 bytes {0} [built]
+        [2] (webpack)/buildin/module.js 495 bytes {0} [built]
+        [3] ./~/html-webpack-plugin/lib/loader.js!./~/html-webpack-plugin/default_index.ejs 540 bytes {0} [built]
