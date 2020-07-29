@@ -93,31 +93,33 @@ export function runWatchBuild(
     let iteration = 0
 
     closed = false
-    watcher = compiler.watch({}, async (err, stats) => {
-      if (err) {
-        clearTimeout(timer)
-        dispose()
-        subscriber.error(err)
-        return
-      }
-
-      if (stats.hash === lastHash) {
-        return
-      }
-
-      subscriber.next(stats)
-      lastHash = stats.hash
-
-      timer = setTimeout(async (iteration: number) => {
-        if (iteration < options.iteration) {
-          await fs.copyFile(path.join(options.directory, `patch${iteration}`, options.path), targetPath)
-        } else {
+    setTimeout(() => {
+      watcher = compiler.watch({}, async (err, stats) => {
+        if (err) {
+          clearTimeout(timer)
           dispose()
-          subscriber.complete()
+          subscriber.error(err)
+          return
         }
-      }, 250, iteration)
-      iteration += 1
-    })
+
+        if (stats.hash === lastHash) {
+          return
+        }
+
+        subscriber.next(stats)
+        lastHash = stats.hash
+
+        timer = setTimeout(async (iteration: number) => {
+          if (iteration < options.iteration) {
+            await fs.copyFile(path.join(options.directory, `patch${iteration}`, options.path), targetPath)
+          } else {
+            dispose()
+            subscriber.complete()
+          }
+        }, 250, iteration)
+        iteration += 1
+      })
+    }, 1000)
 
     timeoutTimer = setTimeout(() => {
       dispose()
