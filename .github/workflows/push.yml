@@ -51,8 +51,7 @@ jobs:
         working-directory: C:\source\ts-loader
 
       - name: snapshot test
-        run: ./test/comparison-tests/runTest.ps1
-        shell: pwsh
+        run: yarn jest --color --testTimeout=8000
         working-directory: C:\source\ts-loader
 
       - name: test
