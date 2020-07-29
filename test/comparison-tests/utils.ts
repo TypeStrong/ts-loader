@@ -74,9 +74,13 @@ export function runWatchBuild(
     const originalFileContent = fs.readFileSync(targetPath)
     let watcher: webpack.Watching | undefined
     let closed = true
+    let timeoutTimer: NodeJS.Timer | undefined
 
     const dispose = () => {
       fs.writeFileSync(targetPath, originalFileContent)
+      if (timeoutTimer) {
+        clearTimeout(timeoutTimer)
+      }
       if (watcher && !closed) {
         watcher.close(() => {
           closed = true
@@ -92,7 +96,7 @@ export function runWatchBuild(
     watcher = compiler.watch({}, async (err, stats) => {
       if (err) {
         clearTimeout(timer)
-        await dispose()
+        dispose()
         subscriber.error(err)
         return
       }
@@ -115,7 +119,7 @@ export function runWatchBuild(
       iteration += 1
     })
 
-    setTimeout(() => {
+    timeoutTimer = setTimeout(() => {
       dispose()
       subscriber.error(new Error('Timeout exceeded.'))
     }, 9900)
