@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "sourceMap": true,
+    "experimentalDecorators": true
+  }
+}
