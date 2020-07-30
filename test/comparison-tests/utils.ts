@@ -94,7 +94,7 @@ export function runWatchBuild(
 
     closed = false
     setTimeout(() => {
-      watcher = compiler.watch({}, async (err, stats) => {
+      watcher = compiler.watch({ aggregateTimeout: 1200 }, async (err, stats) => {
         if (err) {
           clearTimeout(timer)
           dispose()
@@ -116,7 +116,7 @@ export function runWatchBuild(
             dispose()
             subscriber.complete()
           }
-        }, 300, iteration)
+        }, 500, iteration)
         iteration += 1
       })
     }, 1000)
