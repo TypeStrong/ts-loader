@@ -28,7 +28,7 @@ export function webpackConfig(entry: webpack.Configuration['entry'], options: Pa
       path: '/',
     },
     resolve: {
-      extensions: ['.ts', '.js']
+      extensions: ['.ts', '.tsx', '.js']
     },
     module: {
       rules: [
