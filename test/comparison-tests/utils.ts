@@ -116,10 +116,10 @@ export function runWatchBuild(
             dispose()
             subscriber.complete()
           }
-        }, 250, iteration)
+        }, 300, iteration)
         iteration += 1
       })
-    }, 400)
+    }, 1000)
 
     timeoutTimer = setTimeout(() => {
       dispose()
