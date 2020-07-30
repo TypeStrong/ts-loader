@@ -119,12 +119,12 @@ export function runWatchBuild(
         }, 250, iteration)
         iteration += 1
       })
-    }, 1000)
+    }, 400)
 
     timeoutTimer = setTimeout(() => {
       dispose()
       subscriber.error(new Error('Timeout exceeded.'))
-    }, 9900)
+    }, 11900)
 
     return dispose
   })
