@@ -18,6 +18,8 @@ const RE_TABLE_HEADER = /\s+Asset\s+Size\s+Chunks\s+Chunk\sNames/
 
 const TABLE_HEADER = '    Asset   Size  Chunks             Chunk Names'
 
+export const TEST_TIMEOUT = 30000
+
 export function webpackConfig(entry: webpack.Configuration['entry'], options: Partial<LoaderOptions> = {}): webpack.Configuration {
   return {
     mode: 'development',
@@ -124,7 +126,7 @@ export function runWatchBuild(
     timeoutTimer = setTimeout(() => {
       dispose()
       subscriber.error(new Error('Timeout exceeded.'))
-    }, 11900)
+    }, TEST_TIMEOUT - 100)
 
     return dispose
   })
