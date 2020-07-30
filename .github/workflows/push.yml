@@ -51,7 +51,7 @@ jobs:
         working-directory: C:\source\ts-loader
 
       - name: snapshot test
-        run: yarn jest --color --testTimeout=8000
+        run: yarn jest --color --testTimeout=8000 --testPathIgnorePatterns=issue441
         working-directory: C:\source\ts-loader
 
       - name: test
