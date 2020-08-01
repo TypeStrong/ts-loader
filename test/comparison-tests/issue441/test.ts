@@ -2,7 +2,7 @@ import * as path from 'path'
 import * as webpack from 'webpack'
 import * as utils from '../utils'
 
-jest.retryTimes(4).setTimeout(utils.TEST_TIMEOUT)
+jest.retryTimes(10).setTimeout(utils.TEST_TIMEOUT)
 
 test('build', (done) => {
   const config = utils.webpackConfig(path.join(__dirname, 'app.ts'))
