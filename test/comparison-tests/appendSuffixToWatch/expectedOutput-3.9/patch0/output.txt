@@ -1,8 +1,0 @@
-           Asset      Size  Chunks             Chunk Names
-bundle.entry1.js  3.78 KiB  entry1  [emitted]  entry1
-bundle.entry2.js  4.29 KiB  entry2             entry2
-Entrypoint entry1 = bundle.entry1.js
-Entrypoint entry2 = bundle.entry2.js
-[./component.vue] 76 bytes {entry2}
-[./entry1.ts] 27 bytes {entry1} [built]
-[./entry2.ts] 132 bytes {entry2}
