@@ -16,9 +16,6 @@ jobs:
       - name: build
         run: yarn build
 
-      - name: install typescript
-        run: yarn add typescript@3.9.3
-
       - name: snapshot test
         run: yarn jest --color --testTimeout=8000
 
@@ -44,10 +41,6 @@ jobs:
 
       - name: build
         run: yarn build
-        working-directory: C:\source\ts-loader
-
-      - name: install typescript
-        run: yarn add typescript@3.9.3
         working-directory: C:\source\ts-loader
 
       - name: snapshot test
