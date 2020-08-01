@@ -2,7 +2,9 @@ import * as path from 'path'
 import * as webpack from 'webpack'
 import * as utils from '../utils'
 
-jest.retryTimes(10).setTimeout(utils.TEST_TIMEOUT)
+const TEST_TIMEOUT = 60000
+
+jest.retryTimes(10).setTimeout(TEST_TIMEOUT)
 
 test('build', (done) => {
   const config = utils.webpackConfig(path.join(__dirname, 'app.ts'))
@@ -16,6 +18,7 @@ test('build', (done) => {
     iteration: 2,
     directory: __dirname,
     path: 'app.ts',
+    timeout: TEST_TIMEOUT,
   })
   build.subscribe({
     next: async stats => {
@@ -41,6 +44,7 @@ test('transpile only', (done) => {
     iteration: 2,
     directory: __dirname,
     path: 'app.ts',
+    timeout: TEST_TIMEOUT,
   })
   build.subscribe({
     next: async stats => {

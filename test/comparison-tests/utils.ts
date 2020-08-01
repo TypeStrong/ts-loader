@@ -60,6 +60,7 @@ interface WatchBuildOptions {
   iteration: number
   directory: string
   path: string
+  timeout?: number
 }
 
 export function runWatchBuild(
@@ -70,6 +71,7 @@ export function runWatchBuild(
   // @ts-ignore TODO: remove this in webpack 5
   memfs.join = path.join.bind(memfs)
   compiler.outputFileSystem = memfs as IFs & { join(...paths: string[]): string }
+  const timeout = options.timeout || TEST_TIMEOUT
 
   return new Observable(subscriber => {
     const targetPath = path.join(options.directory, options.path)
@@ -126,7 +128,7 @@ export function runWatchBuild(
     timeoutTimer = setTimeout(() => {
       dispose()
       subscriber.error(new Error('Timeout exceeded.'))
-    }, TEST_TIMEOUT - 100)
+    }, timeout - 100)
 
     return dispose
   })
