@@ -8,25 +8,19 @@ jobs:
   build_test_and_publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: install node
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
           registry-url: https://registry.npmjs.org/
-
-      - name: upgrade yarn
-        run: npm install yarn -g
 
       - name: install
         run: yarn install
 
       - name: build
         run: yarn build
-
-      - name: install chrome
-        uses: ./.github/node-chrome
 
       - name: test
         run: yarn execution-tests
