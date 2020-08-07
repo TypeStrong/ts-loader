@@ -103,7 +103,7 @@ npm install typescript --save-dev
 ### Running
 
 Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
-build system using the [Node.js API](http://webpack.github.io/docs/node.js-api.html).
+build system using the [Node.js API](https://webpack.js.org/api/node/).
 
 ### Examples
 
@@ -224,7 +224,7 @@ require("!style!css!./style.css");
 ```
 
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
-don't directly use them. Instead you require them at [split points](http://webpack.github.io/docs/code-splitting.html#defining-a-split-point). See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
+don't directly use them. Instead you require them at [split points](https://webpack.js.org/guides/code-splitting/). See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
 
 [TypeScript 2.4 provides support for ECMAScript's new `import()` calls. These calls import a module and return a promise to that module.](https://blogs.msdn.microsoft.com/typescript/2017/06/12/announcing-typescript-2-4-rc/) This is also supported in webpack - details on usage can be found [here](https://webpack.js.org/guides/code-splitting-async/#dynamic-import-import-). Happy code splitting!
 

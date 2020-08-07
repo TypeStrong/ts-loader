@@ -7,5 +7,5 @@ the outputs (e.g. [`expectedOutput-1.6/bundle.js`](expectedOutput-1.6/bundle.js)
 
 More information can be found at these sites:
 - https://www.typescriptlang.org/docs/handbook/modules.html#dynamic-module-loading-in-nodejs
-- https://github.com/webpack/docs/wiki/list-of-plugins#defineplugin
+- https://webpack.js.org/plugins/define-plugin/
 - https://github.com/webpack/webpack/tree/master/examples/multi-compiler
