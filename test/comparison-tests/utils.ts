@@ -18,6 +18,7 @@ const RE_TABLE_HEADER = /\s+Asset\s+Size\s+Chunks\s+Chunk\sNames/
 
 const TABLE_HEADER = '    Asset   Size  Chunks             Chunk Names'
 
+export const TEST_RETRY_TIMES = 12
 export const TEST_TIMEOUT = 30000
 
 export function webpackConfig(entry: webpack.Configuration['entry'], options: Partial<LoaderOptions> = {}): webpack.Configuration {
