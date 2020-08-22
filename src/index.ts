@@ -160,7 +160,7 @@ function setModuleMeta(
  */
 function getOptionsHash(loaderOptions: LoaderOptions) {
   const hash = crypto.createHash('sha256');
-  Object.keys(loaderOptions).map(key => {
+  Object.keys(loaderOptions).forEach(key => {
     const value = loaderOptions[key];
     if (value) {
       hash.update(key + value.toString());
