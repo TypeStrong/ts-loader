@@ -137,7 +137,7 @@ export function makeError(
 }
 
 export function appendSuffixIfMatch(
-  patterns: RegExp[],
+  patterns: (RegExp | string)[],
   filePath: string,
   suffix: string
 ): string {
@@ -152,7 +152,7 @@ export function appendSuffixIfMatch(
 }
 
 export function appendSuffixesIfMatch(
-  suffixDict: { [suffix: string]: RegExp[] },
+  suffixDict: { [suffix: string]: (RegExp | string)[] },
   filePath: string
 ): string {
   let amendedPath = filePath;
