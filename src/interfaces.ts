@@ -266,8 +266,8 @@ export interface LoaderOptions {
   onlyCompileBundledFiles: boolean;
   colors: boolean;
   compilerOptions: typescript.CompilerOptions;
-  appendTsSuffixTo: RegExp[];
-  appendTsxSuffixTo: RegExp[];
+  appendTsSuffixTo: (RegExp | string)[];
+  appendTsxSuffixTo: (RegExp | string)[];
   happyPackMode: boolean;
   getCustomTransformers:
     | string

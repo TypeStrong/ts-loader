@@ -498,14 +498,23 @@ of your code.
 #### appendTsSuffixTo
 | Type | Default Value |
 |------|--------------|
-| `RegExp[]` | `[]`|
+| `(RegExp | string)[]` | `[]`|
 
 #### appendTsxSuffixTo
 | Type | Default Value |
 |------|--------------|
-| `RegExp[]` | `[]`|
+| `(RegExp | string)[]` | `[]`|
 
 A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
+If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) with `ts-loader`, you need use the `string` type for the regular expressions, not `RegExp` object.
+
+```js
+// change this:
+{ appendTsSuffixTo: [/\.vue$/] }
+// to:
+{ appendTsSuffixTo: ['\\.vue$'] }
+```
+
 
 This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefit from the new single file format in the future.)
 
