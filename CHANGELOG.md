@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.3
+* [Fix the wrong instance caching when using `appendTsSuffixTo` and `appendTsxSuffixTo` together](https://github.com/TypeStrong/ts-loader/pull/1170) - thanks @meowtec
+
 ## v8.0.2
 
 * [Fix 2 issues with experimentalWatchApi](https://github.com/TypeStrong/ts-loader/pull/1159) - thanks @appzuka
