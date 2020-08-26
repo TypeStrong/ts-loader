@@ -292,7 +292,7 @@ If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between
 different dependencies in your application will be lost.
 
-It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/fork-ts-checker-webpack-plugin). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
+Be aware that if you set `transpileOnly: true` together with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) it will  disable  type checking with both ts-loader and with fork-ts-checker-webpack-plugin. To get latter doing the type checking but not former just omit `transpileOnly`.
 
 If you enable this option, webpack 4 will give you "export not found" warnings any time you re-export a type:
 
