@@ -6,6 +6,7 @@ import * as constants from './constants';
 import { getEmitFromWatchHost, getEmitOutput } from './instances';
 import {
   FilePathKey,
+  LoaderOptions,
   TSFiles,
   TSInstance,
   WebpackModule,
@@ -17,6 +18,7 @@ import {
   formatErrors,
   isReferencedFile,
   populateReverseDependencyGraph,
+  tsLoaderSource,
 } from './utils';
 
 export function makeAfterCompile(
@@ -41,7 +43,7 @@ export function makeAfterCompile(
       callback();
       return;
     }
-    removeCompilationTSLoaderErrors(compilation);
+    removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
       getCompilerOptionDiagnostics,
@@ -235,7 +237,7 @@ function provideErrorsToWebpack(
     const associatedModules = modules.get(instance.filePathKeyMapper(fileName));
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        removeModuleTSLoaderError(module);
+        removeModuleTSLoaderError(module, loaderOptions);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -280,6 +282,7 @@ function provideSolutionErrorsToWebpack(
 ) {
   if (
     !instance.solutionBuilderHost ||
+    instance.solutionBuilderHost.defaultInstance !== instance ||
     !(
       instance.solutionBuilderHost.diagnostics.global.length ||
       instance.solutionBuilderHost.diagnostics.perFile.size
@@ -299,7 +302,7 @@ function provideSolutionErrorsToWebpack(
     const associatedModules = modules.get(filePath);
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        removeModuleTSLoaderError(module);
+        removeModuleTSLoaderError(module, loaderOptions);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -430,7 +433,10 @@ function provideAssetsFromSolutionBuilderHost(
   instance: TSInstance,
   compilation: webpack.compilation.Compilation
 ) {
-  if (instance.solutionBuilderHost) {
+  if (
+    instance.solutionBuilderHost &&
+    instance.solutionBuilderHost.defaultInstance === instance
+  ) {
     // written files
     outputFilesToAsset(instance.solutionBuilderHost.writtenFiles, compilation);
     instance.solutionBuilderHost.writtenFiles.length = 0;
@@ -445,14 +451,18 @@ function provideAssetsFromSolutionBuilderHost(
  * the loader, we need to detect and remove any pre-existing errors.
  */
 function removeCompilationTSLoaderErrors(
-  compilation: webpack.compilation.Compilation
+  compilation: webpack.compilation.Compilation,
+  loaderOptions: LoaderOptions
 ) {
   compilation.errors = compilation.errors.filter(
-    error => error.loaderSource !== 'ts-loader'
+    error => error.loaderSource !== tsLoaderSource(loaderOptions)
   );
 }
 
-function removeModuleTSLoaderError(module: WebpackModule) {
+function removeModuleTSLoaderError(
+  module: WebpackModule,
+  loaderOptions: LoaderOptions
+) {
   /**
    * Since webpack 5, the `errors` property is deprecated,
    * so we can check if some methods for reporting errors exist.
@@ -464,11 +474,13 @@ function removeModuleTSLoaderError(module: WebpackModule) {
 
     Array.from(warnings || []).forEach(warning => module.addWarning(warning));
     Array.from(errors || [])
-      .filter((error: any) => error.loaderSource !== 'ts-loader')
+      .filter(
+        (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
+      )
       .forEach(error => module.addError(error));
   } else {
     module.errors = module.errors.filter(
-      error => error.loaderSource !== 'ts-loader'
+      error => error.loaderSource !== tsLoaderSource(loaderOptions)
     );
   }
 }

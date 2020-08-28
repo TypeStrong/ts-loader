@@ -129,10 +129,12 @@ export interface SolutionBuilderWithWatchHost
       typescript.EmitAndSemanticDiagnosticsBuilderProgram
     >,
     WatchFactory {
+  defaultInstance: TSInstance;
+  instances: Map<string, TSInstance>;
   diagnostics: SolutionDiagnostics;
   writtenFiles: OutputFile[];
   configFileInfo: Map<FilePathKey, ConfigFileInfo>;
-  outputAffectingInstanceVersion: Map<FilePathKey, true>;
+  outputAffectingInstanceVersion: Map<string, Map<FilePathKey, true>>;
   getOutputFileKeyFromReferencedProject(
     outputFileName: string
   ): FilePathKey | undefined;
@@ -204,9 +206,6 @@ export interface TSInstance {
 
   reportTranspileErrors?: boolean;
   solutionBuilderHost?: SolutionBuilderWithWatchHost;
-  solutionBuilder?: typescript.SolutionBuilder<
-    typescript.EmitAndSemanticDiagnosticsBuilderProgram
-  >;
   configFilePath: string | undefined;
 
   filePathKeyMapper: (fileName: string) => FilePathKey;

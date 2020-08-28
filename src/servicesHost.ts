@@ -215,17 +215,9 @@ export function makeServicesHost(
       if (file) {
         return file.version.toString();
       }
-      const outputFileAndKey =
-        instance.solutionBuilderHost &&
-        instance.solutionBuilderHost.getOutputFileAndKeyFromReferencedProject(
-          fileName
-        );
-      if (outputFileAndKey !== undefined) {
-        instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
-          outputFileAndKey.key,
-          true
-        );
-      }
+      const outputFileAndKey = getOutputFileAndKeyAffectingInstanceVersion(
+        fileName
+      );
       return outputFileAndKey && outputFileAndKey.outputFile
         ? outputFileAndKey.outputFile.version.toString()
         : '';
@@ -240,14 +232,10 @@ export function makeServicesHost(
 
       if (file === undefined) {
         if (instance.solutionBuilderHost) {
-          const outputFileAndKey = instance.solutionBuilderHost.getOutputFileAndKeyFromReferencedProject(
+          const outputFileAndKey = getOutputFileAndKeyAffectingInstanceVersion(
             fileName
           );
           if (outputFileAndKey !== undefined) {
-            instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
-              outputFileAndKey.key,
-              true
-            );
             return outputFileAndKey && outputFileAndKey.outputFile
               ? compiler.ScriptSnapshot.fromString(
                   outputFileAndKey.outputFile.text
@@ -306,6 +294,28 @@ export function makeServicesHost(
   };
 
   return servicesHost;
+
+  function getOutputFileAndKeyAffectingInstanceVersion(fileName: string) {
+    const outputFileAndKey =
+      instance.solutionBuilderHost &&
+      instance.solutionBuilderHost.getOutputFileAndKeyFromReferencedProject(
+        fileName
+      );
+    if (outputFileAndKey !== undefined) {
+      let outputAffectingInstanceVersion = instance.solutionBuilderHost!.outputAffectingInstanceVersion.get(
+        instance.loaderOptions.instance
+      );
+      if (!outputAffectingInstanceVersion) {
+        outputAffectingInstanceVersion = new Map();
+        instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
+          instance.loaderOptions.instance,
+          outputAffectingInstanceVersion
+        );
+      }
+      outputAffectingInstanceVersion.set(outputFileAndKey.key, true);
+    }
+    return outputFileAndKey;
+  }
 }
 
 function makeResolvers<T extends typescript.ModuleResolutionHost>(
@@ -785,7 +795,10 @@ export function makeSolutionBuilderHost(
     );
   const outputFiles = new Map<FilePathKey, OutputFile | false>();
   const writtenFiles: OutputFile[] = [];
-  const outputAffectingInstanceVersion = new Map<FilePathKey, true>();
+  const outputAffectingInstanceVersion = new Map<
+    string,
+    Map<FilePathKey, true>
+  >();
   let timeoutId: [(...args: any[]) => void, any[]] | undefined;
 
   const symlinkedDirectories = new Map<FilePathKey, string | false>();
@@ -798,6 +811,8 @@ export function makeSolutionBuilderHost(
   addCache(cachedSys);
 
   const configFileInfo = new Map<FilePathKey, ConfigFileInfo>();
+  const instances = new Map<string, TSInstance>();
+  instances.set(instance.loaderOptions.instance, instance);
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...compiler.createSolutionBuilderWithWatchHost(
       compiler.sys,
@@ -808,6 +823,8 @@ export function makeSolutionBuilderHost(
     ),
     useCaseSensitiveFileNames: () =>
       useCaseSensitiveFileNames(compiler, instance.loaderOptions),
+    defaultInstance: instance,
+    instances,
     diagnostics,
     ...createWatchFactory(filePathKeyMapper, compiler),
     // Overrides
@@ -823,7 +840,6 @@ export function makeSolutionBuilderHost(
     },
     writeFile: (name, text, writeByteOrderMark) => {
       const key = filePathKeyMapper(name);
-      updateFileWithText(instance, key, name, () => text);
       const existing = outputFiles.get(key);
       const newOutputFile: OutputFile = {
         name,
@@ -838,30 +854,33 @@ export function makeSolutionBuilderHost(
       };
       outputFiles.set(key, newOutputFile);
       writtenFiles.push(newOutputFile);
-      if (
-        outputAffectingInstanceVersion.has(key) &&
-        (!existing || existing.text !== text)
-      ) {
-        instance.version++;
-      }
-      if (
-        instance.watchHost &&
-        !instance.files.has(key) &&
-        !instance.otherFiles.has(key)
-      ) {
-        // If file wasnt updated in files or other files of instance, let watch host know of the change
-        if (!existing) {
-          instance.hasUnaccountedModifiedFiles =
-            instance.watchHost.invokeFileWatcher(
-              name,
-              compiler.FileWatcherEventKind.Created
-            ) || instance.hasUnaccountedModifiedFiles;
-        } else if (existing.version !== newOutputFile.version) {
-          instance.hasUnaccountedModifiedFiles =
-            instance.watchHost.invokeFileWatcher(
-              name,
-              compiler.FileWatcherEventKind.Changed
-            ) || instance.hasUnaccountedModifiedFiles;
+      for (const [instanceId, instance] of instances) {
+        updateFileWithText(instance, key, name, () => text);
+        if (
+          outputAffectingInstanceVersion.get(instanceId)?.has(key) &&
+          (!existing || existing.text !== text)
+        ) {
+          instance.version++;
+        }
+        if (
+          instance.watchHost &&
+          !instance.files.has(key) &&
+          !instance.otherFiles.has(key)
+        ) {
+          // If file wasnt updated in files or other files of instance, let watch host know of the change
+          if (!existing) {
+            instance.hasUnaccountedModifiedFiles =
+              instance.watchHost.invokeFileWatcher(
+                name,
+                compiler.FileWatcherEventKind.Created
+              ) || instance.hasUnaccountedModifiedFiles;
+          } else if (existing.version !== newOutputFile.version) {
+            instance.hasUnaccountedModifiedFiles =
+              instance.watchHost.invokeFileWatcher(
+                name,
+                compiler.FileWatcherEventKind.Changed
+              ) || instance.hasUnaccountedModifiedFiles;
+          }
         }
       }
       compiler.sys.writeFile(name, text, writeByteOrderMark);
@@ -1240,6 +1259,7 @@ export function getSolutionErrors(instance: TSInstance, context: string) {
   const solutionErrors: WebpackError[] = [];
   if (
     instance.solutionBuilderHost &&
+    instance.solutionBuilderHost.defaultInstance === instance &&
     instance.solutionBuilderHost.diagnostics.transpileErrors.length
   ) {
     instance.solutionBuilderHost.diagnostics.transpileErrors.forEach(

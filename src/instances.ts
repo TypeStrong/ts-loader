@@ -35,6 +35,10 @@ import {
 import { makeWatchRun } from './watch-run';
 
 const instances = {} as TSInstances;
+const solutionBuilderHosts = new Map<
+  FilePathKey,
+  NonNullable<TSInstance['solutionBuilderHost']>
+>();
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -60,7 +64,13 @@ export function getTypeScriptInstance(
   const compiler = getCompiler(loaderOptions, log);
 
   if (compiler.errorMessage !== undefined) {
-    return { error: makeError(colors.red(compiler.errorMessage), undefined) };
+    return {
+      error: makeError(
+        loaderOptions,
+        colors.red(compiler.errorMessage),
+        undefined
+      ),
+    };
   }
 
   return successfulTypeScriptInstance(
@@ -121,6 +131,7 @@ function successfulTypeScriptInstance(
     const { message, file } = configFileAndPath.configFileError;
     return {
       error: makeError(
+        loaderOptions,
         colors.red('error while reading tsconfig.json:' + EOL + message),
         file
       ),
@@ -151,6 +162,7 @@ function successfulTypeScriptInstance(
 
     return {
       error: makeError(
+        loaderOptions,
         colors.red('error while parsing tsconfig.json'),
         configFilePath
       ),
@@ -223,6 +235,7 @@ function successfulTypeScriptInstance(
   } catch (exc) {
     return {
       error: makeError(
+        loaderOptions,
         colors.red(
           `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
         ),
@@ -415,25 +428,53 @@ export function buildSolutionReferences(
   if (!instance.solutionBuilderHost) {
     // Use solution builder
     instance.log.logInfo('Using SolutionBuilder api');
-    const scriptRegex = getScriptRegexp(instance);
-    instance.solutionBuilderHost = makeSolutionBuilderHost(
-      scriptRegex,
-      loader,
-      instance
-    );
-    instance.solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
-      instance.solutionBuilderHost,
-      instance.configParseResult.projectReferences!.map(ref => ref.path),
-      { verbose: true }
-    );
-    instance.solutionBuilder!.build();
-    ensureAllReferences(instance);
+    const key = instance.filePathKeyMapper(instance.configFilePath!);
+    const existing = getExistingSolutionBuilderHost(key);
+    if (existing) {
+      instance.log.logInfo(
+        `Reusing existing Solution builder:: ${existing.defaultInstance.configFilePath}`
+      );
+      instance.solutionBuilderHost = existing;
+      instance.solutionBuilderHost.instances.set(
+        instance.loaderOptions.instance,
+        instance
+      );
+      ensureAllReferences(instance);
+      instance.solutionBuilderHost.buildReferences();
+    } else if (instance.configParseResult.projectReferences?.length) {
+      const scriptRegex = getScriptRegexp(instance);
+      instance.solutionBuilderHost = makeSolutionBuilderHost(
+        scriptRegex,
+        loader,
+        instance
+      );
+      const solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
+        instance.solutionBuilderHost,
+        instance.configParseResult.projectReferences!.map(ref => ref.path),
+        { verbose: true }
+      );
+      solutionBuilder.build();
+      ensureAllReferences(instance);
+      solutionBuilderHosts.set(key, instance.solutionBuilderHost);
+    }
   } else {
     instance.solutionBuilderHost.buildReferences();
   }
 }
 
+function getExistingSolutionBuilderHost(key: FilePathKey) {
+  const existing = solutionBuilderHosts.get(key);
+  if (existing) return existing;
+  for (const solutionBuilderHost of solutionBuilderHosts.values()) {
+    if (solutionBuilderHost.configFileInfo.has(key)) {
+      return solutionBuilderHost;
+    }
+  }
+  return undefined;
+}
+
 function ensureAllReferences(instance: TSInstance) {
+  const defaultInstance = instance.solutionBuilderHost!.defaultInstance;
   // Return result from the json without errors so that the extra errors from config are digested here
   for (const configInfo of instance.solutionBuilderHost!.configFileInfo.values()) {
     if (!configInfo.config) {
@@ -444,12 +485,17 @@ function ensureAllReferences(instance: TSInstance) {
       const resolvedFileName = instance.filePathKeyMapper(file);
       const existing = instance.otherFiles.get(resolvedFileName);
       if (!existing) {
-        instance.otherFiles.set(resolvedFileName, {
-          fileName: path.resolve(file),
-          version: 1,
-          text: instance.compiler.sys.readFile(file),
-          modifiedTime: instance.compiler.sys.getModifiedTime!(file),
-        });
+        instance.otherFiles.set(
+          resolvedFileName,
+          defaultInstance === instance
+            ? {
+                fileName: path.resolve(file),
+                version: 1,
+                text: instance.compiler.sys.readFile(file),
+                modifiedTime: instance.compiler.sys.getModifiedTime!(file),
+              }
+            : defaultInstance.otherFiles.get(resolvedFileName)!
+        );
       }
     });
   }
