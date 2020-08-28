@@ -13,7 +13,6 @@ import {
   LoaderOptions,
   TSFiles,
   TSInstance,
-  TSInstances,
   WebpackError,
 } from './interfaces';
 import * as logger from './logger';
@@ -34,7 +33,8 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
-const instances = {} as TSInstances;
+const instances = new Map<string, TSInstance>();
+const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -47,12 +47,12 @@ export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
-  if (instances.hasOwnProperty(loaderOptions.instance)) {
-    const instance = instances[loaderOptions.instance];
-    if (!instance.initialSetupPending) {
-      ensureProgram(instance);
+  const existing = instances.get(loaderOptions.instance);
+  if (existing) {
+    if (!existing.initialSetupPending) {
+      ensureProgram(existing);
     }
-    return { instance: instances[loaderOptions.instance] };
+    return { instance: existing };
   }
 
   const colors = new chalk.constructor({ enabled: loaderOptions.colors });
@@ -60,7 +60,13 @@ export function getTypeScriptInstance(
   const compiler = getCompiler(loaderOptions, log);
 
   if (compiler.errorMessage !== undefined) {
-    return { error: makeError(colors.red(compiler.errorMessage), undefined) };
+    return {
+      error: makeError(
+        loaderOptions,
+        colors.red(compiler.errorMessage),
+        undefined
+      ),
+    };
   }
 
   return successfulTypeScriptInstance(
@@ -121,6 +127,7 @@ function successfulTypeScriptInstance(
     const { message, file } = configFileAndPath.configFileError;
     return {
       error: makeError(
+        loaderOptions,
         colors.red('error while reading tsconfig.json:' + EOL + message),
         file
       ),
@@ -128,6 +135,17 @@ function successfulTypeScriptInstance(
   }
 
   const { configFilePath, configFile } = configFileAndPath;
+  const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
+  if (configFilePath && loaderOptions.projectReferences) {
+    const configFileKey = filePathKeyMapper(configFilePath);
+    const existing = getExistingSolutionBuilderHost(configFileKey);
+    if (existing) {
+      // Reuse the instance if config file for project references is shared.
+      instances.set(loaderOptions.instance, existing);
+      return { instance: existing };
+    }
+  }
+
   const basePath = loaderOptions.context || path.dirname(configFilePath || '');
   const configParseResult = getConfigParseResult(
     compiler,
@@ -151,6 +169,7 @@ function successfulTypeScriptInstance(
 
     return {
       error: makeError(
+        loaderOptions,
         colors.red('error while parsing tsconfig.json'),
         configFilePath
       ),
@@ -174,12 +193,11 @@ function successfulTypeScriptInstance(
             filePath
           )
       : (filePath: string) => filePath;
-  const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
 
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
     // we do need to check for any issues with TS options though
-    const transpileInstance: TSInstance = (instances[loaderOptions.instance] = {
+    const transpileInstance: TSInstance = {
       compiler,
       compilerOptions,
       appendTsTsxSuffixesIfRequired,
@@ -198,8 +216,8 @@ function successfulTypeScriptInstance(
       configParseResult,
       log,
       filePathKeyMapper,
-    });
-
+    };
+    instances.set(loaderOptions.instance, transpileInstance);
     return { instance: transpileInstance };
   }
 
@@ -223,6 +241,7 @@ function successfulTypeScriptInstance(
   } catch (exc) {
     return {
       error: makeError(
+        loaderOptions,
         colors.red(
           `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
         ),
@@ -231,7 +250,7 @@ function successfulTypeScriptInstance(
     };
   }
 
-  const instance: TSInstance = (instances[loaderOptions.instance] = {
+  const instance: TSInstance = {
     compiler,
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
@@ -249,9 +268,20 @@ function successfulTypeScriptInstance(
     configParseResult,
     log,
     filePathKeyMapper,
-  });
-
+  };
+  instances.set(loaderOptions.instance, instance);
   return { instance };
+}
+
+function getExistingSolutionBuilderHost(key: FilePathKey) {
+  const existing = instancesBySolutionBuilderConfigs.get(key);
+  if (existing) return existing;
+  for (const instance of instancesBySolutionBuilderConfigs.values()) {
+    if (instance.solutionBuilderHost!.configFileInfo.has(key)) {
+      return instance;
+    }
+  }
+  return undefined;
 }
 
 export function initializeInstance(
@@ -421,13 +451,17 @@ export function buildSolutionReferences(
       loader,
       instance
     );
-    instance.solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
+    const solutionBuilder = instance.compiler.createSolutionBuilderWithWatch(
       instance.solutionBuilderHost,
       instance.configParseResult.projectReferences!.map(ref => ref.path),
       { verbose: true }
     );
-    instance.solutionBuilder!.build();
+    solutionBuilder.build();
     ensureAllReferences(instance);
+    instancesBySolutionBuilderConfigs.set(
+      instance.filePathKeyMapper(instance.configFilePath!),
+      instance
+    );
   } else {
     instance.solutionBuilderHost.buildReferences();
   }

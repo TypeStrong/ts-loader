@@ -100,6 +100,7 @@ export function formatErrors(
               : loaderOptions.errorFormatter(errorInfo, colors);
 
           const error = makeError(
+            loaderOptions,
             message,
             merge.file === undefined ? errorInfo.file : merge.file,
             position === undefined
@@ -124,6 +125,7 @@ export function fsReadFile(
 }
 
 export function makeError(
+  loaderOptions: LoaderOptions,
   message: string,
   file: string | undefined,
   location?: { line: number; character: number }
@@ -132,8 +134,12 @@ export function makeError(
     message,
     location,
     file,
-    loaderSource: 'ts-loader',
+    loaderSource: tsLoaderSource(loaderOptions),
   };
+}
+
+export function tsLoaderSource(loaderOptions: LoaderOptions) {
+  return `ts-loader-${loaderOptions.instance}`;
 }
 
 export function appendSuffixIfMatch(
