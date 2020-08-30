@@ -289,8 +289,7 @@ module.exports = {
 | `boolean` | `false`|
 
 If you want to speed up compilation significantly you can set this flag.
-However, many of the benefits you get from static type checking between
-different dependencies in your application will be lost. transpileOnly will not speed up compilation of project references.
+However, many of the benefits you get from static type checking between different dependencies in your application will be lost. `transpileOnly` will *not* speed up compilation of project references.
 
 It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/fork-ts-checker-webpack-plugin). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
 
