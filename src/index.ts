@@ -113,6 +113,10 @@ function makeSourceMapAndFinish(
         'See: https://github.com/Microsoft/TypeScript/issues/12358'
       : '';
 
+    if (instance.loaderOptions.ignoreEmptyOutput) {
+      callback(null, contents);
+      return;
+    }
     callback(
       new Error(
         `TypeScript emitted no output for ${filePath}.${additionalGuidance}`
@@ -227,6 +231,7 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'appendTsSuffixTo',
   'appendTsxSuffixTo',
   'onlyCompileBundledFiles',
+  'ignoreEmptyOutput',
   'happyPackMode',
   'getCustomTransformers',
   'reportFiles',
@@ -287,6 +292,7 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       happyPackMode: false,
       colors: true,
       onlyCompileBundledFiles: false,
+      ignoreEmptyOutput: false,
       reportFiles: [],
       // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
       experimentalWatchApi: false,

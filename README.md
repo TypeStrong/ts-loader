@@ -626,6 +626,14 @@ loading only those files that are actually bundled by webpack, as well as any `.
 by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
 compilation without being explicitly imported, and therefore not picked up by webpack.
 
+#### ignoreEmptyOutput
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
+
+Ignore empty tsc output. Is only useful when typechecking pure js projects with the checkJs and
+allowJs options.
+
 #### allowTsInNodeModules
 | Type | Default Value |
 |------|--------------|

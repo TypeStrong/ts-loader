@@ -264,6 +264,7 @@ export interface LoaderOptions {
   reportFiles: string[];
   errorFormatter: (message: ErrorInfo, colors: Chalk) => string;
   onlyCompileBundledFiles: boolean;
+  ignoreEmptyOutput: boolean;
   colors: boolean;
   compilerOptions: typescript.CompilerOptions;
   appendTsSuffixTo: (RegExp | string)[];
