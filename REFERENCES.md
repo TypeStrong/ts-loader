@@ -74,7 +74,7 @@ This is just one way to structure your project. Some other options include:
 * Not putting the projects references in a packages folder. They could all be at the top level, or a different folder, or nested folders.
 * The output folder of each project does not have to be in a lib folder of that project. You could have a top-level lib folder which contains the output of all projects.
 
-Almost any structure is compatible with project references. You have freedom to specify the paths of the referenced projects and their outputs in the tsconfig.json files. You will import the compiled JavaScript files into the main project and some structures make this easier than others, but you have the freedom to choose what works for you.
+Almost any structure is compatible with project references. You have freedom to specify the paths of the referenced projects and their outputs in the <code>tsconfig.json</code> files. You will import the compiled JavaScript files into the main project and some structures make this easier than others, but you have the freedom to choose what works for you.
 
 ### Test Build your Projects
 
@@ -221,7 +221,7 @@ When Webpack uses ts-loader to process a TypeScript file ts-loader will now chec
 
 Setting <code>projectReferences: true</code> in ts-loader alone will not magically convert your code to use project references. All it does is to run <code>tsc --build</code> as part of the build process. You need to configure project references and structure your project to use them as described here.
 
-If you have come this far congratulations — you are now using TypeScript project references in your web project. You can stop here, but in the next section of this guide, I share some tips to clean up the project further and create a library of reusable, version-controlled components.
+If you have come this far congratulations — you are now using TypeScript project references in your web project. You can stop here, but in the next section of this guide there are some tips to clean up the project further and create a library of reusable, version-controlled components.
 
 ### Using package.json
 
@@ -250,7 +250,7 @@ The module setting in <code>package.json</code> tells the bundler to import from
 
 ### Using node_modules
 
-In the above approach we need to add paths to <code>tsconfig.json</code> so that the module resolution knows where to find our package. But the module resolution system automatically looks in <code>node_modules</code>, so if we link our reference <code>in node_modules</code> we won’t need the paths and aliases:
+In the above approach we need to add paths to <code>tsconfig.json</code> so that the module resolution knows where to find our package. But the module resolution system automatically looks in <code>node_modules</code>, so if we link our reference in <code>node_modules</code> we won’t need the paths and aliases:
 ```
     ln -s ../packages/reference1 node_modules/reference1
     node_modules/reference1 -> packages/reference1
@@ -300,7 +300,7 @@ A common problem in code organisation is how to re-use code in multiple projects
 
 A smarter solution is to publish the components as npm packages. You can use semantic versioning each time you publish using a version in the format major.minor.patch. You then add the components to other projects using <code>yarn add @myscope/reference1</code>.
 
-Versioning works exactly the same as any other npm package. You specify in the consuming project’s tsconfig.json what version changes are acceptable:
+Versioning works exactly the same as any other npm package. You specify in the consuming project’s <code>tsconfig.json</code> what version changes are acceptable:
 ```
     "@myscope/reference1": "1.0.1",   // Only version 1.0.1 can be used
     "@myscope/reference1": "~1.0.1",  // Patch updates are acceptable
