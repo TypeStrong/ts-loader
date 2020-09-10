@@ -1,5 +1,5 @@
 
-# Using TypeScript Project References with ts-loader and Webpack
+# Using TypeScript Project References with ts-loader and webpack
 
 Project References were added to TypeScript in 3.0. The benefits of using project references include:
 
@@ -7,7 +7,7 @@ Project References were added to TypeScript in 3.0. The benefits of using projec
 * Logical separation between components
 * Faster build times
 
-If you are using TypeScript in your web project you can also use project references to improve your code and build workflow. This article describes some of the ways to set up your project to use references. I am using ts-loader to transpile the TypeScript code to JavaScript and Webpack to bundle code.
+If you are using TypeScript in your web project you can also use project references to improve your code and build workflow. This article describes some of the ways to set up your project to use references. I am using ts-loader to transpile the TypeScript code to JavaScript and webpack to bundle code.
 
 An example repo using the configuration above is available at the link below:
 
@@ -17,6 +17,8 @@ There are 2 stages to using project references in your project:
 
 1. Configure and build the project references
 1. Setup your codebase to consume the compiled projects
+
+To gain an understanding of how project references work, for the first part of this guide we will use <code>tsc</code> to build the project references.  Later on, we will configure ts-loader to do this automatically.
 
 ### Configure and build the project references
 
@@ -47,7 +49,7 @@ For a web project you might like a structure similar to the one below. You could
     src
      - (source code for the main project)
     dist
-     - main.js (final bundle produced by Webpack)
+     - main.js (final bundle produced by webpack)
     packages
      - reference1
        - tsconfig.json (inherits from tsconfig-base.json)
@@ -60,7 +62,7 @@ For a web project you might like a structure similar to the one below. You could
 ```
 Each project reference has its own <code>tsconfig.json</code> with the source code for each package in a <code>src</code> subfolder. When the project is built the compiled JavaScript for each project will be in its <code>lib</code> subfolder.
 
-The source code for your main project is in a top-level <code>src</code> folder and the final bundle will be in a top-level <code>dist</code> folder. The top-level <code>src</code> folder is not a referenced project — it is normal TypeScript source that Webpack will bundle. It imports from the <code>lib</code> folders of the referenced projects built by <code>tsc</code>.
+The source code for your main project is in a top-level <code>src</code> folder and the final bundle will be in a top-level <code>dist</code> folder. The top-level <code>src</code> folder is not a referenced project — it is normal TypeScript source that webpack will bundle. It imports from the <code>lib</code> folders of the referenced projects built by <code>tsc</code>.
 
 This structure works well because:
 
@@ -94,7 +96,7 @@ If you have a top-level <code>tsconfig.json</code> similar to:
 ```
 Then executing <code>tsc --build</code> in the top-level will compile all of your subprojects with one command. The build process is smart and can manage dependencies between subprojects.
 
-In the final step of this guide we will get ts-loader to do the build automatically when called from Webpack, but for now, just make sure that the build process works when using <code>tsc --build</code> manually.
+In the final step of this guide we will get ts-loader to do the build automatically when called from webpack, but for now, just make sure that the build process works when using <code>tsc --build</code> manually.
 
 ### Setup your codebase to consume the project
 
@@ -111,25 +113,25 @@ After building the reference with <code>tsc --build</code> the compiled JavaScri
     // Don't do this!
     import { Meaning } from '../packages/reference1/lib';
 ```
-This will work because TypeScript and Webpack will both find the file. The downsides are:
+This will work because TypeScript and webpack will both find the file. The downsides are:
 
 * The organisation of your root project and components are now intertwined. If you change the internal structure of your subproject you will need to update every import statement in the entire project.
 
 * The import location will depend on the location on the source file. For example, if you want to do the same import from a subfolder in your root project you will need to replace <code>../packages/reference1/lib</code> with <code>../../packages/reference1/lib</code>. If you re-organise your project structure you will need to fix every import.
 
-The solution to this is module resolution — how TypeScript and Webpack resolve the targets of import statements. You can read about this at the links below:
+The solution to this is module resolution — how TypeScript and webpack resolve the targets of import statements. You can read about this at the links below:
 
 * [https://www.typescriptlang.org/docs/handbook/module-resolution.html](https://www.typescriptlang.org/docs/handbook/module-resolution.html)
 * [https://webpack.js.org/concepts/module-resolution](https://webpack.js.org/concepts/module-resolution)
 
 Module resolution is nothing new and it is not part of project references, but understanding it will be a huge help getting everything working. Some points to note:
 
-* TypeScript and Webpack can use different methods to resolve modules. It will help if you can set them up so they are using the same method. (See the example below using alias in webpack and/or tsconfig-paths-webpack-plugin.)
+* TypeScript and webpack can use different methods to resolve modules. It will help if you can set them up so they are using the same method. (See the example below using alias in webpack and/or tsconfig-paths-webpack-plugin.)
 * Resolution works differently for relative (<code>./reference1</code>) and absolute (<code>reference1</code>) imports.
 * TypeScript has 2 strategies for module resolution: <code>classic</code> and <code>node</code>. You probably want to use <code>node</code>.
-* You can use a Webpack plugin <code>tsconfig-paths-webpack-plugin</code> so that you just need to define paths in your <code>tsconfig.json</code> and then don’t need to repeat these in your Webpack config.
+* You can use a webpack plugin <code>tsconfig-paths-webpack-plugin</code> so that you just need to define paths in your <code>tsconfig.json</code> and then don’t need to repeat these in your webpack config.
 
-Using the example above, we would like to just import from <code>packages/reference</code> and have TypeScript and Webpack both know that this refers to the actual location.
+Using the example above, we would like to just import from <code>packages/reference</code> and have TypeScript and webpack both know that this refers to the actual location.
 ```
     // src/index.ts
 
@@ -198,7 +200,7 @@ If your project is large you could see a significant benefit from pre-building l
 
 Up to this point, we ran <code>tsc --build</code> on its own and then used webpack and ts-loader to build the whole project, importing the references. You can configure ts-loader to build the references for you, which simplifies the build process.
 
-The top-level project in <code>src</code> is TypeScript code, so you will already be using ts-loader to load the TypeScript source into Webpack. Just add <code>projectReferences: true</code> to the ts-loader configuration and you no longer need to run <code>tsc</code> in a separate process:
+The top-level project in <code>src</code> is TypeScript code, so you will already be using ts-loader to load the TypeScript source into webpack. Just add <code>projectReferences: true</code> to the ts-loader configuration and you no longer need to run <code>tsc</code> in a separate process:
 ```
     // webpack.config.js
 
@@ -217,7 +219,7 @@ The top-level project in <code>src</code> is TypeScript code, so you will alread
       ]
     }
 ```
-When Webpack uses ts-loader to process a TypeScript file ts-loader will now check whether any of your project references need rebuilding and rebuild them before Webpack proceeds if necessary. This includes when Webpack is in watch mode as used by webpack-dev-server.
+When webpack uses ts-loader to process a TypeScript file ts-loader will now check whether any of your project references need rebuilding and rebuild them before webpack proceeds if necessary. This includes when webpack is in watch mode as used by webpack-dev-server.
 
 Setting <code>projectReferences: true</code> in ts-loader alone will not magically convert your code to use project references. All it does is to run <code>tsc --build</code> as part of the build process. You need to configure project references and structure your project to use them as described here.
 
