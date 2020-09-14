@@ -1,0 +1,10 @@
+{
+  "name": "@myscope/animals",
+  "version": "1.0.0",
+  "description": "Animals package",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "license": "ISC"
+}

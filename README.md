@@ -713,6 +713,8 @@ This flag enables caching for some FS-functions like `fileExists`, `realpath` an
 
 ts-loader has opt-in support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html). With this configuration option enabled, `ts-loader` will incrementally rebuild upstream projects the same way `tsc --build` does. Otherwise, source files in referenced projects will be treated as if they’re part of the root project.
 
+In order to make use of this option your project needs to be correctly configured to build the project references and then to use them as part of the build. See the [Project References Guide](REFERENCES.md) and the example code in the examples which can be found [here](examples/project-references-example/).
+
 ### Usage with webpack watch
 
 Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using webpack, you may wish to add this to your webpack.conf.js file:
