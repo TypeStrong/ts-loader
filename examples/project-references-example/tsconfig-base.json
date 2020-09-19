@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "composite": true,
+    "jsx": "react",
+    "baseUrl": ".", // This must be specified if "paths" is.
+      "paths": {
+      "packages/*": ["packages/*"]
+    }
+  }
+}

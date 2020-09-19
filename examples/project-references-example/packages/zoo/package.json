@@ -1,0 +1,10 @@
+{
+  "name": "@myscope/zoo",
+  "version": "1.0.0",
+  "description": "Zoo package",
+  "main": "lib/zoo.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "license": "ISC"
+}
