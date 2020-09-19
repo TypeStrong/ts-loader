@@ -142,7 +142,7 @@ If you'd like find out further ways to improve your build using the watch API th
 
 ### Compatibility
 
-* TypeScript: 2.4.1+
+* TypeScript: 3.6.3+
 * webpack: 4.x+ (please use `ts-loader` 3.x if you need webpack 2 or 3 support)
 * node: 6.11.5 minimum (aligned with webpack 4)
 
