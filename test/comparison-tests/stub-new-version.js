@@ -5,8 +5,8 @@ const mkdirp = require('mkdirp');
 const copySync = require('./copySync');
 
 // update this manually when a new version comes out
-const OLD_VERSION = '3.8';
-const NEW_VERSION = '3.9';
+const OLD_VERSION = '3.9';
+const NEW_VERSION = '4.0';
 
 fs.readdirSync(__dirname).forEach(function(test) {
   const testPath = path.join(__dirname, test);
