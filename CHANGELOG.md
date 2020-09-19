@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.4
+* [Uses existing instance if config file is same as already built solution](https://github.com/TypeStrong/ts-loader/pull/1177) - thanks @sheetalkamat
+
 ## v8.0.3
 * [Fix the wrong instance caching when using `appendTsSuffixTo` and `appendTsxSuffixTo` together](https://github.com/TypeStrong/ts-loader/pull/1170) - thanks @meowtec
 

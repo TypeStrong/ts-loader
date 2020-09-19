@@ -204,9 +204,6 @@ export interface TSInstance {
 
   reportTranspileErrors?: boolean;
   solutionBuilderHost?: SolutionBuilderWithWatchHost;
-  solutionBuilder?: typescript.SolutionBuilder<
-    typescript.EmitAndSemanticDiagnosticsBuilderProgram
-  >;
   configFilePath: string | undefined;
 
   filePathKeyMapper: (fileName: string) => FilePathKey;
@@ -220,9 +217,6 @@ export interface LoaderOptionsCache {
   [name: string]: WeakMap<LoaderOptions, LoaderOptions>;
 }
 
-export interface TSInstances {
-  [name: string]: TSInstance;
-}
 export type DependencyGraph = Map<FilePathKey, ResolvedModule[]>;
 export type ReverseDependencyGraph = Map<FilePathKey, Map<FilePathKey, true>>;
 

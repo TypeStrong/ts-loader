@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "types": []
+  },
+  "references": [
+    { "path": "../common" },
+    { "path": "../indirect" }
+  ]
+}
