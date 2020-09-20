@@ -1,8 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.63 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 233 bytes [rendered]
-    [0] ./.test/ignoreDiagnostics/app.ts 233 bytes {0} [built] [1 error]
-
-ERROR in ./.test/ignoreDiagnostics/app.ts
-[37m([39m[36m9[39m,[36m5[39m): [31merror TS2322: Type 'string' is not assignable to type 'Number'.
-  Property 'toFixed' is missing in type 'String'.[39m

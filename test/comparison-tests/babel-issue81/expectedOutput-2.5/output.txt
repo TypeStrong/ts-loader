@@ -1,4 +1,0 @@
-        Asset     Size  Chunks             Chunk Names
-    bundle.js  3.71 kB       0  [emitted]  main
-bundle.js.map  2.67 kB       0  [emitted]  main
-   [0] ./.test/babel-issue81/a.ts 1.2 kB {0} [built]

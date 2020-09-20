@@ -1,5 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  3.28 kB       0  [emitted]  main
-   [0] ./.test/appendSuffixTo/index.vue 352 bytes {0} [built]
-   [1] ./.test/appendSuffixTo/component.vue 154 bytes {0} [built]
-   [2] ./.test/appendSuffixTo/helper.ts 127 bytes {0} [built]

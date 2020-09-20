@@ -1,5 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.62 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 146 bytes [rendered]
-    [0] ./.test/npmLink/app.ts 77 bytes {0} [built]
-    [1] ./test/testLib/foo.ts 69 bytes {0} [built]

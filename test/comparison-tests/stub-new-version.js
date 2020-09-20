@@ -4,6 +4,9 @@ const path = require('path');
 const mkdirp = require('mkdirp');
 const copySync = require('./copySync');
 
+// BASH script to delete old test output
+// find ./test/comparison-tests -type d -name '*expectedOutput*3.5' -print0 | xargs -0 -I {} /bin/rm -rf "{}"
+
 // update this manually when a new version comes out
 const OLD_VERSION = '3.9';
 const NEW_VERSION = '4.0';

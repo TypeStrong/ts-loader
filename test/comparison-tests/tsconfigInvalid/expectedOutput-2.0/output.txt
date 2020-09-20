@@ -1,9 +1,0 @@
-
-ERROR in tsconfig.json
-[31merror TS6046: Argument for '--target' option must be:  'es3', 'es5', 'es6', 'es2015'[39m
-
-ERROR in tsconfig.json
-[31merror TS5024: Compiler option 'sourceMap' requires a value of type boolean.[39m
-
-ERROR in ./.test/tsconfigInvalid/app.ts
-Module build failed: [31merror while parsing tsconfig.json[39m

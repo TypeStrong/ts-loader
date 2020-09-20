@@ -1,3 +1,0 @@
-
-ERROR in ./.test/tsconfigNotReadable/app.ts
-Module build failed: [31merror TS5014: Failed to parse file 'tsconfig.json': Unexpected token /.[39m

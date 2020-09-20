@@ -1,6 +1,0 @@
-           Asset     Size  Chunks             Chunk Names
-bundle.entry2.js  2.79 kB       0             entry2
-bundle.entry1.js   2.5 kB       1  [emitted]  entry1
-   [0] ./.test/appendSuffixToWatch/entry1.ts 27 bytes {1} [built]
-   [1] ./.test/appendSuffixToWatch/entry2.ts 132 bytes {0}
-   [2] ./.test/appendSuffixToWatch/component.vue 76 bytes {0}
