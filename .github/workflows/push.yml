@@ -55,13 +55,9 @@ jobs:
     name: Execution Tests
     strategy:
       matrix:
-        os: [ubuntu]
+        os: [ubuntu, windows]
         node: [10, 12, 14]
         ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 4.0.3, next]
-        include:
-          - os: windows
-            node: 14
-            ts: 4.0.3
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
@@ -85,7 +81,7 @@ jobs:
 
   lint:
     name: Lint
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
 
