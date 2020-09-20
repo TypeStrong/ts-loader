@@ -1,6 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.74 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 204 bytes [rendered]
-    [0] ./.test/dependencyErrors/app.ts 80 bytes {0}
-    [1] ./.test/dependencyErrors/dep1.ts 62 bytes {0} [built]
-    [2] ./.test/dependencyErrors/dep2.ts 62 bytes {0}

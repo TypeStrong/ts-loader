@@ -1,5 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.58 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 112 bytes [rendered]
-    [0] ./.test/declarationWatch/app.ts 67 bytes {0} [built]
-    [1] ./.test/declarationWatch/dep.ts 45 bytes {0} [built]

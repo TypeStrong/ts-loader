@@ -1,5 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.61 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 140 bytes [rendered]
-    [0] ./.test/tsconfigSearch/src/app.ts 85 bytes {0} [built]
-    [1] ./.test/tsconfigSearch/lib/externalLib.js 55 bytes {0} [built]

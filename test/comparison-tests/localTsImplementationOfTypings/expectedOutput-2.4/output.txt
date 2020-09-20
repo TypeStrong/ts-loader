@@ -1,5 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  2.98 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 234 bytes [entry] [rendered]
-    [0] ./.test/localTsImplementationOfTypings/fake.ts 133 bytes {0} [built]
-    [1] ./.test/localTsImplementationOfTypings/app.ts 101 bytes {0} [built]

@@ -1,9 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.86 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 319 bytes [rendered]
-    [0] ./.test/basic/app.ts 129 bytes {0} [built] [1 error]
-    [1] ./.test/basic/submodule/submodule.ts 135 bytes {0}
-    [2] ./.test/basic/lib/externalLib.js 55 bytes {0}
-
-ERROR in ./.test/basic/app.ts
-[37m([39m[36m3[39m,[36m13[39m): [31merror TS2339: Property 'doSomething2' does not exist on type 'typeof externalLib'.[39m

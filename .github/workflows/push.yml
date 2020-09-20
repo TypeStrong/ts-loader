@@ -1,10 +1,10 @@
-name: CI
+name: Continuous Integration (build and test)
 
 on: [push, pull_request]
 
 jobs:
   comparison_test:
-    name: Comparison Test
+    name: Ubuntu Comparison Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -17,13 +17,13 @@ jobs:
         run: yarn build
 
       - name: install typescript
-        run: yarn add typescript@3.9.3
+        run: yarn add typescript@4.0.3
 
       - name: test
         run: sudo yarn comparison-tests
 
   windows:
-    name: Windows Test
+    name: Windows Comparison Tests
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -44,7 +44,7 @@ jobs:
         working-directory: C:\source\ts-loader
 
       - name: install typescript
-        run: yarn add typescript@3.9.3
+        run: yarn add typescript@4.0.3
         working-directory: C:\source\ts-loader
 
       - name: test
@@ -52,16 +52,12 @@ jobs:
         working-directory: C:\source\ts-loader
 
   execution_test:
-    name: Execution Test
+    name: Execution Tests
     strategy:
       matrix:
-        os: [ubuntu]
+        os: [ubuntu, windows]
         node: [10, 12, 14]
-        ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, next]
-        include:
-          - os: windows
-            node: 14
-            ts: 3.9.3
+        ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 4.0.3, next]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2

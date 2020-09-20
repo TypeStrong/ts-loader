@@ -268,10 +268,10 @@ function storeStats(stats, testState, paths) {
 
 function compareFiles(paths, test, patch) {
     if (saveOutputMode) {
-        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true }),
-            expectedFiles = glob.sync('**/*', { cwd: paths.originalExpectedOutput, nodir: true, dot: true })
-                .filter(function (file) { return !/^patch/.test(file); }),
-            allFiles = {};
+        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true });
+        const expectedFiles = glob.sync('**/*', { cwd: paths.originalExpectedOutput, nodir: true, dot: true })
+                .filter(function (file) { return !/^patch/.test(file); });
+        const allFiles = {};
 
         actualFiles.forEach(function (file) { allFiles[file] = true });
         expectedFiles.forEach(function (file) {
@@ -282,9 +282,11 @@ function compareFiles(paths, test, patch) {
         Object.keys(allFiles).forEach(function (file) {
             const actual = getNormalisedFileContent(file, paths.actualOutput);
             const expected = getNormalisedFileContent(file, paths.expectedOutput);
-            if (actual !== expected) {
+
+            // I believe we always want to copy this
+            // if (actual !== expected) {
                 fs.copySync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
-            }
+            // }
         });
     }
     else {

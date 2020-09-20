@@ -1,7 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.43 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 37 bytes [rendered]
-    [0] ./.test/es5/app.ts 37 bytes {0} [built] [1 error]
-
-ERROR in ./.test/es5/app.ts
-[37m([39m[36m2[39m,[36m1[39m): [31merror TS2304: Cannot find name 'Symbol'.[39m

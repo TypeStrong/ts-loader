@@ -1,7 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.43 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 43 bytes [rendered]
-    [0] ./.test/importsWatch/app.ts 43 bytes {0} [built] [1 error]
-
-ERROR in ./.test/importsWatch/app.ts
-[37m([39m[36m4[39m,[36m1[39m): [31merror TS2322: Type 'string' is not assignable to type 'boolean'.[39m
