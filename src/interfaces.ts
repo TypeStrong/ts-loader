@@ -130,7 +130,7 @@ export interface SolutionBuilderWithWatchHost
     >,
     WatchFactory {
   diagnostics: SolutionDiagnostics;
-  writtenFiles: OutputFile[];
+  writtenFiles: typescript.OutputFile[];
   configFileInfo: Map<FilePathKey, ConfigFileInfo>;
   outputAffectingInstanceVersion: Map<FilePathKey, true>;
   getOutputFileKeyFromReferencedProject(
@@ -138,12 +138,17 @@ export interface SolutionBuilderWithWatchHost
   ): FilePathKey | undefined;
   getOutputFileFromReferencedProject(
     outputFileName: string
-  ): OutputFile | false | undefined;
+  ): OutputFileWithTextOnDisk | false | undefined;
   getOutputFileAndKeyFromReferencedProject(
     oututFileName: string
-  ): { key: FilePathKey; outputFile: OutputFile | false } | undefined;
+  ):
+    | { key: FilePathKey; outputFile: OutputFileWithTextOnDisk | false }
+    | undefined;
+  getOutputFileText(outputFile: OutputFileWithTextOnDisk): string;
   getInputFileNameFromOutput(outputFileName: string): string | undefined;
-  getOutputFilesFromReferencedProjectInput(inputFileName: string): OutputFile[];
+  getOutputFilesFromReferencedProjectInput(
+    inputFileName: string
+  ): typescript.OutputFile[];
   buildReferences(): void;
   clearCache(): void;
 }
@@ -158,9 +163,12 @@ export interface ConfigFileInfo {
   dtsFiles?: string[];
 }
 
-export interface OutputFile extends typescript.OutputFile {
+export interface OutputFileWithTextOnDisk {
+  name: string;
+  writeByteOrderMark: boolean;
   time: Date;
   version: number;
+  hash: string;
 }
 
 export interface TSInstance {

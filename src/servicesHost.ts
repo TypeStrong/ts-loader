@@ -12,7 +12,7 @@ import {
   CustomResolveTypeReferenceDirective,
   FilePathKey,
   ModuleResolutionHostMayBeCacheable,
-  OutputFile,
+  OutputFileWithTextOnDisk,
   ResolvedModule,
   ResolveSync,
   ServiceHostWhichMayBeCacheable,
@@ -115,7 +115,9 @@ function makeResolversHandlingProjectReferences(
       filePath
     );
     if (outputFile !== undefined) {
-      return outputFile ? outputFile.text : undefined;
+      return outputFile
+        ? instance.solutionBuilderHost?.getOutputFileText(outputFile)
+        : undefined;
     }
     return (
       instance.compiler.sys.readFile(filePath, encoding) ||
@@ -250,7 +252,9 @@ export function makeServicesHost(
             );
             return outputFileAndKey && outputFileAndKey.outputFile
               ? compiler.ScriptSnapshot.fromString(
-                  outputFileAndKey.outputFile.text
+                  instance.solutionBuilderHost.getOutputFileText(
+                    outputFileAndKey.outputFile
+                  )
                 )
               : undefined;
           }
@@ -783,8 +787,8 @@ export function makeSolutionBuilderHost(
         compiler.sys.newLine
       )}${newLine + newLine}`
     );
-  const outputFiles = new Map<FilePathKey, OutputFile | false>();
-  const writtenFiles: OutputFile[] = [];
+  const outputFiles = new Map<FilePathKey, OutputFileWithTextOnDisk | false>();
+  const writtenFiles: typescript.OutputFile[] = [];
   const outputAffectingInstanceVersion = new Map<FilePathKey, true>();
   let timeoutId: [(...args: any[]) => void, any[]] | undefined;
 
@@ -817,7 +821,7 @@ export function makeSolutionBuilderHost(
       const outputFile = ensureOutputFile(fileName);
       return outputFile !== undefined
         ? outputFile
-          ? outputFile.text
+          ? getOutputFileText(outputFile)
           : undefined
         : readInputFile(fileName, encoding).text;
     },
@@ -825,22 +829,28 @@ export function makeSolutionBuilderHost(
       const key = filePathKeyMapper(name);
       updateFileWithText(instance, key, name, () => text);
       const existing = outputFiles.get(key);
-      const newOutputFile: OutputFile = {
+      const hash = hashOutputText(text);
+      const newOutputFile: OutputFileWithTextOnDisk = {
         name,
-        text,
         writeByteOrderMark: !!writeByteOrderMark,
+        hash,
         time: new Date(),
         version: existing
-          ? existing.text !== text
+          ? existing.hash !== hash
             ? existing.version + 1
             : existing.version
           : 0,
       };
       outputFiles.set(key, newOutputFile);
-      writtenFiles.push(newOutputFile);
+      writtenFiles.push({
+        name,
+        text,
+        writeByteOrderMark: !!writeByteOrderMark,
+      });
+      compiler.sys.writeFile(name, text, writeByteOrderMark);
       if (
         outputAffectingInstanceVersion.has(key) &&
-        (!existing || existing.text !== text)
+        (!existing || existing.hash !== hash)
       ) {
         instance.version++;
       }
@@ -864,7 +874,6 @@ export function makeSolutionBuilderHost(
             ) || instance.hasUnaccountedModifiedFiles;
         }
       }
-      compiler.sys.writeFile(name, text, writeByteOrderMark);
     },
     getModifiedTime: fileName => {
       const outputFile = ensureOutputFile(fileName);
@@ -946,6 +955,7 @@ export function makeSolutionBuilderHost(
     getOutputFileKeyFromReferencedProject,
     getOutputFileFromReferencedProject,
     getOutputFileAndKeyFromReferencedProject,
+    getOutputFileText,
     getInputFileNameFromOutput: fileName => {
       const result = getInputFileNameFromOutput(fileName);
       return typeof result === 'string' ? result : undefined;
@@ -1145,16 +1155,25 @@ export function makeSolutionBuilderHost(
         );
   }
 
+  function getOutputFileText(outputFile: OutputFileWithTextOnDisk) {
+    const writtenFile = writtenFiles.find(w => w.name === outputFile.name);
+    return writtenFile
+      ? writtenFile.text
+      : compiler.sys.readFile(outputFile.name) || '';
+  }
+
   function getOutputFileAndKeyFromReferencedProject(
     outputFileName: string
-  ): { key: FilePathKey; outputFile: OutputFile | false } | undefined {
+  ):
+    | { key: FilePathKey; outputFile: OutputFileWithTextOnDisk | false }
+    | undefined {
     const key = getOutputFileKeyFromReferencedProject(outputFileName);
     return key && { key, outputFile: outputFiles.get(key)! };
   }
 
   function getOutputFileFromReferencedProject(
     outputFileName: string
-  ): OutputFile | false | undefined {
+  ): OutputFileWithTextOnDisk | false | undefined {
     const key = getOutputFileKeyFromReferencedProject(outputFileName);
     return key && outputFiles.get(key);
   }
@@ -1172,10 +1191,14 @@ export function makeSolutionBuilderHost(
       : undefined;
   }
 
+  function hashOutputText(text: string) {
+    return compiler.sys.createHash ? compiler.sys.createHash(text) : text;
+  }
+
   function ensureOutputFile(
     outputFileName: string,
     encoding?: string
-  ): OutputFile | false | undefined {
+  ): OutputFileWithTextOnDisk | false | undefined {
     const outputFile = getOutputFileFromReferencedProject(outputFileName);
     if (outputFile !== undefined) {
       return outputFile;
@@ -1191,10 +1214,10 @@ export function makeSolutionBuilderHost(
       outputFiles.set(key, false);
       return false;
     }
-    const newOutputFile: OutputFile = {
+    const newOutputFile: OutputFileWithTextOnDisk = {
       name: outputFileName,
-      text,
       writeByteOrderMark: false,
+      hash: hashOutputText(text),
       time: compiler.sys.getModifiedTime!(outputFileName)!,
       version: 0,
     };
@@ -1202,7 +1225,25 @@ export function makeSolutionBuilderHost(
     return newOutputFile;
   }
 
-  function getOutputFilesFromReferencedProjectInput(inputFileName: string) {
+  function getTypeScriptOutputFile(
+    key: FilePathKey
+  ): typescript.OutputFile | undefined {
+    const output = outputFiles.get(key);
+    if (!output) return undefined;
+    const writtenFile = writtenFiles.find(w => w.name === output.name);
+    if (writtenFile) return writtenFile;
+
+    // Read from sys
+    return {
+      name: output.name,
+      text: compiler.sys.readFile(output.name) || '',
+      writeByteOrderMark: output.writeByteOrderMark,
+    };
+  }
+
+  function getOutputFilesFromReferencedProjectInput(
+    inputFileName: string
+  ): typescript.OutputFile[] {
     const resolvedFileName = filePathKeyMapper(inputFileName);
     for (const configInfo of configFileInfo.values()) {
       ensureInputOutputInfo(configInfo);
@@ -1210,8 +1251,8 @@ export function makeSolutionBuilderHost(
         const result = configInfo.outputFileNames.get(resolvedFileName);
         if (result) {
           return result.outputNames
-            .map(outputFile => outputFiles.get(outputFile)!)
-            .filter(output => !!output) as OutputFile[];
+            .map(getTypeScriptOutputFile)
+            .filter(output => !!output) as typescript.OutputFile[];
         }
       }
     }
