@@ -167,7 +167,6 @@ export interface OutputFileWithTextOnDisk {
   name: string;
   writeByteOrderMark: boolean;
   time: Date;
-  version: number;
   hash: string;
 }
 

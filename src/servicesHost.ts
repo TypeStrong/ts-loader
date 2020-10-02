@@ -229,7 +229,7 @@ export function makeServicesHost(
         );
       }
       return outputFileAndKey && outputFileAndKey.outputFile
-        ? outputFileAndKey.outputFile.version.toString()
+        ? outputFileAndKey.outputFile.hash
         : '';
     },
 
@@ -835,11 +835,6 @@ export function makeSolutionBuilderHost(
         writeByteOrderMark: !!writeByteOrderMark,
         hash,
         time: new Date(),
-        version: existing
-          ? existing.hash !== hash
-            ? existing.version + 1
-            : existing.version
-          : 0,
       };
       outputFiles.set(key, newOutputFile);
       writtenFiles.push({
@@ -866,7 +861,7 @@ export function makeSolutionBuilderHost(
               name,
               compiler.FileWatcherEventKind.Created
             ) || instance.hasUnaccountedModifiedFiles;
-        } else if (existing.version !== newOutputFile.version) {
+        } else if (existing.hash !== newOutputFile.hash) {
           instance.hasUnaccountedModifiedFiles =
             instance.watchHost.invokeFileWatcher(
               name,
@@ -1219,7 +1214,6 @@ export function makeSolutionBuilderHost(
       writeByteOrderMark: false,
       hash: hashOutputText(text),
       time: compiler.sys.getModifiedTime!(outputFileName)!,
-      version: 0,
     };
     outputFiles.set(key, newOutputFile);
     return newOutputFile;
