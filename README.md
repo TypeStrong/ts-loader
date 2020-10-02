@@ -15,7 +15,7 @@
     This is the TypeScript loader for webpack.
     <br />
     <br />
-    <a href="https://github.com/TypeStrong/ts-loader/issues">Installation</a>
+    <a href="https://github.com/TypeStrong/ts-loader#installation">Installation</a>
     ·
     <a href="https://github.com/TypeStrong/ts-loader/issues">Report Bug</a>
     ·
