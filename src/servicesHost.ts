@@ -834,7 +834,6 @@ export function makeSolutionBuilderHost(
         name,
         writeByteOrderMark: !!writeByteOrderMark,
         hash,
-        time: new Date(),
       };
       outputFiles.set(key, newOutputFile);
       writtenFiles.push({
@@ -873,7 +872,7 @@ export function makeSolutionBuilderHost(
     getModifiedTime: fileName => {
       const outputFile = ensureOutputFile(fileName);
       if (outputFile !== undefined) {
-        return outputFile ? outputFile.time : undefined;
+        return outputFile ? compiler.sys.getModifiedTime!(fileName) : undefined;
       }
       const key = filePathKeyMapper(fileName);
       const existing = instance.files.get(key) || instance.otherFiles.get(key);
@@ -882,12 +881,6 @@ export function makeSolutionBuilderHost(
         : compiler.sys.getModifiedTime!(fileName);
     },
     setModifiedTime: (fileName, time) => {
-      const outputFile = ensureOutputFile(fileName);
-      if (outputFile !== undefined) {
-        if (outputFile) {
-          outputFile.time = time;
-        }
-      }
       compiler.sys.setModifiedTime!(fileName, time);
       const key = filePathKeyMapper(fileName);
       const existing = instance.files.get(key) || instance.otherFiles.get(key);
@@ -1213,7 +1206,6 @@ export function makeSolutionBuilderHost(
       name: outputFileName,
       writeByteOrderMark: false,
       hash: hashOutputText(text),
-      time: compiler.sys.getModifiedTime!(outputFileName)!,
     };
     outputFiles.set(key, newOutputFile);
     return newOutputFile;

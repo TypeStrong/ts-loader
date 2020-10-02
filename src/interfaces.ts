@@ -166,7 +166,6 @@ export interface ConfigFileInfo {
 export interface OutputFileWithTextOnDisk {
   name: string;
   writeByteOrderMark: boolean;
-  time: Date;
   hash: string;
 }
 
