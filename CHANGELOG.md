@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.5
+* [Fixed deprecation warnings on webpack@5](https://github.com/TypeStrong/ts-loader/issues/1194) - thanks @sanex3339
+
 ## v8.0.4
 * [Uses existing instance if config file is same as already built solution](https://github.com/TypeStrong/ts-loader/pull/1177) - thanks @sheetalkamat
 
