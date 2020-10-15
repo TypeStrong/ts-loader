@@ -28,6 +28,7 @@ import {
 import { makeResolver } from './resolver';
 import {
   ensureTrailingDirectorySeparator,
+  fileMatchesPatterns,
   formatErrors,
   fsReadFile,
   populateDependencyGraph,
@@ -98,6 +99,15 @@ function makeResolversHandlingProjectReferences(
   );
 
   function fileExists(filePathToCheck: string) {
+    const shouldEmit = fileMatchesPatterns(
+      instance.loaderOptions.emitOnly,
+      filePathToCheck
+    );
+
+    if (!shouldEmit) {
+      return false;
+    }
+
     const outputFile = instance.solutionBuilderHost?.getOutputFileFromReferencedProject(
       filePathToCheck
     );
@@ -197,6 +207,14 @@ export function makeServicesHost(
       fsReadFile(filePathToCheck) !== undefined,
     instance.loaderOptions.experimentalFileCaching
   );
+
+  if (instance.loaderOptions.emitOnly.length > 0) {
+    files.forEach((_value, key) => {
+      if (!fileMatchesPatterns(instance.loaderOptions.emitOnly, key)) {
+        files.delete(key);
+      }
+    });
+  }
 
   const servicesHost: ServiceHostWhichMayBeCacheable = {
     getProjectVersion: () => `${instance.version}`,

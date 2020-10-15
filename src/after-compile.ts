@@ -19,6 +19,7 @@ import {
   isReferencedFile,
   populateReverseDependencyGraph,
   tsLoaderSource,
+  fileMatchesPatterns,
 } from './utils';
 
 export function makeAfterCompile(
@@ -39,6 +40,16 @@ export function makeAfterCompile(
     }
 
     if (instance.loaderOptions.transpileOnly) {
+      const { files, loaderOptions } = instance;
+
+      if (loaderOptions.emitOnly.length > 0) {
+        files.forEach((_, key) => {
+          if (fileMatchesPatterns(loaderOptions.emitOnly, key)) {
+            files.delete(key);
+          }
+        });
+      }
+
       provideAssetsFromSolutionBuilderHost(instance, compilation);
       callback();
       return;

@@ -254,6 +254,7 @@ export interface LoaderOptions {
   configFile: string;
   context: string;
   transpileOnly: boolean;
+  emitOnly: RegExp[];
   ignoreDiagnostics: number[];
   reportFiles: string[];
   errorFormatter: (message: ErrorInfo, colors: Chalk) => string;

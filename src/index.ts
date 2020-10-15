@@ -23,6 +23,7 @@ import {
 import {
   appendSuffixesIfMatch,
   arrify,
+  fileMatchesPatterns,
   formatErrors,
   isReferencedFile,
 } from './utils';
@@ -76,9 +77,16 @@ function successLoader(
     contents,
     instance
   );
-  const { outputText, sourceMapText } = instance.loaderOptions.transpileOnly
-    ? getTranspilationEmit(filePath, contents, instance, loaderContext)
-    : getEmit(rawFilePath, filePath, instance, loaderContext);
+
+  const noEmit = !fileMatchesPatterns(
+    instance.loaderOptions.emitOnly,
+    filePath
+  );
+
+  const { outputText, sourceMapText } =
+    instance.loaderOptions.transpileOnly || noEmit
+      ? getTranspilationEmit(filePath, contents, instance, loaderContext)
+      : getEmit(rawFilePath, filePath, instance, loaderContext);
 
   makeSourceMapAndFinish(
     sourceMapText,
@@ -220,6 +228,7 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'context',
   'configFile',
   'transpileOnly',
+  'emitOnly',
   'ignoreDiagnostics',
   'errorFormatter',
   'colors',
@@ -280,6 +289,7 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       configFile: 'tsconfig.json',
       context: undefined,
       transpileOnly: false,
+      emitOnly: [],
       compilerOptions: {},
       appendTsSuffixTo: [],
       appendTsxSuffixTo: [],

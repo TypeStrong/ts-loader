@@ -311,3 +311,7 @@ export function useCaseSensitiveFileNames(
     ? loaderOptions.useCaseSensitiveFileNames
     : compiler.sys.useCaseSensitiveFileNames;
 }
+
+export function fileMatchesPatterns(patterns: RegExp[], file: string): boolean {
+  return patterns.some(regexp => file.match(regexp) != null);
+}
