@@ -421,7 +421,7 @@ export function initializeInstance(
         }
       );
     } else {
-      // adding assets in afterCompile is depracated in webpack 5
+      // adding assets in afterCompile is deprecated in webpack 5
       loader._compiler.hooks.afterCompile.tapAsync(
         'ts-loader',
         makeAfterCompile(instance, instance.configFilePath)
