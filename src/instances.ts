@@ -341,10 +341,26 @@ export function initializeInstance(
     instance.transformers = getCustomTransformers(program);
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
-      loader._compiler.hooks.afterCompile.tapAsync(
-        'ts-loader',
-        makeAfterCompile(instance, instance.configFilePath)
-      );
+      if (loader._compilation.hooks.afterProcessAssets) {
+        // afterProcessAssets does not exist in webpack4
+        loader._compilation.hooks.afterProcessAssets.tap(
+          'ts-loader',
+          (_: any) => {
+            makeAfterCompile(instance, instance.configFilePath)(
+              loader._compilation,
+              () => {
+                return null;
+              }
+            );
+          }
+        );
+      } else {
+        // adding assets in afterCompile is depracated in webpack 5
+        loader._compiler.hooks.afterCompile.tapAsync(
+          'ts-loader',
+          makeAfterCompile(instance, instance.configFilePath)
+        );
+      }
       loader._compiler.hooks.watchRun.tapAsync(
         'ts-loader',
         makeWatchRun(instance, loader)
@@ -391,11 +407,27 @@ export function initializeInstance(
         instance.languageService!.getProgram()
       );
     }
+    if (loader._compilation.hooks.afterProcessAssets) {
+      // afterProcessAssets does not exist in webpack4
+      loader._compilation.hooks.afterProcessAssets.tap(
+        'ts-loader',
+        (_: any) => {
+          makeAfterCompile(instance, instance.configFilePath)(
+            loader._compilation,
+            () => {
+              return null;
+            }
+          );
+        }
+      );
+    } else {
+      // adding assets in afterCompile is depracated in webpack 5
+      loader._compiler.hooks.afterCompile.tapAsync(
+        'ts-loader',
+        makeAfterCompile(instance, instance.configFilePath)
+      );
+    }
 
-    loader._compiler.hooks.afterCompile.tapAsync(
-      'ts-loader',
-      makeAfterCompile(instance, instance.configFilePath)
-    );
     loader._compiler.hooks.watchRun.tapAsync(
       'ts-loader',
       makeWatchRun(instance, loader)
