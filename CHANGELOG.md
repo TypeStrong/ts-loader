@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.6
+* [Fixed further deprecation warning on webpack@5](https://github.com/TypeStrong/ts-loader/issues/1196) - thanks @appzuka
+
 ## v8.0.5
 * [Fixed deprecation warnings on webpack@5](https://github.com/TypeStrong/ts-loader/issues/1194) - thanks @sanex3339
 
