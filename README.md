@@ -496,12 +496,12 @@ of your code.
 #### appendTsSuffixTo
 | Type | Default Value |
 |------|--------------|
-| `(RegExp | string)[]` | `[]`|
+| `(RegExp \| string)[]` | `[]`|
 
 #### appendTsxSuffixTo
 | Type | Default Value |
 |------|--------------|
-| `(RegExp | string)[]` | `[]`|
+| `(RegExp \| string)[]` | `[]`|
 
 A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
 If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) with `ts-loader`, you need use the `string` type for the regular expressions, not `RegExp` object.
