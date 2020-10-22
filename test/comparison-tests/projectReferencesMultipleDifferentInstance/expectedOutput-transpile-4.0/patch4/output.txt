@@ -2,7 +2,7 @@
           ../common/index.d.ts   42 bytes          [emitted]  
             ../common/index.js  128 bytes          [emitted]  
 ../common/tsconfig.tsbuildinfo   2.32 KiB          [emitted]  
-                     bundle.js   5.43 KiB    main  [emitted]  main
+                     bundle.js   5.43 KiB    main             main
 Entrypoint main = bundle.js
 [../common/index.ts] 128 bytes {main} [built]
 [../lib/index.ts] 119 bytes {main}

@@ -507,35 +507,13 @@ export function buildSolutionReferences(
       { verbose: true }
     );
     solutionBuilder.build();
-    ensureAllReferences(instance);
+    instance.solutionBuilderHost.ensureAllReferenceTimestamps();
     instancesBySolutionBuilderConfigs.set(
       instance.filePathKeyMapper(instance.configFilePath!),
       instance
     );
   } else {
     instance.solutionBuilderHost.buildReferences();
-  }
-}
-
-function ensureAllReferences(instance: TSInstance) {
-  // Return result from the json without errors so that the extra errors from config are digested here
-  for (const configInfo of instance.solutionBuilderHost!.configFileInfo.values()) {
-    if (!configInfo.config) {
-      continue;
-    }
-    // Load all the input files
-    configInfo.config.fileNames.forEach(file => {
-      const resolvedFileName = instance.filePathKeyMapper(file);
-      const existing = instance.otherFiles.get(resolvedFileName);
-      if (!existing) {
-        instance.otherFiles.set(resolvedFileName, {
-          fileName: path.resolve(file),
-          version: 1,
-          text: instance.compiler.sys.readFile(file),
-          modifiedTime: instance.compiler.sys.getModifiedTime!(file),
-        });
-      }
-    });
   }
 }
 

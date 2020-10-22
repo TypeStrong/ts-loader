@@ -42,10 +42,11 @@ export type ResolveSync = (
   moduleName: string
 ) => string;
 
-export type Action = () => void;
-
 export interface HostMayBeCacheable {
-  clearCache?: Action;
+  clearCache?(): void;
+  fileExistsCache?: Map<string, boolean>;
+  directoryExistsCache?: Map<string, boolean>;
+  realpathCache?: Map<string, string>;
 }
 
 export interface CacheableHost extends HostMayBeCacheable {
@@ -133,40 +134,35 @@ export interface SolutionBuilderWithWatchHost
   writtenFiles: typescript.OutputFile[];
   configFileInfo: Map<FilePathKey, ConfigFileInfo>;
   outputAffectingInstanceVersion: Map<FilePathKey, true>;
+  getInputFileStamp(fileName: string): Date;
+  updateSolutionBuilderInputFile(fileName: string): void;
   getOutputFileKeyFromReferencedProject(
     outputFileName: string
   ): FilePathKey | undefined;
-  getOutputFileFromReferencedProject(
-    outputFileName: string
-  ): OutputFileWithTextOnDisk | false | undefined;
   getOutputFileAndKeyFromReferencedProject(
     oututFileName: string
-  ):
-    | { key: FilePathKey; outputFile: OutputFileWithTextOnDisk | false }
-    | undefined;
-  getOutputFileText(outputFile: OutputFileWithTextOnDisk): string;
+  ): { key: FilePathKey; outputFile: string | false } | undefined;
+  getOutputFileTextAndKeyFromReferencedProject(
+    oututFileName: string
+  ): { key: FilePathKey; text: string | undefined } | undefined;
   getInputFileNameFromOutput(outputFileName: string): string | undefined;
   getOutputFilesFromReferencedProjectInput(
     inputFileName: string
   ): typescript.OutputFile[];
   buildReferences(): void;
+  ensureAllReferenceTimestamps(): void;
   clearCache(): void;
+  close(): void;
 }
 
 export interface ConfigFileInfo {
   config: typescript.ParsedCommandLine | undefined;
   outputFileNames?: Map<
     FilePathKey,
-    { inputFileName: string; outputNames: FilePathKey[] }
+    { inputFileName: string; outputNames: string[] }
   >;
   tsbuildInfoFile?: string;
   dtsFiles?: string[];
-}
-
-export interface OutputFileWithTextOnDisk {
-  name: string;
-  writeByteOrderMark: boolean;
-  hash: string;
 }
 
 export interface TSInstance {
