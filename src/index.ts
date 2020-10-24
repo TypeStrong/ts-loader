@@ -329,27 +329,18 @@ function updateFileInCache(
         instance.changedFilesList = true;
       }
     } else {
-      if (
-        instance.watchHost !== undefined ||
-        instance.solutionBuilderHost !== undefined
-      ) {
+      if (instance.watchHost !== undefined) {
         fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
       }
       file = { fileName: filePath, version: 0 };
       if (!isReferencedFile(instance, filePath)) {
         instance.files.set(key, file);
         instance.changedFilesList = true;
-      } else {
-        instance.otherFiles.set(key, file);
       }
     }
   }
 
-  if (
-    (instance.watchHost !== undefined ||
-      instance.solutionBuilderHost !== undefined) &&
-    contents === undefined
-  ) {
+  if (instance.watchHost !== undefined && contents === undefined) {
     fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Deleted;
   }
 
@@ -376,8 +367,7 @@ function updateFileInCache(
     file.modifiedTime = new Date();
     instance.version++;
     if (
-      (instance.watchHost !== undefined ||
-        instance.solutionBuilderHost !== undefined) &&
+      instance.watchHost !== undefined &&
       fileWatcherEventKind === undefined
     ) {
       fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Changed;
@@ -393,16 +383,6 @@ function updateFileInCache(
     instance.hasUnaccountedModifiedFiles =
       instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind) ||
       instance.hasUnaccountedModifiedFiles;
-  }
-
-  if (
-    instance.solutionBuilderHost !== undefined &&
-    fileWatcherEventKind !== undefined
-  ) {
-    instance.solutionBuilderHost.invokeFileWatcher(
-      filePath,
-      fileWatcherEventKind
-    );
   }
 
   // push this file to modified files hash.
@@ -438,10 +418,9 @@ function getEmit(
         defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
         // Remove the project reference d.ts as we are adding dependency for .ts later
         // This removed extra build pass (resulting in new stats object in initial build)
-        (!instance.solutionBuilderHost ||
-          !instance.solutionBuilderHost.getOutputFileKeyFromReferencedProject(
-            defFilePath
-          ))
+        !instance.solutionBuilderHost?.getOutputFileKeyFromReferencedProject(
+          defFilePath
+        )
       ) {
         addDependency(defFilePath);
       }
@@ -469,12 +448,18 @@ function getEmit(
     defFilePath =>
       path.relative(loaderContext.rootContext, defFilePath) +
       '@' +
-      (
-        instance.files.get(instance.filePathKeyMapper(defFilePath)) ||
-        instance.otherFiles.get(instance.filePathKeyMapper(defFilePath)) || {
-          version: '?',
-        }
-      ).version
+      (isReferencedFile(instance, defFilePath)
+        ? instance
+            .solutionBuilderHost!.getInputFileStamp(defFilePath)
+            .toString()
+        : (
+            instance.files.get(instance.filePathKeyMapper(defFilePath)) ||
+            instance.otherFiles.get(
+              instance.filePathKeyMapper(defFilePath)
+            ) || {
+              version: '?',
+            }
+          ).version)
   );
 
   return getOutputAndSourceMapFromOutputFiles(outputFiles);

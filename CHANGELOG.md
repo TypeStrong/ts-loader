@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.7
+* [Speeds up project reference build and doesnt store the result in memory](https://github.com/TypeStrong/ts-loader/pull/1202) - thanks @sheetalkamat
+
 ## v8.0.6
 * [Fixed further deprecation warning on webpack@5](https://github.com/TypeStrong/ts-loader/issues/1196) - thanks @appzuka
 

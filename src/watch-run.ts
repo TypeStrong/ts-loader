@@ -22,7 +22,6 @@ export function makeWatchRun(
 
   return (compiler: webpack.Compiler, callback: (err?: Error) => void) => {
     instance.servicesHost?.clearCache?.();
-    instance.solutionBuilderHost?.clearCache();
     const promises = [];
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;
@@ -57,12 +56,12 @@ export function makeWatchRun(
 
     // Update all the watched files from solution builder
     if (instance.solutionBuilderHost) {
-      for (const [
-        key,
-        { fileName },
-      ] of instance.solutionBuilderHost.watchedFiles.entries()) {
-        promises.push(updateFile(instance, key, fileName, loader, loaderIndex));
+      for (const {
+        fileName,
+      } of instance.solutionBuilderHost.watchedFiles.values()) {
+        instance.solutionBuilderHost!.updateSolutionBuilderInputFile(fileName);
       }
+      instance.solutionBuilderHost.clearCache();
     }
 
     Promise.all(promises)

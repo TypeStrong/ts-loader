@@ -249,22 +249,6 @@ export function arrify<T>(val: T | T[]) {
   return Array.isArray(val) ? val : [val];
 }
 
-export function ensureTrailingDirectorySeparator<T extends string>(dir: T): T {
-  return hasTrailingDirectorySeparator(dir) ? dir : ((dir + '/') as T);
-}
-
-function isAnyDirectorySeparator(charCode: number): boolean {
-  return (
-    charCode === 0x2f || charCode === 0x5c // /
-  ); // \
-}
-
-function hasTrailingDirectorySeparator(dir: string) {
-  return (
-    dir.length > 0 && isAnyDirectorySeparator(dir.charCodeAt(dir.length - 1))
-  );
-}
-
 export function ensureProgram(instance: TSInstance) {
   if (instance && instance.watchHost) {
     if (instance.hasUnaccountedModifiedFiles) {
