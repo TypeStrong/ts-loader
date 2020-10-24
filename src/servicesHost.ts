@@ -31,7 +31,7 @@ import {
   useCaseSensitiveFileNames,
 } from './utils';
 
-function makeresolversAndModuleResolutionHost(
+function makeResolversAndModuleResolutionHost(
   scriptRegex: RegExp,
   loader: webpack.loader.LoaderContext,
   instance: TSInstance,
@@ -147,7 +147,7 @@ export function makeServicesHost(
     moduleResolutionHost,
     resolveModuleNames,
     resolveTypeReferenceDirectives,
-  } = makeresolversAndModuleResolutionHost(
+  } = makeResolversAndModuleResolutionHost(
     scriptRegex,
     loader,
     instance,
@@ -486,7 +486,7 @@ export function makeWatchHost(
     moduleResolutionHost,
     resolveModuleNames,
     resolveTypeReferenceDirectives,
-  } = makeresolversAndModuleResolutionHost(
+  } = makeResolversAndModuleResolutionHost(
     scriptRegex,
     loader,
     instance,
@@ -679,7 +679,7 @@ export function makeSolutionBuilderHost(
     resolveModuleNames,
     resolveTypeReferenceDirectives,
     moduleResolutionHost,
-  } = makeresolversAndModuleResolutionHost(
+  } = makeResolversAndModuleResolutionHost(
     scriptRegex,
     loader,
     instance,
