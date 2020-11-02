@@ -33,7 +33,7 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
-const instances = new Map<string, TSInstance>();
+const instances = new WeakMap<LoaderOptions, TSInstance>();
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
 /**
@@ -47,7 +47,7 @@ export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
-  const existing = instances.get(loaderOptions.instance);
+  const existing = instances.get(loaderOptions);
   if (existing) {
     if (!existing.initialSetupPending) {
       ensureProgram(existing);
@@ -141,7 +141,7 @@ function successfulTypeScriptInstance(
     const existing = getExistingSolutionBuilderHost(configFileKey);
     if (existing) {
       // Reuse the instance if config file for project references is shared.
-      instances.set(loaderOptions.instance, existing);
+      instances.set(loaderOptions, existing);
       return { instance: existing };
     }
   }
@@ -226,7 +226,8 @@ function successfulTypeScriptInstance(
       log,
       filePathKeyMapper,
     };
-    instances.set(loaderOptions.instance, transpileInstance);
+
+    instances.set(loaderOptions, transpileInstance);
     return { instance: transpileInstance };
   }
 
@@ -278,7 +279,7 @@ function successfulTypeScriptInstance(
     log,
     filePathKeyMapper,
   };
-  instances.set(loaderOptions.instance, instance);
+  instances.set(loaderOptions, instance);
   return { instance };
 }
 

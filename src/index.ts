@@ -27,7 +27,11 @@ import {
   isReferencedFile,
 } from './utils';
 
-const webpackInstances: webpack.Compiler[] = [];
+// WeakMaps are not enumerable, so we need to keep track of how many webpack instances
+// were used, this index should be incremented whenever a new instance is used.
+let lastWebpackIndex = 0;
+// Using a WeakMap prevents compiler instances from being kept in memory forever.
+const webpackIndexMap: WeakMap<webpack.Compiler, number> = new WeakMap();
 const loaderOptionsCache: LoaderOptionsCache = {};
 
 /**
@@ -175,9 +179,11 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
  */
 function getLoaderOptions(loaderContext: webpack.loader.LoaderContext) {
   // differentiate the TypeScript instance based on the webpack instance
-  let webpackIndex = webpackInstances.indexOf(loaderContext._compiler);
-  if (webpackIndex === -1) {
-    webpackIndex = webpackInstances.push(loaderContext._compiler) - 1;
+  let webpackIndex = webpackIndexMap.get(loaderContext._compiler);
+  if (!webpackIndex) {
+    webpackIndex = lastWebpackIndex;
+    webpackIndexMap.set(loaderContext._compiler, lastWebpackIndex);
+    lastWebpackIndex++;
   }
 
   const loaderOptions =
