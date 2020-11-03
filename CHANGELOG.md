@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.8
+* [Fixed memory leak when using multiple webpack instances](https://github.com/TypeStrong/ts-loader/pull/1205) - thanks @valerio
+
 ## v8.0.7
 * [Speeds up project reference build and doesnt store the result in memory](https://github.com/TypeStrong/ts-loader/pull/1202) - thanks @sheetalkamat
 
