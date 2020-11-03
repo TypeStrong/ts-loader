@@ -33,8 +33,18 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
-const instances = new WeakMap<LoaderOptions, TSInstance>();
+const compilerMap = new WeakMap<webpack.Compiler, Map<string, TSInstance>>();
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
+
+function addTSInstanceToCache(
+  key: webpack.Compiler,
+  instanceName: string,
+  instance: TSInstance
+) {
+  const instances = compilerMap.get(key) ?? new Map<string, TSInstance>();
+  instances.set(instanceName, instance);
+  compilerMap.set(key, instances);
+}
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -47,7 +57,13 @@ export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
-  const existing = instances.get(loaderOptions);
+  let instances = compilerMap.get(loader._compiler);
+  if (!instances) {
+    instances = new Map();
+    compilerMap.set(loader._compiler, instances);
+  }
+
+  const existing = instances.get(loaderOptions.instance);
   if (existing) {
     if (!existing.initialSetupPending) {
       ensureProgram(existing);
@@ -141,7 +157,7 @@ function successfulTypeScriptInstance(
     const existing = getExistingSolutionBuilderHost(configFileKey);
     if (existing) {
       // Reuse the instance if config file for project references is shared.
-      instances.set(loaderOptions, existing);
+      addTSInstanceToCache(loader._compiler, loaderOptions.instance, existing);
       return { instance: existing };
     }
   }
@@ -227,7 +243,11 @@ function successfulTypeScriptInstance(
       filePathKeyMapper,
     };
 
-    instances.set(loaderOptions, transpileInstance);
+    addTSInstanceToCache(
+      loader._compiler,
+      loaderOptions.instance,
+      transpileInstance
+    );
     return { instance: transpileInstance };
   }
 
@@ -279,7 +299,8 @@ function successfulTypeScriptInstance(
     log,
     filePathKeyMapper,
   };
-  instances.set(loaderOptions, instance);
+
+  addTSInstanceToCache(loader._compiler, loaderOptions.instance, instance);
   return { instance };
 }
 
