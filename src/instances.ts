@@ -33,7 +33,10 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
-const compilerMap = new WeakMap<webpack.Compiler, Map<string, TSInstance>>();
+// Each TypeScript instance is based on the webpack instance (key of the WeakMap)
+// and also the name that was generated or passed via the options (string key of the
+// internal Map)
+const instanceCache = new WeakMap<webpack.Compiler, Map<string, TSInstance>>();
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
 function addTSInstanceToCache(
@@ -41,9 +44,9 @@ function addTSInstanceToCache(
   instanceName: string,
   instance: TSInstance
 ) {
-  const instances = compilerMap.get(key) ?? new Map<string, TSInstance>();
+  const instances = instanceCache.get(key) ?? new Map<string, TSInstance>();
   instances.set(instanceName, instance);
-  compilerMap.set(key, instances);
+  instanceCache.set(key, instances);
 }
 
 /**
@@ -57,10 +60,10 @@ export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
-  let instances = compilerMap.get(loader._compiler);
+  let instances = instanceCache.get(loader._compiler);
   if (!instances) {
     instances = new Map();
-    compilerMap.set(loader._compiler, instances);
+    instanceCache.set(loader._compiler, instances);
   }
 
   const existing = instances.get(loaderOptions.instance);
