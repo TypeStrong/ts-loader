@@ -27,7 +27,6 @@ import {
   isReferencedFile,
 } from './utils';
 
-const webpackInstances: webpack.Compiler[] = [];
 const loaderOptionsCache: LoaderOptionsCache = {};
 
 /**
@@ -174,12 +173,6 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
  * or creates them, adds them to the cache and returns
  */
 function getLoaderOptions(loaderContext: webpack.loader.LoaderContext) {
-  // differentiate the TypeScript instance based on the webpack instance
-  let webpackIndex = webpackInstances.indexOf(loaderContext._compiler);
-  if (webpackIndex === -1) {
-    webpackIndex = webpackInstances.push(loaderContext._compiler) - 1;
-  }
-
   const loaderOptions =
     loaderUtils.getOptions<LoaderOptions>(loaderContext) ||
     ({} as LoaderOptions);
@@ -187,9 +180,7 @@ function getLoaderOptions(loaderContext: webpack.loader.LoaderContext) {
   // If no instance name is given in the options, use the hash of the loader options
   // In this way, if different options are given the instances will be different
   const instanceName =
-    webpackIndex +
-    '_' +
-    (loaderOptions.instance || 'default_' + getOptionsHash(loaderOptions));
+    loaderOptions.instance || 'default_' + getOptionsHash(loaderOptions);
 
   if (!loaderOptionsCache.hasOwnProperty(instanceName)) {
     loaderOptionsCache[instanceName] = new WeakMap();
