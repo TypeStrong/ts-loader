@@ -8,6 +8,7 @@ import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
 import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
+import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
 import {
   FilePathKey,
   LoaderOptions,
@@ -33,42 +34,6 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
-// Each TypeScript instance is cached based on the webpack instance (key of the WeakMap)
-// and also the name that was generated or passed via the options (string key of the
-// internal Map)
-class InstanceCache {
-  // Some loaders (e.g. thread-loader) will set the _compiler property to undefined.
-  // We can't use undefined as a WeakMap key as it will throw an error at runtime,
-  // thus we keep a dummy "marker" object to use as key in those situations.
-  private marker: webpack.Compiler = {} as webpack.Compiler;
-  private map: WeakMap<webpack.Compiler, Map<string, TSInstance>>;
-
-  constructor() {
-    this.map = new WeakMap();
-  }
-
-  get(key: webpack.Compiler, name: string): TSInstance | undefined {
-    const compiler = key ?? this.marker;
-
-    let instances = this.map.get(compiler);
-    if (!instances) {
-      instances = new Map();
-      this.map.set(compiler, instances);
-    }
-
-    return instances.get(name);
-  }
-
-  set(key: webpack.Compiler, name: string, instance: TSInstance) {
-    const compiler = key ?? this.marker;
-
-    const instances = this.map.get(compiler) ?? new Map<string, TSInstance>();
-    instances.set(name, instance);
-    this.map.set(compiler, instances);
-  }
-}
-
-const instanceCache = new InstanceCache();
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
 /**
@@ -82,7 +47,10 @@ export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
-  const existing = instanceCache.get(loader._compiler, loaderOptions.instance);
+  const existing = getTSInstanceFromCache(
+    loader._compiler,
+    loaderOptions.instance
+  );
   if (existing) {
     if (!existing.initialSetupPending) {
       ensureProgram(existing);
@@ -176,7 +144,7 @@ function successfulTypeScriptInstance(
     const existing = getExistingSolutionBuilderHost(configFileKey);
     if (existing) {
       // Reuse the instance if config file for project references is shared.
-      instanceCache.set(loader._compiler, loaderOptions.instance, existing);
+      setTSInstanceInCache(loader._compiler, loaderOptions.instance, existing);
       return { instance: existing };
     }
   }
@@ -262,7 +230,7 @@ function successfulTypeScriptInstance(
       filePathKeyMapper,
     };
 
-    instanceCache.set(
+    setTSInstanceInCache(
       loader._compiler,
       loaderOptions.instance,
       transpileInstance
@@ -319,7 +287,7 @@ function successfulTypeScriptInstance(
     filePathKeyMapper,
   };
 
-  instanceCache.set(loader._compiler, loaderOptions.instance, instance);
+  setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
   return { instance };
 }
 
