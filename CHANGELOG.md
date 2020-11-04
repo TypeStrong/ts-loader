@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.9
+* [Fixed build failing when using thread-loader](https://github.com/TypeStrong/ts-loader/pull/1207) - thanks @valerio
+
 ## v8.0.8
 * [Fixed memory leak when using multiple webpack instances](https://github.com/TypeStrong/ts-loader/pull/1205) - thanks @valerio
 

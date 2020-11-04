@@ -8,6 +8,7 @@ import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
 import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
+import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
 import {
   FilePathKey,
   LoaderOptions,
@@ -33,21 +34,7 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 
-// Each TypeScript instance is based on the webpack instance (key of the WeakMap)
-// and also the name that was generated or passed via the options (string key of the
-// internal Map)
-const instanceCache = new WeakMap<webpack.Compiler, Map<string, TSInstance>>();
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
-
-function addTSInstanceToCache(
-  key: webpack.Compiler,
-  instanceName: string,
-  instance: TSInstance
-) {
-  const instances = instanceCache.get(key) ?? new Map<string, TSInstance>();
-  instances.set(instanceName, instance);
-  instanceCache.set(key, instances);
-}
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -60,13 +47,10 @@ export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext
 ): { instance?: TSInstance; error?: WebpackError } {
-  let instances = instanceCache.get(loader._compiler);
-  if (!instances) {
-    instances = new Map();
-    instanceCache.set(loader._compiler, instances);
-  }
-
-  const existing = instances.get(loaderOptions.instance);
+  const existing = getTSInstanceFromCache(
+    loader._compiler,
+    loaderOptions.instance
+  );
   if (existing) {
     if (!existing.initialSetupPending) {
       ensureProgram(existing);
@@ -160,7 +144,7 @@ function successfulTypeScriptInstance(
     const existing = getExistingSolutionBuilderHost(configFileKey);
     if (existing) {
       // Reuse the instance if config file for project references is shared.
-      addTSInstanceToCache(loader._compiler, loaderOptions.instance, existing);
+      setTSInstanceInCache(loader._compiler, loaderOptions.instance, existing);
       return { instance: existing };
     }
   }
@@ -246,7 +230,7 @@ function successfulTypeScriptInstance(
       filePathKeyMapper,
     };
 
-    addTSInstanceToCache(
+    setTSInstanceInCache(
       loader._compiler,
       loaderOptions.instance,
       transpileInstance
@@ -303,7 +287,7 @@ function successfulTypeScriptInstance(
     filePathKeyMapper,
   };
 
-  addTSInstanceToCache(loader._compiler, loaderOptions.instance, instance);
+  setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
   return { instance };
 }
 
