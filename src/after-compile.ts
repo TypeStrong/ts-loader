@@ -21,8 +21,16 @@ import {
   tsLoaderSource,
 } from './utils';
 
+/**
+ * This returns a function that has options to add assets and also to provide errors to webpack
+ * In webpack 4 we can do both during the afterCompile hook
+ * In webpack 5 only errors should be provided during aftercompile.  Assets should be
+ * emitted during the afterProcessAssets hook
+ */
 export function makeAfterCompile(
   instance: TSInstance,
+  addAssets: boolean,
+  provideErrors: boolean,
   configFilePath: string | undefined
 ) {
   let getCompilerOptionDiagnostics = true;
@@ -39,18 +47,22 @@ export function makeAfterCompile(
     }
 
     if (instance.loaderOptions.transpileOnly) {
-      provideAssetsFromSolutionBuilderHost(instance, compilation);
+      if (addAssets) {
+        provideAssetsFromSolutionBuilderHost(instance, compilation);
+      }
       callback();
       return;
     }
     removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
 
-    provideCompilerOptionDiagnosticErrorsToWebpack(
-      getCompilerOptionDiagnostics,
-      compilation,
-      instance,
-      configFilePath
-    );
+    if (provideErrors) {
+      provideCompilerOptionDiagnosticErrorsToWebpack(
+        getCompilerOptionDiagnostics,
+        compilation,
+        instance,
+        configFilePath
+      );
+    }
     getCompilerOptionDiagnostics = false;
 
     const modules = determineModules(compilation, instance);
@@ -62,22 +74,25 @@ export function makeAfterCompile(
     checkAllFilesForErrors = false;
 
     const filesWithErrors: TSFiles = new Map();
-    provideErrorsToWebpack(
-      filesToCheckForErrors,
-      filesWithErrors,
-      compilation,
-      modules,
-      instance
-    );
-    provideDeclarationFilesToWebpack(
-      filesToCheckForErrors,
-      instance,
-      compilation
-    );
-    provideTsBuildInfoFilesToWebpack(instance, compilation);
-
-    provideSolutionErrorsToWebpack(compilation, modules, instance);
-    provideAssetsFromSolutionBuilderHost(instance, compilation);
+    if (provideErrors) {
+      provideErrorsToWebpack(
+        filesToCheckForErrors,
+        filesWithErrors,
+        compilation,
+        modules,
+        instance
+      );
+      provideSolutionErrorsToWebpack(compilation, modules, instance);
+    }
+    if (addAssets) {
+      provideDeclarationFilesToWebpack(
+        filesToCheckForErrors,
+        instance,
+        compilation
+      );
+      provideTsBuildInfoFilesToWebpack(instance, compilation);
+      provideAssetsFromSolutionBuilderHost(instance, compilation);
+    }
 
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = undefined;
