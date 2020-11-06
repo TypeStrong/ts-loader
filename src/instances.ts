@@ -302,46 +302,45 @@ function getExistingSolutionBuilderHost(key: FilePathKey) {
   return undefined;
 }
 
-const addAssetHooks = (
-  loader: webpack.loader.LoaderContext,
-  instance: TSInstance
-) => {
-  // Adding assets in afterCompile is deprecated in webpack 5 so we
-  // need different behavior for webpack4 and 5
+// Adding assets in afterCompile is deprecated in webpack 5 so we
+// need different behavior for webpack4 and 5
+const addAssetHooks = !!webpack.version!.match(/^4.*/)
+  ? (loader: webpack.loader.LoaderContext, instance: TSInstance) => {
+      // add makeAfterCompile with addAssets = true to emit assets and report errors
+      loader._compiler.hooks.afterCompile.tapAsync(
+        'ts-loader',
+        makeAfterCompile(instance, true, true, instance.configFilePath)
+      );
+    }
+  : (loader: webpack.loader.LoaderContext, instance: TSInstance) => {
+      // We must be running under webpack 5+
 
-  if (!!webpack.version!.match(/^4.*/)) {
-    // add makeAfterCompile with addAssets = true to emit assets and report errors
-    loader._compiler.hooks.afterCompile.tapAsync(
-      'ts-loader',
-      makeAfterCompile(instance, true, true, instance.configFilePath)
-    );
-    return;
-  }
-  // We must be running under webpack 5+
+      // Add makeAfterCompile with addAssets = false to suppress emitting assets
+      // during the afterCompile stage. Errors will be still be reported to webpack
+      loader._compiler.hooks.afterCompile.tapAsync(
+        'ts-loader',
+        makeAfterCompile(instance, false, true, instance.configFilePath)
+      );
 
-  // Add makeAfterCompile with addAssets = false to suppress emitting assets
-  // during the afterCompile stage. Errors will be still be reported to webpack
-  loader._compiler.hooks.afterCompile.tapAsync(
-    'ts-loader',
-    makeAfterCompile(instance, false, true, instance.configFilePath)
-  );
+      // Emit the assets at the afterProcessAssets stage
+      loader._compilation.hooks.afterProcessAssets.tap(
+        'ts-loader',
+        (_: any) => {
+          makeAfterCompile(
+            instance,
+            true,
+            false,
+            instance.configFilePath
+          )(loader._compilation, () => {
+            return null;
+          });
+        }
+      );
 
-  // Emit the assets at the afterProcessAssets stage
-  loader._compilation.hooks.afterProcessAssets.tap('ts-loader', (_: any) => {
-    makeAfterCompile(
-      instance,
-      true,
-      false,
-      instance.configFilePath
-    )(loader._compilation, () => {
-      return null;
-    });
-  });
-
-  // It may be better to add assets at the processAssets stage (https://webpack.js.org/api/compilation-hooks/#processassets)
-  // This requires Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL, which does not exist in webpack4
-  // Consider changing this when ts-loader is built using webpack5
-};
+      // It may be better to add assets at the processAssets stage (https://webpack.js.org/api/compilation-hooks/#processassets)
+      // This requires Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL, which does not exist in webpack4
+      // Consider changing this when ts-loader is built using webpack5
+    };
 
 export function initializeInstance(
   loader: webpack.loader.LoaderContext,
