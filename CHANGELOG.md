@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.10
+* [Fixed missing errors in watch mode in webpack5](https://github.com/TypeStrong/ts-loader/issues/1204) - thanks @appzuka
+
 ## v8.0.9
 * [Fixed build failing when using thread-loader](https://github.com/TypeStrong/ts-loader/pull/1207) - thanks @valerio
 
