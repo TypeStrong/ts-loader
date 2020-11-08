@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "8.0.10",
+  "version": "8.0.11",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist",
@@ -101,6 +101,7 @@
     "webpack-cli": "^3.1.1"
   },
   "peerDependencies": {
-    "typescript": "*"
+    "typescript": "*",
+    "webpack": "*"
   }
 }
