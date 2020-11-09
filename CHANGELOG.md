@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.11
+* [Fixed build failing in yarn v2 pnp](https://github.com/TypeStrong/ts-loader/pull/1209) - @aicest
+
 ## v8.0.10
 * [Fixed missing errors in watch mode in webpack5](https://github.com/TypeStrong/ts-loader/issues/1204) - thanks @appzuka
 
