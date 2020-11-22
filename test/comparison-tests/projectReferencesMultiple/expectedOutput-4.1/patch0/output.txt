@@ -13,9 +13,9 @@ Entrypoint main = bundle.js
 ERROR in ./utils/index.ts
 Module build failed (from index.js):
 Error: TypeScript emitted no output for utils/index.ts. The most common cause for this is having errors when building referenced projects.
-    at makeSourceMapAndFinish (dist/index.js:54:18)
-    at successLoader (dist/index.js:41:5)
-    at Object.loader (dist/index.js:24:5)
+    at makeSourceMapAndFinish (dist/index.js:53:18)
+    at successLoader (dist/index.js:40:5)
+    at Object.loader (dist/index.js:23:5)
  @ ./app.ts 4:14-32
 
 ERROR in indirectWithError/fileWithError.ts

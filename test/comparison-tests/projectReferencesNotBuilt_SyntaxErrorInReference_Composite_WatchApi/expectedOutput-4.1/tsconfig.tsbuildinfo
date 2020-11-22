@@ -7,13 +7,13 @@
         "affectsGlobalScope": false
       },
       "../../node_modules/typescript/lib/lib.es5.d.ts": {
-        "version": "-218882352090",
-        "signature": "-218882352090",
+        "version": "1122558515312",
+        "signature": "1122558515312",
         "affectsGlobalScope": true
       },
       "../../node_modules/typescript/lib/lib.dom.d.ts": {
-        "version": "300634082611",
-        "signature": "300634082611",
+        "version": "1735661928823",
+        "signature": "1735661928823",
         "affectsGlobalScope": true
       },
       "../../node_modules/typescript/lib/lib.webworker.importscripts.d.ts": {
@@ -44,5 +44,5 @@
     "exportedModulesMap": {},
     "semanticDiagnosticsPerFile": []
   },
-  "version": "3.9.3"
+  "version": "4.1.2"
 }

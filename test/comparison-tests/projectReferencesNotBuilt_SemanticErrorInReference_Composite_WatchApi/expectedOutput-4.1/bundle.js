@@ -105,7 +105,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed (from C:/source/ts-loader/index.js):/nError: TypeScript emitted no output for C://source//ts-loader//.test//projectReferencesNotBuilt_SemanticErrorInReference_Composite_WatchApi//lib//index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (C://source//ts-loader//dist//index.js:80:15)/n    at successLoader (C://source//ts-loader//dist//index.js:68:9)/n    at Object.loader (C://source//ts-loader//dist//index.js:22:12)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("throw new Error(\"Module build failed (from /workspaces/ts-loader/index.js):/nError: TypeScript emitted no output for /projectReferencesNotBuilt_SemanticErrorInReference_Composite_WatchApi/lib/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:53:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:40:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:23:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 

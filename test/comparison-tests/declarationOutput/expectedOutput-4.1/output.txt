@@ -1,7 +1,7 @@
                Asset       Size  Chunks             Chunk Names
     .output/app.d.ts  110 bytes          [emitted]  
 .output/sub/dep.d.ts   63 bytes          [emitted]  
-           bundle.js   5.14 KiB    main  [emitted]  main
+           bundle.js   5.16 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
-[./app.ts] 911 bytes {main} [built]
+[./app.ts] 934 bytes {main} [built]
 [./sub/dep.ts] 182 bytes {main} [built]

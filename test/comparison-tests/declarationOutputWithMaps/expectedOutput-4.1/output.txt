@@ -3,7 +3,7 @@
     .output/app.d.ts.map  197 bytes          [emitted]  
     .output/sub/dep.d.ts   96 bytes          [emitted]  
 .output/sub/dep.d.ts.map  152 bytes          [emitted]  
-               bundle.js   5.14 KiB    main  [emitted]  main
+               bundle.js   5.16 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
-[./app.ts] 911 bytes {main} [built]
+[./app.ts] 934 bytes {main} [built]
 [./sub/dep.ts] 182 bytes {main} [built]

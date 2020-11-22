@@ -7,13 +7,13 @@
         "affectsGlobalScope": false
       },
       "../../../../node_modules/typescript/lib/lib.es5.d.ts": {
-        "version": "70ae6416528e68c2ee7b62892200d2ca631759943d4429f8b779b947ff1e124d",
-        "signature": "70ae6416528e68c2ee7b62892200d2ca631759943d4429f8b779b947ff1e124d",
+        "version": "69f0c334b0ee4235f6219b22f42e4fa04b414535c782b4dda793ed1918cc835c",
+        "signature": "69f0c334b0ee4235f6219b22f42e4fa04b414535c782b4dda793ed1918cc835c",
         "affectsGlobalScope": true
       },
       "../../../../node_modules/typescript/lib/lib.dom.d.ts": {
-        "version": "9affb0a2ddc57df5b8174c0af96c288d697a262e5bc9ca1f544c999dc64a91e6",
-        "signature": "9affb0a2ddc57df5b8174c0af96c288d697a262e5bc9ca1f544c999dc64a91e6",
+        "version": "abadddbf660adeec27e9a56584907d52fa1d6e1e1dc49f639a921baa951b7a84",
+        "signature": "abadddbf660adeec27e9a56584907d52fa1d6e1e1dc49f639a921baa951b7a84",
         "affectsGlobalScope": true
       },
       "../../../../node_modules/typescript/lib/lib.webworker.importscripts.d.ts": {
@@ -53,5 +53,5 @@
       "../../../../node_modules/typescript/lib/lib.webworker.importscripts.d.ts"
     ]
   },
-  "version": "3.9.3"
+  "version": "4.1.2"
 }
