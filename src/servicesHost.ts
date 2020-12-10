@@ -1040,7 +1040,7 @@ export function makeSolutionBuilderHost(
     const existing = inputFiles.get(key) || missingFileModifiedTime;
     const newTime =
       compiler.sys.getModifiedTime!(fileName) || missingFileModifiedTime;
-    if (existing === newTime) {
+    if (existing.getTime() === newTime.getTime()) {
       return;
     }
     const eventKind =
