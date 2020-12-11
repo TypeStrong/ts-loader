@@ -1,7 +1,10 @@
 # Changelog
 
+## v8.0.12
+* [Instead of checking date, check time thats more accurate to see if something has changed](https://github.com/TypeStrong/ts-loader/pull/1217) - thanks @sheetalkamat
+
 ## v8.0.11
-* [Fixed build failing in yarn v2 pnp](https://github.com/TypeStrong/ts-loader/pull/1209) - @aicest
+* [Fixed build failing in yarn v2 pnp](https://github.com/TypeStrong/ts-loader/pull/1209) - thanks @aicest
 
 ## v8.0.10
 * [Fixed missing errors in watch mode in webpack5](https://github.com/TypeStrong/ts-loader/issues/1204) - thanks @appzuka
