@@ -852,6 +852,14 @@ export function makeSolutionBuilderHost(
   function getInputFileNameFromOutput(
     outputFileName: string
   ): string | true | undefined {
+    // Unless we explicitly want to compile files in node_modules, exclude them from lookups
+    if (
+      !instance.loaderOptions.allowTsInNodeModules &&
+      outputFileName.indexOf('node_modules') !== -1
+    ) {
+      return undefined;
+    }
+
     const resolvedFileName = filePathKeyMapper(outputFileName);
     for (const configInfo of configFileInfo.values()) {
       ensureInputOutputInfo(configInfo);
