@@ -855,7 +855,7 @@ export function makeSolutionBuilderHost(
     // Unless we explicitly want to compile files in node_modules, exclude them from lookups
     if (
       !instance.loaderOptions.allowTsInNodeModules &&
-      outputFileName.indexOf('node_modules') !== -1
+      outputFileName.indexOf('/node_modules/') !== -1
     ) {
       return undefined;
     }
