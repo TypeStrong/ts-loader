@@ -61,3 +61,30 @@ Just like the steps above, except substituting a local copy of ts-loader for the
 4. Repeat the steps above in “Debugging ts-loader installed from npm...” except now, you can take advantage of source maps, so you can set breakpoints in `ts-loader/src` instead of `ts-loader/dist`.
 5. If you want to try making changes to `ts-loader`, make changes and then repeat steps 1 and 4—no need to re-run the `npm link` steps.
 6. Run `npm unlink ts-loader` in your own project directory to remove the symlink when you’re done.
+
+### Profiling Performance
+
+To investigate slowdowns in build times, it's often helpful to profile webpack & ts-loader.
+
+1. Start webpack with a debugger attached (see debugging steps above)
+2. Identify the reproducible user scenario that is experiencing slowdowns
+3. In Chrome, open `chrome://inspect` and inspect the running webpack instance
+   Note: Utilizing Chromium instead of Chrome sometimes yeilds better results. If any of the following steps fail or cause a crash, try switching from Chrome to Chromium.
+4. Switch to the Profiling Tab
+5. Start Recording
+6. Kick off the scenario that's known to be slow
+7. Stop Recording once the scenario is complete
+
+At this point you should see a list of function calls. There are three distinct views that are useful & you can swap between them to get slightly different views of the problem.
+
+**Chart View**
+
+The chart view will provide a flame chart of all profiled function calls over time. This can be useful to visualize expensive functions and blocks of high CPU, but can be difficult to read when there are deep call stacks (or flames).
+
+**Heavy View**
+
+Heavy view shows the time that functions took to execute themselves (self time) & the functions they call (total time). When expanding individual calls, you will be able to see the functions that called this function & effectively walk up the recorded stack traces.
+
+**Tree View**
+
+Tree view shows the same information as heavy view, but visualizes calls in a top-town manner. This can be useful to track down a single call pattern that is expensive but is less useful when there are deep stack traces.
