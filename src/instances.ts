@@ -95,25 +95,25 @@ function createFilePathKeyMapper(
     ? pathResolve
     : toFileNameLowerCase;
 
-  function pathResolve(x: string) {
-    let cachedPath = filePathMapperCache.get(x);
+  function pathResolve(filePath: string) {
+    let cachedPath = filePathMapperCache.get(filePath);
     if (!cachedPath) {
-      cachedPath = path.resolve(x) as FilePathKey;
-      filePathMapperCache.set(x, cachedPath);
+      cachedPath = path.resolve(filePath) as FilePathKey;
+      filePathMapperCache.set(filePath, cachedPath);
     }
     return cachedPath;
   }
 
-  function toFileNameLowerCase(x: string) {
-    let cachedPath = filePathMapperCache.get(x);
+  function toFileNameLowerCase(filePath: string) {
+    let cachedPath = filePathMapperCache.get(filePath);
     if (!cachedPath) {
-      const filePathKey = pathResolve(x);
+      const filePathKey = pathResolve(filePath);
       cachedPath = fileNameLowerCaseRegExp.test(filePathKey)
         ? (filePathKey.replace(fileNameLowerCaseRegExp, ch =>
             ch.toLowerCase()
           ) as FilePathKey)
         : filePathKey;
-      filePathMapperCache.set(x, cachedPath);
+      filePathMapperCache.set(filePath, cachedPath);
     }
     return cachedPath;
   }
