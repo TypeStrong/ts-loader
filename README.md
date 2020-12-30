@@ -62,6 +62,7 @@
     + [appendTsSuffixTo](#appendtssuffixto)
     + [appendTsxSuffixTo](#appendtsxsuffixto)
     + [onlyCompileBundledFiles](#onlycompilebundledfiles)
+    + [useCaseSensitiveFileNames](#useCaseSensitiveFileNames)
     + [allowTsInNodeModules](#allowtsinnodemodules)
     + [context](#context)
     + [experimentalFileCaching](#experimentalfilecaching)
@@ -317,7 +318,7 @@ module.exports = {
 |------|--------------|
 | `boolean` | `false`|
 
-If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
+If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
 
 It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple thread-loader example](examples/thread-loader). **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
 
@@ -624,6 +625,15 @@ any files specified by those options. The `onlyCompileBundledFiles` option modif
 loading only those files that are actually bundled by webpack, as well as any `.d.ts` files included
 by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
 compilation without being explicitly imported, and therefore not picked up by webpack.
+
+#### useCaseSensitiveFileNames
+| Type | Default Value |
+|------|--------------|
+| `boolean` | determined by typescript based on platform |
+
+The default behavior of `ts-loader` is to act as a drop-in replacement for the `tsc` command,
+so it respects the `useCaseSensitiveFileNames` set internally by typescript. The `useCaseSensitiveFileNames` option modifies this behavior,
+by changing the way in which ts-loader resolves file paths to compile. Setting this to true can have some performance benefits due to simplifying the file resolution codepath.
 
 #### allowTsInNodeModules
 | Type | Default Value |
