@@ -1,4 +1,6 @@
 # Changelog
+## v8.0.13
+* [Speed up builds by adding an in-memory cache to file path lookups](https://github.com/TypeStrong/ts-loader/pull/1228) - thanks @berickson1
 
 ## v8.0.12
 * [Instead of checking date, check time thats more accurate to see if something has changed](https://github.com/TypeStrong/ts-loader/pull/1217) - thanks @sheetalkamat
