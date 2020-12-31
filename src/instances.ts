@@ -87,23 +87,35 @@ function createFilePathKeyMapper(
   compiler: typeof typescript,
   loaderOptions: LoaderOptions
 ) {
+  // Cache file path key - a map lookup is much faster than filesystem/regex operations & the result will never change
+  const filePathMapperCache = new Map<string, FilePathKey>();
   // FileName lowercasing copied from typescript
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g;
   return useCaseSensitiveFileNames(compiler, loaderOptions)
     ? pathResolve
     : toFileNameLowerCase;
 
-  function pathResolve(x: string) {
-    return path.resolve(x) as FilePathKey;
+  function pathResolve(filePath: string) {
+    let cachedPath = filePathMapperCache.get(filePath);
+    if (!cachedPath) {
+      cachedPath = path.resolve(filePath) as FilePathKey;
+      filePathMapperCache.set(filePath, cachedPath);
+    }
+    return cachedPath;
   }
 
-  function toFileNameLowerCase(x: string) {
-    const filePathKey = pathResolve(x);
-    return fileNameLowerCaseRegExp.test(filePathKey)
-      ? (filePathKey.replace(fileNameLowerCaseRegExp, ch =>
-          ch.toLowerCase()
-        ) as FilePathKey)
-      : filePathKey;
+  function toFileNameLowerCase(filePath: string) {
+    let cachedPath = filePathMapperCache.get(filePath);
+    if (!cachedPath) {
+      const filePathKey = pathResolve(filePath);
+      cachedPath = fileNameLowerCaseRegExp.test(filePathKey)
+        ? (filePathKey.replace(fileNameLowerCaseRegExp, ch =>
+            ch.toLowerCase()
+          ) as FilePathKey)
+        : filePathKey;
+      filePathMapperCache.set(filePath, cachedPath);
+    }
+    return cachedPath;
   }
 }
 
