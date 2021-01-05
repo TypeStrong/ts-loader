@@ -1,4 +1,7 @@
 # Changelog
+## v8.0.14
+* [Upgrade `chalk`, `loader-utils`, and `semver` to latest stable versions](https://github.com/TypeStrong/ts-loader/pull/1237)
+
 ## v8.0.13
 * [Speed up builds by adding an in-memory cache to file path lookups](https://github.com/TypeStrong/ts-loader/pull/1228) - thanks @berickson1
 
