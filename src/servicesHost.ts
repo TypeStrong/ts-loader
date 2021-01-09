@@ -653,17 +653,24 @@ export function makeSolutionBuilderHost(
     } else {
       diagnostics.global.push(d);
     }
-    instance.log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+    instance.log.logTSDiagnostic(
+      d,
+      compiler.formatDiagnostic(d, formatDiagnosticHost)
+    );
   };
 
   const reportSolutionBuilderStatus = (d: typescript.Diagnostic) =>
-    instance.log.logInfo(compiler.formatDiagnostic(d, formatDiagnosticHost));
+    instance.log.logTSDiagnostic(
+      d,
+      compiler.formatDiagnostic(d, formatDiagnosticHost)
+    );
   const reportWatchStatus = (
     d: typescript.Diagnostic,
     newLine: string,
     _options: typescript.CompilerOptions
   ) =>
-    instance.log.logInfo(
+    instance.log.logTSDiagnostic(
+      d,
       `${compiler.flattenDiagnosticMessageText(
         d.messageText,
         compiler.sys.newLine

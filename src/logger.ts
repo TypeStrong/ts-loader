@@ -1,17 +1,24 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { Chalk } from 'chalk';
 import { Console } from 'console';
+import * as typescript from 'typescript';
 import { LoaderOptions } from './interfaces';
 
 type InternalLoggerFunc = (whereToLog: any, message: string) => void;
 
 type LoggerFunc = (message: string) => void;
 
+type TSDiagnosticLoggerFunc = (
+  d: typescript.Diagnostic,
+  message: string
+) => void;
+
 export interface Logger {
   log: LoggerFunc;
   logInfo: LoggerFunc;
   logWarning: LoggerFunc;
   logError: LoggerFunc;
+  logTSDiagnostic: TSDiagnosticLoggerFunc;
 }
 
 export enum LogLevel {
@@ -71,15 +78,39 @@ const makeLogWarning = (
     ? (message: string) => logger(stderrConsole, yellow(message))
     : doNothingLogger;
 
+const addDiagnosticLog = (loggers: {
+  log: LoggerFunc;
+  logInfo: LoggerFunc;
+  logWarning: LoggerFunc;
+  logError: LoggerFunc;
+}) => ({
+  ...loggers,
+  logTSDiagnostic: (d: typescript.Diagnostic, message: string) => {
+    switch (d.category) {
+      case typescript.DiagnosticCategory.Error:
+        loggers.logError(message);
+        break;
+      case typescript.DiagnosticCategory.Warning:
+        loggers.logWarning(message);
+        break;
+      case typescript.DiagnosticCategory.Suggestion:
+      case typescript.DiagnosticCategory.Message:
+      default:
+        loggers.logInfo(message);
+        break;
+    }
+  },
+});
+
 export function makeLogger(
   loaderOptions: LoaderOptions,
   colors: Chalk
 ): Logger {
   const logger = makeLoggerFunc(loaderOptions);
-  return {
+  return addDiagnosticLog({
     log: makeExternalLogger(loaderOptions, logger),
     logInfo: makeLogInfo(loaderOptions, logger, colors.green),
     logWarning: makeLogWarning(loaderOptions, logger, colors.yellow),
     logError: makeLogError(loaderOptions, logger, colors.red),
-  };
+  });
 }
