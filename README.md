@@ -729,12 +729,22 @@ In order to make use of this option your project needs to be correctly configure
 Because TS will generate .js and .d.ts files, you should ignore these files, otherwise watchers may go into an infinite watch loop. For example, when using webpack, you may wish to add this to your webpack.conf.js file:
 
 ```javascript
+// for webpack 4
  plugins: [
    new webpack.WatchIgnorePlugin([
      /\.js$/,
      /\.d\.ts$/
    ])
  ],
+
+// for webpack 5
+plugins: [
+  new webpack.WatchIgnorePlugin(
+    paths:{[
+      /\.js$/,
+      /\.d\.ts$/
+  ]})
+],
 ```
 
 It's worth noting that use of the `LoaderOptionsPlugin` is [only supposed to be a stopgap measure](https://webpack.js.org/plugins/loader-options-plugin/). You may want to look at removing it entirely.
