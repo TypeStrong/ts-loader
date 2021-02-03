@@ -344,7 +344,7 @@ These options should be functions which will be used to resolve the import state
 #### getCustomTransformers
 | Type |
 |------|
-| ` (program: Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; } ` |
+| ` (program: Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; afterDeclarations?: TransformerFactory<SourceFile>[]; } ` |
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 
