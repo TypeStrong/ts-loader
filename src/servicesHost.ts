@@ -1053,7 +1053,7 @@ export function makeSolutionBuilderHost(
 }
 
 export function getSolutionErrors(instance: TSInstance, context: string) {
-  const solutionErrors: WebpackError[] = [];
+  const solutionErrors: webpack.WebpackError[] = [];
   if (
     instance.solutionBuilderHost &&
     instance.solutionBuilderHost.diagnostics.transpileErrors.length

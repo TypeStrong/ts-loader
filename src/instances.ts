@@ -492,7 +492,7 @@ export function reportTranspileErrors(
   instance.reportTranspileErrors = false;
   // happypack does not have _module.errors - see https://github.com/TypeStrong/ts-loader/issues/336
   if (!instance.loaderOptions.happyPackMode) {
-    const solutionErrors: WebpackError[] = getSolutionErrors(
+    const solutionErrors: webpack.WebpackError[] = getSolutionErrors(
       instance,
       loader.context
     );
