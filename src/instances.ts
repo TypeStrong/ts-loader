@@ -336,20 +336,32 @@ const addAssetHooks = !!webpack.version!.match(/^4.*/)
         makeAfterCompile(instance, false, true, instance.configFilePath)
       );
 
-      // Emit the assets at the afterProcessAssets stage
-      loader._compilation.hooks.afterProcessAssets.tap(
-        'ts-loader',
-        (_: any) => {
-          makeAfterCompile(
-            instance,
-            true,
-            false,
-            instance.configFilePath
-          )(loader._compilation, () => {
-            return null;
-          });
-        }
+      // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
+      // We need to get the function once and then reuse it, otherwise it will be recreated each time
+      // and all files will always be checked.
+      const cachedMakeAfterCompile = makeAfterCompile(
+        instance,
+        true,
+        false,
+        instance.configFilePath
       );
+
+      // compilation is actually of type webpack.compilation.Compilation, but afterProcessAssets
+      // only exists in webpack5 and at the time of writing ts-loader is built using webpack4
+      const makeAssetsCallback = (compilation: any) => {
+        compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
+          cachedMakeAfterCompile(compilation, () => {
+            return null;
+          })
+        );
+      };
+
+      // We need to add the hook above for each run.
+      // For the first run, we just need to add the hook to loader._compilation
+      makeAssetsCallback(loader._compilation);
+
+      // For future calls in watch mode we need to watch for a new compilation and add the hook
+      loader._compiler.hooks.compilation.tap('ts-loader', makeAssetsCallback);
 
       // It may be better to add assets at the processAssets stage (https://webpack.js.org/api/compilation-hooks/#processassets)
       // This requires Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL, which does not exist in webpack4
