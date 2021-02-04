@@ -36,6 +36,9 @@ function loader(this: webpack.loader.LoaderContext, contents: string) {
   this.cacheable && this.cacheable();
   const callback = this.async() as webpack.loader.loaderCallback;
   const options = getLoaderOptions(this);
+  if (options.handleLoaderContext) {
+    options.handleLoaderContext(this);
+  }
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {

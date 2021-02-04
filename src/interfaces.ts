@@ -1,6 +1,7 @@
 import * as typescript from 'typescript';
 
 import { Chalk } from 'chalk';
+import webpack = require('webpack');
 import * as logger from './logger';
 
 export interface ErrorInfo {
@@ -277,6 +278,7 @@ export interface LoaderOptions {
   resolveModuleName: CustomResolveModuleName;
   resolveTypeReferenceDirective: CustomResolveTypeReferenceDirective;
   useCaseSensitiveFileNames?: boolean;
+  handleLoaderContext?: (loaderContext: webpack.loader.LoaderContext) => void;
 }
 
 export interface TSFile {
