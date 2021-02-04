@@ -9,13 +9,7 @@ import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
 import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
 import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
-import {
-  FilePathKey,
-  LoaderOptions,
-  TSFiles,
-  TSInstance,
-  WebpackError,
-} from './interfaces';
+import { FilePathKey, LoaderOptions, TSFiles, TSInstance } from './interfaces';
 import * as logger from './logger';
 import {
   getSolutionErrors,
@@ -46,7 +40,7 @@ const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.loader.LoaderContext
-): { instance?: TSInstance; error?: WebpackError } {
+): { instance?: TSInstance; error?: webpack.WebpackError } {
   const existing = getTSInstanceFromCache(
     loader._compiler,
     loaderOptions.instance
@@ -346,7 +340,7 @@ const addAssetHooks = !!webpack.version!.match(/^4.*/)
         instance.configFilePath
       );
 
-      // compilation is actually of type webpack.compilation.Compilation, but afterProcessAssets
+      // compilation is actually of type webpack.Compilation, but afterProcessAssets
       // only exists in webpack5 and at the time of writing ts-loader is built using webpack4
       const makeAssetsCallback = (compilation: any) => {
         compilation.hooks.afterProcessAssets.tap('ts-loader', () =>

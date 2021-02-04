@@ -20,7 +20,6 @@ import {
   WatchCallbacks,
   WatchFactory,
   WatchHost,
-  WebpackError,
 } from './interfaces';
 import { makeResolver } from './resolver';
 import {

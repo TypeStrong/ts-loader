@@ -15,27 +15,6 @@ export interface ErrorInfo {
 
 export type FileLocation = { line: number; character: number };
 
-export interface WebpackError {
-  module?: any;
-  file?: string;
-  message: string;
-  location?: FileLocation;
-  loaderSource: string;
-}
-export interface WebpackModule {
-  resource: string;
-  errors: WebpackError[];
-  addWarning(warning: Error): void;
-  addError(error: WebpackError | Error): void;
-  getWarnings(): Iterable<Error> | undefined;
-  getErrors(): Iterable<WebpackError | Error> | undefined;
-  clearWarningsAndErrors(): void;
-  buildMeta: {
-    tsLoaderFileVersion: number;
-    tsLoaderDefinitionFileVersions: string[];
-  };
-}
-
 export type ResolveSync = (
   context: string | undefined,
   path: string,

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as path from 'path';
 import * as typescript from 'typescript';
+import * as webpack from 'webpack';
 
 import constants = require('./constants');
 import {
@@ -13,8 +14,6 @@ import {
   ReverseDependencyGraph,
   Severity,
   TSInstance,
-  WebpackError,
-  WebpackModule,
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
 /**
@@ -45,9 +44,9 @@ export function formatErrors(
   loaderOptions: LoaderOptions,
   colors: Chalk,
   compiler: typeof typescript,
-  merge: { file?: string; module?: WebpackModule },
+  merge: { file?: string; module?: webpack.Module },
   context: string
-): WebpackError[] {
+): webpack.WebpackError[] {
   return diagnostics === undefined
     ? []
     : diagnostics
@@ -73,7 +72,7 @@ export function formatErrors(
           }
           return true;
         })
-        .map<WebpackError>(diagnostic => {
+        .map<webpack.WebpackError>(diagnostic => {
           const file = diagnostic.file;
           const position =
             file === undefined
@@ -108,7 +107,7 @@ export function formatErrors(
               : { line: errorInfo.line, character: errorInfo.character }
           );
 
-          return Object.assign(error, merge) as WebpackError;
+          return Object.assign(error, merge) as webpack.WebpackError;
         });
 }
 
@@ -129,7 +128,7 @@ export function makeError(
   message: string,
   file: string | undefined,
   location?: { line: number; character: number }
-): WebpackError {
+): webpack.WebpackError {
   return {
     message,
     location,
