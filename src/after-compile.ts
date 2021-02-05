@@ -135,7 +135,7 @@ function determineModules(
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    if (module.resource) {
+    if (module instanceof webpack.NormalModule && module.resource) {
       const modulePath = filePathKeyMapper(module.resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
@@ -399,10 +399,8 @@ function outputFileToAsset(
     compilation.compiler.outputPath,
     outputFile.name
   );
-  compilation.assets[assetPath] = {
-    source: () => outputFile.text,
-    size: () => outputFile.text.length,
-  };
+
+  compilation.emitAsset(assetPath, new webpack.sources.RawSource(outputFile.text));
 }
 
 function outputFilesToAsset<T extends ts.OutputFile>(

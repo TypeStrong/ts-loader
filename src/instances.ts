@@ -343,11 +343,11 @@ const addAssetHooks = !!webpack.version!.match(/^4.*/)
       // compilation is actually of type webpack.Compilation, but afterProcessAssets
       // only exists in webpack5 and at the time of writing ts-loader is built using webpack4
       const makeAssetsCallback = (compilation: any) => {
-        compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
+        compilation.hooks.processAssets.tap({ name: 'ts-loader', stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL }, (_assets: webpack.Asset[]) => {
           cachedMakeAfterCompile(compilation, () => {
             return null;
-          })
-        );
+          });
+        });
       };
 
       // We need to add the hook above for each run.
