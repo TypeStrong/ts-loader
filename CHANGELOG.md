@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.17
+* [Included correct webpack source location in emitted errors](https://github.com/TypeStrong/ts-loader/issues/1199) - thanks @lorenzodallavecchia
+
 ## v8.0.16
 * [Re-Fixed missing errors in watch mode in webpack5](https://github.com/TypeStrong/ts-loader/issues/1204) - thanks @appzuka
 
