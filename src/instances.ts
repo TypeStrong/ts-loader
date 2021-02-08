@@ -323,26 +323,17 @@ const addAssetHooks = !!webpack.version!.match(/^4.*/)
       // add makeAfterCompile with addAssets = true to emit assets and report errors
       loader._compiler.hooks.afterCompile.tapAsync(
         'ts-loader',
-        makeAfterCompile(instance, true, true, instance.configFilePath)
+        makeAfterCompile(instance, instance.configFilePath)
       );
     }
   : (loader: webpack.loader.LoaderContext, instance: TSInstance) => {
       // We must be running under webpack 5+
-
-      // Add makeAfterCompile with addAssets = false to suppress emitting assets
-      // during the afterCompile stage. Errors will be still be reported to webpack
-      loader._compiler.hooks.afterCompile.tapAsync(
-        'ts-loader',
-        makeAfterCompile(instance, false, true, instance.configFilePath)
-      );
 
       // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
       // We need to get the function once and then reuse it, otherwise it will be recreated each time
       // and all files will always be checked.
       const cachedMakeAfterCompile = makeAfterCompile(
         instance,
-        true,
-        false,
         instance.configFilePath
       );
 

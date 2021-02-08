@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.16
+* [Re-Fixed missing errors in watch mode in webpack5](https://github.com/TypeStrong/ts-loader/issues/1204) - thanks @appzuka
+
 ## v8.0.15
 * [Update definition files in watch mode in webpack@5](https://github.com/TypeStrong/ts-loader/pull/1249) - thanks @appzuka,@JonWallsten,@alexander-akait
 * [Add afterDeclarations to getCustomTransformers in README.md](https://github.com/TypeStrong/ts-loader/pull/1248) - thanks @appzuka
