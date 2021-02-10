@@ -7,6 +7,7 @@ import * as typescript from 'typescript';
 import constants = require('./constants');
 import {
   ErrorInfo,
+  FileLocation,
   FilePathKey,
   LoaderOptions,
   ResolvedModule,
@@ -15,6 +16,7 @@ import {
   TSInstance,
   WebpackError,
   WebpackModule,
+  WebpackSourcePosition,
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
 /**
@@ -75,10 +77,10 @@ export function formatErrors(
         })
         .map<WebpackError>(diagnostic => {
           const file = diagnostic.file;
-          const position =
-            file === undefined
-              ? undefined
-              : file.getLineAndCharacterOfPosition(diagnostic.start!);
+          const { start, end } =
+            file === undefined || diagnostic.start === undefined
+              ? { start: undefined, end: undefined }
+              : getFileLocations(file, diagnostic.start, diagnostic.length);
           const errorInfo: ErrorInfo = {
             code: diagnostic.code,
             severity: compiler.DiagnosticCategory[
@@ -89,8 +91,8 @@ export function formatErrors(
               constants.EOL
             ),
             file: file === undefined ? '' : path.normalize(file.fileName),
-            line: position === undefined ? 0 : position.line + 1,
-            character: position === undefined ? 0 : position.character + 1,
+            line: start === undefined ? 0 : start.line,
+            character: start === undefined ? 0 : start.character,
             context,
           };
 
@@ -103,13 +105,33 @@ export function formatErrors(
             loaderOptions,
             message,
             merge.file === undefined ? errorInfo.file : merge.file,
-            position === undefined
-              ? undefined
-              : { line: errorInfo.line, character: errorInfo.character }
+            start,
+            end
           );
 
           return Object.assign(error, merge) as WebpackError;
         });
+}
+
+function getFileLocations(
+  file: typescript.SourceFile,
+  position: number,
+  length = 0
+) {
+  const startLC = file.getLineAndCharacterOfPosition(position);
+  const start: FileLocation = {
+    line: startLC.line + 1,
+    character: startLC.character + 1,
+  };
+  const endLC =
+    length > 0
+      ? file.getLineAndCharacterOfPosition(position + length)
+      : undefined;
+  const end: FileLocation | undefined =
+    endLC === undefined
+      ? undefined
+      : { line: endLC.line + 1, character: endLC.character + 1 };
+  return { start, end };
 }
 
 export function fsReadFile(
@@ -128,14 +150,34 @@ export function makeError(
   loaderOptions: LoaderOptions,
   message: string,
   file: string | undefined,
-  location?: { line: number; character: number }
+  location?: FileLocation,
+  endLocation?: FileLocation
 ): WebpackError {
   return {
     message,
-    location,
     file,
+    loc:
+      location === undefined
+        ? undefined
+        : makeWebpackLocation(location, endLocation),
+    location,
     loaderSource: tsLoaderSource(loaderOptions),
   };
+}
+
+function makeWebpackLocation(
+  location: FileLocation,
+  endLocation?: FileLocation
+) {
+  const start: WebpackSourcePosition = {
+    line: location.line,
+    column: location.character - 1,
+  };
+  const end: WebpackSourcePosition | undefined =
+    endLocation === undefined
+      ? undefined
+      : { line: endLocation.line, column: endLocation.character - 1 };
+  return { start, end };
 }
 
 export function tsLoaderSource(loaderOptions: LoaderOptions) {

@@ -13,6 +13,6 @@ Error: TypeScript emitted no output for lib/index.ts. The most common cause for 
  @ ./app.ts 3:12-28
 
 ERROR in lib/index.ts
-./lib/index.ts
+./lib/index.ts 4:11-12
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/index.ts(4,12)[39m[22m
 [1m[31m      TS1136: Property assignment expected.[39m[22m
