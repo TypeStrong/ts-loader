@@ -29,8 +29,6 @@ import {
  */
 export function makeAfterCompile(
   instance: TSInstance,
-  addAssets: boolean,
-  provideErrors: boolean,
   configFilePath: string | undefined
 ) {
   let getCompilerOptionDiagnostics = true;
@@ -47,22 +45,18 @@ export function makeAfterCompile(
     }
 
     if (instance.loaderOptions.transpileOnly) {
-      if (addAssets) {
-        provideAssetsFromSolutionBuilderHost(instance, compilation);
-      }
+      provideAssetsFromSolutionBuilderHost(instance, compilation);
       callback();
       return;
     }
     removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
 
-    if (provideErrors) {
-      provideCompilerOptionDiagnosticErrorsToWebpack(
-        getCompilerOptionDiagnostics,
-        compilation,
-        instance,
-        configFilePath
-      );
-    }
+    provideCompilerOptionDiagnosticErrorsToWebpack(
+      getCompilerOptionDiagnostics,
+      compilation,
+      instance,
+      configFilePath
+    );
     getCompilerOptionDiagnostics = false;
 
     const modules = determineModules(compilation, instance);
@@ -74,25 +68,21 @@ export function makeAfterCompile(
     checkAllFilesForErrors = false;
 
     const filesWithErrors: TSFiles = new Map();
-    if (provideErrors) {
-      provideErrorsToWebpack(
-        filesToCheckForErrors,
-        filesWithErrors,
-        compilation,
-        modules,
-        instance
-      );
-      provideSolutionErrorsToWebpack(compilation, modules, instance);
-    }
-    if (addAssets) {
-      provideDeclarationFilesToWebpack(
-        filesToCheckForErrors,
-        instance,
-        compilation
-      );
-      provideTsBuildInfoFilesToWebpack(instance, compilation);
-      provideAssetsFromSolutionBuilderHost(instance, compilation);
-    }
+    provideErrorsToWebpack(
+      filesToCheckForErrors,
+      filesWithErrors,
+      compilation,
+      modules,
+      instance
+    );
+    provideSolutionErrorsToWebpack(compilation, modules, instance);
+    provideDeclarationFilesToWebpack(
+      filesToCheckForErrors,
+      instance,
+      compilation
+    );
+    provideTsBuildInfoFilesToWebpack(instance, compilation);
+    provideAssetsFromSolutionBuilderHost(instance, compilation);
 
     instance.filesWithErrors = filesWithErrors;
     instance.modifiedFiles = undefined;

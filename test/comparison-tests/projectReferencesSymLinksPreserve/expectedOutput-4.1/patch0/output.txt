@@ -9,6 +9,6 @@ Entrypoint main = index.js
 [./src/index.ts] 108 bytes {main} [built] [1 error]
 
 ERROR in app/src/index.ts
-./src/index.ts
+./src/index.ts 1:9-25
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp/src/index.ts(1,10)[39m[22m
 [1m[31m      TS2724: '"../../node_modules/lib/dist"' has no exported member named 'getMeaningOfLife'. Did you mean 'getMeaningOfLife3'?[39m[22m
