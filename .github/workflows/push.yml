@@ -6,7 +6,7 @@ jobs:
   comparison_test:
     name: Ubuntu Comparison Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v2
 
@@ -57,7 +57,7 @@ jobs:
       matrix:
         os: [ubuntu, windows]
         node: [10, 12, 14]
-        ts: [3.6.5, 3.7.5, 3.8.3, 3.9.3, 4.0.3, 4.1.2, next]
+        ts: [3.8.3, 3.9.3, 4.0.3, 4.1.2, next]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
