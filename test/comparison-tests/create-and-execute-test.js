@@ -243,7 +243,7 @@ function storeStats(stats, testState, paths) {
         // do a little magic to normalize `\` to `/` for asset output
         const newAssets = {};
         Object.keys(stats.compilation.assets).forEach(function (asset) {
-            if (stats.compilation.assets[asset].emitted) {
+            if (stats.compilation.assets[asset].size()) {
                 const diskAssetPath = path.join(paths.outputPath, asset);
                 const newPath = path.join(paths.actualOutput, path.relative(paths.testStagingPath, diskAssetPath));
                 if (diskAssetPath !== newPath) {

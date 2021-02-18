@@ -7,8 +7,8 @@
         "affectsGlobalScope": false
       },
       "../../../node_modules/typescript/lib/lib.es5.d.ts": {
-        "version": "69f0c334b0ee4235f6219b22f42e4fa04b414535c782b4dda793ed1918cc835c",
-        "signature": "69f0c334b0ee4235f6219b22f42e4fa04b414535c782b4dda793ed1918cc835c",
+        "version": "9622e8bd7cc72a7dab819a8011ecbf81d443638082e5cb99ecf2e75ff56ffc9d",
+        "signature": "9622e8bd7cc72a7dab819a8011ecbf81d443638082e5cb99ecf2e75ff56ffc9d",
         "affectsGlobalScope": true
       },
       "../../../node_modules/typescript/lib/lib.dom.d.ts": {
@@ -79,5 +79,5 @@
       ]
     ]
   },
-  "version": "4.1.2"
+  "version": "4.1.5"
 }

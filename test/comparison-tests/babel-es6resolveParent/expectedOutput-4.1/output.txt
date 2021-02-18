@@ -1,4 +1,4 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.22 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./index.tsx] 251 bytes {main} [built]
+asset bundle.js 3.09 KiB [emitted] (name: main)
+runtime modules 670 bytes 3 modules
+./index.tsx 251 bytes [built] [code generated]
+webpack compiled successfully
