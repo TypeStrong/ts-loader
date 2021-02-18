@@ -626,15 +626,7 @@ function getTranspilationEmit(
       loaderContext.context
     );
 
-    /**
-     * Since webpack 5, the `errors` property is deprecated,
-     * so we can check if some methods for reporting errors exist.
-     */
-    if (module.addError) {
-      errors.forEach(error => module.addError(error));
-    } else {
-      module.errors.push(...errors);
-    }
+    errors.forEach(error => module.addError(error));
   }
 
   return { outputText, sourceMapText };

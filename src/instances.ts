@@ -179,15 +179,7 @@ function successfulTypeScriptInstance(
       loader.context
     );
 
-    /**
-     * Since webpack 5, the `errors` property is deprecated,
-     * so we can check if some methods for reporting errors exist.
-     */
-    if (module.addError) {
-      errors.forEach(error => module.addError(error));
-    } else {
-      module.errors.push(...errors);
-    }
+    errors.forEach(error => module.addError(error));
 
     return {
       error: makeError(
@@ -312,48 +304,36 @@ function getExistingSolutionBuilderHost(key: FilePathKey) {
   return undefined;
 }
 
-// Adding assets in afterCompile is deprecated in webpack 5 so we
-// need different behavior for webpack4 and 5
-const addAssetHooks = !!webpack.version!.match(/^4.*/)
-  ? (loader: WebpackLoaderContext, instance: TSInstance) => {
-      // add makeAfterCompile with addAssets = true to emit assets and report errors
-      loader._compiler.hooks.afterCompile.tapAsync(
-        'ts-loader',
-        makeAfterCompile(instance, instance.configFilePath)
-      );
-    }
-  : (loader: WebpackLoaderContext, instance: TSInstance) => {
-      // We must be running under webpack 5+
+function addAssetHooks(loader: WebpackLoaderContext, instance: TSInstance) {
+  // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
+  // We need to get the function once and then reuse it, otherwise it will be recreated each time
+  // and all files will always be checked.
+  const cachedMakeAfterCompile = makeAfterCompile(
+    instance,
+    instance.configFilePath
+  );
 
-      // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
-      // We need to get the function once and then reuse it, otherwise it will be recreated each time
-      // and all files will always be checked.
-      const cachedMakeAfterCompile = makeAfterCompile(
-        instance,
-        instance.configFilePath
-      );
+  // compilation is actually of type webpack.Compilation, but afterProcessAssets
+  // only exists in webpack5 and at the time of writing ts-loader is built using webpack4
+  const makeAssetsCallback = (compilation: any) => {
+    compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
+      cachedMakeAfterCompile(compilation, () => {
+        return null;
+      })
+    );
+  };
 
-      // compilation is actually of type webpack.Compilation, but afterProcessAssets
-      // only exists in webpack5 and at the time of writing ts-loader is built using webpack4
-      const makeAssetsCallback = (compilation: any) => {
-        compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
-          cachedMakeAfterCompile(compilation, () => {
-            return null;
-          })
-        );
-      };
+  // We need to add the hook above for each run.
+  // For the first run, we just need to add the hook to loader._compilation
+  makeAssetsCallback(loader._compilation);
 
-      // We need to add the hook above for each run.
-      // For the first run, we just need to add the hook to loader._compilation
-      makeAssetsCallback(loader._compilation);
+  // For future calls in watch mode we need to watch for a new compilation and add the hook
+  loader._compiler.hooks.compilation.tap('ts-loader', makeAssetsCallback);
 
-      // For future calls in watch mode we need to watch for a new compilation and add the hook
-      loader._compiler.hooks.compilation.tap('ts-loader', makeAssetsCallback);
-
-      // It may be better to add assets at the processAssets stage (https://webpack.js.org/api/compilation-hooks/#processassets)
-      // This requires Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL, which does not exist in webpack4
-      // Consider changing this when ts-loader is built using webpack5
-    };
+  // It may be better to add assets at the processAssets stage (https://webpack.js.org/api/compilation-hooks/#processassets)
+  // This requires Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL, which does not exist in webpack4
+  // Consider changing this when ts-loader is built using webpack5
+}
 
 export function initializeInstance(
   loader: WebpackLoaderContext,
@@ -498,15 +478,8 @@ export function reportTranspileErrors(
       { file: instance.configFilePath || 'tsconfig.json' },
       loader.context
     );
-    /**
-     * Since webpack 5, the `errors` property is deprecated,
-     * so we can check if some methods for reporting errors exist.
-     */
-    if (module.addError) {
-      [...solutionErrors, ...errors].forEach(error => module.addError(error));
-    } else {
-      module.errors.push(...solutionErrors, ...errors);
-    }
+
+    [...solutionErrors, ...errors].forEach(error => module.addError(error));
   }
 }
 
