@@ -21,12 +21,6 @@ export type FileLocation = {
   character: number;
 };
 
-export type ResolveSync = (
-  context: string | undefined,
-  path: string,
-  moduleName: string
-) => string;
-
 export interface HostMayBeCacheable {
   clearCache?(): void;
   fileExistsCache?: Map<string, boolean>;
@@ -73,9 +67,7 @@ export interface ServiceHostWhichMayBeCacheable
     HostMayBeCacheable {}
 
 export interface WatchHost
-  extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
-    typescript.EmitAndSemanticDiagnosticsBuilderProgram
-  > {
+  extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<typescript.EmitAndSemanticDiagnosticsBuilderProgram> {
   invokeFileWatcher: WatchFactory['invokeFileWatcher'];
   updateRootFileNames(): void;
   outputFiles: Map<FilePathKey, typescript.OutputFile[]>;
@@ -89,9 +81,7 @@ export type WatchCallbacks<T> = Map<
 export interface WatchFactory {
   watchedFiles: WatchCallbacks<typescript.FileWatcherCallback>;
   watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback>;
-  watchedDirectoriesRecursive: WatchCallbacks<
-    typescript.DirectoryWatcherCallback
-  >;
+  watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback>;
   invokeFileWatcher(
     fileName: string,
     eventKind: typescript.FileWatcherEventKind
@@ -111,9 +101,7 @@ export interface SolutionDiagnostics {
 export type FilePathKey = string & { __filePathKeyBrand: any };
 
 export interface SolutionBuilderWithWatchHost
-  extends typescript.SolutionBuilderWithWatchHost<
-      typescript.EmitAndSemanticDiagnosticsBuilderProgram
-    >,
+  extends typescript.SolutionBuilderWithWatchHost<typescript.EmitAndSemanticDiagnosticsBuilderProgram>,
     WatchFactory {
   diagnostics: SolutionDiagnostics;
   writtenFiles: typescript.OutputFile[];
@@ -181,9 +169,7 @@ export interface TSInstance {
 
   otherFiles: TSFiles;
   watchHost?: WatchHost;
-  watchOfFilesAndCompilerOptions?: typescript.WatchOfFilesAndCompilerOptions<
-    typescript.EmitAndSemanticDiagnosticsBuilderProgram
-  >;
+  watchOfFilesAndCompilerOptions?: typescript.WatchOfFilesAndCompilerOptions<typescript.EmitAndSemanticDiagnosticsBuilderProgram>;
   builderProgram?: typescript.EmitAndSemanticDiagnosticsBuilderProgram;
   program?: typescript.Program;
   hasUnaccountedModifiedFiles?: boolean;

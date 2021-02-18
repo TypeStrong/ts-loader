@@ -4,7 +4,7 @@ import * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { getCompilerOptions } from './compilerSetup';
-import { LoaderOptions } from './interfaces';
+import { LoaderOptions, WebpackLoaderContext } from './interfaces';
 import * as logger from './logger';
 import { formatErrors, useCaseSensitiveFileNames } from './utils';
 
@@ -16,7 +16,7 @@ interface ConfigFile {
 export function getConfigFile(
   compiler: typeof typescript,
   colors: Chalk,
-  loader: webpack.LoaderContext,
+  loader: WebpackLoaderContext,
   loaderOptions: LoaderOptions,
   compilerCompatible: boolean,
   log: logger.Logger,
@@ -159,9 +159,7 @@ export function getConfigParseResult(
   return configParseResult;
 }
 
-const extendedConfigCache = new Map() as typescript.Map<
-  typescript.ExtendedConfigCacheEntry
->;
+const extendedConfigCache = new Map() as typescript.Map<typescript.ExtendedConfigCacheEntry>;
 export function getParsedCommandLine(
   compiler: typeof typescript,
   loaderOptions: LoaderOptions,

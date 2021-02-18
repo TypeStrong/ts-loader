@@ -12,7 +12,6 @@ import {
   FilePathKey,
   ModuleResolutionHostMayBeCacheable,
   ResolvedModule,
-  ResolveSync,
   ServiceHostWhichMayBeCacheable,
   SolutionBuilderWithWatchHost,
   SolutionDiagnostics,
@@ -20,8 +19,9 @@ import {
   WatchCallbacks,
   WatchFactory,
   WatchHost,
+  WebpackLoaderContext,
 } from './interfaces';
-import { makeResolver } from './resolver';
+import { makeResolver, ResolveSync } from './resolver';
 import {
   formatErrors,
   fsReadFile,
@@ -32,7 +32,7 @@ import {
 
 function makeResolversAndModuleResolutionHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance,
   fileExists: (fileName: string) => boolean,
   enableFileCaching: boolean
@@ -136,7 +136,7 @@ function makeResolversAndModuleResolutionHost(
  */
 export function makeServicesHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ): ServiceHostWhichMayBeCacheable {
@@ -465,7 +465,7 @@ export function updateFileWithText(
  */
 export function makeWatchHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
@@ -605,7 +605,7 @@ const missingFileModifiedTime = new Date(0);
  */
 export function makeSolutionBuilderHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance
 ): SolutionBuilderWithWatchHost {
   const {
@@ -1137,10 +1137,12 @@ function resolveModule(
       moduleName
     );
 
-    const resolvedFileName = appendTsTsxSuffixesIfRequired(originalFileName);
+    if (originalFileName) {
+      const resolvedFileName = appendTsTsxSuffixesIfRequired(originalFileName);
 
-    if (resolvedFileName.match(scriptRegex) !== null) {
-      resolutionResult = { resolvedFileName, originalFileName };
+      if (resolvedFileName.match(scriptRegex) !== null) {
+        resolutionResult = { resolvedFileName, originalFileName };
+      }
     }
   } catch (e) {}
 

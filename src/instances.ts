@@ -9,7 +9,13 @@ import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
 import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
 import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
-import { FilePathKey, LoaderOptions, TSFiles, TSInstance } from './interfaces';
+import {
+  FilePathKey,
+  LoaderOptions,
+  TSFiles,
+  TSInstance,
+  WebpackLoaderContext,
+} from './interfaces';
 import * as logger from './logger';
 import {
   getSolutionErrors,
@@ -39,7 +45,7 @@ const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
  */
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: webpack.loader.LoaderContext
+  loader: WebpackLoaderContext
 ): { instance?: TSInstance; error?: webpack.WebpackError } {
   const existing = getTSInstanceFromCache(
     loader._compiler,
@@ -60,11 +66,7 @@ export function getTypeScriptInstance(
 
   if (compiler.errorMessage !== undefined) {
     return {
-      error: makeError(
-        loaderOptions,
-        colors.red(compiler.errorMessage),
-        undefined
-      ),
+      error: makeError(loaderOptions, colors.red(compiler.errorMessage), ''),
     };
   }
 
@@ -117,7 +119,7 @@ function createFilePathKeyMapper(
 
 function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   log: logger.Logger,
   colors: chalk.Chalk,
   compiler: typeof typescript,
@@ -191,7 +193,7 @@ function successfulTypeScriptInstance(
       error: makeError(
         loaderOptions,
         colors.red('error while parsing tsconfig.json'),
-        configFilePath
+        configFilePath || ''
       ),
     };
   }
@@ -313,14 +315,14 @@ function getExistingSolutionBuilderHost(key: FilePathKey) {
 // Adding assets in afterCompile is deprecated in webpack 5 so we
 // need different behavior for webpack4 and 5
 const addAssetHooks = !!webpack.version!.match(/^4.*/)
-  ? (loader: webpack.loader.LoaderContext, instance: TSInstance) => {
+  ? (loader: WebpackLoaderContext, instance: TSInstance) => {
       // add makeAfterCompile with addAssets = true to emit assets and report errors
       loader._compiler.hooks.afterCompile.tapAsync(
         'ts-loader',
         makeAfterCompile(instance, instance.configFilePath)
       );
     }
-  : (loader: webpack.loader.LoaderContext, instance: TSInstance) => {
+  : (loader: WebpackLoaderContext, instance: TSInstance) => {
       // We must be running under webpack 5+
 
       // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
@@ -354,7 +356,7 @@ const addAssetHooks = !!webpack.version!.match(/^4.*/)
     };
 
 export function initializeInstance(
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance
 ) {
   if (!instance.initialSetupPending) {
@@ -474,7 +476,7 @@ function getScriptRegexp(instance: TSInstance) {
 
 export function reportTranspileErrors(
   instance: TSInstance,
-  loader: webpack.loader.LoaderContext
+  loader: WebpackLoaderContext
 ) {
   if (!instance.reportTranspileErrors) {
     return;
@@ -510,7 +512,7 @@ export function reportTranspileErrors(
 
 export function buildSolutionReferences(
   instance: TSInstance,
-  loader: webpack.loader.LoaderContext
+  loader: WebpackLoaderContext
 ) {
   if (!supportsSolutionBuild(instance)) {
     return;

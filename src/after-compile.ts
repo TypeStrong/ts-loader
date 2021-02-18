@@ -125,7 +125,7 @@ function determineModules(
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    if (module.resource) {
+    if (module instanceof webpack.NormalModule && module.resource) {
       const modulePath = filePathKeyMapper(module.resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
@@ -392,7 +392,7 @@ function outputFileToAsset(
   compilation.assets[assetPath] = {
     source: () => outputFile.text,
     size: () => outputFile.text.length,
-  };
+  } as any;
 }
 
 function outputFilesToAsset<T extends ts.OutputFile>(
@@ -452,7 +452,7 @@ function removeCompilationTSLoaderErrors(
   loaderOptions: LoaderOptions
 ) {
   compilation.errors = compilation.errors.filter(
-    error => error.loaderSource !== tsLoaderSource(loaderOptions)
+    error => error.details !== tsLoaderSource(loaderOptions)
   );
 }
 
@@ -460,24 +460,14 @@ function removeModuleTSLoaderError(
   module: webpack.Module,
   loaderOptions: LoaderOptions
 ) {
-  /**
-   * Since webpack 5, the `errors` property is deprecated,
-   * so we can check if some methods for reporting errors exist.
-   */
-  if (!!module.addError) {
-    const warnings = module.getWarnings();
-    const errors = module.getErrors();
-    module.clearWarningsAndErrors();
+  const warnings = module.getWarnings();
+  const errors = module.getErrors();
+  module.clearWarningsAndErrors();
 
-    Array.from(warnings || []).forEach(warning => module.addWarning(warning));
-    Array.from(errors || [])
-      .filter(
-        (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
-      )
-      .forEach(error => module.addError(error));
-  } else {
-    module.errors = module.errors.filter(
-      error => error.loaderSource !== tsLoaderSource(loaderOptions)
-    );
-  }
+  Array.from(warnings || []).forEach(warning => module.addWarning(warning));
+  Array.from(errors || [])
+    .filter(
+      (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
+    )
+    .forEach(error => module.addError(error));
 }
