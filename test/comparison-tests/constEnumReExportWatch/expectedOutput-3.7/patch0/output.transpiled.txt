@@ -1,6 +1,0 @@
-    Asset     Size  Chunks             Chunk Names
-bundle.js  1.86 kB       0  [emitted]  main
-chunk    {0} bundle.js (main) 302 bytes [rendered]
-    [0] ./.test/constEnumReExportWatch/app.ts 76 bytes {0}
-    [1] ./.test/constEnumReExportWatch/foo.ts 77 bytes {0}
-    [2] ./.test/constEnumReExportWatch/bar.ts 149 bytes {0} [built]
