@@ -14,7 +14,7 @@ install:
   - yarn lint
   - yarn add $TYPESCRIPT
 env:
-  - TYPESCRIPT=typescript@4.1.2
+  - TYPESCRIPT=typescript@4.1.5
   - TYPESCRIPT=typescript@next
   - TYPESCRIPT=typescript@4.0.3
   - TYPESCRIPT=typescript@3.9.3

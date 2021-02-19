@@ -1,4 +1,4 @@
-name: Continuous Integration (build and test)
+name: build and test
 
 on: [push, pull_request]
 
@@ -17,7 +17,7 @@ jobs:
         run: yarn build
 
       - name: install typescript
-        run: yarn add typescript@4.1.2
+        run: yarn add typescript@4.1.5
 
       - name: test
         run: sudo yarn comparison-tests
@@ -44,7 +44,7 @@ jobs:
         working-directory: C:\source\ts-loader
 
       - name: install typescript
-        run: yarn add typescript@4.1.2
+        run: yarn add typescript@4.1.5
         working-directory: C:\source\ts-loader
 
       - name: test
@@ -57,7 +57,7 @@ jobs:
       matrix:
         os: [ubuntu, windows]
         node: [10, 12, 14]
-        ts: [3.8.3, 3.9.3, 4.0.3, 4.1.2, next]
+        ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, next]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
