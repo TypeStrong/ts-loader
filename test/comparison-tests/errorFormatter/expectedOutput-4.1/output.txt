@@ -5,5 +5,5 @@ Entrypoint main = bundle.js
 [./common/components/myComponent.ts] 46 bytes {main} [built]
 
 ERROR in app.ts
-./app.ts
+./app.ts 2:30-55
 Does not compute.... [1m[31mcode: 2307,severity: error,content: Cannot find module 'components/myComponent2' or its corresponding type declarations.,file: app.ts,line: 2,character: 31,context: .test/errorFormatter[39m[22m

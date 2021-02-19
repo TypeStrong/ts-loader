@@ -13,6 +13,6 @@ You may need an additional loader to handle the result of these loaders.
 | 
 
 ERROR in app.ts
-./app.ts
+./app.ts 1:6-8
 [tsl] ERROR in app.ts(1,7)
       TS1005: ',' expected.

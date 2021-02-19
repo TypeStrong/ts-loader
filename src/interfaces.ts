@@ -13,12 +13,25 @@ export interface ErrorInfo {
   context: string;
 }
 
-export type FileLocation = { line: number; character: number };
+export type FileLocation = {
+  /** 1-based */
+  line: number;
+  /** 1-based */
+  character: number;
+};
 
+export type WebpackSourcePosition = {
+  /** 1-based */
+  line: number;
+  /** 0-based */
+  column?: number;
+};
 export interface WebpackError {
   module?: any;
   file?: string;
   message: string;
+  loc?: { start: WebpackSourcePosition; end?: WebpackSourcePosition };
+  /* ts-loader extra properties */
   location?: FileLocation;
   loaderSource: string;
 }
