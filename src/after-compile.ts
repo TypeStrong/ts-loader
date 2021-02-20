@@ -389,10 +389,11 @@ function outputFileToAsset(
     compilation.compiler.outputPath,
     outputFile.name
   );
-  compilation.assets[assetPath] = {
-    source: () => outputFile.text,
-    size: () => outputFile.text.length,
-  } as any;
+
+  compilation.emitAsset(
+    assetPath,
+    new webpack.sources.RawSource(outputFile.text)
+  );
 }
 
 function outputFilesToAsset<T extends ts.OutputFile>(

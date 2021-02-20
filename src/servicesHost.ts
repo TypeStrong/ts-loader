@@ -94,7 +94,7 @@ function makeResolversAndModuleResolutionHost(
 
   function readFile(
     filePath: string,
-    encoding?: string | undefined
+    encoding?: BufferEncoding | undefined
   ): string | undefined {
     return (
       instance.compiler.sys.readFile(filePath, encoding) ||
