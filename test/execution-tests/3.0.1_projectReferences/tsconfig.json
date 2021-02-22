@@ -6,6 +6,8 @@
     { "path": "./lib" }
   ],
   "compilerOptions": {
-    "noEmitOnError": true
+    "noEmitOnError": true,
+    "rootDir": ".",
+    "baseUrl": "."
   }
 }

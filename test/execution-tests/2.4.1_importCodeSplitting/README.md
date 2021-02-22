@@ -1,1 +1,0 @@
-This test shows how to do simple code splitting with TypeScript and webpack using the dynamic `import` syntax.  Support for this shipped with TypeScript 2.4.  [This blog post](https://blog.mariusschulz.com/2018/01/14/code-splitting-with-import-typescript-and-webpack) was used as the basis for the test - thanks @mariusschulz!

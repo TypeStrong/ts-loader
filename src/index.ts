@@ -40,12 +40,19 @@ function loader(this: WebpackLoaderContext, contents: string) {
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
+    console.error(instanceOrError);
     callback(new Error(instanceOrError.error.message));
     return;
   }
   const instance = instanceOrError.instance!;
   buildSolutionReferences(instance, this);
-  successLoader(this, contents, callback, instance);
+  try {
+    successLoader(this, contents, callback, instance);
+  } catch (e) {
+    console.log(e);
+    console.error(e);
+    console.trace();
+  }
 }
 
 function successLoader(

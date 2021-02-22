@@ -143,13 +143,14 @@ function runTests(testName) {
             var singleRunOrWatch = watch ? '' : ' --single-run';
             var program = debug ? 'node --inspect-brk=5858 ' + karmaPath : 'karma';
             execSync(program + ' start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox', { cwd: testPath, stdio: 'inherit' });
-
+    console.log(program + ' start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox');
             passingTests.push(testName);
         } else {
             console.log('running webpack compilation');
             var webpackPath = path.resolve(__dirname, '../../node_modules/webpack/bin/webpack.js');
             var program = debug ? 'node --inspect-brk=5858 ' + webpackPath : 'webpack';
             execSync(`${program} --bail`, { cwd: testPath, stdio: 'inherit' });
+            console.log(`${program} --bail`);
             passingTests.push(testName);
         }
     }

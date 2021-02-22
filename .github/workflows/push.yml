@@ -3,61 +3,13 @@ name: build and test
 on: [push, pull_request]
 
 jobs:
-  comparison_test:
-    name: Ubuntu Comparison Tests
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: install
-        run: yarn install
-
-      - name: build
-        run: yarn build
-
-      - name: install typescript
-        run: yarn add typescript@4.1.5
-
-      - name: test
-        run: sudo yarn comparison-tests
-
-  windows:
-    name: Windows Comparison Tests
-    runs-on: windows-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: copy files
-        shell: pwsh
-        run: |
-          New-Item C:\source\ts-loader -ItemType Directory
-          Copy-Item .\* C:\source\ts-loader -Recurse -Force
-
-      - name: install
-        run: yarn install
-        working-directory: C:\source\ts-loader
-
-      - name: build
-        run: yarn build
-        working-directory: C:\source\ts-loader
-
-      - name: install typescript
-        run: yarn add typescript@4.1.5
-        working-directory: C:\source\ts-loader
-
-      - name: test
-        run: yarn comparison-tests
-        working-directory: C:\source\ts-loader
-
   execution_test:
     name: Execution Tests
     strategy:
       matrix:
-        os: [ubuntu, windows]
-        node: [10, 12, 14]
-        ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, next]
+        os: [windows]
+        node: [10]
+        ts: [4.1.5]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
@@ -78,15 +30,4 @@ jobs:
 
       - name: test
         run: yarn execution-tests
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: install
-        run: yarn install
-
-      - name: lint
-        run: yarn lint
+    timeout-minutes: 3
