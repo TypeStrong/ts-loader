@@ -1,3 +1,4 @@
+# Travis is no longer used - this file will be removed in future
 os:
   - linux
 addons:
