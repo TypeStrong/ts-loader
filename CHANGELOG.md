@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.0.18
+* [Perf: Optimize fileExists callback path](https://github.com/TypeStrong/ts-loader/issues/1266) - thanks @berickson1
+
 ## v8.0.17
 * [Included correct webpack source location in emitted errors](https://github.com/TypeStrong/ts-loader/issues/1199) - thanks @lorenzodallavecchia
 
