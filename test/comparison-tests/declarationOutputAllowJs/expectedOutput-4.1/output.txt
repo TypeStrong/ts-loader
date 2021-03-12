@@ -1,0 +1,12 @@
+               Asset       Size  Chunks             Chunk Names
+    .output/app.d.ts  110 bytes          [emitted]  
+.output/sub/dep.d.ts   99 bytes          [emitted]  
+           bundle.js   5.25 KiB    main  [emitted]  main
+Entrypoint main = bundle.js
+[./app.ts] 934 bytes {main} [built] [1 error]
+[./sub/dep.js] 89 bytes {main} [built]
+
+ERROR in app.ts
+./app.ts 3:19-22
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,20)[39m[22m
+[1m[31m      TS2507: Type 'typeof import("/declarationOutputAllowJs/sub/dep")' is not a constructor function type.[39m[22m
