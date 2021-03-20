@@ -3,8 +3,8 @@ name: build and test
 on: [push, pull_request]
 
 jobs:
-  comparison_test:
-    name: Ubuntu Comparison Tests
+  comparison_test_ubuntu:
+    name: Comparison Tests Ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -22,8 +22,8 @@ jobs:
       - name: test
         run: sudo yarn comparison-tests
 
-  windows:
-    name: Windows Comparison Tests
+  comparison_test_windows:
+    name: Comparison Tests Windows
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
@@ -51,14 +51,13 @@ jobs:
         run: yarn comparison-tests
         working-directory: C:\source\ts-loader
 
-  execution_test:
-    name: Execution Tests
+  execution_test_ubuntu:
+    name: Execution Tests Ubuntu
     strategy:
       matrix:
-        os: [ubuntu, windows]
         node: [10, 12, 14]
         ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, next]
-    runs-on: ${{ matrix.os }}-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -78,6 +77,43 @@ jobs:
 
       - name: test
         run: yarn execution-tests
+
+  execution_test_windows:
+    name: Execution Tests Windows
+    strategy:
+      matrix:
+        node: [10, 12, 14]
+        ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, next]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: copy files
+        shell: pwsh
+        run: |
+          New-Item C:\source\ts-loader -ItemType Directory
+          Copy-Item .\* C:\source\ts-loader -Recurse -Force
+
+      - name: install
+        run: yarn install
+        working-directory: C:\source\ts-loader
+
+      - name: build
+        run: yarn build
+        working-directory: C:\source\ts-loader
+
+      - name: install typescript
+        run: yarn add typescript@${{ matrix.ts }}
+        working-directory: C:\source\ts-loader
+
+      - name: test
+        run: yarn execution-tests
+        working-directory: C:\source\ts-loader
 
   lint:
     name: Lint
