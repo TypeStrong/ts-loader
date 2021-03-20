@@ -55,7 +55,8 @@ const testsWithDifferentOutputOnWindows = [
     'projectReferencesMultiple',
     'projectReferences',
     'declarationOutputWithMaps',
-    'declarationOutput',    
+    'declarationOutput',
+    'projectReferencesWatchRefWithTwoFilesAlreadyBuilt',
 ];
 
 const testPath = path.join(__dirname, testToRun);
