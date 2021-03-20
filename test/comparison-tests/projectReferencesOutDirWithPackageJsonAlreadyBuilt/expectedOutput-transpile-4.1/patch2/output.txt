@@ -1,4 +1,4 @@
-assets by status 2.73 KiB [cached] 1 asset
+assets by status 2.76 KiB [cached] 1 asset
 cached modules 183 bytes [cached] 1 module
 ./app.ts 205 bytes [built] [2 errors]
 

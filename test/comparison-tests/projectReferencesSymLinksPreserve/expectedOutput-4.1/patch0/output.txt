@@ -1,7 +1,7 @@
 assets by path ../../lib/dist/ 290 bytes
   asset ../../lib/dist/index.js 236 bytes [emitted]
   asset ../../lib/dist/index.d.ts 54 bytes [emitted]
-asset index.js 3.21 KiB [emitted] (name: main)
+asset index.js 3.24 KiB [emitted] (name: main)
 asset ../../lib/tsconfig.tsbuildinfo 2.8 KiB [emitted]
 cached modules 408 bytes [cached] 2 modules
 ./src/index.ts 108 bytes [built] [code generated] [1 error]

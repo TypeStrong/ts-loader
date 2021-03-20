@@ -1,4 +1,5 @@
-const assert = require("assert")
+const assert = require("assert");
+const os = require('os');
 const fs = require('fs-extra');
 const path = require('path');
 const mkdirp = require('mkdirp');
@@ -30,6 +31,7 @@ if (saveOutputMode) {
 const typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 const FLAKY = '_FLAKY_';
 const IGNORE = '_IGNORE_';
+const osPlatform = os.platform();
 
 // set up new paths
 const rootPath = path.resolve(__dirname, '../../');
@@ -37,7 +39,7 @@ const rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
 const stagingPath = path.resolve(rootPath, '.test');
 
 const testPath = path.join(__dirname, testToRun);
-const testIsFlaky = pathExists(path.join(testPath, FLAKY));
+const testIsFlaky = pathExists(path.join(testPath, FLAKY)) || pathExists(path.join(testPath, FLAKY + osPlatform));
 const testIsIgnored = pathExists(path.join(testPath, IGNORE));
 
 if (testIsIgnored) {

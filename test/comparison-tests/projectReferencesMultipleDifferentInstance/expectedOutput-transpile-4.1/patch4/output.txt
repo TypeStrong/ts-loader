@@ -1,4 +1,4 @@
-assets by status 3.61 KiB [cached] 1 asset
+assets by status 3.64 KiB [cached] 1 asset
 asset ../common/tsconfig.tsbuildinfo 2.32 KiB [emitted]
 asset ../common/index.js 128 bytes [emitted]
 asset ../common/index.d.ts 42 bytes [emitted]

@@ -1,4 +1,4 @@
-asset bundle.js 2.71 KiB [emitted] (name: main)
+asset bundle.js 2.75 KiB [emitted] (name: main)
 ./app.ts 119 bytes [built] [code generated]
 ./node_modules/a/index.js 21 bytes [built] [code generated]
 ./b.ts 36 bytes [built] [code generated]

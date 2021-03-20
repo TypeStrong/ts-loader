@@ -1,4 +1,4 @@
-assets by status 2.67 KiB [cached] 1 asset
+assets by status 2.71 KiB [cached] 1 asset
 ./app.ts 205 bytes [built] [2 errors]
 ./lib/index.ts 150 bytes [built]
 

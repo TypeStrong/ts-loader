@@ -1,4 +1,4 @@
-asset bundle.js 3.57 KiB [emitted] (name: main)
+asset bundle.js 3.6 KiB [emitted] (name: main)
 asset ../common/tsconfig.tsbuildinfo 2.32 KiB [emitted]
 asset ../common/index.js 128 bytes [emitted]
 asset ../common/index.d.ts 42 bytes [emitted]

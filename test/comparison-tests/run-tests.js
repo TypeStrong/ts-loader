@@ -1,3 +1,4 @@
+const os = require('os');
 const fs = require('fs-extra');
 const path = require('path');
 const rimraf = require('rimraf');
@@ -64,7 +65,7 @@ function runTests() {
   console.log(
     '\n-------------------------------------------------------------------------\n'
   );
-  console.log('Starting to run test suites...\n');
+  console.log(`Starting to run test suites on ${os.platform()}...\n`);
 
   const testDir = __dirname;
 

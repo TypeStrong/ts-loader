@@ -1,4 +1,4 @@
-assets by status 3.49 KiB [cached] 1 asset
+assets by status 3.52 KiB [cached] 1 asset
 asset unreferencedIndirect/tsconfig.tsbuildinfo 2.68 KiB [emitted]
 cached modules 416 bytes [cached] 3 modules
 ./app.ts 218 bytes [built] [1 error]

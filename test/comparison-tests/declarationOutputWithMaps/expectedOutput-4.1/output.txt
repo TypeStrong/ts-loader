@@ -1,7 +1,7 @@
 assets by path .output/sub/ 248 bytes
   asset .output/sub/dep.d.ts.map 152 bytes [emitted]
   asset .output/sub/dep.d.ts 96 bytes [emitted]
-asset bundle.js 3.42 KiB [emitted] (name: main)
+asset bundle.js 3.46 KiB [emitted] (name: main)
 asset .output/app.d.ts.map 197 bytes [emitted]
 asset .output/app.d.ts 143 bytes [emitted]
 ./app.ts 934 bytes [built] [code generated]

@@ -1,4 +1,4 @@
-asset bundle.js 199 bytes [emitted] [minimized] (name: main)
+asset bundle.js 213 bytes [emitted] [minimized] (name: main)
 asset app.d.ts 11 bytes [emitted]
 ./app.ts 99 bytes [built] [code generated]
 ./file.json 23 bytes [built] [code generated]
