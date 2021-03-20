@@ -57,6 +57,14 @@ const testsWithDifferentOutputOnWindows = [
     'declarationOutputWithMaps',
     'declarationOutput',
     'projectReferencesWatchRefWithTwoFilesAlreadyBuilt',
+    'projectReferencesRootDirInvalidConfig',
+    'projectReferencesSymLinks',
+    'projectReferencesSymLinksPreserve',
+    'projectReferencesSymLinksPreserve_WatchApi',
+    'projectReferencesSymLinks_WatchApi',
+    'projectReferencesWatch',
+    'projectReferencesWatchRefWithTwoFiles',
+    
 ];
 
 const testPath = path.join(__dirname, testToRun);
