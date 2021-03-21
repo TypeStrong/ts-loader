@@ -69,6 +69,7 @@ const testsWithDifferentOutputOnWindows = [
     'projectReferencesWatch_Composite_WatchApi',
     'projectReferencesWatch_WatchApi',
     'projectReferencesRootDir',
+    'projectReferencesWatchRefWithTwoFiles_WatchApi',
 ];
 
 const testPath = path.join(__dirname, testToRun);
