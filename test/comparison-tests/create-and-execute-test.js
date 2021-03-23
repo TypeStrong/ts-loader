@@ -74,12 +74,12 @@ const testsWithDifferentOutputOnWindows = [
 ];
 
 const testPath = path.join(__dirname, testToRun);
-const testIsFlaky = pathExists(path.join(testPath, FLAKY)) ||
+const testIsFlaky = pathExists(path.join(testPath, FLAKY)) // ||
     // moving from webpack 4 to 5 revealed differing behaviour between Windows and Linux
     // with webpack - see discussion here: https://github.com/TypeStrong/ts-loader/pull/1251
     // until the problem is resolved (presumably in webpack itself) these tests may
     // be ignored when failing when running on Windows
-    (os.platform() === 'win32' && testsWithDifferentOutputOnWindows.includes(testToRun));
+    //(os.platform() === 'win32' && testsWithDifferentOutputOnWindows.includes(testToRun));
 const testIsIgnored = pathExists(path.join(testPath, IGNORE));
 
 if (testIsIgnored) {
