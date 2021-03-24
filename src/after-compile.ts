@@ -388,7 +388,7 @@ function outputFileToAsset(
   const assetPath = path
     .relative(compilation.compiler.outputPath, outputFile.name)
     // According to @alexander-akait we should always '/' https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-799606985
-    .replace(/\//g, '/');
+    .replace(/\\/g, '/');
 
   // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
   compilation.emitAsset(
