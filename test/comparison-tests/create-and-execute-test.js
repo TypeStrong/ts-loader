@@ -251,16 +251,18 @@ function storeStats(stats, testState, paths) {
                     fs.copySync(diskAssetPath, newPath);
                 }
             }
-            const newName = asset.replace(/\\/g, "/");
-            newAssets[newName] = stats.compilation.assets[asset];
-            if (stats.compilation.emittedAssets.has(asset)) {
-                stats.compilation.emittedAssets.delete(asset);
-                stats.compilation.emittedAssets.add(newName);
-            }
-            if (stats.compilation.comparedForEmitAssets.has(asset)) {
-                stats.compilation.comparedForEmitAssets.delete(asset);
-                stats.compilation.comparedForEmitAssets.add(newName);
-            }
+            newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset];
+            // commment out @sokra's fix now we've amended the asset \ to / in after-compile.ts - may break tests
+            //const newName = asset.replace(/\\/g, "/");
+            //newAssets[newName] = stats.compilation.assets[asset];
+            //if (stats.compilation.emittedAssets.has(asset)) {
+            //    stats.compilation.emittedAssets.delete(asset);
+            //    stats.compilation.emittedAssets.add(newName);
+            //}
+            //if (stats.compilation.comparedForEmitAssets.has(asset)) {
+            //    stats.compilation.comparedForEmitAssets.delete(asset);
+            //    stats.compilation.comparedForEmitAssets.add(newName);
+            //}
         });
         stats.compilation.assets = newAssets;
 
