@@ -37,49 +37,8 @@ const rootPath = path.resolve(__dirname, '../../');
 const rootPathWithIncorrectWindowsSeparator = rootPath.replace(/\\/g, '/');
 const stagingPath = path.resolve(rootPath, '.test');
 
-const testsWithDifferentOutputOnWindows = [
-    'projectReferencesOutDirWithPackageJsonAlreadyBuilt',
-    'projectReferencesOutDirWithPackageJson',
-    'projectReferencesOutDir',
-    'projectReferencesNotBuilt_WatchApi',
-    'projectReferencesNotBuilt_SemanticErrorInReference_WatchApi',
-    'projectReferencesNotBuilt_SemanticErrorInReference_Composite_WatchApi',
-    'projectReferencesNotBuilt_SemanticErrorInReference',
-    'projectReferencesNotBuilt_ErrorInProject_WatchApi',
-    'projectReferencesNotBuilt_ErrorInProject_Composite_WatchApi',
-    'projectReferencesNotBuilt_ErrorInProject',
-    'projectReferencesNotBuilt_Composite_WatchApi',
-    'projectReferencesNotBuilt',
-    'projectReferencesNoSourceMap',
-    'projectReferencesMultipleDifferentInstance',
-    'projectReferencesMultiple',
-    'projectReferences',
-    'declarationOutputWithMaps',
-    'declarationOutput',
-    'projectReferencesWatchRefWithTwoFilesAlreadyBuilt',
-    'projectReferencesRootDirInvalidConfig',
-    'projectReferencesSymLinks',
-    'projectReferencesSymLinksPreserve',
-    'projectReferencesSymLinksPreserve_WatchApi',
-    'projectReferencesSymLinks_WatchApi',
-    'projectReferencesWatch',
-    'projectReferencesWatchRefWithTwoFiles',
-    'projectReferencesWatchRefWithTwoFilesAlreadyBuilt_Composite_WatchApi',
-    'projectReferencesWatchRefWithTwoFilesAlreadyBuilt_WatchApi',
-    'projectReferencesWatch_Composite_WatchApi',
-    'projectReferencesWatch_WatchApi',
-    'projectReferencesRootDir',
-    'projectReferencesWatchRefWithTwoFiles_WatchApi',
-    'projectReferencesWatchRefWithTwoFiles_Composite_WatchApi'
-];
-
 const testPath = path.join(__dirname, testToRun);
-const testIsFlaky = pathExists(path.join(testPath, FLAKY)) // ||
-    // moving from webpack 4 to 5 revealed differing behaviour between Windows and Linux
-    // with webpack - see discussion here: https://github.com/TypeStrong/ts-loader/pull/1251
-    // until the problem is resolved (presumably in webpack itself) these tests may
-    // be ignored when failing when running on Windows
-    //(os.platform() === 'win32' && testsWithDifferentOutputOnWindows.includes(testToRun));
+const testIsFlaky = pathExists(path.join(testPath, FLAKY));
 const testIsIgnored = pathExists(path.join(testPath, IGNORE));
 
 if (testIsIgnored) {
@@ -292,7 +251,16 @@ function storeStats(stats, testState, paths) {
                     fs.copySync(diskAssetPath, newPath);
                 }
             }
-            newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset];
+            const newName = asset.replace(/\\/g, "/");
+            newAssets[newName] = stats.compilation.assets[asset];
+            if (stats.compilation.emittedAssets.has(asset)) {
+                stats.compilation.emittedAssets.delete(asset);
+                stats.compilation.emittedAssets.add(newName);
+            }
+            if (stats.compilation.comparedForEmitAssets.has(asset)) {
+                stats.compilation.comparedForEmitAssets.delete(asset);
+                stats.compilation.comparedForEmitAssets.add(newName);
+            }
         });
         stats.compilation.assets = newAssets;
 
