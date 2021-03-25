@@ -1,5 +1,14 @@
 # Changelog
 
+## v9.0.0
+
+Breaking changes:
+- support for webpack 4 dropped
+- support for node 10 dropped
+
+Changes:
+* [webpack 5 migration](https://github.com/TypeStrong/ts-loader/pull/1251) - thanks @johnnyreilly, @jonwallsten, @sokra, @appzuka, @alexandar-akait
+
 ## v8.0.18
 * [Perf: Optimize fileExists callback path](https://github.com/TypeStrong/ts-loader/issues/1266) - thanks @berickson1
 
