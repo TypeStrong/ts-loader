@@ -683,10 +683,14 @@ export function makeSolutionBuilderHost(
     scriptRegex,
     loader,
     instance,
-    fileName =>
-      !!instance.files.has(filePathKeyMapper(fileName)) ||
-      !!instance.otherFiles.get(filePathKeyMapper(fileName)) ||
-      compiler.sys.fileExists(fileName),
+    fileName => {
+      const filePathKey = filePathKeyMapper(fileName);
+      return (
+        instance.files.has(filePathKey) ||
+        instance.otherFiles.has(filePathKey) ||
+        compiler.sys.fileExists(fileName)
+      );
+    },
     /*enableFileCaching*/ true
   );
 
