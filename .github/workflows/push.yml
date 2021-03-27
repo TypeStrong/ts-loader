@@ -16,9 +16,6 @@ jobs:
       - name: build
         run: yarn build
 
-      - name: install typescript
-        run: yarn add typescript@4.1.5
-
       - name: test
         run: sudo yarn comparison-tests
 
@@ -41,10 +38,6 @@ jobs:
 
       - name: build
         run: yarn build
-        working-directory: C:\source\ts-loader
-
-      - name: install typescript
-        run: yarn add typescript@4.1.5
         working-directory: C:\source\ts-loader
 
       - name: test
