@@ -283,15 +283,8 @@ export type WebpackLoaderCallback = (
   sourceMap?: string | any
 ) => void;
 
-/** taken from https://github.com/DefinitelyTyped/DefinitelyTyped/blob/9a1a04bc85f4137fbd053e780899526881bdd1ff/types/webpack/index.d.ts#L2222 */
+/** cutdown version of https://github.com/DefinitelyTyped/DefinitelyTyped/blob/9a1a04bc85f4137fbd053e780899526881bdd1ff/types/webpack/index.d.ts#L2222 */
 export interface WebpackLoaderContext {
-  /**
-   * Loader API version. Currently 2.
-   * This is useful for providing backwards compatibility.
-   * Using the version you can specify custom logic or fallbacks for breaking changes.
-   */
-  version: string;
-
   /**
    *  The directory of the module. Can be used as context for resolving other stuff.
    *  In the example: /abc because resource.js is in this directory
@@ -302,24 +295,6 @@ export interface WebpackLoaderContext {
    * Starting with webpack 4, the formerly `this.options.context` is provided as `this.rootContext`.
    */
   rootContext: string;
-
-  /**
-   * The resolved request string.
-   * In the example: "/abc/loader1.js?xyz!/abc/node_modules/loader2/index.js!/abc/resource.js?rrr"
-   */
-  request: string;
-
-  /**
-   *  A string or any object. The query of the request for the current loader.
-   */
-  query: any;
-
-  /**
-   * A data object shared between the pitch and the normal phase.
-   */
-  data?: any;
-
-  callback: WebpackLoaderCallback;
 
   /**
    * Make this loader async.
@@ -361,40 +336,10 @@ export interface WebpackLoaderContext {
   loaderIndex: number;
 
   /**
-   * The resource part of the request, including query.
-   * In the example: "/abc/resource.js?rrr"
-   */
-  resource: string;
-
-  /**
    * The resource file.
    * In the example: "/abc/resource.js"
    */
   resourcePath: string;
-
-  /**
-   * The query of the resource.
-   * In the example: "?rrr"
-   */
-  resourceQuery: string;
-
-  /**
-   * Emit a warning.
-   */
-  emitWarning(message: string | Error): void;
-
-  /**
-   * Emit a error.
-   */
-  emitError(message: string | Error): void;
-
-  /**
-   * Execute some code fragment like a module.
-   *
-   * Don't use require(this.resourcePath), use this function to make loaders chainable!
-   *
-   */
-  exec(code: string, filename: string): any;
 
   /**
    * Resolves the given request to a module, applies all configured loaders and calls
@@ -411,20 +356,6 @@ export interface WebpackLoaderContext {
       module: webpack.Module
     ) => void
   ): any;
-
-  /**
-   * Resolve a request like a require expression.
-   */
-  resolve(
-    context: string,
-    request: string,
-    callback: (err: Error, result: string) => void
-  ): any;
-
-  /**
-   * Resolve a request like a require expression.
-   */
-  resolveSync(context: string, request: string): string;
 
   /**
    * Adds a file as dependency of the loader result in order to make them watchable.
@@ -451,71 +382,6 @@ export interface WebpackLoaderContext {
   clearDependencies(): void;
 
   /**
-   * Pass values to the next loader.
-   * If you know what your result exports if executed as module, set this value here (as a only element array).
-   */
-  value: any;
-
-  /**
-   * Passed from the last loader.
-   * If you would execute the input argument as module, consider reading this variable for a shortcut (for performance).
-   */
-  inputValue: any;
-
-  /**
-   * A boolean flag. It is set when in debug mode.
-   */
-  debug: boolean;
-
-  /**
-   * Should the result be minimized.
-   */
-  minimize: boolean;
-
-  /**
-   * Should a SourceMap be generated.
-   */
-  sourceMap: boolean;
-
-  /**
-   * Target of compilation. Passed from configuration options.
-   * Example values: "web", "node"
-   */
-  target:
-    | 'web'
-    | 'webworker'
-    | 'async-node'
-    | 'node'
-    | 'electron-main'
-    | 'electron-renderer'
-    | 'node-webkit'
-    | string;
-
-  /**
-   * This boolean is set to true when this is compiled by webpack.
-   *
-   * Loaders were originally designed to also work as Babel transforms.
-   * Therefore if you write a loader that works for both, you can use this property to know if
-   * there is access to additional loaderContext and webpack features.
-   */
-  webpack: boolean;
-
-  /**
-   * Emit a file. This is webpack-specific.
-   */
-  emitFile(name: string, content: Buffer | string, sourceMap: any): void;
-
-  /**
-   * Access to the compilation's inputFileSystem property.
-   */
-  fs: any;
-
-  /**
-   * Which mode is webpack running.
-   */
-  mode: 'production' | 'development' | 'none';
-
-  /**
    * Hacky access to the Compilation object of webpack.
    */
   _compilation: any;
@@ -529,7 +395,4 @@ export interface WebpackLoaderContext {
    * Hacky access to the Module object being loaded.
    */
   _module: any;
-
-  /** Flag if HMR is enabled */
-  hot: boolean;
 }

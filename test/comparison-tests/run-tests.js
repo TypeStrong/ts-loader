@@ -3,16 +3,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const rimraf = require('rimraf');
 const typescript = require('typescript');
-const semver = require('semver');
 const execSync = require('child_process').execSync;
 const getProgram = require('./getProgram');
-
-// We only want to run comparison tests for the latest released version
-const typescriptVersion = parseFloat(
-  semver.major(typescript.version) + '.' + semver.minor(typescript.version)
-);
-// @ts-ignore
-if (typescriptVersion < 4.1 || typescriptVersion > 4.1) return;
 
 // Build
 const program = getProgram(path.resolve(__dirname, 'tsconfig.json'));
