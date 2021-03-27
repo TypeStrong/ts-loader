@@ -43,7 +43,6 @@ function loader(this: webpack.loader.LoaderContext, contents: string) {
     return;
   }
   const instance = instanceOrError.instance!;
-  buildSolutionReferences(instance, this);
   successLoader(this, contents, callback, instance);
 }
 

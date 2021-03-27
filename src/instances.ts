@@ -405,6 +405,7 @@ export function initializeInstance(
         : instance.compiler.createProgram([], instance.compilerOptions));
 
     instance.transformers = getCustomTransformers(program);
+    buildSolutionReferences(instance, loader);//build references after setting transformers
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
@@ -454,7 +455,7 @@ export function initializeInstance(
         instance.languageService!.getProgram()
       );
     }
-
+    buildSolutionReferences(instance, loader);//build references after setting transformers
     addAssetHooks(loader, instance);
 
     loader._compiler.hooks.watchRun.tapAsync(
@@ -535,6 +536,19 @@ export function buildSolutionReferences(
       instance.configParseResult.projectReferences!.map(ref => ref.path),
       { verbose: true }
     );
+
+    //build invalidated references with the instance transformers
+    let invalidatedProject = solutionBuilder.getNextInvalidatedProject();
+    while (invalidatedProject) {
+        invalidatedProject.emit(
+            void 0,
+            void 0,
+            void 0,
+            void 0,
+            instance.transformers);
+        invalidatedProject = solutionBuilder.getNextInvalidatedProject();
+    }
+
     solutionBuilder.build();
     instance.solutionBuilderHost.ensureAllReferenceTimestamps();
     instancesBySolutionBuilderConfigs.set(
