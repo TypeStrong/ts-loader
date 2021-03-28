@@ -6,6 +6,7 @@ import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import {
+  buildSolutionReferences,
   getEmitOutput,
   getInputFileNameFromOutput,
   getTypeScriptInstance,
@@ -52,6 +53,7 @@ function successLoader(
   instance: TSInstance
 ) {
   initializeInstance(loaderContext, instance);
+  buildSolutionReferences(instance, loaderContext); //build references after setting transformers and hooks
   reportTranspileErrors(instance, loaderContext);
   const rawFilePath = path.normalize(loaderContext.resourcePath);
 

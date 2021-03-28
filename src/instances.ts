@@ -405,7 +405,6 @@ export function initializeInstance(
         : instance.compiler.createProgram([], instance.compilerOptions));
 
     instance.transformers = getCustomTransformers(program);
-    buildSolutionReferences(instance, loader); //build references after setting transformers
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
@@ -455,7 +454,7 @@ export function initializeInstance(
         instance.languageService!.getProgram()
       );
     }
-    buildSolutionReferences(instance, loader); //build references after setting transformers
+
     addAssetHooks(loader, instance);
 
     loader._compiler.hooks.watchRun.tapAsync(
