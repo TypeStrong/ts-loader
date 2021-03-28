@@ -1,7 +1,7 @@
 import * as chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as typescript from 'typescript';
+import type * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { makeAfterCompile } from './after-compile';
@@ -202,7 +202,7 @@ function successfulTypeScriptInstance(
     };
   }
 
-  const compilerOptions = getCompilerOptions(configParseResult);
+  const compilerOptions = getCompilerOptions(configParseResult, compiler);
   const rootFileNames = new Set<string>();
   const files: TSFiles = new Map();
   const otherFiles: TSFiles = new Map();
