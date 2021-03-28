@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as typescript from 'typescript';
+import type * as typescript from 'typescript';
 import * as webpack from 'webpack';
 import { getParsedCommandLine } from './config';
 import * as constants from './constants';
