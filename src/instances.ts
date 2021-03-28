@@ -540,24 +540,10 @@ export function buildSolutionReferences(
     //build invalidated references with the instance transformers
     let invalidatedProject = solutionBuilder.getNextInvalidatedProject();
     while (invalidatedProject) {
-      if (invalidatedProject.kind === typescript.InvalidatedProjectKind.Build) {
-        invalidatedProject.emit(
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          instance.transformers
-        );
-      } else if (
-        invalidatedProject.kind ===
-        typescript.InvalidatedProjectKind.UpdateBundle
-      ) {
-        invalidatedProject.emit(undefined, instance.transformers);
-      } else if (invalidatedProject.updateOutputFileStatmps) {
-        invalidatedProject.updateOutputFileStatmps();
-      } else {
-        invalidatedProject.done(undefined, undefined, instance.transformers);
-      }
+      //done will emit files or updateOutputTimestamps before calling doneInvalidatedProject that will allow us to go to next invalidated project
+      invalidatedProject.done(undefined, undefined, instance.transformers);
+
+      //go to next
       invalidatedProject = solutionBuilder.getNextInvalidatedProject();
     }
 
