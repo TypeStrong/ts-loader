@@ -2,7 +2,6 @@ import * as crypto from 'crypto';
 import * as loaderUtils from 'loader-utils';
 import * as path from 'path';
 import type * as typescript from 'typescript';
-import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import {
