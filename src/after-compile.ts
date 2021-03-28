@@ -387,7 +387,7 @@ function outputFileToAsset(
 ) {
   const assetPath = path
     .relative(compilation.compiler.outputPath, outputFile.name)
-    // According to @alexander-akait we should always '/' https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-799606985
+    // According to @alexander-akait (and @sokra) we should always '/' https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-799606985
     .replace(/\\/g, '/');
 
   // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
@@ -395,10 +395,6 @@ function outputFileToAsset(
     assetPath,
     new webpack.sources.RawSource(outputFile.text)
   );
-  // compilation.assets[assetPath] = {
-  //   source: () => outputFile.text,
-  //   size: () => outputFile.text.length,
-  // } as any;
 }
 
 function outputFilesToAsset<T extends ts.OutputFile>(
