@@ -1,5 +1,5 @@
 import * as semver from 'semver';
-import * as typescript from 'typescript';
+import type * as typescript from 'typescript';
 
 import { LoaderOptions } from './interfaces';
 import * as logger from './logger';
@@ -52,7 +52,8 @@ export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
 }
 
 export function getCompilerOptions(
-  configParseResult: typescript.ParsedCommandLine
+  configParseResult: typescript.ParsedCommandLine,
+  compiler: typeof typescript
 ) {
   const compilerOptions = Object.assign({}, configParseResult.options, {
     skipLibCheck: true,
@@ -63,9 +64,9 @@ export function getCompilerOptions(
   if (
     compilerOptions.module === undefined &&
     compilerOptions.target !== undefined &&
-    compilerOptions.target < typescript.ScriptTarget.ES2015
+    compilerOptions.target < compiler.ScriptTarget.ES2015
   ) {
-    compilerOptions.module = typescript.ModuleKind.CommonJS;
+    compilerOptions.module = compiler.ModuleKind.CommonJS;
   }
 
   if (configParseResult.options.configFile) {

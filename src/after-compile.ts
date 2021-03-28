@@ -1,5 +1,5 @@
 import * as path from 'path';
-import * as ts from 'typescript';
+import type * as ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';

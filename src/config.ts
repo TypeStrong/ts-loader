@@ -1,6 +1,6 @@
 import { Chalk } from 'chalk';
 import * as path from 'path';
-import * as typescript from 'typescript';
+import type * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { getCompilerOptions } from './compilerSetup';
@@ -187,7 +187,7 @@ export function getParsedCommandLine(
     extendedConfigCache
   );
   if (result) {
-    result.options = getCompilerOptions(result);
+    result.options = getCompilerOptions(result, compiler);
   }
   return result;
 }

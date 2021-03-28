@@ -1,5 +1,8 @@
 # Changelog
 
+## v8.1.0
+* [feat: remove top-level typescript import statements](https://github.com/TypeStrong/ts-loader/pull/1259) - thanks @ulivz
+
 ## v8.0.18
 * [Perf: Optimize fileExists callback path](https://github.com/TypeStrong/ts-loader/issues/1266) - thanks @berickson1
 
