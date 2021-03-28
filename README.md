@@ -1,7 +1,7 @@
 # TypeScript loader for webpack
 
 [![npm version](https://img.shields.io/npm/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
-![GitHub build)](https://github.com/TypeStrong/ts-loader/workflows/Continuous%20Integration%20(build%20and%20test)/badge.svg)
+[![build and test](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml/badge.svg)](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml)
 [![Downloads](http://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
 [![node version](https://img.shields.io/node/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
