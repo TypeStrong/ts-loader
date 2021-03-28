@@ -542,12 +542,21 @@ export function buildSolutionReferences(
     while (invalidatedProject) {
       if (invalidatedProject.kind === typescript.InvalidatedProjectKind.Build) {
         invalidatedProject.emit(
-          void 0,
-          void 0,
-          void 0,
-          void 0,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
           instance.transformers
         );
+      } else if (
+        invalidatedProject.kind ===
+        typescript.InvalidatedProjectKind.UpdateBundle
+      ) {
+        invalidatedProject.emit(undefined, instance.transformers);
+      } else if (invalidatedProject.updateOutputFileStatmps) {
+        invalidatedProject.updateOutputFileStatmps();
+      } else {
+        invalidatedProject.done(undefined, undefined, instance.transformers);
       }
       invalidatedProject = solutionBuilder.getNextInvalidatedProject();
     }
