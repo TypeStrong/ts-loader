@@ -540,12 +540,14 @@ export function buildSolutionReferences(
     //build invalidated references with the instance transformers
     let invalidatedProject = solutionBuilder.getNextInvalidatedProject();
     while (invalidatedProject) {
-        invalidatedProject.emit(
+        if(invalidatedProject.kind === typescript.InvalidatedProjectKind.Build){
+          invalidatedProject.emit(
             void 0,
             void 0,
             void 0,
             void 0,
             instance.transformers);
+        }
         invalidatedProject = solutionBuilder.getNextInvalidatedProject();
     }
 

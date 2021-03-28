@@ -6,7 +6,6 @@ import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import {
-  buildSolutionReferences,
   getEmitOutput,
   getInputFileNameFromOutput,
   getTypeScriptInstance,
