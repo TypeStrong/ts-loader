@@ -27,11 +27,11 @@ fs.readdirSync(__dirname).forEach(function(test) {
 
     const expectedTranspileOutput = path.join(
       testPath,
-      `expectedOutput-${OLD_VERSION}`
+      `expectedOutput-transpile-${OLD_VERSION}`
     );
     const newExpectedTranspileOutput = path.join(
       testPath,
-      `expectedOutput-${NEW_VERSION}`
+      `expectedOutput-transpile-${NEW_VERSION}`
     );
 
     if (fs.existsSync(expectedTranspileOutput)) {
