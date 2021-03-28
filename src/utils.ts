@@ -2,7 +2,7 @@ import { Chalk } from 'chalk';
 import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as path from 'path';
-import * as typescript from 'typescript';
+import type * as typescript from 'typescript';
 
 import constants = require('./constants');
 import {
