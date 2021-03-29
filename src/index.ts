@@ -20,6 +20,7 @@ import {
   LogLevel,
   TSInstance,
 } from './interfaces';
+import { installTransformers } from './transformers';
 import {
   appendSuffixesIfMatch,
   arrify,
@@ -36,6 +37,7 @@ function loader(this: webpack.loader.LoaderContext, contents: string) {
   this.cacheable && this.cacheable();
   const callback = this.async() as webpack.loader.loaderCallback;
   const options = getLoaderOptions(this);
+  installTransformers(options);
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {

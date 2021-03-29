@@ -23,6 +23,7 @@ import {
   makeSolutionBuilderHost,
   makeWatchHost,
 } from './servicesHost';
+import { getCustomTransformers } from './transformers';
 import {
   appendSuffixesIfMatch,
   ensureProgram,
@@ -369,31 +370,6 @@ export function initializeInstance(
 
   instance.initialSetupPending = false;
 
-  // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
-  let { getCustomTransformers: customerTransformers } = instance.loaderOptions;
-  let getCustomTransformers = Function.prototype;
-
-  if (typeof customerTransformers === 'function') {
-    getCustomTransformers = customerTransformers;
-  } else if (typeof customerTransformers === 'string') {
-    try {
-      customerTransformers = require(customerTransformers);
-    } catch (err) {
-      throw new Error(
-        `Failed to load customTransformers from "${instance.loaderOptions.getCustomTransformers}": ${err.message}`
-      );
-    }
-
-    if (typeof customerTransformers !== 'function') {
-      throw new Error(
-        `Custom transformers in "${
-          instance.loaderOptions.getCustomTransformers
-        }" should export a function, got ${typeof getCustomTransformers}`
-      );
-    }
-    getCustomTransformers = customerTransformers;
-  }
-
   if (instance.loaderOptions.transpileOnly) {
     const program = (instance.program =
       instance.configParseResult.projectReferences !== undefined
@@ -404,7 +380,10 @@ export function initializeInstance(
           })
         : instance.compiler.createProgram([], instance.compilerOptions));
 
-    instance.transformers = getCustomTransformers(program);
+    instance.transformers = getCustomTransformers(
+      instance.loaderOptions,
+      program
+    );
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
@@ -436,7 +415,10 @@ export function initializeInstance(
       instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
       instance.program = instance.builderProgram.getProgram();
 
-      instance.transformers = getCustomTransformers(instance.program);
+      instance.transformers = getCustomTransformers(
+        instance.loaderOptions,
+        instance.program
+      );
     } else {
       instance.servicesHost = makeServicesHost(
         getScriptRegexp(instance),
@@ -451,7 +433,8 @@ export function initializeInstance(
       );
 
       instance.transformers = getCustomTransformers(
-        instance.languageService!.getProgram()
+        instance.loaderOptions,
+        instance.languageService!.getProgram()!
       );
     }
 
@@ -535,16 +518,6 @@ export function buildSolutionReferences(
       instance.configParseResult.projectReferences!.map(ref => ref.path),
       { verbose: true }
     );
-
-    //build invalidated references with the instance transformers
-    let invalidatedProject = solutionBuilder.getNextInvalidatedProject();
-    while (invalidatedProject) {
-      //done will emit files or updateOutputTimestamps before calling doneInvalidatedProject that will allow us to go to next invalidated project
-      invalidatedProject.done(undefined, undefined, instance.transformers);
-
-      //go to next
-      invalidatedProject = solutionBuilder.getNextInvalidatedProject();
-    }
 
     solutionBuilder.build();
     instance.solutionBuilderHost.ensureAllReferenceTimestamps();
