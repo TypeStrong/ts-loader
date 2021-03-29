@@ -1,7 +1,7 @@
 # TypeScript loader for webpack
 
 [![npm version](https://img.shields.io/npm/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
-![GitHub build)](https://github.com/TypeStrong/ts-loader/workflows/Continuous%20Integration%20(build%20and%20test)/badge.svg)
+[![build and test](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml/badge.svg)](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml)
 [![Downloads](http://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
 [![node version](https://img.shields.io/node/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
@@ -127,7 +127,7 @@ If you'd like to see a simple setup take a look at [our simple example](examples
 
 ### Babel
 
-`ts-loader` works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). Alternatively take a look at our own [example](examples/react-babel-karma-gulp).
+`ts-loader` works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). 
 
 ### Parallelising Builds
 
