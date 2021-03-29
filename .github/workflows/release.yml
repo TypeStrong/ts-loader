@@ -2,7 +2,7 @@ on:
   release:
     types: [published]
 
-name: Release (build, test and publish)
+name: release
 
 jobs:
   build_test_and_publish:
