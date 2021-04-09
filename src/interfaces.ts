@@ -102,8 +102,9 @@ export interface ServiceHostWhichMayBeCacheable
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<
-    typescript.EmitAndSemanticDiagnosticsBuilderProgram
-  > {
+      typescript.EmitAndSemanticDiagnosticsBuilderProgram
+    >,
+    HostMayBeCacheable {
   invokeFileWatcher: WatchFactory['invokeFileWatcher'];
   updateRootFileNames(): void;
   outputFiles: Map<FilePathKey, typescript.OutputFile[]>;

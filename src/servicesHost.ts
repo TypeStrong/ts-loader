@@ -493,7 +493,7 @@ export function makeWatchHost(
     fileName =>
       files.has(filePathKeyMapper(fileName)) ||
       compiler.sys.fileExists(fileName),
-    /*enabledCaching*/ false
+    instance.loaderOptions.experimentalFileCaching
   );
 
   const watchHost: WatchHost = {
