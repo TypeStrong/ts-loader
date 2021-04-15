@@ -3,8 +3,8 @@
 ## v9.0.0
 
 Breaking changes:
-- support for webpack 4 dropped
-- support for node 10 dropped
+- minimum webpack version: 5
+- minimum node version: 12
 
 Changes:
 * [webpack 5 migration](https://github.com/TypeStrong/ts-loader/pull/1251) - thanks @johnnyreilly, @jonwallsten, @sokra, @appzuka, @alexandar-akait
