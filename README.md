@@ -728,8 +728,8 @@ Because TS will generate .js and .d.ts files, you should ignore these files, oth
 
 // for webpack 5
 plugins: [
-  new webpack.WatchIgnorePlugin(
-    paths:{[
+  new webpack.WatchIgnorePlugin({
+    paths:[
       /\.js$/,
       /\.d\.ts$/
   ]})
