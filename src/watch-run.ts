@@ -23,6 +23,7 @@ export function makeWatchRun(
   return (compiler: webpack.Compiler, callback: (err?: Error) => void) => {
     instance.servicesHost?.clearCache?.();
     instance.watchHost?.clearCache?.();
+    instance.moduleResolutionCache?.clear();
     const promises = [];
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;

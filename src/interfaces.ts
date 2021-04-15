@@ -179,6 +179,34 @@ export interface ConfigFileInfo {
   dtsFiles?: string[];
 }
 
+interface CacheWithRedirects<T> {
+  ownMap: Map<string, T>;
+  redirectsMap: Map<typescript.Path, Map<string, T>>;
+  getOrCreateMapOfCacheRedirects(
+    redirectedReference: typescript.ResolvedProjectReference | undefined
+  ): Map<string, T>;
+  clear(): void;
+  setOwnOptions(newOptions: typescript.CompilerOptions): void;
+  setOwnMap(newOwnMap: Map<string, T>): void;
+}
+interface PerModuleNameCache {
+  get(
+    directory: string
+  ): typescript.ResolvedModuleWithFailedLookupLocations | undefined;
+  set(
+    directory: string,
+    result: typescript.ResolvedModuleWithFailedLookupLocations
+  ): void;
+}
+export interface ModuleResolutionCache
+  extends typescript.ModuleResolutionCache {
+  directoryToModuleNameMap: CacheWithRedirects<
+    Map<string, typescript.ResolvedModuleWithFailedLookupLocations>
+  >;
+  moduleNameToDirectoryMap: CacheWithRedirects<PerModuleNameCache>;
+  clear(): void;
+  update(compilerOptions: typescript.CompilerOptions): void;
+}
 export interface TSInstance {
   compiler: typeof typescript;
   compilerOptions: typescript.CompilerOptions;
@@ -186,6 +214,7 @@ export interface TSInstance {
   appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
   rootFileNames: Set<string>;
+  moduleResolutionCache?: ModuleResolutionCache;
   /**
    * a cache of all the files
    */
