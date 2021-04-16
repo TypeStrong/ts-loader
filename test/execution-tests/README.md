@@ -3,7 +3,7 @@
 This test pack is made up of a number of mini-typescript projects which include a test suite.  As part of the test run, each project is compiled and the test suite run using Karma. So this test pack is different from the comparison test pack in that it **executes the compiled code**. This test pack is useful for testing expected behaviour.  (It's also reassuring to see your
 code being executed.)
 
-These tests are executed more widely that the comparison tests; we aim to run these against each version of TypeScript defined in our CI build matrices. (Take a look at [`appveyor.yml`](../../appveyor.yml) and [`.travis.yml`](../../.travis.yml) for details.)
+These tests are executed more widely that the comparison tests; we aim to run these against each version of TypeScript defined in our CI build matrices.
 
 ## Structure
 
