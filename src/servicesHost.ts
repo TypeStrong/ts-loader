@@ -1232,10 +1232,9 @@ function resolveModule(
       tsResolution.resolvedModule.resolvedFileName
     );
     const tsResolutionResult: ResolvedModule = {
+      ...tsResolution.resolvedModule,
       originalFileName: resolvedFileName,
       resolvedFileName,
-      isExternalLibraryImport:
-        tsResolution.resolvedModule.isExternalLibraryImport,
     };
 
     return resolutionResult! === undefined ||
