@@ -313,9 +313,7 @@ function addAssetHooks(loader: WebpackLoaderContext, instance: TSInstance) {
     instance.configFilePath
   );
 
-  // compilation is actually of type webpack.Compilation, but afterProcessAssets
-  // only exists in webpack5 and at the time of writing ts-loader is built using webpack4
-  const makeAssetsCallback = (compilation: any) => {
+  const makeAssetsCallback = (compilation: webpack.Compilation) => {
     compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
       cachedMakeAfterCompile(compilation, () => {
         return null;
