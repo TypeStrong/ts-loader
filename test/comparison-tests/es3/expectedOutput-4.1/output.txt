@@ -1,9 +1,10 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  3.76 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 29 bytes {main} [built] [1 error]
+asset bundle.js 1.17 KiB [emitted] (name: main)
+./app.ts 29 bytes [built] [code generated] [1 error]
 
 ERROR in app.ts
 ./app.ts 1:6-7
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,7)[39m[22m
 [1m[31m      TS1056: Accessors are only available when targeting ECMAScript 5 and higher.[39m[22m
+ts-loader-default_b02295d909a3e7cf
+
+webpack compiled with 1 error

@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { FilePathKey, TSInstance } from './interfaces';
+import { FilePathKey, TSInstance, WebpackLoaderContext } from './interfaces';
 import { updateFileWithText } from './servicesHost';
 import { fsReadFile } from './utils';
 
@@ -11,7 +11,7 @@ import { fsReadFile } from './utils';
  */
 export function makeWatchRun(
   instance: TSInstance,
-  loader: webpack.loader.LoaderContext
+  loader: WebpackLoaderContext
 ) {
   // Called Before starting compilation after watch
   const lastTimes = new Map<FilePathKey, number>();
@@ -32,11 +32,15 @@ export function makeWatchRun(
         const key = instance.filePathKeyMapper(filePath);
         const lastTime = lastTimes.get(key) || startTime;
 
-        if (date <= lastTime) {
+        if (
+          !date ||
+          date === 'ignore' ||
+          (date.timestamp || date.safeTime) <= lastTime
+        ) {
           continue;
         }
 
-        lastTimes.set(key, date);
+        lastTimes.set(key, date.timestamp || date.safeTime);
         promises.push(updateFile(instance, key, filePath, loader, loaderIndex));
       }
 
@@ -74,7 +78,7 @@ function updateFile(
   instance: TSInstance,
   key: FilePathKey,
   filePath: string,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   loaderIndex: number
 ) {
   return new Promise<void>((resolve, reject) => {

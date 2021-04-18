@@ -1,7 +1,6 @@
-               Asset       Size  Chunks             Chunk Names
-    .output/app.d.ts  110 bytes          [emitted]  
-.output/sub/dep.d.ts   63 bytes          [emitted]  
-           bundle.js   5.16 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 934 bytes {main} [built]
-[./sub/dep.ts] 182 bytes {main} [built]
+asset bundle.js 3.46 KiB [emitted] (name: main)
+asset .output/app.d.ts 110 bytes [emitted]
+asset .output/sub/dep.d.ts 63 bytes [emitted]
+./app.ts 934 bytes [built] [code generated]
+./sub/dep.ts 182 bytes [built] [code generated]
+webpack compiled successfully

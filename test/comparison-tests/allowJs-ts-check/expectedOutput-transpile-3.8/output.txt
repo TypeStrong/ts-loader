@@ -1,6 +1,0 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  5.15 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./src/error1.js] 265 bytes {main} [built]
-[./src/error2.js] 278 bytes {main} [built]
-[./src/index.js] 207 bytes {main} [built]

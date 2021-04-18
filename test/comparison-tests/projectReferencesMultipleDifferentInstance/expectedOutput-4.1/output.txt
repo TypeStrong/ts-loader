@@ -1,19 +1,19 @@
-                           Asset       Size  Chunks             Chunk Names
-            ../common/index.d.ts   42 bytes          [emitted]  
-              ../common/index.js  128 bytes          [emitted]  
-  ../common/tsconfig.tsbuildinfo   2.32 KiB          [emitted]  
-          ../indirect/index.d.ts   84 bytes          [emitted]  
-            ../indirect/index.js  119 bytes          [emitted]  
-../indirect/tsconfig.tsbuildinfo   2.32 KiB          [emitted]  
-               ../lib/index.d.ts   84 bytes          [emitted]  
-                 ../lib/index.js  119 bytes          [emitted]  
-     ../lib/tsconfig.tsbuildinfo   2.32 KiB          [emitted]  
-             ../utils/index.d.ts   39 bytes          [emitted]  
-               ../utils/index.js  169 bytes          [emitted]  
-   ../utils/tsconfig.tsbuildinfo   2.66 KiB          [emitted]  
-                       bundle.js   5.29 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[../common/index.ts] 128 bytes {main} [built]
-[../lib/index.ts] 119 bytes {main} [built]
-[../utils/index.ts] 169 bytes {main} [built]
-[./app.ts] 184 bytes {main} [built]
+assets by path ../utils/ 2.86 KiB 3 assets
+assets by path ../common/ 2.48 KiB
+  asset ../common/tsconfig.tsbuildinfo 2.32 KiB [compared for emit]
+  asset ../common/index.js 128 bytes [compared for emit]
+  asset ../common/index.d.ts 42 bytes [compared for emit]
+assets by path ../indirect/ 2.51 KiB
+  asset ../indirect/tsconfig.tsbuildinfo 2.32 KiB [compared for emit]
+  asset ../indirect/index.js 119 bytes [compared for emit]
+  asset ../indirect/index.d.ts 84 bytes [compared for emit]
+assets by path ../lib/ 2.51 KiB
+  asset ../lib/tsconfig.tsbuildinfo 2.32 KiB [compared for emit]
+  asset ../lib/index.js 119 bytes [compared for emit]
+  asset ../lib/index.d.ts 84 bytes [compared for emit]
+asset bundle.js 3.5 KiB [emitted] (name: main)
+./app.ts 184 bytes [built] [code generated]
+../lib/index.ts 119 bytes [built] [code generated]
+../utils/index.ts 169 bytes [built] [code generated]
+../common/index.ts 128 bytes [built] [code generated]
+webpack compiled successfully

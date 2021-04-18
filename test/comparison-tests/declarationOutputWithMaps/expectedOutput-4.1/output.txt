@@ -1,9 +1,9 @@
-                   Asset       Size  Chunks             Chunk Names
-        .output/app.d.ts  143 bytes          [emitted]  
-    .output/app.d.ts.map  197 bytes          [emitted]  
-    .output/sub/dep.d.ts   96 bytes          [emitted]  
-.output/sub/dep.d.ts.map  152 bytes          [emitted]  
-               bundle.js   5.16 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 934 bytes {main} [built]
-[./sub/dep.ts] 182 bytes {main} [built]
+assets by path .output/sub/ 248 bytes
+  asset .output/sub/dep.d.ts.map 152 bytes [emitted]
+  asset .output/sub/dep.d.ts 96 bytes [emitted]
+asset bundle.js 3.46 KiB [emitted] (name: main)
+asset .output/app.d.ts.map 197 bytes [emitted]
+asset .output/app.d.ts 143 bytes [emitted]
+./app.ts 934 bytes [built] [code generated]
+./sub/dep.ts 182 bytes [built] [code generated]
+webpack compiled successfully
