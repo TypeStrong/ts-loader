@@ -1,9 +1,10 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  3.95 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 212 bytes {main} [built] [1 error]
+asset bundle.js 1.35 KiB [emitted] (name: main)
+./app.ts 212 bytes [built] [code generated] [1 error]
 
 ERROR in app.ts
 ./app.ts 11:4-5
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(11,5)[39m[22m
 [1m[31m      TS2741: Property 'b' is missing in type 'AType' but required in type 'BType'.[39m[22m
+ts-loader-default_b02295d909a3e7cf
+
+webpack compiled with 1 error

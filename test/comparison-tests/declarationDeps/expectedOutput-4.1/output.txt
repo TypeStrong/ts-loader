@@ -1,9 +1,10 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  3.78 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 41 bytes {main} [built] [1 error]
+asset bundle.js 1.18 KiB [emitted] (name: main)
+./app.ts 41 bytes [built] [code generated] [1 error]
 
 ERROR in app.ts
 ./app.ts 2:6-11
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(2,7)[39m[22m
 [1m[31m      TS2339: Property 'sayHi' does not exist on type 'typeof Hello'.[39m[22m
+ts-loader-default_b02295d909a3e7cf
+
+webpack compiled with 1 error

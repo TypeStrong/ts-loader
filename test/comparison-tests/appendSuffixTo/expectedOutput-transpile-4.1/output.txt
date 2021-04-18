@@ -1,6 +1,5 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  5.13 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./component.vue] 187 bytes {main} [built]
-[./helper.ts] 190 bytes {main} [built]
-[./index.vue] 382 bytes {main} [built]
+asset bundle.js 3.38 KiB [emitted] (name: main)
+./index.vue 382 bytes [built] [code generated]
+./component.vue 187 bytes [built] [code generated]
+./helper.ts 190 bytes [built] [code generated]
+webpack compiled successfully

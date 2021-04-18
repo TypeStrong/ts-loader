@@ -1,5 +1,4 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.25 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 111 bytes {main} [built]
-[./message.ts] 102 bytes {main}
+asset bundle.js 2.55 KiB [emitted] (name: main)
+cached modules 102 bytes [cached] 1 module
+./app.ts 111 bytes [built] [code generated]
+webpack compiled successfully

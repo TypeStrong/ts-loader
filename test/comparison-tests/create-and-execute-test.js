@@ -1,4 +1,5 @@
-const assert = require("assert")
+const assert = require("assert");
+const os = require('os');
 const fs = require('fs-extra');
 const path = require('path');
 const mkdirp = require('mkdirp');
@@ -243,7 +244,7 @@ function storeStats(stats, testState, paths) {
         // do a little magic to normalize `\` to `/` for asset output
         const newAssets = {};
         Object.keys(stats.compilation.assets).forEach(function (asset) {
-            if (stats.compilation.assets[asset].emitted) {
+            if (stats.compilation.assets[asset].size()) {
                 const diskAssetPath = path.join(paths.outputPath, asset);
                 const newPath = path.join(paths.actualOutput, path.relative(paths.testStagingPath, diskAssetPath));
                 if (diskAssetPath !== newPath) {
@@ -251,6 +252,17 @@ function storeStats(stats, testState, paths) {
                 }
             }
             newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset];
+            // commment out @sokra's fix now we've amended the asset \ to / in after-compile.ts - may break tests
+            //const newName = asset.replace(/\\/g, "/");
+            //newAssets[newName] = stats.compilation.assets[asset];
+            //if (stats.compilation.emittedAssets.has(asset)) {
+            //    stats.compilation.emittedAssets.delete(asset);
+            //    stats.compilation.emittedAssets.add(newName);
+            //}
+            //if (stats.compilation.comparedForEmitAssets.has(asset)) {
+            //    stats.compilation.comparedForEmitAssets.delete(asset);
+            //    stats.compilation.comparedForEmitAssets.add(newName);
+            //}
         });
         stats.compilation.assets = newAssets;
 

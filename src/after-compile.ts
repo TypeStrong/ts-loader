@@ -9,7 +9,6 @@ import {
   LoaderOptions,
   TSFiles,
   TSInstance,
-  WebpackModule,
   TSFile,
 } from './interfaces';
 import {
@@ -34,10 +33,7 @@ export function makeAfterCompile(
   let getCompilerOptionDiagnostics = true;
   let checkAllFilesForErrors = true;
 
-  return (
-    compilation: webpack.compilation.Compilation,
-    callback: () => void
-  ) => {
+  return (compilation: webpack.Compilation, callback: () => void) => {
     // Don't add errors for child compilations
     if (compilation.compiler.isChild()) {
       callback();
@@ -96,7 +92,7 @@ export function makeAfterCompile(
  */
 function provideCompilerOptionDiagnosticErrorsToWebpack(
   getCompilerOptionDiagnostics: boolean,
-  compilation: webpack.compilation.Compilation,
+  compilation: webpack.Compilation,
   instance: TSInstance,
   configFilePath: string | undefined
 ) {
@@ -123,13 +119,13 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  * based on filepath
  */
 function determineModules(
-  compilation: webpack.compilation.Compilation,
+  compilation: webpack.Compilation,
   { filePathKeyMapper }: TSInstance
 ) {
-  const modules: Map<FilePathKey, WebpackModule[]> = new Map();
+  const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    if (module.resource) {
+    if (module instanceof webpack.NormalModule && module.resource) {
       const modulePath = filePathKeyMapper(module.resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
@@ -197,8 +193,8 @@ function determineFilesToCheckForErrors(
 function provideErrorsToWebpack(
   filesToCheckForErrors: TSFiles,
   filesWithErrors: TSFiles,
-  compilation: webpack.compilation.Compilation,
-  modules: Map<FilePathKey, WebpackModule[]>,
+  compilation: webpack.Compilation,
+  modules: Map<FilePathKey, webpack.Module[]>,
   instance: TSInstance
 ) {
   const {
@@ -281,8 +277,8 @@ function provideErrorsToWebpack(
 }
 
 function provideSolutionErrorsToWebpack(
-  compilation: webpack.compilation.Compilation,
-  modules: Map<FilePathKey, WebpackModule[]>,
+  compilation: webpack.Compilation,
+  modules: Map<FilePathKey, webpack.Module[]>,
   instance: TSInstance
 ) {
   if (
@@ -362,7 +358,7 @@ function provideSolutionErrorsToWebpack(
 function provideDeclarationFilesToWebpack(
   filesToCheckForErrors: TSFiles,
   instance: TSInstance,
-  compilation: webpack.compilation.Compilation
+  compilation: webpack.Compilation
 ) {
   for (const { fileName } of filesToCheckForErrors.values()) {
     if (fileName.match(constants.tsTsxRegex) === null) {
@@ -375,7 +371,7 @@ function provideDeclarationFilesToWebpack(
 
 function addDeclarationFilesAsAsset<T extends ts.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
-  compilation: webpack.compilation.Compilation,
+  compilation: webpack.Compilation,
   skipOutputFile?: (outputFile: T) => boolean
 ) {
   outputFilesToAsset(outputFiles, compilation, outputFile =>
@@ -387,21 +383,23 @@ function addDeclarationFilesAsAsset<T extends ts.OutputFile>(
 
 function outputFileToAsset(
   outputFile: ts.OutputFile,
-  compilation: webpack.compilation.Compilation
+  compilation: webpack.Compilation
 ) {
-  const assetPath = path.relative(
-    compilation.compiler.outputPath,
-    outputFile.name
+  const assetPath = path
+    .relative(compilation.compiler.outputPath, outputFile.name)
+    // According to @alexander-akait (and @sokra) we should always '/' https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-799606985
+    .replace(/\\/g, '/');
+
+  // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
+  compilation.emitAsset(
+    assetPath,
+    new webpack.sources.RawSource(outputFile.text)
   );
-  compilation.assets[assetPath] = {
-    source: () => outputFile.text,
-    size: () => outputFile.text.length,
-  };
 }
 
 function outputFilesToAsset<T extends ts.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
-  compilation: webpack.compilation.Compilation,
+  compilation: webpack.Compilation,
   skipOutputFile?: (outputFile: T) => boolean
 ) {
   for (const outputFile of outputFiles) {
@@ -416,7 +414,7 @@ function outputFilesToAsset<T extends ts.OutputFile>(
  */
 function provideTsBuildInfoFilesToWebpack(
   instance: TSInstance,
-  compilation: webpack.compilation.Compilation
+  compilation: webpack.Compilation
 ) {
   if (instance.watchHost) {
     // Ensure emit is complete
@@ -435,7 +433,7 @@ function provideTsBuildInfoFilesToWebpack(
  */
 function provideAssetsFromSolutionBuilderHost(
   instance: TSInstance,
-  compilation: webpack.compilation.Compilation
+  compilation: webpack.Compilation
 ) {
   if (instance.solutionBuilderHost) {
     // written files
@@ -452,36 +450,26 @@ function provideAssetsFromSolutionBuilderHost(
  * the loader, we need to detect and remove any pre-existing errors.
  */
 function removeCompilationTSLoaderErrors(
-  compilation: webpack.compilation.Compilation,
+  compilation: webpack.Compilation,
   loaderOptions: LoaderOptions
 ) {
   compilation.errors = compilation.errors.filter(
-    error => error.loaderSource !== tsLoaderSource(loaderOptions)
+    error => error.details !== tsLoaderSource(loaderOptions)
   );
 }
 
 function removeModuleTSLoaderError(
-  module: WebpackModule,
+  module: webpack.Module,
   loaderOptions: LoaderOptions
 ) {
-  /**
-   * Since webpack 5, the `errors` property is deprecated,
-   * so we can check if some methods for reporting errors exist.
-   */
-  if (!!module.addError) {
-    const warnings = module.getWarnings();
-    const errors = module.getErrors();
-    module.clearWarningsAndErrors();
+  const warnings = module.getWarnings();
+  const errors = module.getErrors();
+  module.clearWarningsAndErrors();
 
-    Array.from(warnings || []).forEach(warning => module.addWarning(warning));
-    Array.from(errors || [])
-      .filter(
-        (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
-      )
-      .forEach(error => module.addError(error));
-  } else {
-    module.errors = module.errors.filter(
-      error => error.loaderSource !== tsLoaderSource(loaderOptions)
-    );
-  }
+  Array.from(warnings || []).forEach(warning => module.addWarning(warning));
+  Array.from(errors || [])
+    .filter(
+      (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
+    )
+    .forEach(error => module.addError(error));
 }

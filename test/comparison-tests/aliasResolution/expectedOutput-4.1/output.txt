@@ -1,10 +1,17 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.33 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 120 bytes {main} [built] [1 error]
-[./common/components/myComponent.ts] 46 bytes {main} [built]
+asset bundle.js 2.6 KiB [emitted] (name: main)
+./app.ts 120 bytes [built] [code generated] [2 errors]
+./common/components/myComponent.ts 46 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 1:29-53
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,30)[39m[22m
+[1m[31m      TS2307: Cannot find module 'components/myComponent' or its corresponding type declarations.[39m[22m
+ts-loader-default_b02295d909a3e7cf
 
 ERROR in app.ts
 ./app.ts 2:30-55
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(2,31)[39m[22m
 [1m[31m      TS2307: Cannot find module 'components/myComponent2' or its corresponding type declarations.[39m[22m
+ts-loader-default_b02295d909a3e7cf
+
+webpack compiled with 2 errors

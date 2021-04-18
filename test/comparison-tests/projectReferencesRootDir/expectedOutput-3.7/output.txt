@@ -1,7 +1,0 @@
-                      Asset      Size  Chunks             Chunk Names
-                  bundle.js  4.66 KiB    main  [emitted]  main
-      ../lib/out/index.d.ts  89 bytes          [emitted]  
-../lib/tsconfig.tsbuildinfo  73.6 KiB          [emitted]  
-Entrypoint main = bundle.js
-[./app.ts] 81 bytes {main} [built]
-[./lib/src/index.ts] 66 bytes {main} [built]

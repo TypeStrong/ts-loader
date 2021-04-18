@@ -1,13 +1,15 @@
-                   Asset       Size  Chunks             Chunk Names
-               bundle.js   4.88 KiB    main  [emitted]  main
-         lib/helper.d.ts  105 bytes          [emitted]  
-           lib/helper.js  172 bytes          [emitted]  
-       lib/helper.js.map  210 bytes          [emitted]  
-          lib/index.d.ts  102 bytes          [emitted]  
-            lib/index.js  257 bytes          [emitted]  
-        lib/index.js.map  252 bytes          [emitted]  
-lib/tsconfig.tsbuildinfo   2.66 KiB          [emitted]  
-Entrypoint main = bundle.js
-[./app.ts] 167 bytes {main} [built]
-[./lib/helper.ts] 138 bytes {main} [built]
-[./lib/index.ts] 224 bytes {main}
+assets by path lib/*.js 429 bytes
+  asset lib/index.js 257 bytes [emitted]
+  asset lib/helper.js 172 bytes [emitted]
+assets by path lib/*.map 462 bytes
+  asset lib/index.js.map 252 bytes [emitted]
+  asset lib/helper.js.map 210 bytes [emitted]
+assets by path lib/*.ts 207 bytes
+  asset lib/helper.d.ts 105 bytes [emitted]
+  asset lib/index.d.ts 102 bytes [emitted]
+asset bundle.js 3.15 KiB [emitted] (name: main)
+asset lib/tsconfig.tsbuildinfo 2.66 KiB [emitted]
+cached modules 224 bytes [cached] 1 module
+./app.ts 167 bytes [built]
+./lib/helper.ts 138 bytes [built] [code generated]
+webpack compiled successfully
