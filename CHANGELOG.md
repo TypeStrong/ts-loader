@@ -7,7 +7,7 @@ Breaking changes:
 - minimum node version: 12
 
 Changes:
-* [webpack 5 migration](https://github.com/TypeStrong/ts-loader/pull/1251) - thanks @johnnyreilly, @jonwallsten, @sokra, @appzuka, @alexandar-akait
+* [webpack 5 migration](https://github.com/TypeStrong/ts-loader/pull/1251) - thanks @johnnyreilly, @jonwallsten, @sokra, @appzuka, @alexander-akait
 
 ## v8.1.0
 * [feat: remove top-level typescript import statements](https://github.com/TypeStrong/ts-loader/pull/1259) - thanks @ulivz
