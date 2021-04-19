@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.0.1
+
+* [Use correct hook for emitting additional assets during compilation](https://github.com/TypeStrong/ts-loader/pull/1286) - thanks @jonwallsten
+
 ## v9.0.0
 
 Breaking changes:
