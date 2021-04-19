@@ -46,6 +46,7 @@ function loader(this: WebpackLoaderContext, contents: string) {
     return;
   }
   const instance = instanceOrError.instance!;
+  buildSolutionReferences(instance, this); // Warning: references are built before hooks are set in initializeInstance
   successLoader(this, contents, callback, instance);
 }
 
@@ -56,7 +57,6 @@ function successLoader(
   instance: TSInstance
 ) {
   initializeInstance(loaderContext, instance);
-  buildSolutionReferences(instance, loaderContext); //build references after setting transformers and hooks
   reportTranspileErrors(instance, loaderContext);
   const rawFilePath = path.normalize(loaderContext.resourcePath);
 
