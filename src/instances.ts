@@ -23,7 +23,6 @@ import {
   makeSolutionBuilderHost,
   makeWatchHost,
 } from './servicesHost';
-import { getCustomTransformers } from './transformers';
 import {
   appendSuffixesIfMatch,
   ensureProgram,
@@ -345,19 +344,15 @@ export function initializeInstance(
   instance.initialSetupPending = false;
 
   if (instance.loaderOptions.transpileOnly) {
-    const program = (instance.program =
+    instance.program =
       instance.configParseResult.projectReferences !== undefined
         ? instance.compiler.createProgram({
             rootNames: instance.configParseResult.fileNames,
             options: instance.configParseResult.options,
             projectReferences: instance.configParseResult.projectReferences,
           })
-        : instance.compiler.createProgram([], instance.compilerOptions));
+        : instance.compiler.createProgram([], instance.compilerOptions);
 
-    instance.transformers = getCustomTransformers(
-      instance.loaderOptions,
-      program
-    );
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
@@ -389,10 +384,6 @@ export function initializeInstance(
       instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
       instance.program = instance.builderProgram.getProgram();
 
-      instance.transformers = getCustomTransformers(
-        instance.loaderOptions,
-        instance.program
-      );
     } else {
       instance.servicesHost = makeServicesHost(
         getScriptRegexp(instance),
@@ -404,11 +395,6 @@ export function initializeInstance(
       instance.languageService = instance.compiler.createLanguageService(
         instance.servicesHost,
         instance.compiler.createDocumentRegistry()
-      );
-
-      instance.transformers = getCustomTransformers(
-        instance.loaderOptions,
-        instance.languageService!.getProgram()!
       );
     }
 
