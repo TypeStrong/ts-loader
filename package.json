@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "9.0.1",
+  "version": "9.0.2",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist",
@@ -56,7 +56,6 @@
   "dependencies": {
     "chalk": "^4.1.0",
     "enhanced-resolve": "^5.0.0",
-    "loader-utils": "^2.0.0",
     "micromatch": "^4.0.0",
     "semver": "^7.3.4"
   },
