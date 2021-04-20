@@ -1,5 +1,11 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.29 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 101 bytes {main} [built]
-[./fake.ts] 160 bytes {main} [built]
+asset bundle.js 2.58 KiB [emitted] (name: main)
+./app.ts 101 bytes [built] [code generated] [1 error]
+./fake.ts 160 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 1:29-34
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,30)[39m[22m
+[1m[31m      TS2307: Cannot find module 'api' or its corresponding type declarations.[39m[22m
+ts-loader-default_b02295d909a3e7cf
+
+webpack compiled with 1 error

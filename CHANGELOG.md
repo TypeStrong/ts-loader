@@ -1,5 +1,22 @@
 # Changelog
 
+## v9.0.2
+
+* [Remove usage of loader-utils](https://github.com/TypeStrong/ts-loader/pull/1288) - thanks @jonwallsten
+
+## v9.0.1
+
+* [Use correct hook for emitting additional assets during compilation](https://github.com/TypeStrong/ts-loader/pull/1286) - thanks @jonwallsten
+
+## v9.0.0
+
+Breaking changes:
+- minimum webpack version: 5
+- minimum node version: 12
+
+Changes:
+* [webpack 5 migration](https://github.com/TypeStrong/ts-loader/pull/1251) - thanks @johnnyreilly, @jonwallsten, @sokra, @appzuka, @alexander-akait
+
 ## v8.1.0
 * [feat: remove top-level typescript import statements](https://github.com/TypeStrong/ts-loader/pull/1259) - thanks @ulivz
 

@@ -129,23 +129,13 @@ If you'd like to see a simple setup take a look at [our simple example](examples
 
 `ts-loader` works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). 
 
-### Parallelising Builds
-
-It's possible to parallelise your builds. Historically this was useful from a performance perspective with webpack 2 / 3.  [With webpack 4+ there appears to be significantly less benefit and perhaps even cost.](https://blog.johnnyreilly.com/2018/12/you-might-not-need-thread-loader.html)
-
-But if that's what you want to do, there's two ways to achieve this: [happypack](https://github.com/amireh/happypack) and [thread-loader](https://github.com/webpack-contrib/thread-loader). Both should be used in combination with [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) for typechecking.)
-
-To read more, look at [this post](https://medium.com/webpack/typescript-webpack-super-pursuit-mode-83cc568dea79) by [@johnny_reilly](https://twitter.com/johnny_reilly) on the webpack publication channel.
-
-If you'd like find out further ways to improve your build using the watch API then take a look at [this post](https://medium.com/@kenneth_chau/speeding-up-webpack-typescript-incremental-builds-by-7x-3912ba4c1d15) by [@kenneth_chau](https://twitter.com/kenneth_chau).
-
 ### Compatibility
 
 * TypeScript: 3.6.3+
-* webpack: 4.x+ (please use `ts-loader` 3.x if you need webpack 2 or 3 support)
-* node: 6.11.5 minimum (aligned with webpack 4)
+* webpack: 5.x+ (please use `ts-loader` 8.x if you need webpack 4 support)
+* node: 12.x+
 
-A full test suite runs each night (and on each pull request). It runs both on [Linux](https://travis-ci.org/TypeStrong/ts-loader) and [Windows](https://ci.appveyor.com/project/JohnReilly/ts-loader), testing `ts-loader` against major releases of TypeScript. The test suite also runs against TypeScript@next (because we want to use it as much as you do).
+A full test suite runs each night (and on each pull request). It runs both on Linux and Windows, testing `ts-loader` against major releases of TypeScript. The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 

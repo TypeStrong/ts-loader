@@ -1,9 +1,0 @@
-           Asset       Size  Chunks             Chunk Names
-       bundle.js   5.14 KiB    main  [emitted]  main
-    app.d.ts.map  197 bytes          [emitted]  
-        app.d.ts  143 bytes          [emitted]  
-sub/dep.d.ts.map  152 bytes          [emitted]  
-    sub/dep.d.ts   96 bytes          [emitted]  
-Entrypoint main = bundle.js
-[./app.ts] 911 bytes {main} [built]
-[./sub/dep.ts] 182 bytes {main} [built]

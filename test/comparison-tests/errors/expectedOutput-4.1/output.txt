@@ -1,7 +1,5 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  3.96 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 220 bytes {main} [built] [failed] [2 errors]
+asset bundle.js 1.38 KiB [emitted] (name: main)
+./app.ts 14 bytes [built] [code generated] [1 error]
 
 ERROR in ./app.ts 2:1
 Module parse failed: Unexpected token (2:1)
@@ -10,9 +8,12 @@ File was processed with these loaders:
 You may need an additional loader to handle the result of these loaders.
 | var a;
 >  == 0;
-| 
+|
 
 ERROR in app.ts
 ./app.ts 1:6-8
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,7)[39m[22m
 [1m[31m      TS1005: ',' expected.[39m[22m
+ts-loader-default_b02295d909a3e7cf
+
+webpack compiled with 2 errors

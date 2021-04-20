@@ -1,10 +1,10 @@
-                         Asset       Size  Chunks             Chunk Names
-          ../common/index.d.ts   42 bytes          [emitted]  
-            ../common/index.js  128 bytes          [emitted]  
-../common/tsconfig.tsbuildinfo   2.32 KiB          [emitted]  
-                     bundle.js   5.29 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[../common/index.ts] 128 bytes {main} [built]
-[../lib/index.ts] 119 bytes {main}
-[../utils/index.ts] 169 bytes {main} [built]
-[./app.ts] 184 bytes {main} [built]
+asset bundle.js 3.5 KiB [emitted] (name: main)
+asset ../common/tsconfig.tsbuildinfo 2.32 KiB [emitted]
+asset ../common/index.js 128 bytes [emitted]
+asset ../common/index.d.ts 42 bytes [emitted]
+cached modules 119 bytes [cached] 1 module
+modules by path ../ 297 bytes
+  ../utils/index.ts 169 bytes [built] [code generated]
+  ../common/index.ts 128 bytes [built] [code generated]
+./app.ts 184 bytes [built] [code generated]
+webpack compiled successfully

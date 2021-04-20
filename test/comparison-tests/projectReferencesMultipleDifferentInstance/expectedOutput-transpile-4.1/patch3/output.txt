@@ -1,11 +1,14 @@
-                         Asset      Size  Chunks             Chunk Names
-../common/tsconfig.tsbuildinfo  2.68 KiB          [emitted]  
-                     bundle.js  5.43 KiB    main             main
-Entrypoint main = bundle.js
-[../common/index.ts] 128 bytes {main} [built]
-[../lib/index.ts] 119 bytes {main}
-[../utils/index.ts] 249 bytes {main} [built]
-[./app.ts] 238 bytes {main} [built] [1 error]
+assets by status 3.64 KiB [cached] 1 asset
+asset ../common/tsconfig.tsbuildinfo 2.68 KiB [emitted]
+cached modules 119 bytes [cached] 1 module
+modules by path ../ 377 bytes
+  ../utils/index.ts 249 bytes [built]
+  ../common/index.ts 128 bytes [built]
+./app.ts 238 bytes [built] [1 error]
 
-ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mcommon/index.ts(2,3)[39m[22m
+ERROR in ./app.ts 2:2-12
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mcommon/index.ts(2,3)[39m[22m
 [1m[31m      TS2322: Type 'number' is not assignable to type 'string'.[39m[22m
+ts-loader-default_28ca491bfec2827f
+
+webpack compiled with 1 error

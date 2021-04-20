@@ -13,7 +13,6 @@ import {
   ModuleResolutionCache,
   ModuleResolutionHostMayBeCacheable,
   ResolvedModule,
-  ResolveSync,
   ServiceHostWhichMayBeCacheable,
   SolutionBuilderWithWatchHost,
   SolutionDiagnostics,
@@ -21,9 +20,9 @@ import {
   WatchCallbacks,
   WatchFactory,
   WatchHost,
-  WebpackError,
+  WebpackLoaderContext,
 } from './interfaces';
-import { makeResolver } from './resolver';
+import { makeResolver, ResolveSync } from './resolver';
 import {
   formatErrors,
   fsReadFile,
@@ -34,7 +33,7 @@ import {
 
 function makeResolversAndModuleResolutionHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance,
   fileExists: (fileName: string) => boolean,
   enableFileCaching: boolean
@@ -96,7 +95,7 @@ function makeResolversAndModuleResolutionHost(
 
   function readFile(
     filePath: string,
-    encoding?: string | undefined
+    encoding?: BufferEncoding | undefined
   ): string | undefined {
     return (
       instance.compiler.sys.readFile(filePath, encoding) ||
@@ -138,7 +137,7 @@ function makeResolversAndModuleResolutionHost(
  */
 export function makeServicesHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ): ServiceHostWhichMayBeCacheable {
@@ -470,7 +469,7 @@ export function updateFileWithText(
  */
 export function makeWatchHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
@@ -664,7 +663,7 @@ function createModuleResolutionCache(
  */
 export function makeSolutionBuilderHost(
   scriptRegex: RegExp,
-  loader: webpack.loader.LoaderContext,
+  loader: WebpackLoaderContext,
   instance: TSInstance
 ): SolutionBuilderWithWatchHost {
   const {
@@ -1133,7 +1132,7 @@ export function makeSolutionBuilderHost(
 }
 
 export function getSolutionErrors(instance: TSInstance, context: string) {
-  const solutionErrors: WebpackError[] = [];
+  const solutionErrors: webpack.WebpackError[] = [];
   if (
     instance.solutionBuilderHost &&
     instance.solutionBuilderHost.diagnostics.transpileErrors.length
@@ -1233,10 +1232,12 @@ function resolveModule(
       moduleName
     );
 
-    const resolvedFileName = appendTsTsxSuffixesIfRequired(originalFileName);
+    if (originalFileName) {
+      const resolvedFileName = appendTsTsxSuffixesIfRequired(originalFileName);
 
-    if (resolvedFileName.match(scriptRegex) !== null) {
-      resolutionResult = { resolvedFileName, originalFileName };
+      if (resolvedFileName.match(scriptRegex) !== null) {
+        resolutionResult = { resolvedFileName, originalFileName };
+      }
     }
   } catch (e) {}
 

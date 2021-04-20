@@ -1,9 +1,0 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.06 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 312 bytes {main} [built] [failed] [1 error]
-
-ERROR in ./app.ts
-Module build failed (from /index.js):
-Error: [31mA file specified in tsconfig.json could not be found: i-am-a-file-what-does-not-exist.ts[39m
-    at Object.loader (dist\index.js:19:18)

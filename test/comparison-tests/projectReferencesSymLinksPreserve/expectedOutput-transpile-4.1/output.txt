@@ -1,12 +1,13 @@
-                            Asset       Size  Chunks             Chunk Names
-     ../../common/dist/index.d.ts   54 bytes          [emitted]  
-       ../../common/dist/index.js  176 bytes          [emitted]  
-../../common/tsconfig.tsbuildinfo   2.41 KiB          [emitted]  
-        ../../lib/dist/index.d.ts   53 bytes          [emitted]  
-          ../../lib/dist/index.js  232 bytes          [emitted]  
-   ../../lib/tsconfig.tsbuildinfo    2.8 KiB          [emitted]  
-                         index.js   5.02 KiB    main  [emitted]  main
-Entrypoint main = index.js
-[../common/dist/index.js] 176 bytes {main} [built]
-[../lib/dist/index.js] 232 bytes {main} [built]
-[./src/index.ts] 144 bytes {main} [built]
+assets by path ../../lib/ 3.08 KiB
+  asset ../../lib/tsconfig.tsbuildinfo 2.8 KiB [compared for emit]
+  asset ../../lib/dist/index.js 232 bytes [compared for emit]
+  asset ../../lib/dist/index.d.ts 53 bytes [compared for emit]
+assets by path ../../common/ 2.63 KiB
+  asset ../../common/tsconfig.tsbuildinfo 2.41 KiB [compared for emit]
+  asset ../../common/dist/index.js 176 bytes [compared for emit]
+  asset ../../common/dist/index.d.ts 54 bytes [compared for emit]
+asset index.js 3.28 KiB [emitted] (name: main)
+./src/index.ts 144 bytes [built] [code generated]
+../lib/dist/index.js 232 bytes [built] [code generated]
+../common/dist/index.js 176 bytes [built] [code generated]
+webpack compiled successfully

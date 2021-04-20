@@ -1,16 +1,18 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.71 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 167 bytes {main} [built] [1 error]
-[./lib/index.ts] 517 bytes {main} [built] [failed] [1 error]
+asset bundle.js 2.98 KiB [emitted] (name: main)
+./app.ts 167 bytes [built] [code generated] [1 error]
+./lib/index.ts 39 bytes [built] [code generated] [1 error]
 
-ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/index.ts(4,12)[39m[22m
+ERROR in ./app.ts 4:11-12
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/index.ts(4,12)[39m[22m
 [1m[31m      TS1136: Property assignment expected.[39m[22m
+ts-loader-default_9159152f7379ff4d
 
 ERROR in ./lib/index.ts
-Module build failed (from index.js):
+Module build failed (from ../../index.js):
 Error: TypeScript emitted no output for lib/index.ts. The most common cause for this is having errors when building referenced projects.
     at makeSourceMapAndFinish (dist/index.js:53:18)
     at successLoader (dist/index.js:40:5)
     at Object.loader (dist/index.js:23:5)
  @ ./app.ts 3:12-28
+
+webpack compiled with 2 errors

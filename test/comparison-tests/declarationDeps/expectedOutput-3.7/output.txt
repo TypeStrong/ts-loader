@@ -1,9 +1,0 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  3.78 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 41 bytes {main} [built] [1 error]
-
-ERROR in app.ts
-./app.ts
-[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(2,7)[39m[22m
-[1m[31m      TS2339: Property 'sayHi' does not exist on type 'typeof Hello'.[39m[22m

@@ -1,1 +1,0 @@
-export { BarEnum } from './bar';

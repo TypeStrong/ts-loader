@@ -1,10 +1,15 @@
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 
-import { ResolveSync } from './interfaces';
+import { create } from 'enhanced-resolve';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const node = require('enhanced-resolve/lib/node');
-
-export function makeResolver(options: webpack.Configuration): ResolveSync {
-  return node.create.sync(options.resolve);
+export function makeResolver(
+  options: webpack.WebpackOptionsNormalized
+): ResolveSync {
+  return create.sync(options.resolve);
 }
+
+export type ResolveSync = (
+  context: string | undefined,
+  path: string,
+  moduleName: string
+) => string | false;
