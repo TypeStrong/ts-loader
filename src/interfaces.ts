@@ -206,6 +206,19 @@ export interface ModuleResolutionCache
   moduleNameToDirectoryMap: CacheWithRedirects<PerModuleNameCache>;
   clear(): void;
   update(compilerOptions: typescript.CompilerOptions): void;
+  getPackageJsonInfoCache?(): any;
+}
+// Till api is updated
+export interface TypeReferenceDirectiveResolutionCache {
+  getOrCreateCacheForDirectory(
+    directoryName: string,
+    redirectedReference?: typescript.ResolvedProjectReference
+  ): Map<
+    string,
+    typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations
+  >;
+  clear(): void;
+  update(compilerOptions: typescript.CompilerOptions): void;
 }
 export interface TSInstance {
   compiler: typeof typescript;
@@ -215,6 +228,7 @@ export interface TSInstance {
   loaderOptions: LoaderOptions;
   rootFileNames: Set<string>;
   moduleResolutionCache?: ModuleResolutionCache;
+  typeReferenceResolutionCache?: TypeReferenceDirectiveResolutionCache;
   /**
    * a cache of all the files
    */

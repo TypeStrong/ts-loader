@@ -249,27 +249,6 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
   scriptRegex: RegExp,
   instance: TSInstance
 ) {
-  const resolveTypeReferenceDirective = makeResolveTypeReferenceDirective(
-    compiler,
-    compilerOptions,
-    moduleResolutionHost,
-    customResolveTypeReferenceDirective
-  );
-
-  const resolveTypeReferenceDirectives = (
-    typeDirectiveNames: string[],
-    containingFile: string,
-    _redirectedReference?: typescript.ResolvedProjectReference
-  ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
-    typeDirectiveNames.map(
-      directive =>
-        resolveTypeReferenceDirective(
-          directive,
-          containingFile,
-          _redirectedReference
-        ).resolvedTypeReferenceDirective
-    );
-
   const resolveModuleName = makeResolveModuleName(
     compiler,
     compilerOptions,
@@ -300,6 +279,28 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
 
     return resolvedModules;
   };
+
+  const resolveTypeReferenceDirective = makeResolveTypeReferenceDirective(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveTypeReferenceDirective,
+    instance
+  );
+
+  const resolveTypeReferenceDirectives = (
+    typeDirectiveNames: string[],
+    containingFile: string,
+    _redirectedReference?: typescript.ResolvedProjectReference
+  ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
+    typeDirectiveNames.map(
+      directive =>
+        resolveTypeReferenceDirective(
+          directive,
+          containingFile,
+          _redirectedReference
+        ).resolvedTypeReferenceDirective
+    );
 
   return {
     resolveTypeReferenceDirectives,
@@ -767,6 +768,7 @@ export function makeSolutionBuilderHost(
       projectReferences
     ) => {
       instance.moduleResolutionCache?.update(options || {});
+      instance.typeReferenceResolutionCache?.update(options || {});
       const result = sysHost.createProgram(
         rootNames,
         options,
@@ -775,6 +777,7 @@ export function makeSolutionBuilderHost(
         configFileParsingDiagnostics,
         projectReferences
       );
+      instance.typeReferenceResolutionCache?.update(instance.compilerOptions);
       instance.moduleResolutionCache?.update(instance.compilerOptions);
       return result;
     },
@@ -1164,16 +1167,31 @@ function makeResolveTypeReferenceDirective(
   moduleResolutionHost: typescript.ModuleResolutionHost,
   customResolveTypeReferenceDirective:
     | CustomResolveTypeReferenceDirective
-    | undefined
+    | undefined,
+  instance: TSInstance
 ): ResolveTypeReferenceDirective {
   if (customResolveTypeReferenceDirective === undefined) {
+    // Till we the api is published
+    if (
+      (compiler as any).createTypeReferenceDirectiveResolutionCache &&
+      !instance.typeReferenceResolutionCache
+    ) {
+      instance.typeReferenceResolutionCache = (compiler as any).createTypeReferenceDirectiveResolutionCache(
+        moduleResolutionHost.getCurrentDirectory!(),
+        createGetCanonicalFileName(instance),
+        instance.compilerOptions,
+        instance.moduleResolutionCache?.getPackageJsonInfoCache?.()
+      );
+    }
     return (directive, containingFile, redirectedReference) =>
-      compiler.resolveTypeReferenceDirective(
+      // Till we the api is published
+      (compiler.resolveTypeReferenceDirective as any)(
         directive,
         containingFile,
         compilerOptions,
         moduleResolutionHost,
-        redirectedReference
+        redirectedReference,
+        instance.typeReferenceResolutionCache
       );
   }
 
