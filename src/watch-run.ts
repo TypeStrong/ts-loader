@@ -24,6 +24,7 @@ export function makeWatchRun(
     instance.servicesHost?.clearCache?.();
     instance.watchHost?.clearCache?.();
     instance.moduleResolutionCache?.clear();
+    instance.typeReferenceResolutionCache?.clear();
     const promises = [];
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;

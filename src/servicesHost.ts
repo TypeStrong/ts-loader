@@ -290,14 +290,14 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
   const resolveTypeReferenceDirectives = (
     typeDirectiveNames: string[],
     containingFile: string,
-    _redirectedReference?: typescript.ResolvedProjectReference
+    redirectedReference?: typescript.ResolvedProjectReference
   ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
     typeDirectiveNames.map(
       directive =>
         resolveTypeReferenceDirective(
           directive,
           containingFile,
-          _redirectedReference
+          redirectedReference
         ).resolvedTypeReferenceDirective
     );
 
