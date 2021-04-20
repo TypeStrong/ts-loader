@@ -2,7 +2,7 @@
 
 ## v9.0.2
 
-* [Remove usage of loader-utils](https://github.com/TypeStrong/ts-loader/pull/1287) - thanks @jonwallsten
+* [Remove usage of loader-utils](https://github.com/TypeStrong/ts-loader/pull/1288) - thanks @jonwallsten
 
 ## v9.0.1
 
