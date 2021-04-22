@@ -1183,7 +1183,7 @@ function makeResolveTypeReferenceDirective(
       );
     }
     return (directive, containingFile, redirectedReference) =>
-      // Till we the api is published
+      // Until the api is published
       (compiler.resolveTypeReferenceDirective as any)(
         directive,
         containingFile,
