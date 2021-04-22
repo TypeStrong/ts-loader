@@ -1170,7 +1170,7 @@ function makeResolveTypeReferenceDirective(
   instance: TSInstance
 ): ResolveTypeReferenceDirective {
   if (customResolveTypeReferenceDirective === undefined) {
-    // Till we the api is published
+    // Until the api is published
     if (
       (compiler as any).createTypeReferenceDirectiveResolutionCache &&
       !instance.typeReferenceResolutionCache
