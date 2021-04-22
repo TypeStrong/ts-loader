@@ -26,7 +26,7 @@
         "signature": "097a57355ded99c68e6df1b738990448e0bf170e606707df5a7c0481ff2427cd",
         "affectsGlobalScope": true
       },
-      "../common/dist/index.d.ts": {
+      "../../projectReferencesSymLinks/common/dist/index.d.ts": {
         "version": "ff3ea32a8da48d914c97453f41159f05f0eb54fefa17b664d412b6588d1ba729",
         "signature": "ff3ea32a8da48d914c97453f41159f05f0eb54fefa17b664d412b6588d1ba729",
         "affectsGlobalScope": false
@@ -49,13 +49,13 @@
     },
     "referencedMap": {
       "./src/index.ts": [
-        "../common/dist/index.d.ts"
+        "../../projectReferencesSymLinks/common/dist/index.d.ts"
       ]
     },
     "exportedModulesMap": {},
     "semanticDiagnosticsPerFile": [
-      "../common/dist/index.d.ts",
       "./src/index.ts",
+      "../../projectReferencesSymLinks/common/dist/index.d.ts",
       "../../../node_modules/typescript/lib/lib.d.ts",
       "../../../node_modules/typescript/lib/lib.dom.d.ts",
       "../../../node_modules/typescript/lib/lib.es5.d.ts",

@@ -86,39 +86,14 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./component.vue":
-/*!***********************!*\
-  !*** ./component.vue ***!
-  \***********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-eval("\nexports.__esModule = true;\nexports[\"default\"] = {\n    data: function () {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//# sourceURL=webpack:///./component.vue?");
-
-/***/ }),
-
-/***/ "./helper.ts":
-/*!*******************!*\
-  !*** ./helper.ts ***!
-  \*******************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-eval("\nexports.__esModule = true;\nexports.myMethod = void 0;\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//# sourceURL=webpack:///./helper.ts?");
-
-/***/ }),
-
 /***/ "./index.vue":
 /*!*******************!*\
   !*** ./index.vue ***!
   \*******************/
 /*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-eval("\nexports.__esModule = true;\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports[\"default\"] = {\n    components: { component: component_vue_1[\"default\"] },\n    data: function () {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//# sourceURL=webpack:///./index.vue?");
+eval("throw new Error(\"Module build failed (from C:/code/ts-loader/index.js):/nError: ENOENT: no such file or directory, lstat 'C://code//ts-loader//.test//appendSuffixTo//index.vue.ts'/n    at Object.realpathSync (fs.js:1681:7)/n    at resolveModule (C://code//ts-loader//dist//servicesHost.js:678:58)/n    at C://code//ts-loader//dist//servicesHost.js:132:13/n    at Array.map (<anonymous>)/n    at Object.resolveModuleNames (C://code//ts-loader//dist//servicesHost.js:130:65)/n    at actualResolveModuleNamesWorker (C://code//ts-loader//node_modules//typescript//lib//typescript.js:105296:133)/n    at resolveModuleNamesWorker (C://code//ts-loader//node_modules//typescript//lib//typescript.js:105534:26)/n    at resolveModuleNamesReusingOldState (C://code//ts-loader//node_modules//typescript//lib//typescript.js:105648:24)/n    at processImportedModules (C://code//ts-loader//node_modules//typescript//lib//typescript.js:107135:35)/n    at findSourceFileWorker (C://code//ts-loader//node_modules//typescript//lib//typescript.js:106907:17)/n    at findSourceFile (C://code//ts-loader//node_modules//typescript//lib//typescript.js:106769:26)/n    at C://code//ts-loader//node_modules//typescript//lib//typescript.js:106726:85/n    at getSourceFileFromReferenceWorker (C://code//ts-loader//node_modules//typescript//lib//typescript.js:106693:34)/n    at processSourceFile (C://code//ts-loader//node_modules//typescript//lib//typescript.js:106726:13)/n    at processRootFile (C://code//ts-loader//node_modules//typescript//lib//typescript.js:106536:13)/n    at C://code//ts-loader//node_modules//typescript//lib//typescript.js:105401:60/n    at Object.forEach (C://code//ts-loader//node_modules//typescript//lib//typescript.js:382:30)/n    at Object.createProgram (C://code//ts-loader//node_modules//typescript//lib//typescript.js:105401:16)/n    at synchronizeHostData (C://code//ts-loader//node_modules//typescript//lib//typescript.js:147139:26)/n    at Object.getProgram (C://code//ts-loader//node_modules//typescript//lib//typescript.js:147231:13)/n    at Object.ensureProgram (C://code//ts-loader//dist//utils.js:193:41)/n    at Object.getEmitOutput (C://code//ts-loader//dist//instances.js:491:29)/n    at getEmit (C://code//ts-loader//dist//index.js:261:37)/n    at successLoader (C://code//ts-loader//dist//index.js:39:11)/n    at Object.loader (C://code//ts-loader//dist//index.js:23:5)\");\n\n//# sourceURL=webpack:///./index.vue?");
 
 /***/ })
 

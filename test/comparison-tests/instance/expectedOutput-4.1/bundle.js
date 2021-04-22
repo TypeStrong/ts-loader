@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed (from /workspaces/ts-loader/index.js):/nError: /u001b[31mA file specified in tsconfig.json could not be found: /instance/i-dont-exist/u001b[39m/n    at Object.loader (/workspaces/ts-loader/dist/index.js:18:18)\");\n\n//# sourceURL=webpack:///./a.ts?");
+eval("throw new Error(\"Module build failed (from C:/code/ts-loader/index.js):/nError: /u001b[31mA file specified in tsconfig.json could not be found: C://code//ts-loader//.test//instance//i-dont-exist/u001b[39m/n    at Object.loader (C://code//ts-loader//dist//index.js:18:18)\");\n\n//# sourceURL=webpack:///./a.ts?");
 
 /***/ })
 

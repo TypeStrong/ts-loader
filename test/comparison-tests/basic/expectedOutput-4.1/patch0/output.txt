@@ -6,6 +6,6 @@ Entrypoint main = bundle.js
 [./submodule/submodule.ts] 149 bytes {main}
 
 ERROR in app.ts
-./app.ts 3:12-24
+./app.ts
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,13)[39m[22m
 [1m[31m      TS2551: Property 'doSomething2' does not exist on type 'typeof externalLib'. Did you mean 'doSomething'?[39m[22m

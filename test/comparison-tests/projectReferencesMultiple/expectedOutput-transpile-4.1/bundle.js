@@ -105,7 +105,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", { value: true });\nvar li
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed (from /workspaces/ts-loader/index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/lib/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:53:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:40:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:23:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("throw new Error(\"Module build failed (from C:/code/ts-loader/index.js):/nError: TypeScript emitted no output for C://code//ts-loader//.test//projectReferencesMultiple.transpile//lib//index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (C://code//ts-loader//dist//index.js:53:18)/n    at successLoader (C://code//ts-loader//dist//index.js:40:5)/n    at Object.loader (C://code//ts-loader//dist//index.js:23:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ }),
 
@@ -116,7 +116,7 @@ eval("throw new Error(\"Module build failed (from /workspaces/ts-loader/index.js
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("throw new Error(\"Module build failed (from /workspaces/ts-loader/index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/utils/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:53:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:40:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:23:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
+eval("throw new Error(\"Module build failed (from C:/code/ts-loader/index.js):/nError: TypeScript emitted no output for C://code//ts-loader//.test//projectReferencesMultiple.transpile//utils//index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (C://code//ts-loader//dist//index.js:53:18)/n    at successLoader (C://code//ts-loader//dist//index.js:40:5)/n    at Object.loader (C://code//ts-loader//dist//index.js:23:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 

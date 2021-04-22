@@ -94,7 +94,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar foo;\nfoo.bar = 'foobar';\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\r\nexports.__esModule = true;\r\nvar foo;\r\nfoo.bar = 'foobar';\r\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 
