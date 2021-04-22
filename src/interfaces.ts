@@ -68,7 +68,8 @@ export interface ServiceHostWhichMayBeCacheable
     HostMayBeCacheable {}
 
 export interface WatchHost
-  extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<typescript.EmitAndSemanticDiagnosticsBuilderProgram> {
+  extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<typescript.EmitAndSemanticDiagnosticsBuilderProgram>,
+    HostMayBeCacheable {
   invokeFileWatcher: WatchFactory['invokeFileWatcher'];
   updateRootFileNames(): void;
   outputFiles: Map<FilePathKey, typescript.OutputFile[]>;
@@ -139,6 +140,47 @@ export interface ConfigFileInfo {
   dtsFiles?: string[];
 }
 
+interface CacheWithRedirects<T> {
+  ownMap: Map<string, T>;
+  redirectsMap: Map<typescript.Path, Map<string, T>>;
+  getOrCreateMapOfCacheRedirects(
+    redirectedReference: typescript.ResolvedProjectReference | undefined
+  ): Map<string, T>;
+  clear(): void;
+  setOwnOptions(newOptions: typescript.CompilerOptions): void;
+  setOwnMap(newOwnMap: Map<string, T>): void;
+}
+interface PerModuleNameCache {
+  get(
+    directory: string
+  ): typescript.ResolvedModuleWithFailedLookupLocations | undefined;
+  set(
+    directory: string,
+    result: typescript.ResolvedModuleWithFailedLookupLocations
+  ): void;
+}
+export interface ModuleResolutionCache
+  extends typescript.ModuleResolutionCache {
+  directoryToModuleNameMap: CacheWithRedirects<
+    Map<string, typescript.ResolvedModuleWithFailedLookupLocations>
+  >;
+  moduleNameToDirectoryMap: CacheWithRedirects<PerModuleNameCache>;
+  clear(): void;
+  update(compilerOptions: typescript.CompilerOptions): void;
+  getPackageJsonInfoCache?(): any;
+}
+// Until the API has been released and ts-loader is built against a version of TypeScript that contains it - see https://github.com/microsoft/TypeScript/blob/74993a2a64bb2e423b40204bb54ff749cdd4ef54/src/compiler/moduleNameResolver.ts#L458
+export interface TypeReferenceDirectiveResolutionCache {
+  getOrCreateCacheForDirectory(
+    directoryName: string,
+    redirectedReference?: typescript.ResolvedProjectReference
+  ): Map<
+    string,
+    typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations
+  >;
+  clear(): void;
+  update(compilerOptions: typescript.CompilerOptions): void;
+}
 export interface TSInstance {
   compiler: typeof typescript;
   compilerOptions: typescript.CompilerOptions;
@@ -146,6 +188,8 @@ export interface TSInstance {
   appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
   rootFileNames: Set<string>;
+  moduleResolutionCache?: ModuleResolutionCache;
+  typeReferenceResolutionCache?: TypeReferenceDirectiveResolutionCache;
   /**
    * a cache of all the files
    */
