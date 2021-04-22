@@ -5,7 +5,7 @@ Entrypoint main = bundle.js
 [./src/error2.js] 303 bytes {main} [built] [1 error]
 [./src/index.js] 207 bytes {main} [built]
 
-ERROR in src\error2.js
-./src/error2.js
-[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36msrc\error2.js(4,10)[39m[22m
+ERROR in src/error2.js
+./src/error2.js 4:9-12
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36msrc/error2.js(4,10)[39m[22m
 [1m[31m      TS2339: Property 'bar' does not exist on type 'Class2'.[39m[22m

@@ -1,33 +1,6 @@
     Asset      Size  Chunks             Chunk Names
-bundle.js  6.36 KiB    main  [emitted]  main
+bundle.js  5.03 KiB    main  [emitted]  main
 Entrypoint main = bundle.js
-[./index.vue] 2.34 KiB {main} [built] [failed] [1 error]
-
-ERROR in ./index.vue
-Module build failed (from /index.js):
-Error: ENOENT: no such file or directory, lstat 'index.vue.ts'
-    at Object.realpathSync (fs.js:1681:7)
-    at resolveModule (dist\servicesHost.js:678:58)
-    at dist\servicesHost.js:132:13
-    at Array.map (<anonymous>)
-    at Object.resolveModuleNames (dist\servicesHost.js:130:65)
-    at actualResolveModuleNamesWorker (node_modules\typescript\lib\typescript.js:105296:133)
-    at resolveModuleNamesWorker (node_modules\typescript\lib\typescript.js:105534:26)
-    at resolveModuleNamesReusingOldState (node_modules\typescript\lib\typescript.js:105648:24)
-    at processImportedModules (node_modules\typescript\lib\typescript.js:107135:35)
-    at findSourceFileWorker (node_modules\typescript\lib\typescript.js:106907:17)
-    at findSourceFile (node_modules\typescript\lib\typescript.js:106769:26)
-    at node_modules\typescript\lib\typescript.js:106726:85
-    at getSourceFileFromReferenceWorker (node_modules\typescript\lib\typescript.js:106693:34)
-    at processSourceFile (node_modules\typescript\lib\typescript.js:106726:13)
-    at processRootFile (node_modules\typescript\lib\typescript.js:106536:13)
-    at node_modules\typescript\lib\typescript.js:105401:60
-    at Object.forEach (node_modules\typescript\lib\typescript.js:382:30)
-    at Object.createProgram (node_modules\typescript\lib\typescript.js:105401:16)
-    at synchronizeHostData (node_modules\typescript\lib\typescript.js:147139:26)
-    at Object.getProgram (node_modules\typescript\lib\typescript.js:147231:13)
-    at Object.ensureProgram (dist\utils.js:193:41)
-    at Object.getEmitOutput (dist\instances.js:491:29)
-    at getEmit (dist\index.js:261:37)
-    at successLoader (dist\index.js:39:11)
-    at Object.loader (dist\index.js:23:5)
+[./component.vue] 154 bytes {main} [built]
+[./helper.ts] 154 bytes {main} [built]
+[./index.vue] 352 bytes {main} [built]

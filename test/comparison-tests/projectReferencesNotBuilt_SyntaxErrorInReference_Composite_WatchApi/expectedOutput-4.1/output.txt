@@ -1,20 +1,20 @@
                Asset      Size  Chunks             Chunk Names
             app.d.ts  11 bytes          [emitted]  
-           bundle.js   4.7 KiB    main  [emitted]  main
+           bundle.js  4.67 KiB    main  [emitted]  main
 tsconfig.tsbuildinfo  1.36 KiB          [emitted]  
 Entrypoint main = bundle.js
 [./app.ts] 131 bytes {main} [built]
-[./lib/index.ts] 515 bytes {main} [built] [failed] [2 errors]
+[./lib/index.ts] 517 bytes {main} [built] [failed] [2 errors]
 
 ERROR in ./lib/index.ts
-Module build failed (from /index.js):
-Error: TypeScript emitted no output for lib\index.ts. The most common cause for this is having errors when building referenced projects.
-    at makeSourceMapAndFinish (dist\index.js:53:18)
-    at successLoader (dist\index.js:40:5)
-    at Object.loader (dist\index.js:23:5)
+Module build failed (from index.js):
+Error: TypeScript emitted no output for lib/index.ts. The most common cause for this is having errors when building referenced projects.
+    at makeSourceMapAndFinish (dist/index.js:53:18)
+    at successLoader (dist/index.js:40:5)
+    at Object.loader (dist/index.js:23:5)
  @ ./app.ts 3:12-28
 
-ERROR in lib\index.ts
-./lib/index.ts
-[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib\index.ts(4,12)[39m[22m
+ERROR in lib/index.ts
+./lib/index.ts 4:11-12
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/index.ts(4,12)[39m[22m
 [1m[31m      TS1136: Property assignment expected.[39m[22m

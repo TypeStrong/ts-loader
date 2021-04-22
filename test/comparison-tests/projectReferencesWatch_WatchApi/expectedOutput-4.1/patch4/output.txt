@@ -5,6 +5,6 @@ Entrypoint main = bundle.js
 [./lib/index.ts] 145 bytes {main}
 
 ERROR in app.ts
-./app.ts
+./app.ts 3:55-60
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,56)[39m[22m
 [1m[31m      TS2551: Property 'ffive' does not exist on type '{ one: number; two: number; three: number; four: number; five: number; }'. Did you mean 'five'?[39m[22m
