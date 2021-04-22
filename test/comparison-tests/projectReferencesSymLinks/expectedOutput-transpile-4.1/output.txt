@@ -4,7 +4,7 @@
 ../../common/tsconfig.tsbuildinfo   2.38 KiB          [emitted]  
         ../../lib/dist/index.d.ts   53 bytes          [emitted]  
           ../../lib/dist/index.js  232 bytes          [emitted]  
-   ../../lib/tsconfig.tsbuildinfo   2.73 KiB          [emitted]  
+   ../../lib/tsconfig.tsbuildinfo   2.82 KiB          [emitted]  
                          index.js   5.02 KiB    main  [emitted]  main
 Entrypoint main = index.js
 [../common/dist/index.js] 176 bytes {main} [built]
