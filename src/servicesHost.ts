@@ -10,6 +10,7 @@ import {
   CustomResolveModuleName,
   CustomResolveTypeReferenceDirective,
   FilePathKey,
+  ModuleResolutionCache,
   ModuleResolutionHostMayBeCacheable,
   ResolvedModule,
   ResolveSync,
@@ -248,39 +249,19 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
   scriptRegex: RegExp,
   instance: TSInstance
 ) {
-  const resolveTypeReferenceDirective = makeResolveTypeReferenceDirective(
-    compiler,
-    compilerOptions,
-    moduleResolutionHost,
-    customResolveTypeReferenceDirective
-  );
-
-  const resolveTypeReferenceDirectives = (
-    typeDirectiveNames: string[],
-    containingFile: string,
-    _redirectedReference?: typescript.ResolvedProjectReference
-  ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
-    typeDirectiveNames.map(
-      directive =>
-        resolveTypeReferenceDirective(
-          directive,
-          containingFile,
-          _redirectedReference
-        ).resolvedTypeReferenceDirective
-    );
-
   const resolveModuleName = makeResolveModuleName(
     compiler,
     compilerOptions,
     moduleResolutionHost,
-    customResolveModuleName
+    customResolveModuleName,
+    instance
   );
 
   const resolveModuleNames = (
     moduleNames: string[],
     containingFile: string,
     _reusedNames?: string[] | undefined,
-    _redirectedReference?: typescript.ResolvedProjectReference | undefined
+    redirectedReference?: typescript.ResolvedProjectReference | undefined
   ): (typescript.ResolvedModule | undefined)[] => {
     const resolvedModules = moduleNames.map(moduleName =>
       resolveModule(
@@ -289,7 +270,8 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
         appendTsTsxSuffixesIfRequired,
         scriptRegex,
         moduleName,
-        containingFile
+        containingFile,
+        redirectedReference
       )
     );
 
@@ -297,6 +279,28 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
 
     return resolvedModules;
   };
+
+  const resolveTypeReferenceDirective = makeResolveTypeReferenceDirective(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveTypeReferenceDirective,
+    instance
+  );
+
+  const resolveTypeReferenceDirectives = (
+    typeDirectiveNames: string[],
+    containingFile: string,
+    redirectedReference?: typescript.ResolvedProjectReference
+  ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
+    typeDirectiveNames.map(
+      directive =>
+        resolveTypeReferenceDirective(
+          directive,
+          containingFile,
+          redirectedReference
+        ).resolvedTypeReferenceDirective
+    );
 
   return {
     resolveTypeReferenceDirectives,
@@ -493,7 +497,7 @@ export function makeWatchHost(
     fileName =>
       files.has(filePathKeyMapper(fileName)) ||
       compiler.sys.fileExists(fileName),
-    /*enabledCaching*/ false
+    instance.loaderOptions.experimentalFileCaching
   );
 
   const watchHost: WatchHost = {
@@ -601,6 +605,60 @@ export function makeWatchHost(
 
 const missingFileModifiedTime = new Date(0);
 
+function identity<T>(x: T) {
+  return x;
+}
+function toLowerCase(x: string) {
+  return x.toLowerCase();
+}
+const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g;
+function toFileNameLowerCase(x: string) {
+  return fileNameLowerCaseRegExp.test(x)
+    ? x.replace(fileNameLowerCaseRegExp, toLowerCase)
+    : x;
+}
+function createGetCanonicalFileName(instance: TSInstance) {
+  return useCaseSensitiveFileNames(instance.compiler, instance.loaderOptions)
+    ? identity
+    : toFileNameLowerCase;
+}
+
+function createModuleResolutionCache(
+  instance: TSInstance,
+  moduleResolutionHost: typescript.ModuleResolutionHost
+): ModuleResolutionCache {
+  const cache = instance.compiler.createModuleResolutionCache(
+    moduleResolutionHost.getCurrentDirectory!(),
+    createGetCanonicalFileName(instance),
+    instance.compilerOptions
+  ) as ModuleResolutionCache;
+  // Add new API optional methods
+  if (!cache.clear) {
+    cache.clear = () => {
+      cache.directoryToModuleNameMap.clear();
+      cache.moduleNameToDirectoryMap.clear();
+    };
+  }
+  if (!cache.update) {
+    cache.update = options => {
+      if (!options.configFile) return;
+      const ref: typescript.ResolvedProjectReference = {
+        sourceFile: options.configFile! as typescript.TsConfigSourceFile,
+        commandLine: { options } as typescript.ParsedCommandLine,
+      };
+      cache.directoryToModuleNameMap.setOwnMap(
+        cache.directoryToModuleNameMap.getOrCreateMapOfCacheRedirects(ref)
+      );
+      cache.moduleNameToDirectoryMap.setOwnMap(
+        cache.moduleNameToDirectoryMap.getOrCreateMapOfCacheRedirects(ref)
+      );
+      cache.directoryToModuleNameMap.setOwnOptions(options);
+      cache.moduleNameToDirectoryMap.setOwnOptions(options);
+    };
+  }
+  return cache;
+}
+
 /**
  * Create the TypeScript Watch host
  */
@@ -618,12 +676,7 @@ export function makeSolutionBuilderHost(
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const formatDiagnosticHost: typescript.FormatDiagnosticsHost = {
     getCurrentDirectory: compiler.sys.getCurrentDirectory,
-    getCanonicalFileName: useCaseSensitiveFileNames(
-      compiler,
-      instance.loaderOptions
-    )
-      ? s => s
-      : s => s.toLowerCase(),
+    getCanonicalFileName: createGetCanonicalFileName(instance),
     getNewLine: () => compiler.sys.newLine,
   };
 
@@ -706,6 +759,28 @@ export function makeSolutionBuilderHost(
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...sysHost,
     ...moduleResolutionHost,
+    createProgram: (
+      rootNames,
+      options,
+      host,
+      oldProgram,
+      configFileParsingDiagnostics,
+      projectReferences
+    ) => {
+      instance.moduleResolutionCache?.update(options || {});
+      instance.typeReferenceResolutionCache?.update(options || {});
+      const result = sysHost.createProgram(
+        rootNames,
+        options,
+        host,
+        oldProgram,
+        configFileParsingDiagnostics,
+        projectReferences
+      );
+      instance.typeReferenceResolutionCache?.update(instance.compilerOptions);
+      instance.moduleResolutionCache?.update(instance.compilerOptions);
+      return result;
+    },
     resolveModuleNames,
     resolveTypeReferenceDirectives,
     diagnostics,
@@ -1092,16 +1167,31 @@ function makeResolveTypeReferenceDirective(
   moduleResolutionHost: typescript.ModuleResolutionHost,
   customResolveTypeReferenceDirective:
     | CustomResolveTypeReferenceDirective
-    | undefined
+    | undefined,
+  instance: TSInstance
 ): ResolveTypeReferenceDirective {
   if (customResolveTypeReferenceDirective === undefined) {
+    // Until the api is published
+    if (
+      (compiler as any).createTypeReferenceDirectiveResolutionCache &&
+      !instance.typeReferenceResolutionCache
+    ) {
+      instance.typeReferenceResolutionCache = (compiler as any).createTypeReferenceDirectiveResolutionCache(
+        moduleResolutionHost.getCurrentDirectory!(),
+        createGetCanonicalFileName(instance),
+        instance.compilerOptions,
+        instance.moduleResolutionCache?.getPackageJsonInfoCache?.()
+      );
+    }
     return (directive, containingFile, redirectedReference) =>
-      compiler.resolveTypeReferenceDirective(
+      // Until the api is published
+      (compiler.resolveTypeReferenceDirective as any)(
         directive,
         containingFile,
         compilerOptions,
         moduleResolutionHost,
-        redirectedReference
+        redirectedReference,
+        instance.typeReferenceResolutionCache
       );
   }
 
@@ -1131,7 +1221,8 @@ function resolveModule(
   appendTsTsxSuffixesIfRequired: (filePath: string) => string,
   scriptRegex: RegExp,
   moduleName: string,
-  containingFile: string
+  containingFile: string,
+  redirectedReference: typescript.ResolvedProjectReference | undefined
 ) {
   let resolutionResult: ResolvedModule;
 
@@ -1149,16 +1240,19 @@ function resolveModule(
     }
   } catch (e) {}
 
-  const tsResolution = resolveModuleName(moduleName, containingFile);
+  const tsResolution = resolveModuleName(
+    moduleName,
+    containingFile,
+    redirectedReference
+  );
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
       tsResolution.resolvedModule.resolvedFileName
     );
     const tsResolutionResult: ResolvedModule = {
+      ...tsResolution.resolvedModule,
       originalFileName: resolvedFileName,
       resolvedFileName,
-      isExternalLibraryImport:
-        tsResolution.resolvedModule.isExternalLibraryImport,
     };
 
     return resolutionResult! === undefined ||
@@ -1173,26 +1267,36 @@ function resolveModule(
 
 type ResolveModuleName = (
   moduleName: string,
-  containingFile: string
+  containingFile: string,
+  redirectedReference: typescript.ResolvedProjectReference | undefined
 ) => typescript.ResolvedModuleWithFailedLookupLocations;
 
 function makeResolveModuleName(
   compiler: typeof typescript,
   compilerOptions: typescript.CompilerOptions,
   moduleResolutionHost: typescript.ModuleResolutionHost,
-  customResolveModuleName: CustomResolveModuleName | undefined
+  customResolveModuleName: CustomResolveModuleName | undefined,
+  instance: TSInstance
 ): ResolveModuleName {
   if (customResolveModuleName === undefined) {
-    return (moduleName: string, containingFile: string) =>
+    if (!instance.moduleResolutionCache) {
+      instance.moduleResolutionCache = createModuleResolutionCache(
+        instance,
+        moduleResolutionHost
+      );
+    }
+    return (moduleName, containingFile, redirectedReference) =>
       compiler.resolveModuleName(
         moduleName,
         containingFile,
         compilerOptions,
-        moduleResolutionHost
+        moduleResolutionHost,
+        instance.moduleResolutionCache,
+        redirectedReference
       );
   }
 
-  return (moduleName: string, containingFile: string) =>
+  return (moduleName, containingFile) =>
     customResolveModuleName(
       moduleName,
       containingFile,
