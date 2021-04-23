@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.1.1
+
+* [update CHANGELOG.md for 8.2.0 release](https://github.com/TypeStrong/ts-loader/pull/1291) - thanks @johnnyreilly
+
 ## v9.1.0
 
 * [Use caches for module resolution and type reference directives when using compiler default functions](https://github.com/TypeStrong/ts-loader/pull/1287) - thanks @sheetalkamat - uses: https://github.com/microsoft/TypeScript/pull/43700
