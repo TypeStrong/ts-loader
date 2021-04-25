@@ -186,7 +186,6 @@ function determineFilesToCheckForErrors(
   return filesToCheckForErrors;
 
   function addFileToCheckForErrors(filePath: FilePathKey, file: TSFile) {
-    //file can sometimes be undefined when using webpack devserver
     if (file && !isReferencedFile(instance, filePath)) {
       filesToCheckForErrors.set(filePath, file);
     }
