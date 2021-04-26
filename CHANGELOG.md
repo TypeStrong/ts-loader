@@ -1,5 +1,21 @@
 # Changelog
 
+## v9.1.1
+
+* [update CHANGELOG.md for 8.2.0 release](https://github.com/TypeStrong/ts-loader/pull/1291) - thanks @johnnyreilly
+
+## v9.1.0
+
+* [Use caches for module resolution and type reference directives when using compiler default functions](https://github.com/TypeStrong/ts-loader/pull/1287) - thanks @sheetalkamat - uses: https://github.com/microsoft/TypeScript/pull/43700
+
+## v9.0.2
+
+* [Remove usage of loader-utils](https://github.com/TypeStrong/ts-loader/pull/1288) - thanks @jonwallsten
+
+## v9.0.1
+
+* [Use correct hook for emitting additional assets during compilation](https://github.com/TypeStrong/ts-loader/pull/1286) - thanks @jonwallsten
+
 ## v9.0.0
 
 Breaking changes:
@@ -8,6 +24,11 @@ Breaking changes:
 
 Changes:
 * [webpack 5 migration](https://github.com/TypeStrong/ts-loader/pull/1251) - thanks @johnnyreilly, @jonwallsten, @sokra, @appzuka, @alexander-akait
+
+## v8.2.0
+
+* [Use caches for module resolution and type reference directives when using compiler default functions](https://github.com/TypeStrong/ts-loader/pull/1287) - thanks @sheetalkamat - uses: https://github.com/microsoft/TypeScript/pull/43700
+* This is a backport from v9.1.0 for webpack 4 compatibility
 
 ## v8.1.0
 * [feat: remove top-level typescript import statements](https://github.com/TypeStrong/ts-loader/pull/1259) - thanks @ulivz

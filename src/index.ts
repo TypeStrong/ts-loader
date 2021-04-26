@@ -1,5 +1,4 @@
 import * as crypto from 'crypto';
-import * as loaderUtils from 'loader-utils';
 import * as path from 'path';
 import type * as typescript from 'typescript';
 
@@ -176,9 +175,7 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
  * or creates them, adds them to the cache and returns
  */
 function getLoaderOptions(loaderContext: WebpackLoaderContext) {
-  const loaderOptions =
-    loaderUtils.getOptions<LoaderOptions>(loaderContext) ||
-    ({} as LoaderOptions);
+  const loaderOptions = loaderContext.getOptions(undefined);
 
   // If no instance name is given in the options, use the hash of the loader options
   // In this way, if different options are given the instances will be different
@@ -648,7 +645,7 @@ function makeSourceMap(
   return {
     output: outputText.replace(/^\/\/# sourceMappingURL=[^\r\n]*/gm, ''),
     sourceMap: Object.assign(JSON.parse(sourceMapText), {
-      sources: [loaderUtils.getRemainingRequest(loaderContext)],
+      sources: [loaderContext.remainingRequest],
       file: filePath,
       sourcesContent: [contents],
     }),

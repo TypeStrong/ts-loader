@@ -314,10 +314,16 @@ function addAssetHooks(loader: WebpackLoaderContext, instance: TSInstance) {
   );
 
   const makeAssetsCallback = (compilation: webpack.Compilation) => {
-    compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
-      cachedMakeAfterCompile(compilation, () => {
-        return null;
-      })
+    compilation.hooks.processAssets.tap(
+      {
+        name: 'ts-loader',
+        stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+      },
+      () => {
+        cachedMakeAfterCompile(compilation, () => {
+          return null;
+        });
+      }
     );
   };
 
@@ -327,10 +333,6 @@ function addAssetHooks(loader: WebpackLoaderContext, instance: TSInstance) {
 
   // For future calls in watch mode we need to watch for a new compilation and add the hook
   loader._compiler.hooks.compilation.tap('ts-loader', makeAssetsCallback);
-
-  // It may be better to add assets at the processAssets stage (https://webpack.js.org/api/compilation-hooks/#processassets)
-  // This requires Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL, which does not exist in webpack4
-  // Consider changing this when ts-loader is built using webpack5
 }
 
 export function initializeInstance(
