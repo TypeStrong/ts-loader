@@ -7,6 +7,6 @@
     "@types/jasmine": "^2.5.35"
   },
   "dependencies": {
-    "date-fns": "2.0.0-alpha.1"    
+    "date-fns": "2.0.0-alpha.1"
   }
 }

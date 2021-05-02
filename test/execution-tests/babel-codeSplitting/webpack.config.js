@@ -3,14 +3,7 @@
 var path = require('path');
 
 var babelOptions = {
-  "presets": [
-    [
-      "es2015",
-      {
-        "modules": false
-      }
-    ]
-  ]
+    "presets": ['@babel/preset-env']
 };
 
 module.exports = {

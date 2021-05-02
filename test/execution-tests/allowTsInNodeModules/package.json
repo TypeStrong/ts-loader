@@ -4,8 +4,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "whitelistedModule": "file:../../testPackages/whitelistedModule",
-    "whitelistedFiles": "file:../../testPackages/whitelistedFiles"
+    "whitelistedFiles": "file:../../testPackages/whitelistedFiles",
+    "whitelistedModule": "file:../../testPackages/whitelistedModule"
   },
   "devDependencies": {
     "@types/jasmine": "^2.5.35",

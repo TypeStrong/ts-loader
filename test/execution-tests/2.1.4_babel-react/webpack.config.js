@@ -5,16 +5,7 @@ var path = require('path');
 var webpack = require('webpack');
 
 var babelOptions = {
-  "presets": [
-    "react",
-    [
-      "es2015",
-      {
-        "modules": false
-      }
-    ],
-    "es2016"
-  ]
+  "presets": ["@babel/preset-react", "@babel/preset-env"]
 };
 
 module.exports = {

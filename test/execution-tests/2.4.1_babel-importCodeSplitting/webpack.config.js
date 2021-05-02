@@ -5,15 +5,8 @@ var path = require('path');
 var webpack = require('webpack');
 
 var babelOptions = {
-  "plugins": ["syntax-dynamic-import"],
-  "presets": [
-    [
-      "es2015",
-      {
-        "modules": false
-      }
-    ]
-  ]
+  "plugins": ["@babel/plugin-syntax-dynamic-import"],
+  "presets": ['@babel/preset-env']
 };
 
 module.exports = {
