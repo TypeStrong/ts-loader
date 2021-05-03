@@ -1,22 +1,28 @@
-                   Asset       Size  Chunks             Chunk Names
-               bundle.js   5.15 KiB    main  [emitted]  main
-  lib/fileWithError.d.ts   39 bytes          [emitted]  
-    lib/fileWithError.js  127 bytes          [emitted]  
-          lib/index.d.ts   84 bytes          [emitted]  
-            lib/index.js  119 bytes          [emitted]  
-lib/tsconfig.tsbuildinfo   2.59 KiB          [emitted]  
-Entrypoint main = bundle.js
-[./app.ts] 218 bytes {main} [built] [1 error]
-[./lib/index.ts] 119 bytes {main} [built]
-[./utils/index.ts] 487 bytes {main} [built] [failed] [1 error]
+assets by status 369 bytes [compared for emit]
+  assets by path lib/*.js 246 bytes
+    asset lib/fileWithError.js 127 bytes [compared for emit]
+    asset lib/index.js 119 bytes [compared for emit]
+  assets by path lib/*.ts 123 bytes
+    asset lib/index.d.ts 84 bytes [compared for emit]
+    asset lib/fileWithError.d.ts 39 bytes [compared for emit]
+assets by status 5.98 KiB [emitted]
+  asset bundle.js 3.39 KiB [emitted] (name: main)
+  asset lib/tsconfig.tsbuildinfo 2.59 KiB [emitted]
+./app.ts 218 bytes [built] [code generated] [1 error]
+./lib/index.ts 119 bytes [built] [code generated]
+./utils/index.ts 39 bytes [built] [1 error]
 
-ERROR in [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError/fileWithError.ts(2,5)[39m[22m
+ERROR in ./app.ts 2:4-17
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError/fileWithError.ts(2,5)[39m[22m
 [1m[31m      TS2322: Type 'boolean' is not assignable to type 'string'.[39m[22m
+ts-loader-default_28ca491bfec2827f
 
 ERROR in ./utils/index.ts
-Module build failed (from index.js):
+Module build failed (from ../../index.js):
 Error: TypeScript emitted no output for utils/index.ts. The most common cause for this is having errors when building referenced projects.
     at makeSourceMapAndFinish (dist/index.js:53:18)
     at successLoader (dist/index.js:40:5)
     at Object.loader (dist/index.js:23:5)
  @ ./app.ts 4:14-32
+
+webpack compiled with 2 errors

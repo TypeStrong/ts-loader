@@ -1,11 +1,11 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  4.83 KiB    main  [emitted]  main
-Entrypoint main = bundle.js
-[./app.ts] 170 bytes {main} [built] [1 error]
-[./lib/externalLib.js] 55 bytes {main}
-[./submodule/submodule.ts] 149 bytes {main}
+asset bundle.js 3.11 KiB [emitted] (name: main)
+cached modules 204 bytes [cached] 2 modules
+./app.ts 170 bytes [built] [code generated] [1 error]
 
 ERROR in app.ts
 ./app.ts 3:12-24
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,13)[39m[22m
 [1m[31m      TS2551: Property 'doSomething2' does not exist on type 'typeof externalLib'. Did you mean 'doSomething'?[39m[22m
+ts-loader-default_b02295d909a3e7cf
+
+webpack compiled with 1 error

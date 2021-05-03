@@ -1,7 +1,6 @@
-               Asset      Size  Chunks             Chunk Names
-            app.d.ts  11 bytes          [emitted]  
-           bundle.js  4.38 KiB    main  [emitted]  main
-tsconfig.tsbuildinfo  1.56 KiB          [emitted]  
-Entrypoint main = bundle.js
-[./app.ts] 185 bytes {main} [built]
-[./lib/index.ts] 145 bytes {main}
+asset bundle.js 2.68 KiB [emitted] (name: main)
+asset tsconfig.tsbuildinfo 1.56 KiB [emitted]
+asset app.d.ts 11 bytes [emitted]
+cached modules 145 bytes [cached] 1 module
+./app.ts 185 bytes [built] [code generated]
+webpack compiled successfully

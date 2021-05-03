@@ -2,6 +2,7 @@ import { Chalk } from 'chalk';
 import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as path from 'path';
+import * as webpack from 'webpack';
 import type * as typescript from 'typescript';
 
 import constants = require('./constants');
@@ -14,9 +15,6 @@ import {
   ReverseDependencyGraph,
   Severity,
   TSInstance,
-  WebpackError,
-  WebpackModule,
-  WebpackSourcePosition,
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
 /**
@@ -47,9 +45,9 @@ export function formatErrors(
   loaderOptions: LoaderOptions,
   colors: Chalk,
   compiler: typeof typescript,
-  merge: { file?: string; module?: WebpackModule },
+  merge: { file?: string; module?: webpack.Module },
   context: string
-): WebpackError[] {
+): webpack.WebpackError[] {
   return diagnostics === undefined
     ? []
     : diagnostics
@@ -75,7 +73,7 @@ export function formatErrors(
           }
           return true;
         })
-        .map<WebpackError>(diagnostic => {
+        .map<webpack.WebpackError>(diagnostic => {
           const file = diagnostic.file;
           const { start, end } =
             file === undefined || diagnostic.start === undefined
@@ -109,7 +107,7 @@ export function formatErrors(
             end
           );
 
-          return Object.assign(error, merge) as WebpackError;
+          return Object.assign(error, merge) as webpack.WebpackError;
         });
 }
 
@@ -136,7 +134,7 @@ function getFileLocations(
 
 export function fsReadFile(
   fileName: string,
-  encoding: string | undefined = 'utf8'
+  encoding: BufferEncoding | undefined = 'utf8'
 ) {
   fileName = path.normalize(fileName);
   try {
@@ -149,20 +147,35 @@ export function fsReadFile(
 export function makeError(
   loaderOptions: LoaderOptions,
   message: string,
-  file: string | undefined,
+  file: string,
   location?: FileLocation,
   endLocation?: FileLocation
-): WebpackError {
-  return {
-    message,
-    file,
-    loc:
-      location === undefined
-        ? undefined
-        : makeWebpackLocation(location, endLocation),
-    location,
-    loaderSource: tsLoaderSource(loaderOptions),
-  };
+): webpack.WebpackError {
+  const error = new webpack.WebpackError(message);
+  error.file = file;
+  error.loc =
+    location === undefined
+      ? { name: file }
+      : makeWebpackLocation(location, endLocation);
+  error.details = tsLoaderSource(loaderOptions);
+
+  return error;
+
+  // return {
+  //   message,
+  //   file,
+  //   loc:
+  //     location === undefined
+  //       ? { name: file }
+  //       : makeWebpackLocation(location, endLocation),
+  //   details: tsLoaderSource(loaderOptions),
+  // };
+}
+
+/** Not exported from webpack so declared locally */
+interface WebpackSourcePosition {
+  line: number;
+  column?: number;
 }
 
 function makeWebpackLocation(

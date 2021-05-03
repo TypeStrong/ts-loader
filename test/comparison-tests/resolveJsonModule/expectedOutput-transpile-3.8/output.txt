@@ -1,9 +1,0 @@
-    Asset      Size  Chunks             Chunk Names
-bundle.js  1.03 KiB       0  [emitted]  main
-Entrypoint main = bundle.js
-[0] ./app.ts 135 bytes {0} [built]
-[1] ./file.json 18 bytes {0} [built]
-
-WARNING in configuration
-The 'mode' option has not been set, webpack will fallback to 'production' for this value. Set 'mode' option to 'development' or 'production' to enable defaults for each environment.
-You can also set it to 'none' to disable any default behavior. Learn more: https://webpack.js.org/concepts/mode/

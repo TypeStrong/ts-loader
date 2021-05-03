@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "lib": ["es2018"],
+    "target": "es2018",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
