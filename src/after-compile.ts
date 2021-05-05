@@ -170,7 +170,9 @@ function determineFilesToCheckForErrors(
       ).keys()) {
         const fileToCheckForErrors =
           files.get(fileName) || otherFiles.get(fileName);
-        addFileToCheckForErrors(fileName, fileToCheckForErrors!);
+        if (fileToCheckForErrors) {//file may have been removed
+          addFileToCheckForErrors(fileName, fileToCheckForErrors);
+        }
       }
     }
   }
@@ -184,7 +186,7 @@ function determineFilesToCheckForErrors(
   return filesToCheckForErrors;
 
   function addFileToCheckForErrors(filePath: FilePathKey, file: TSFile) {
-    if (!isReferencedFile(instance, filePath)) {
+    if (file && !isReferencedFile(instance, filePath)) {
       filesToCheckForErrors.set(filePath, file);
     }
   }

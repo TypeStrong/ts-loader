@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.1.2
+
+* [Fix removed files handling in watch mode](https://github.com/TypeStrong/ts-loader/pull/1293) - thanks @gasnier
+
 ## v9.1.1
 
 * [update CHANGELOG.md for 8.2.0 release](https://github.com/TypeStrong/ts-loader/pull/1291) - thanks @johnnyreilly
