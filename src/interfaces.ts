@@ -39,7 +39,7 @@ export interface CacheableHost extends HostMayBeCacheable {
 
 export interface ModuleResolutionHostMayBeCacheable
   extends typescript.ModuleResolutionHost,
-    HostMayBeCacheable {
+  HostMayBeCacheable {
   readFile(filePath: string, encoding?: string): string | undefined;
   trace: NonNullable<typescript.ModuleResolutionHost['trace']>;
   directoryExists: NonNullable<
@@ -65,11 +65,11 @@ export interface ModuleResolutionHostMayBeCacheable
 
 export interface ServiceHostWhichMayBeCacheable
   extends typescript.LanguageServiceHost,
-    HostMayBeCacheable {}
+  HostMayBeCacheable { }
 
 export interface WatchHost
   extends typescript.WatchCompilerHostOfFilesAndCompilerOptions<typescript.EmitAndSemanticDiagnosticsBuilderProgram>,
-    HostMayBeCacheable {
+  HostMayBeCacheable {
   invokeFileWatcher: WatchFactory['invokeFileWatcher'];
   updateRootFileNames(): void;
   outputFiles: Map<FilePathKey, typescript.OutputFile[]>;
@@ -104,7 +104,7 @@ export type FilePathKey = string & { __filePathKeyBrand: any };
 
 export interface SolutionBuilderWithWatchHost
   extends typescript.SolutionBuilderWithWatchHost<typescript.EmitAndSemanticDiagnosticsBuilderProgram>,
-    WatchFactory {
+  WatchFactory {
   diagnostics: SolutionDiagnostics;
   writtenFiles: typescript.OutputFile[];
   configFileInfo: Map<FilePathKey, ConfigFileInfo>;
@@ -209,7 +209,6 @@ export interface TSInstance {
   version: number;
   dependencyGraph: DependencyGraph;
   filesWithErrors?: TSFiles;
-  transformers: typescript.CustomTransformers;
   colors: Chalk;
 
   otherFiles: TSFiles;
@@ -282,10 +281,10 @@ export interface LoaderOptions {
   appendTsxSuffixTo: (RegExp | string)[];
   happyPackMode: boolean;
   getCustomTransformers:
-    | string
-    | ((
-        program: typescript.Program
-      ) => typescript.CustomTransformers | undefined);
+  | string
+  | ((
+    program: typescript.Program
+  ) => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
   experimentalFileCaching: boolean;

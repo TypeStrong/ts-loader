@@ -52,8 +52,8 @@ function makeResolversAndModuleResolutionHost(
     compilerOptions.newLine === constants.CarriageReturnLineFeedCode
       ? constants.CarriageReturnLineFeed
       : compilerOptions.newLine === constants.LineFeedCode
-      ? constants.LineFeed
-      : constants.EOL;
+        ? constants.LineFeed
+        : constants.EOL;
 
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
@@ -229,9 +229,7 @@ export function makeServicesHost(
 
     // used for (/// <reference types="...">) see https://github.com/Realytics/fork-ts-checker-webpack-plugin/pull/250#issuecomment-485061329
     resolveTypeReferenceDirectives,
-    resolveModuleNames,
-
-    getCustomTransformers: () => instance.transformers,
+    resolveModuleNames
   };
 
   return servicesHost;
@@ -980,12 +978,12 @@ export function makeSolutionBuilderHost(
     configInfo.tsbuildInfoFile = instance.compiler
       .getTsBuildInfoEmitOutputFilePath
       ? instance.compiler.getTsBuildInfoEmitOutputFilePath(
-          configInfo.config.options
-        )
+        configInfo.config.options
+      )
       : // before api
-        (instance.compiler as any).getOutputPathForBuildInfo(
-          configInfo.config.options
-        );
+      (instance.compiler as any).getOutputPathForBuildInfo(
+        configInfo.config.options
+      );
   }
 
   function getOutputFileAndKeyFromReferencedProject(
@@ -994,9 +992,9 @@ export function makeSolutionBuilderHost(
     const outputFile = ensureOutputFile(outputFileName);
     return outputFile !== undefined
       ? {
-          key: getOutputFileKeyFromReferencedProject(outputFileName)!,
-          outputFile,
-        }
+        key: getOutputFileKeyFromReferencedProject(outputFileName)!,
+        outputFile,
+      }
       : undefined;
   }
 
@@ -1076,10 +1074,10 @@ export function makeSolutionBuilderHost(
     const text = compiler.sys.readFile(outputFileName);
     return text !== undefined
       ? {
-          name: outputFileName,
-          text,
-          writeByteOrderMark: false,
-        }
+        name: outputFileName,
+        text,
+        writeByteOrderMark: false,
+      }
       : undefined;
   }
 
@@ -1125,8 +1123,8 @@ export function makeSolutionBuilderHost(
       existing == missingFileModifiedTime
         ? compiler.FileWatcherEventKind.Created
         : newTime === missingFileModifiedTime
-        ? compiler.FileWatcherEventKind.Deleted
-        : compiler.FileWatcherEventKind.Changed;
+          ? compiler.FileWatcherEventKind.Deleted
+          : compiler.FileWatcherEventKind.Changed;
     solutionBuilderHost.invokeFileWatcher(fileName, eventKind);
   }
 }
@@ -1239,7 +1237,7 @@ function resolveModule(
         resolutionResult = { resolvedFileName, originalFileName };
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   const tsResolution = resolveModuleName(
     moduleName,
@@ -1258,7 +1256,7 @@ function resolveModule(
 
     return resolutionResult! === undefined ||
       resolutionResult.resolvedFileName ===
-        tsResolutionResult.resolvedFileName ||
+      tsResolutionResult.resolvedFileName ||
       isJsImplementationOfTypings(resolutionResult!, tsResolutionResult)
       ? tsResolutionResult
       : resolutionResult!;

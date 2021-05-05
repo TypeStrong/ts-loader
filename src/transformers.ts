@@ -22,8 +22,7 @@ export function getCustomTransformers(
 
     if (typeof customerTransformers !== 'function') {
       throw new Error(
-        `Custom transformers in "${
-          loaderOptions.getCustomTransformers
+        `Custom transformers in "${loaderOptions.getCustomTransformers
         }" should export a function, got ${typeof getCustomTransformers}`
       );
     }
@@ -35,44 +34,44 @@ export function getCustomTransformers(
 /**
  * @returns a ts.CustomTransformers merged from tr1 and tr2 (does not check for duplicates)
  */
-function mergeTransformers(tr1: ts.CustomTransformers | undefined, tr2: ts.CustomTransformers | undefined ):ts.CustomTransformers | undefined{
-  if(tr1){
-    const result:ts.CustomTransformers = {
-      after : [],
-      before :[],
-      afterDeclarations:[]
+function mergeTransformers(tr1: ts.CustomTransformers | undefined, tr2: ts.CustomTransformers | undefined): ts.CustomTransformers | undefined {
+  if (tr1) {
+    const result: ts.CustomTransformers = {
+      after: [],
+      before: [],
+      afterDeclarations: []
     };
     //add tr1 values in result
-    if(tr1.after){
+    if (tr1.after) {
       result.after!.push(...tr1.after);
     }
-    if(tr1.before){
+    if (tr1.before) {
       result.before!.push(...tr1.before);
     }
-    if(tr1.afterDeclarations){
+    if (tr1.afterDeclarations) {
       result.afterDeclarations!.push(...tr1.afterDeclarations);
     }
 
     //add tr2 values
-    if(tr2?.after){
+    if (tr2?.after) {
       result.after!.push(...tr2.after);
     }
-    if(tr2?.before){
+    if (tr2?.before) {
       result.before!.push(...tr2.before);
     }
-    if(tr2?.afterDeclarations){
+    if (tr2?.afterDeclarations) {
       result.afterDeclarations!.push(...tr2.afterDeclarations);
     }
 
     return result;
-  }else{
+  } else {
     return tr2;
   }
 }
 
 /**
- * For now we need to patch typescript to force transformers passed to the program.emit function.
- * We will be able to remove this code once typescript will add customTransformers to SolutionBuilder
+ * Patches typescript program to pass custom transformers to the program.emit function.
+ * In 2021, this is the only way since it is not possible to pass transformers to SolutionBuilder
  * SolutionBuilder is used when watch is enabled
  */
 let patched = false;

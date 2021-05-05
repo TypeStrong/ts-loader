@@ -108,8 +108,8 @@ function createFilePathKeyMapper(
       const filePathKey = pathResolve(filePath);
       cachedPath = fileNameLowerCaseRegExp.test(filePathKey)
         ? (filePathKey.replace(fileNameLowerCaseRegExp, ch =>
-            ch.toLowerCase()
-          ) as FilePathKey)
+          ch.toLowerCase()
+        ) as FilePathKey)
         : filePathKey;
       filePathMapperCache.set(filePath, cachedPath);
     }
@@ -197,15 +197,15 @@ function successfulTypeScriptInstance(
 
   const appendTsTsxSuffixesIfRequired =
     loaderOptions.appendTsSuffixTo.length > 0 ||
-    loaderOptions.appendTsxSuffixTo.length > 0
+      loaderOptions.appendTsxSuffixTo.length > 0
       ? (filePath: string) =>
-          appendSuffixesIfMatch(
-            {
-              '.ts': loaderOptions.appendTsSuffixTo,
-              '.tsx': loaderOptions.appendTsxSuffixTo,
-            },
-            filePath
-          )
+        appendSuffixesIfMatch(
+          {
+            '.ts': loaderOptions.appendTsSuffixTo,
+            '.tsx': loaderOptions.appendTsxSuffixTo,
+          },
+          filePath
+        )
       : (filePath: string) => filePath;
 
   if (loaderOptions.transpileOnly) {
@@ -222,7 +222,6 @@ function successfulTypeScriptInstance(
       version: 0,
       program: undefined, // temporary, to be set later
       dependencyGraph: new Map(),
-      transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
       colors,
       initialSetupPending: true,
       reportTranspileErrors: true,
@@ -245,8 +244,8 @@ function successfulTypeScriptInstance(
   try {
     const filesToLoad = loaderOptions.onlyCompileBundledFiles
       ? configParseResult.fileNames.filter(fileName =>
-          dtsDtsxOrDtsDtsxMapRegex.test(fileName)
-        )
+        dtsDtsxOrDtsDtsxMapRegex.test(fileName)
+      )
       : configParseResult.fileNames;
     filesToLoad.forEach(filePath => {
       normalizedFilePath = path.normalize(filePath);
@@ -279,7 +278,6 @@ function successfulTypeScriptInstance(
     otherFiles,
     languageService: null,
     version: 0,
-    transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
     dependencyGraph: new Map(),
     colors,
     initialSetupPending: true,
@@ -349,10 +347,10 @@ export function initializeInstance(
     instance.program =
       instance.configParseResult.projectReferences !== undefined
         ? instance.compiler.createProgram({
-            rootNames: instance.configParseResult.fileNames,
-            options: instance.configParseResult.options,
-            projectReferences: instance.configParseResult.projectReferences,
-          })
+          rootNames: instance.configParseResult.fileNames,
+          options: instance.configParseResult.options,
+          projectReferences: instance.configParseResult.projectReferences,
+        })
         : instance.compiler.createProgram([], instance.compilerOptions);
 
     // Setup watch run for solution building
@@ -550,13 +548,13 @@ function getOutputPathWithoutChangingExt(
 ) {
   return outputDir
     ? (instance.compiler as any).resolvePath(
-        outputDir,
-        (instance.compiler as any).getRelativePathFromDirectory(
-          rootDirOfOptions(instance, configFile),
-          inputFileName,
-          ignoreCase
-        )
+      outputDir,
+      (instance.compiler as any).getRelativePathFromDirectory(
+        rootDirOfOptions(instance, configFile),
+        inputFileName,
+        ignoreCase
       )
+    )
     : inputFileName;
 }
 
@@ -582,8 +580,8 @@ function getOutputJSFileName(
       ? '.json'
       : fileExtensionIs(inputFileName, '.tsx') &&
         configFile.options.jsx === instance.compiler.JsxEmit.Preserve
-      ? '.jsx'
-      : '.js'
+        ? '.jsx'
+        : '.js'
   );
   return !isJsonFile ||
     (instance.compiler as any).comparePaths(
@@ -713,8 +711,7 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
       const result = builderProgram.emitNextAffectedFile(
         writeFile,
         /*cancellationToken*/ undefined,
-        /*emitOnlyDtsFiles*/ false,
-        instance.transformers
+        /*emitOnlyDtsFiles*/ false
       );
       if (!result) {
         break;
@@ -762,8 +759,7 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       sourceFile,
       writeFile,
       /*cancellationToken*/ undefined,
-      /*emitOnlyDtsFiles*/ false,
-      instance.transformers
+      /*emitOnlyDtsFiles*/ false
     );
     return outputFiles;
   } else {
