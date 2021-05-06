@@ -79,7 +79,7 @@ export function installTransformers(loaderOptions: LoaderOptions) {
   if (loaderOptions.getCustomTransformers === undefined) {
     return; //no need to patch if there is no transformer
   }
-  if (patched) {
+  if (patched === true) {
     return; //do not patch twice
   }
   patched = true;
