@@ -76,7 +76,7 @@ function mergeTransformers(tr1: ts.CustomTransformers | undefined, tr2: ts.Custo
  */
 let patched = false;
 export function installTransformers(loaderOptions: LoaderOptions) {
-  if (!loaderOptions.getCustomTransformers) {
+  if (loaderOptions.getCustomTransformers === undefined) {
     return; //no need to patch if there is no transformer
   }
   if (patched) {
