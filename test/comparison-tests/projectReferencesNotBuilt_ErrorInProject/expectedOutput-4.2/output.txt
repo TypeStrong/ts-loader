@@ -10,6 +10,6 @@ ERROR in app.ts
 ./app.ts 3:45-49
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,46)[39m[22m
 [1m[31m      TS2339: Property 'four' does not exist on type '{ one: number; two: number; three: number; }'.[39m[22m
-ts-loader-default_d959ab86f3fcf84f
+ts-loader-default_b7d520153c6e6cf9
 
 webpack compiled with 1 error
