@@ -10,6 +10,6 @@ ERROR in app/src/index.ts
 ./src/index.ts 1:9-25
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp/src/index.ts(1,10)[39m[22m
 [1m[31m      TS2724: '"lib"' has no exported member named 'getMeaningOfLife'. Did you mean 'getMeaningOfLife3'?[39m[22m
-ts-loader-default_d959ab86f3fcf84f
+ts-loader-default_b7d520153c6e6cf9
 
 webpack compiled with 1 error
