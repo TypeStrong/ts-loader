@@ -16,7 +16,7 @@ ERROR in lib/index.ts
 ./lib/index.ts 4:11-12
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/index.ts(4,12)[39m[22m
 [1m[31m      TS1136: Property assignment expected.[39m[22m
-ts-loader-default_ad9bee6dd825c8a5
+ts-loader-default_16c1704dade3bd5f
  @ ./app.ts 3:12-28
 
 webpack compiled with 2 errors

@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.2.0
+
+* [Fixed impossibility to have several instances of ts-loader with different compiler options](https://github.com/TypeStrong/ts-loader/issues/1316) - thanks @timocov
+
 ## v9.1.2
 
 * [Fix removed files handling in watch mode](https://github.com/TypeStrong/ts-loader/pull/1293) - thanks @gasnier
