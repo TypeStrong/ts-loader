@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.2.1
+
+* [Make v9 latest in npm again](https://github.com/TypeStrong/ts-loader/issues/1320) - thanks @johnnyreilly
+
 ## v9.2.0
 
 * [Fixed impossibility to have several instances of ts-loader with different compiler options](https://github.com/TypeStrong/ts-loader/issues/1316) - thanks @timocov
@@ -32,6 +36,11 @@ Breaking changes:
 
 Changes:
 * [webpack 5 migration](https://github.com/TypeStrong/ts-loader/pull/1251) - thanks @johnnyreilly, @jonwallsten, @sokra, @appzuka, @alexander-akait
+
+## v8.3.0
+
+* [Fixed impossibility to have several instances of ts-loader with different compiler options](https://github.com/TypeStrong/ts-loader/issues/1316) - thanks @timocov
+* This is a backport from v9.2.0 for webpack 4 compatibility
 
 ## v8.2.0
 
