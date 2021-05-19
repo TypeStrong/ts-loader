@@ -161,8 +161,10 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
   const hash = crypto.createHash('sha256');
   Object.keys(loaderOptions).forEach(key => {
     const value = loaderOptions[key];
-    if (value) {
-      hash.update(key + value.toString());
+    if (value !== undefined) {
+      const valueString =
+        typeof value === 'function' ? value.toString() : JSON.stringify(value);
+      hash.update(key + valueString);
     }
   });
   return hash.digest('hex').substring(0, 16);
