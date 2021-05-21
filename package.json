@@ -99,6 +99,6 @@
   },
   "peerDependencies": {
     "typescript": "*",
-    "webpack": "*"
+    "webpack": "^5.0.0"
   }
 }
