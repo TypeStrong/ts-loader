@@ -10,6 +10,7 @@ import {
   CustomResolveModuleName,
   CustomResolveTypeReferenceDirective,
   FilePathKey,
+  LoaderOptions,
   ModuleResolutionCache,
   ModuleResolutionHostMayBeCacheable,
   ResolvedModule,
@@ -20,7 +21,6 @@ import {
   WatchCallbacks,
   WatchFactory,
   WatchHost,
-  WebpackLoaderContext,
 } from './interfaces';
 import { makeResolver, ResolveSync } from './resolver';
 import {
@@ -33,7 +33,7 @@ import {
 
 function makeResolversAndModuleResolutionHost(
   scriptRegex: RegExp,
-  loader: WebpackLoaderContext,
+  loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance,
   fileExists: (fileName: string) => boolean,
   enableFileCaching: boolean
@@ -59,7 +59,7 @@ function makeResolversAndModuleResolutionHost(
   const getCurrentDirectory = () => loader.context;
 
   // make a (sync) resolver that follows webpack's rules
-  const resolveSync = makeResolver(loader._compiler.options);
+  const resolveSync = makeResolver(loader._compiler!.options);
 
   const moduleResolutionHost: ModuleResolutionHostMayBeCacheable = {
     trace: logData => instance.log.log(logData),
@@ -137,7 +137,7 @@ function makeResolversAndModuleResolutionHost(
  */
 export function makeServicesHost(
   scriptRegex: RegExp,
-  loader: WebpackLoaderContext,
+  loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ): ServiceHostWhichMayBeCacheable {
@@ -469,7 +469,7 @@ export function updateFileWithText(
  */
 export function makeWatchHost(
   scriptRegex: RegExp,
-  loader: WebpackLoaderContext,
+  loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
@@ -663,7 +663,7 @@ function createModuleResolutionCache(
  */
 export function makeSolutionBuilderHost(
   scriptRegex: RegExp,
-  loader: WebpackLoaderContext,
+  loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance
 ): SolutionBuilderWithWatchHost {
   const {

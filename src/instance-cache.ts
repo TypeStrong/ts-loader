@@ -27,7 +27,7 @@ export function getTSInstanceFromCache(
 }
 
 export function setTSInstanceInCache(
-  key: webpack.Compiler,
+  key: webpack.Compiler | undefined,
   name: string,
   instance: TSInstance
 ) {

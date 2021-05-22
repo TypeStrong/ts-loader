@@ -4,7 +4,7 @@ import type * as typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { getCompilerOptions } from './compilerSetup';
-import { LoaderOptions, WebpackLoaderContext } from './interfaces';
+import { LoaderOptions } from './interfaces';
 import * as logger from './logger';
 import { formatErrors, useCaseSensitiveFileNames } from './utils';
 
@@ -16,7 +16,7 @@ interface ConfigFile {
 export function getConfigFile(
   compiler: typeof typescript,
   colors: Chalk,
-  loader: WebpackLoaderContext,
+  loader: webpack.LoaderContext<LoaderOptions>,
   loaderOptions: LoaderOptions,
   compilerCompatible: boolean,
   log: logger.Logger,

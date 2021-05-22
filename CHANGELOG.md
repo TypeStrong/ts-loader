@@ -2,6 +2,7 @@
 
 ## v9.2.2
 
+* [Start consuming webpack loader types](https://github.com/TypeStrong/ts-loader/issues/1325) - thanks @johnnyreilly
 * [Add webpack minimum version in peerDependencies](https://github.com/TypeStrong/ts-loader/issues/1324) - thanks @afdev82
 
 ## v9.2.1
