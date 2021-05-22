@@ -18,7 +18,6 @@ import {
   LoaderOptionsCache,
   LogLevel,
   TSInstance,
-  WebpackLoaderCallback,
 } from './interfaces';
 import {
   appendSuffixesIfMatch,
@@ -34,7 +33,7 @@ const loaderOptionsCache: LoaderOptionsCache = {};
  */
 function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
   this.cacheable && this.cacheable();
-  const callback = this.async() as WebpackLoaderCallback;
+  const callback = this.async();
   const options = getLoaderOptions(this);
   const instanceOrError = getTypeScriptInstance(options, this);
 
@@ -50,7 +49,7 @@ function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
 function successLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
-  callback: WebpackLoaderCallback,
+  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
   instance: TSInstance
 ) {
   initializeInstance(loaderContext, instance);
@@ -98,7 +97,7 @@ function makeSourceMapAndFinish(
   contents: string,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
-  callback: WebpackLoaderCallback,
+  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
   instance: TSInstance
 ) {
   if (outputText === null || outputText === undefined) {

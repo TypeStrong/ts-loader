@@ -319,9 +319,3 @@ export interface ResolvedModule {
 }
 
 export type Severity = 'error' | 'warning';
-
-export type WebpackLoaderCallback = (
-  err: Error | undefined | null,
-  content?: string | Buffer,
-  sourceMap?: string | any
-) => void;
