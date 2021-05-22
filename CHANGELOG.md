@@ -1,5 +1,7 @@
 # Changelog
 
+* [start consuming webpack loader types](https://github.com/TypeStrong/ts-loader/issues/1325) - thanks @johnnyreilly
+
 ## v9.2.1
 
 * [Make v9 latest in npm again](https://github.com/TypeStrong/ts-loader/issues/1320) - thanks @johnnyreilly
