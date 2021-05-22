@@ -1,6 +1,6 @@
 asset bundle.js 12.7 KiB [emitted] (name: main)
 asset d_ts.bundle.js 925 bytes [emitted]
-runtime modules 5.93 KiB 7 modules
+runtime modules 5.95 KiB 7 modules
 cacheable modules 1.39 KiB
   ./app.ts 1020 bytes [built] [code generated]
   ./a.ts 100 bytes [built] [code generated]
