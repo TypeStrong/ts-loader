@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
 import type * as typescript from 'typescript';
+import type * as webpack from 'webpack';
 
 import * as constants from './constants';
 import {
@@ -18,7 +19,6 @@ import {
   LogLevel,
   TSInstance,
   WebpackLoaderCallback,
-  WebpackLoaderContext,
 } from './interfaces';
 import {
   appendSuffixesIfMatch,
@@ -32,7 +32,7 @@ const loaderOptionsCache: LoaderOptionsCache = {};
 /**
  * The entry point for ts-loader
  */
-function loader(this: WebpackLoaderContext, contents: string) {
+function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
   this.cacheable && this.cacheable();
   const callback = this.async() as WebpackLoaderCallback;
   const options = getLoaderOptions(this);
@@ -48,7 +48,7 @@ function loader(this: WebpackLoaderContext, contents: string) {
 }
 
 function successLoader(
-  loaderContext: WebpackLoaderContext,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   callback: WebpackLoaderCallback,
   instance: TSInstance
@@ -96,7 +96,7 @@ function makeSourceMapAndFinish(
   outputText: string | undefined,
   filePath: string,
   contents: string,
-  loaderContext: WebpackLoaderContext,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
   callback: WebpackLoaderCallback,
   instance: TSInstance
@@ -135,19 +135,19 @@ function makeSourceMapAndFinish(
 }
 
 function setModuleMeta(
-  loaderContext: WebpackLoaderContext,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance,
   fileVersion: number
 ) {
   // _module.meta is not available inside happypack
   if (
     !instance.loaderOptions.happyPackMode &&
-    loaderContext._module.buildMeta !== undefined
+    loaderContext._module!.buildMeta !== undefined
   ) {
     // Make sure webpack is aware that even though the emitted JavaScript may be the same as
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
-    loaderContext._module.buildMeta.tsLoaderFileVersion = fileVersion;
+    loaderContext._module!.buildMeta.tsLoaderFileVersion = fileVersion;
   }
 }
 
@@ -174,8 +174,8 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
  * either retrieves loader options from the cache
  * or creates them, adds them to the cache and returns
  */
-function getLoaderOptions(loaderContext: WebpackLoaderContext) {
-  const loaderOptions = loaderContext.getOptions(undefined);
+function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
+  const loaderOptions = loaderContext.getOptions();
 
   // If no instance name is given in the options, use the hash of the loader options
   // In this way, if different options are given the instances will be different
@@ -389,7 +389,7 @@ function getEmit(
   rawFilePath: string,
   filePath: string,
   instance: TSInstance,
-  loaderContext: WebpackLoaderContext
+  loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
   const outputFiles = getEmitOutput(instance, filePath);
   loaderContext.clearDependencies();
@@ -435,7 +435,7 @@ function getEmit(
 
   addDependenciesFromSolutionBuilder(instance, filePath, addDependency);
 
-  loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions = dependencies.map(
+  loaderContext._module!.buildMeta.tsLoaderDefinitionFileVersions = dependencies.map(
     defFilePath =>
       path.relative(loaderContext.rootContext, defFilePath) +
       '@' +
@@ -586,7 +586,7 @@ function getTranspilationEmit(
   fileName: string,
   contents: string,
   instance: TSInstance,
-  loaderContext: WebpackLoaderContext
+  loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
   if (isReferencedFile(instance, fileName)) {
     const outputFiles = instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
@@ -625,7 +625,7 @@ function getTranspilationEmit(
       loaderContext.context
     );
 
-    errors.forEach(error => module.addError(error));
+    errors.forEach(error => module!.addError(error));
   }
 
   return { outputText, sourceMapText };
@@ -636,7 +636,7 @@ function makeSourceMap(
   outputText: string,
   filePath: string,
   contents: string,
-  loaderContext: WebpackLoaderContext
+  loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
   if (sourceMapText === undefined) {
     return { output: outputText, sourceMap: undefined };
