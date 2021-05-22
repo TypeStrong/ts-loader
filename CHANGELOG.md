@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.2.2
+
+* [Add webpack minimum version in peerDependencies](https://github.com/TypeStrong/ts-loader/issues/1324) - thanks @afdev82
+
 ## v9.2.1
 
 * [Make v9 latest in npm again](https://github.com/TypeStrong/ts-loader/issues/1320) - thanks @johnnyreilly
