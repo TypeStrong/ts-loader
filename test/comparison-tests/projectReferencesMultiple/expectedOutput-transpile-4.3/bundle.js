@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \**********************/
 /***/ (() => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/lib/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:53:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:40:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:23:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/lib/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:52:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:39:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:22:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeS
   \************************/
 /***/ (() => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/utils/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:53:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:40:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:23:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
+eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/utils/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:52:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:39:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:22:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 

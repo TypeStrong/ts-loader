@@ -4,6 +4,6 @@ asset bundle.js 1.45 KiB [emitted] (name: main)
 ERROR in ./app.ts
 Module build failed (from ../../index.js):
 Error: [31mA file specified in tsconfig.json could not be found: i-am-a-file-what-does-not-exist.ts[39m
-    at Object.loader (dist/index.js:18:18)
+    at Object.loader (dist/index.js:17:18)
 
 webpack compiled with 1 error

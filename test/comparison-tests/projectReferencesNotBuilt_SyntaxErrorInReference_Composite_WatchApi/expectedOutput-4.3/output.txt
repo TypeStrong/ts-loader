@@ -1,5 +1,5 @@
 asset bundle.js 2.94 KiB [emitted] (name: main)
-asset tsconfig.tsbuildinfo 1.35 KiB [emitted]
+asset tsconfig.tsbuildinfo 724 bytes [emitted]
 asset app.d.ts 11 bytes [emitted]
 ./app.ts 131 bytes [built] [code generated]
 ./lib/index.ts 39 bytes [built] [code generated] [1 error]
@@ -7,9 +7,9 @@ asset app.d.ts 11 bytes [emitted]
 ERROR in ./lib/index.ts
 Module build failed (from ../../index.js):
 Error: TypeScript emitted no output for lib/index.ts. The most common cause for this is having errors when building referenced projects.
-    at makeSourceMapAndFinish (dist/index.js:53:18)
-    at successLoader (dist/index.js:40:5)
-    at Object.loader (dist/index.js:23:5)
+    at makeSourceMapAndFinish (dist/index.js:52:18)
+    at successLoader (dist/index.js:39:5)
+    at Object.loader (dist/index.js:22:5)
  @ ./app.ts 3:12-28
 
 ERROR in lib/index.ts

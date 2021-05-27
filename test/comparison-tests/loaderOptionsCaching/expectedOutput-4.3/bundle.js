@@ -26,7 +26,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _sub
   \********************************/
 /***/ (() => {
 
-eval("const set = new Set([42]);\r\nfor (const value of set) {\r\n    console.log(value);\r\n}\r\nconst string = 'Hello from es6 file';\r\nconsole.log(string);\r\n\n\n//# sourceURL=webpack:///./submodule-es6/index.ts?");
+eval("const set = new Set([42]);\nfor (const value of set) {\n    console.log(value);\n}\nconst string = 'Hello from es6 file';\nconsole.log(string);\n\n\n//# sourceURL=webpack:///./submodule-es6/index.ts?");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("const set = new Set([42]);\r\nfor (const value of set) {\r\n    console.lo
   \********************************/
 /***/ (() => {
 
-eval("var string = 'Hello from es5 file';\r\nconsole.log(string);\r\n\n\n//# sourceURL=webpack:///./submodule-es5/index.ts?");
+eval("var string = 'Hello from es5 file';\nconsole.log(string);\n\n\n//# sourceURL=webpack:///./submodule-es5/index.ts?");
 
 /***/ })
 
