@@ -1,0 +1,49 @@
+assets by path common/ 1.2 KiB
+  asset common/tsconfig.tsbuildinfo 1.03 KiB [compared for emit]
+  asset common/index.js 128 bytes [compared for emit]
+  asset common/index.d.ts 42 bytes [compared for emit]
+assets by path unreferenced/ 1.24 KiB
+  asset unreferenced/tsconfig.tsbuildinfo 1.03 KiB [compared for emit]
+  asset unreferenced/index.js 169 bytes [compared for emit]
+  asset unreferenced/index.d.ts 48 bytes [compared for emit]
+assets by path unreferencedIndirect/ 1.29 KiB
+  asset unreferencedIndirect/tsconfig.tsbuildinfo 1.03 KiB [compared for emit]
+  asset unreferencedIndirect/index.js 209 bytes [compared for emit]
+  asset unreferencedIndirect/index.d.ts 56 bytes [compared for emit]
+asset bundle.js 3.64 KiB [emitted] (name: main)
+asset indirectWithError/tsconfig.tsbuildinfo 1.31 KiB [compared for emit]
+asset lib/tsconfig.tsbuildinfo 1.31 KiB [compared for emit]
+./app.ts 182 bytes [built] [code generated]
+./lib/index.ts 39 bytes [built] [code generated] [1 error]
+./utils/index.ts 39 bytes [built] [code generated] [1 error]
+
+ERROR in ./lib/index.ts
+Module build failed (from ../../index.js):
+Error: TypeScript emitted no output for lib/index.ts. The most common cause for this is having errors when building referenced projects.
+    at makeSourceMapAndFinish (dist/index.js:52:18)
+    at successLoader (dist/index.js:39:5)
+    at Object.loader (dist/index.js:22:5)
+ @ ./app.ts 3:12-28
+
+ERROR in ./utils/index.ts
+Module build failed (from ../../index.js):
+Error: TypeScript emitted no output for utils/index.ts. The most common cause for this is having errors when building referenced projects.
+    at makeSourceMapAndFinish (dist/index.js:52:18)
+    at successLoader (dist/index.js:39:5)
+    at Object.loader (dist/index.js:22:5)
+ @ ./app.ts 4:14-32
+
+ERROR in lib/fileWithError.ts
+2:4-17
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'boolean' is not assignable to type 'string'.[39m[22m
+
+ERROR in indirectWithError/fileWithError.ts
+2:4-17
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError/fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'boolean' is not assignable to type 'string'.[39m[22m
+
+2 errors have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack compiled with 4 errors

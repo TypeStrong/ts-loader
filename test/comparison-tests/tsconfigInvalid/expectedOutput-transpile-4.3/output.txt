@@ -1,0 +1,22 @@
+asset bundle.js 1.35 KiB [emitted] (name: main)
+./app.ts 39 bytes [built] [code generated] [3 errors]
+
+ERROR in tsconfig.json
+./app.ts tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS5024: Compiler option 'sourceMap' requires a value of type boolean.[39m[22m
+
+ERROR in tsconfig.json
+./app.ts tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS6046: Argument for '--target' option must be: 'es3', 'es5', 'es6', 'es2015', 'es2016', 'es2017', 'es2018', 'es2019', 'es2020', 'es2021', 'esnext'.[39m[22m
+
+ERROR in ./app.ts
+Module build failed (from ../../index.js):
+Error: [31merror while parsing tsconfig.json[39m
+    at Object.loader (dist/index.js:17:18)
+
+2 errors have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack compiled with 3 errors
