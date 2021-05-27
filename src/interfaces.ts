@@ -165,20 +165,8 @@ export interface ModuleResolutionCache
   moduleNameToDirectoryMap: CacheWithRedirects<PerModuleNameCache>;
   clear(): void;
   update(compilerOptions: typescript.CompilerOptions): void;
-  getPackageJsonInfoCache?(): any;
 }
-// Until the API has been released and ts-loader is built against a version of TypeScript that contains it - see https://github.com/microsoft/TypeScript/blob/74993a2a64bb2e423b40204bb54ff749cdd4ef54/src/compiler/moduleNameResolver.ts#L458
-export interface TypeReferenceDirectiveResolutionCache {
-  getOrCreateCacheForDirectory(
-    directoryName: string,
-    redirectedReference?: typescript.ResolvedProjectReference
-  ): Map<
-    string,
-    typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations
-  >;
-  clear(): void;
-  update(compilerOptions: typescript.CompilerOptions): void;
-}
+
 export interface TSInstance {
   compiler: typeof typescript;
   compilerOptions: typescript.CompilerOptions;
@@ -187,7 +175,7 @@ export interface TSInstance {
   loaderOptions: LoaderOptions;
   rootFileNames: Set<string>;
   moduleResolutionCache?: ModuleResolutionCache;
-  typeReferenceResolutionCache?: TypeReferenceDirectiveResolutionCache;
+  typeReferenceResolutionCache?: typescript.TypeReferenceDirectiveResolutionCache;
   /**
    * a cache of all the files
    */
