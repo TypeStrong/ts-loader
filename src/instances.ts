@@ -361,7 +361,7 @@ export function initializeInstance(
       throw new Error(
         `Custom transformers in "${
           instance.loaderOptions.getCustomTransformers
-        }" should export a function, got ${typeof getCustomTransformers}`
+        }" should export a function, got ${typeof customerTransformers}`
       );
     }
     getCustomTransformers = customerTransformers;
@@ -403,10 +403,10 @@ export function initializeInstance(
         instance,
         instance.configParseResult.projectReferences
       );
-      instance.watchOfFilesAndCompilerOptions = instance.compiler.createWatchProgram(
-        instance.watchHost
-      );
-      instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
+      instance.watchOfFilesAndCompilerOptions =
+        instance.compiler.createWatchProgram(instance.watchHost);
+      instance.builderProgram =
+        instance.watchOfFilesAndCompilerOptions.getProgram();
       instance.program = instance.builderProgram.getProgram();
 
       instance.transformers = getCustomTransformers(instance.program);
