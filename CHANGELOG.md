@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.2.3
+
+* [Fix error message for invalid getCustomTransformers modules](https://github.com/TypeStrong/ts-loader/issues/1334) - thanks @blaky
+
 ## v9.2.2
 
 * [Start consuming webpack loader types](https://github.com/TypeStrong/ts-loader/issues/1325) - thanks @johnnyreilly
