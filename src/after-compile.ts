@@ -355,15 +355,21 @@ function provideSolutionErrorsToWebpack(
 }
 
 /**
- * gather all declaration files from TypeScript and output them to webpack
+ * gather all declaration files from TypeScript and output them to webpack.
+ * JavaScript declaration files are included if `allowJs` is set.
  */
 function provideDeclarationFilesToWebpack(
   filesToCheckForErrors: TSFiles,
   instance: TSInstance,
   compilation: webpack.Compilation
 ) {
+  const filePathRegex =
+    instance.compilerOptions.allowJs === true
+      ? constants.dtsTsTsxJsJsxRegex
+      : constants.dtsTsTsxRegex;
+
   for (const { fileName } of filesToCheckForErrors.values()) {
-    if (fileName.match(constants.tsTsxRegex) === null) {
+    if (fileName.match(filePathRegex) === null) {
       continue;
     }
 

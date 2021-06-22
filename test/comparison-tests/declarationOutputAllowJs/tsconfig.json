@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"declarationDir": ".output",
+		"allowJs": true
+	},
+	"files": [
+		"./app.ts",
+		"./sub/dep.js"
+	]
+}
