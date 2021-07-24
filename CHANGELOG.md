@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.2.4
+
+* [Fix undefined configPath now falls back to default](https://github.com/TypeStrong/ts-loader/pull/1346) - thanks @johnnyreilly
+
 ## v9.2.3
 
 * [Fix error message for invalid getCustomTransformers modules](https://github.com/TypeStrong/ts-loader/issues/1334) - thanks @blaky
