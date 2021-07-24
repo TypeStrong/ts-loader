@@ -267,7 +267,6 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       logLevel: 'WARN',
       logInfoToStdOut: false,
       compiler: 'typescript',
-      configFile: 'tsconfig.json',
       context: undefined,
       transpileOnly: false,
       compilerOptions: {},
@@ -289,6 +288,7 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
   options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
   options.logLevel = options.logLevel.toUpperCase() as LogLevel;
   options.instance = instanceName;
+  options.configFile = options.configFile || 'tsconfig.json';
 
   // happypack can be used only together with transpileOnly mode
   options.transpileOnly = options.happyPackMode ? true : options.transpileOnly;
@@ -434,23 +434,24 @@ function getEmit(
 
   addDependenciesFromSolutionBuilder(instance, filePath, addDependency);
 
-  loaderContext._module!.buildMeta.tsLoaderDefinitionFileVersions = dependencies.map(
-    defFilePath =>
-      path.relative(loaderContext.rootContext, defFilePath) +
-      '@' +
-      (isReferencedFile(instance, defFilePath)
-        ? instance
-            .solutionBuilderHost!.getInputFileStamp(defFilePath)
-            .toString()
-        : (
-            instance.files.get(instance.filePathKeyMapper(defFilePath)) ||
-            instance.otherFiles.get(
-              instance.filePathKeyMapper(defFilePath)
-            ) || {
-              version: '?',
-            }
-          ).version)
-  );
+  loaderContext._module!.buildMeta.tsLoaderDefinitionFileVersions =
+    dependencies.map(
+      defFilePath =>
+        path.relative(loaderContext.rootContext, defFilePath) +
+        '@' +
+        (isReferencedFile(instance, defFilePath)
+          ? instance
+              .solutionBuilderHost!.getInputFileStamp(defFilePath)
+              .toString()
+          : (
+              instance.files.get(instance.filePathKeyMapper(defFilePath)) ||
+              instance.otherFiles.get(
+                instance.filePathKeyMapper(defFilePath)
+              ) || {
+                version: '?',
+              }
+            ).version)
+    );
 
   return getOutputAndSourceMapFromOutputFiles(outputFiles);
 }
@@ -562,9 +563,8 @@ function addDependenciesFromProjectReferences(
     if (seenMap.has(refConfigFile)) {
       continue;
     }
-    const refConfigInfo = instance.solutionBuilderHost!.configFileInfo.get(
-      refConfigFile
-    );
+    const refConfigInfo =
+      instance.solutionBuilderHost!.configFileInfo.get(refConfigFile);
     if (!refConfigInfo) {
       continue;
     }
@@ -588,25 +588,23 @@ function getTranspilationEmit(
   loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
   if (isReferencedFile(instance, fileName)) {
-    const outputFiles = instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
-      fileName
-    );
+    const outputFiles =
+      instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
+        fileName
+      );
     addDependenciesFromSolutionBuilder(instance, fileName, file =>
       loaderContext.addDependency(path.resolve(file))
     );
     return getOutputAndSourceMapFromOutputFiles(outputFiles);
   }
 
-  const {
-    outputText,
-    sourceMapText,
-    diagnostics,
-  } = instance.compiler.transpileModule(contents, {
-    compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
-    transformers: instance.transformers,
-    reportDiagnostics: true,
-    fileName,
-  });
+  const { outputText, sourceMapText, diagnostics } =
+    instance.compiler.transpileModule(contents, {
+      compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
+      transformers: instance.transformers,
+      reportDiagnostics: true,
+      fileName,
+    });
   const module = loaderContext._module;
 
   addDependenciesFromSolutionBuilder(instance, fileName, file =>
