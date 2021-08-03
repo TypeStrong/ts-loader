@@ -377,7 +377,8 @@ export function initializeInstance(
           })
         : instance.compiler.createProgram([], instance.compilerOptions));
 
-    instance.transformers = getCustomTransformers(program);
+    const getProgram = () => program;
+    instance.transformers = getCustomTransformers(program, getProgram);
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
@@ -407,9 +408,13 @@ export function initializeInstance(
         instance.compiler.createWatchProgram(instance.watchHost);
       instance.builderProgram =
         instance.watchOfFilesAndCompilerOptions.getProgram();
-      instance.program = instance.builderProgram.getProgram();
 
-      instance.transformers = getCustomTransformers(instance.program);
+      const getProgram = () => instance.builderProgram?.getProgram();
+      instance.program = getProgram();
+      instance.transformers = getCustomTransformers(
+        instance.program,
+        getProgram
+      );
     } else {
       instance.servicesHost = makeServicesHost(
         getScriptRegexp(instance),
@@ -423,9 +428,8 @@ export function initializeInstance(
         instance.compiler.createDocumentRegistry()
       );
 
-      instance.transformers = getCustomTransformers(
-        instance.languageService!.getProgram()
-      );
+      const getProgram = () => instance.languageService!.getProgram();
+      instance.transformers = getCustomTransformers(getProgram(), getProgram);
     }
 
     addAssetHooks(loader, instance);

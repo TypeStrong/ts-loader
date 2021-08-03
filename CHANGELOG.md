@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.2.5
+
+* [Add function to get the latest program](https://github.com/TypeStrong/ts-loader/pull/1352) - thanks @Zn4rK
+
 ## v9.2.4
 
 * [Fix undefined configPath now falls back to default](https://github.com/TypeStrong/ts-loader/pull/1346) - thanks @johnnyreilly
