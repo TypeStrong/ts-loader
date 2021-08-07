@@ -17,12 +17,9 @@ module.exports = {
                 test: /\.ts$/,
                 loader: 'ts-loader',
                 options: {
-                    getCustomTransformers: (program) => {
-                        console.log('program.getSourceFiles():', program.getSourceFiles().map(x => x.fileName));
-                        return ({
-                            before: [uppercaseStringLiteralTransformer]
-                        });
-                    }
+                    getCustomTransformers: (program) => ({
+                        before: [uppercaseStringLiteralTransformer]
+                    })
                 }
             }
         ]

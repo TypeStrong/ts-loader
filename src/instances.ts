@@ -368,17 +368,12 @@ export function initializeInstance(
   }
 
   if (instance.loaderOptions.transpileOnly) {
-    const program = (instance.program =
-      instance.configParseResult.projectReferences !== undefined
-        ? instance.compiler.createProgram({
-            rootNames: instance.configParseResult.fileNames,
-            options: instance.configParseResult.options,
-            projectReferences: instance.configParseResult.projectReferences,
-          })
-        : instance.compiler.createProgram([], instance.compilerOptions));
-
-    const getProgram = () => program;
-    instance.transformers = getCustomTransformers(program, getProgram);
+    instance.program = instance.compiler.createProgram({
+      rootNames: instance.configParseResult.fileNames.filter(fs.existsSync),
+      options: instance.configParseResult.options,
+      projectReferences: instance.configParseResult.projectReferences,
+    });
+    instance.transformers = getCustomTransformers(instance.program);
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
