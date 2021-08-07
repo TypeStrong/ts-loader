@@ -373,7 +373,8 @@ export function initializeInstance(
       options: instance.configParseResult.options,
       projectReferences: instance.configParseResult.projectReferences,
     });
-    instance.transformers = getCustomTransformers(instance.program);
+    const getProgram = () => instance.program;
+    instance.transformers = getCustomTransformers(instance.program, getProgram);
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
