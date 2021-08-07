@@ -270,7 +270,8 @@ export interface LoaderOptions {
   getCustomTransformers:
     | string
     | ((
-        program: typescript.Program
+        program: typescript.Program,
+        getProgram: () => typescript.Program
       ) => typescript.CustomTransformers | undefined);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
