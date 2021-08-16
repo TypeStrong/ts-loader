@@ -187,7 +187,7 @@ First, for `ts-loader` to produce **sourcemaps**, you will need to set the [tsco
 Second, you need to set the `devtool` option in your `webpack.config.js` to support the type of sourcemaps you want. To make your choice have a read of the [`devtool` webpack docs](https://webpack.js.org/configuration/devtool/). You may be somewhat daunted by the choice available. You may also want to vary the sourcemap strategy depending on your build environment. Here are some example strategies for different environments:
 
 * `devtool: 'inline-source-map'` - Solid sourcemap support; the best "all-rounder". Works well with karma-webpack (not all strategies do)
-* `devtool: 'cheap-module-eval-source-map'` - Best support for sourcemaps whilst debugging.
+* `devtool: 'eval-cheap-module-source-map'` - Best support for sourcemaps whilst debugging.
 * `devtool: 'source-map'` - Approach that plays well with UglifyJsPlugin; typically you might use this in Production
 
 ### Code Splitting and Loading Other Resources
