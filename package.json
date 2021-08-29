@@ -57,7 +57,8 @@
     "chalk": "^4.1.0",
     "enhanced-resolve": "^5.0.0",
     "micromatch": "^4.0.0",
-    "semver": "^7.3.4"
+    "semver": "^7.3.4",
+    "source-map": "^0.7.3"
   },
   "devDependencies": {
     "@types/micromatch": "^4.0.0",

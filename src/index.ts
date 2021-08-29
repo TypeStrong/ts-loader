@@ -1,5 +1,10 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
+import {
+  RawSourceMap,
+  SourceMapConsumer,
+  SourceMapGenerator,
+} from 'source-map';
 import type * as typescript from 'typescript';
 import type * as webpack from 'webpack';
 
@@ -31,7 +36,11 @@ const loaderOptionsCache: LoaderOptionsCache = {};
 /**
  * The entry point for ts-loader
  */
-function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
+function loader(
+  this: webpack.LoaderContext<LoaderOptions>,
+  contents: string,
+  map?: Record<string, any>
+) {
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
@@ -43,14 +52,15 @@ function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
   }
   const instance = instanceOrError.instance!;
   buildSolutionReferences(instance, this);
-  successLoader(this, contents, callback, instance);
+  successLoader(this, contents, callback, instance, map);
 }
 
 function successLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance
+  instance: TSInstance,
+  map?: Record<string, any>
 ) {
   initializeInstance(loaderContext, instance);
   reportTranspileErrors(instance, loaderContext);
@@ -86,11 +96,12 @@ function successLoader(
     loaderContext,
     fileVersion,
     callback,
-    instance
+    instance,
+    map
   );
 }
 
-function makeSourceMapAndFinish(
+async function makeSourceMapAndFinish(
   sourceMapText: string | undefined,
   outputText: string | undefined,
   filePath: string,
@@ -98,7 +109,8 @@ function makeSourceMapAndFinish(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance
+  instance: TSInstance,
+  map?: Record<string, any>
 ) {
   if (outputText === null || outputText === undefined) {
     setModuleMeta(loaderContext, instance, fileVersion);
@@ -129,8 +141,17 @@ function makeSourceMapAndFinish(
     loaderContext
   );
 
+  let mappedSourceMap = sourceMap;
+  if (map !== undefined) {
+    const sm1 = await new SourceMapConsumer(map as RawSourceMap);
+    const sm2 = await new SourceMapConsumer(sourceMap);
+    const generator = SourceMapGenerator.fromSourceMap(sm2);
+    generator.applySourceMap(sm1);
+    mappedSourceMap = generator.toJSON();
+  }
+
   setModuleMeta(loaderContext, instance, fileVersion);
-  callback(null, output, sourceMap);
+  callback(null, output, mappedSourceMap);
 }
 
 function setModuleMeta(

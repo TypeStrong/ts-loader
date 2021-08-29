@@ -351,7 +351,7 @@ export function initializeInstance(
   } else if (typeof customerTransformers === 'string') {
     try {
       customerTransformers = require(customerTransformers);
-    } catch (err) {
+    } catch (err: any) {
       throw new Error(
         `Failed to load customTransformers from "${instance.loaderOptions.getCustomTransformers}": ${err.message}`
       );
