@@ -141,14 +141,7 @@ async function makeSourceMapAndFinish(
     loaderContext
   );
 
-  let mappedSourceMap = sourceMap;
-  if (map !== undefined) {
-    const sm1 = await new SourceMapConsumer(map as RawSourceMap);
-    const sm2 = await new SourceMapConsumer(sourceMap);
-    const generator = SourceMapGenerator.fromSourceMap(sm2);
-    generator.applySourceMap(sm1);
-    mappedSourceMap = generator.toJSON();
-  }
+  const mappedSourceMap = await mapSourceMap(sourceMap, loaderContext, map);
 
   setModuleMeta(loaderContext, instance, fileVersion);
   callback(null, output, mappedSourceMap);
@@ -668,6 +661,23 @@ function makeSourceMap(
       sourcesContent: [contents],
     }),
   };
+}
+
+async function mapSourceMap(
+  sourceMap: RawSourceMap,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  map?: Record<string, any>
+) {
+  if (map !== undefined) {
+    const inMap = map as RawSourceMap;
+    inMap.file = loaderContext.remainingRequest;
+    const sm1 = await new SourceMapConsumer(inMap);
+    const sm2 = await new SourceMapConsumer(sourceMap);
+    const generator = SourceMapGenerator.fromSourceMap(sm2);
+    generator.applySourceMap(sm1);
+    return generator.toJSON();
+  }
+  return sourceMap;
 }
 
 export = loader;
