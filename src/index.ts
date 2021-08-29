@@ -668,7 +668,7 @@ async function mapSourceMap(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   map?: Record<string, any>
 ) {
-  if (map !== undefined) {
+  if (sourceMap !== undefined && map !== undefined) {
     const inMap = map as RawSourceMap;
     inMap.file = loaderContext.remainingRequest;
     const sm1 = await new SourceMapConsumer(inMap);
