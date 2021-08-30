@@ -1,2 +1,4 @@
 *.ts eol=lf
 *.js eol=lf
+
+test/** linguist-detectable=false
