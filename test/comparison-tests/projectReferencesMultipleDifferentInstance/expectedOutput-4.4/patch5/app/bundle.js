@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ../lib */ \"../lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ../utils */ \"../utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\nutils_1.utils();\nutils_1.utils2();\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ../lib */ \"../lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ../utils */ \"../utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n(0, utils_1.utils)();\n(0, utils_1.utils2)();\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -46,7 +46,7 @@ eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    
   \*************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nexports.utils2 = exports.utils = void 0;\nvar common_1 = __webpack_require__(/*! ../common */ \"../common/index.ts\");\nfunction utils() {\n    common_1.common();\n}\nexports.utils = utils;\nfunction utils2() { return \"hello\"; }\nexports.utils2 = utils2;\n\n\n//# sourceURL=webpack:///../utils/index.ts?");
+eval("\nexports.__esModule = true;\nexports.utils2 = exports.utils = void 0;\nvar common_1 = __webpack_require__(/*! ../common */ \"../common/index.ts\");\nfunction utils() {\n    (0, common_1.common)();\n}\nexports.utils = utils;\nfunction utils2() { return \"hello\"; }\nexports.utils2 = utils2;\n\n\n//# sourceURL=webpack:///../utils/index.ts?");
 
 /***/ })
 

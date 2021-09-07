@@ -1,9 +1,9 @@
-asset bundle.js 3.6 KiB [emitted] (name: main)
+asset bundle.js 3.62 KiB [emitted] (name: main)
 asset ../common/tsconfig.tsbuildinfo 1.29 KiB [emitted]
 cached modules 119 bytes [cached] 1 module
-code generated modules 451 bytes [code generated]
-  ./app.ts 202 bytes [built] [code generated]
-  ../utils/index.ts 249 bytes [built] [code generated]
+code generated modules 466 bytes [code generated]
+  ./app.ts 212 bytes [built] [code generated]
+  ../utils/index.ts 254 bytes [built] [code generated]
 ../common/index.ts 128 bytes [built] [1 error]
 
 ERROR in common/index.ts
