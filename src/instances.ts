@@ -353,7 +353,9 @@ export function initializeInstance(
       customerTransformers = require(customerTransformers);
     } catch (err) {
       throw new Error(
-        `Failed to load customTransformers from "${instance.loaderOptions.getCustomTransformers}": ${err.message}`
+        `Failed to load customTransformers from "${
+          instance.loaderOptions.getCustomTransformers
+        }": ${err instanceof Error ? err.message : 'unknown error'}`
       );
     }
 
