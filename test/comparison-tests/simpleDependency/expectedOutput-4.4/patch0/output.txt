@@ -1,0 +1,12 @@
+asset bundle.js 2.77 KiB [emitted] (name: main)
+cached modules 78 bytes [cached] 1 module
+./dep.ts 70 bytes [built] [code generated]
+./deeperDep.ts 76 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 3:4-6
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,5)[39m[22m
+[1m[31m      TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.[39m[22m
+ts-loader-default_609318b4f68865d3
+
+webpack compiled with 1 error

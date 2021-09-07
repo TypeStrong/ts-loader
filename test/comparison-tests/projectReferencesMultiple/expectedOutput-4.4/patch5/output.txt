@@ -1,0 +1,12 @@
+asset bundle.js 3.48 KiB [emitted] (name: main)
+asset unreferenced/tsconfig.tsbuildinfo 1.29 KiB [emitted]
+cached modules 416 bytes [cached] 3 modules
+./app.ts 182 bytes [built] [code generated]
+
+ERROR in unreferenced/index.ts
+2:2-40
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36munreferenced/index.ts(2,3)[39m[22m
+[1m[31m      TS2322: Type 'string' is not assignable to type 'number'.[39m[22m
+ts-loader-default_b7d520153c6e6cf9
+
+webpack compiled with 1 error

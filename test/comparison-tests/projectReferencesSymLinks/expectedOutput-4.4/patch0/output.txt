@@ -1,0 +1,21 @@
+assets by path ../../lib/dist/ 290 bytes
+  asset ../../lib/dist/index.js 236 bytes [emitted]
+  asset ../../lib/dist/index.d.ts 54 bytes [emitted]
+asset index.js 3.24 KiB [emitted] (name: main)
+asset ../../lib/tsconfig.tsbuildinfo 1.28 KiB [emitted]
+cached modules 408 bytes [cached] 2 modules
+./src/index.ts 108 bytes [built] [code generated] [2 errors]
+
+ERROR in app/src/index.ts
+./src/index.ts 1:9-25
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp/src/index.ts(1,10)[39m[22m
+[1m[31m      TS2724: '"lib"' has no exported member named 'getMeaningOfLife'. Did you mean 'getMeaningOfLife3'?[39m[22m
+ts-loader-default_b7d520153c6e6cf9
+
+ERROR in app/src/index.ts
+./src/index.ts 1:9-25
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp/src/index.ts(1,10)[39m[22m
+[1m[31m      TS2724: '"lib"' has no exported member named 'getMeaningOfLife'. Did you mean 'getMeaningOfLife3'?[39m[22m
+ts-loader-default_b7d520153c6e6cf9
+
+webpack compiled with 2 errors

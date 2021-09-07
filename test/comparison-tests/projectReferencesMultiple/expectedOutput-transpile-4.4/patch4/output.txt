@@ -1,0 +1,7 @@
+assets by status 3.52 KiB [cached] 1 asset
+asset unreferencedIndirect/tsconfig.tsbuildinfo 1.12 KiB [emitted]
+asset unreferencedIndirect/index.js 225 bytes [emitted]
+asset unreferencedIndirect/index.d.ts 56 bytes [emitted]
+cached modules 416 bytes [cached] 3 modules
+./app.ts 218 bytes [built]
+webpack compiled successfully
