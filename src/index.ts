@@ -218,6 +218,7 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'appendTsxSuffixTo',
   'onlyCompileBundledFiles',
   'happyPackMode',
+  'writeFile',
   'getCustomTransformers',
   'reportFiles',
   'experimentalWatchApi',

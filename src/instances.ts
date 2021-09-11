@@ -786,7 +786,10 @@ export function getEmitOutput(instance: TSInstance, filePath: string) {
       fileName: string,
       text: string,
       writeByteOrderMark: boolean
-    ) => outputFiles.push({ name: fileName, writeByteOrderMark, text });
+    ) => {
+      outputFiles.push({ name: fileName, writeByteOrderMark, text });
+      instance.loaderOptions?.writeFile?.(fileName, text, writeByteOrderMark);
+    };
     const outputFilesFromWatch = getEmitFromWatchHost(instance, filePath);
     if (outputFilesFromWatch) {
       return outputFilesFromWatch;

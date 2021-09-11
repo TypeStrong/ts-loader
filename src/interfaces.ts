@@ -267,6 +267,11 @@ export interface LoaderOptions {
   appendTsSuffixTo: (RegExp | string)[];
   appendTsxSuffixTo: (RegExp | string)[];
   happyPackMode: boolean;
+  writeFile: (
+    fileName: string,
+    text: string,
+    writeByteOrderMark: boolean
+  ) => void;
   getCustomTransformers:
     | string
     | ((
