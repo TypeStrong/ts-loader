@@ -309,7 +309,7 @@ module.exports = {
 
 If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
 
-It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple thread-loader example](examples/thread-loader). **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
+It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
 
 ```javascript
         new ForkTsCheckerWebpackPlugin({
@@ -750,6 +750,10 @@ If you want to give `webpack-dev-server` HMR a try, follow the official [webpack
 ## Contributing
 
 This is your TypeScript loader! We want you to help make it even better. Please feel free to contribute; see the [contributor's guide](CONTRIBUTING.md) to get started.
+
+## History
+
+`ts-loader` was started by [James Brantly](https://github.com/jbrantly), since 2016 [John Reilly](https://github.com/johnnyreilly) has been taking good care of it. If you're interested, you can [read more about how that came to pass](https://blog.johnnyreilly.com/2016/11/01/but-you-cant-die-i-love-you-ts-loader).
 
 ## License
 
