@@ -1,4 +1,0 @@
-asset bundle.js 2.81 KiB [emitted] (name: main)
-cached modules 184 bytes [cached] 2 modules
-./deeperDep.ts 76 bytes [built] [code generated]
-webpack compiled successfully

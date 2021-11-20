@@ -1,3 +1,0 @@
-asset bundle.js 0 bytes [emitted] [minimized] (name: main)
-./app.ts 27 bytes [built] [code generated]
-webpack compiled successfully
