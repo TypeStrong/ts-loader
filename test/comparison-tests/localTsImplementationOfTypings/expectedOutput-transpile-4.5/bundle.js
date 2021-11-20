@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \*****************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.sayHello = void 0;\nfunction sayHello(name) {\n    return \"Hello, \" + name + \"!\";\n}\nexports.sayHello = sayHello;\n\n\n//# sourceURL=webpack:///./fake.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.sayHello = void 0;\nfunction sayHello(name) {\n    return \"Hello, \".concat(name, \"!\");\n}\nexports.sayHello = sayHello;\n\n\n//# sourceURL=webpack:///./fake.ts?");
 
 /***/ })
 

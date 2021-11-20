@@ -26,7 +26,7 @@ eval("\nexports.__esModule = true;\nvar myComponent = __webpack_require__(/*! ap
   \*****************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nexports.__esModule = true;\nexports.sayHello = void 0;\nfunction sayHello(name) {\n    return \"Hello, \" + name + \"!\";\n}\nexports.sayHello = sayHello;\n\n\n//# sourceURL=webpack:///./fake.ts?");
+eval("\nexports.__esModule = true;\nexports.sayHello = void 0;\nfunction sayHello(name) {\n    return \"Hello, \".concat(name, \"!\");\n}\nexports.sayHello = sayHello;\n\n\n//# sourceURL=webpack:///./fake.ts?");
 
 /***/ })
 
