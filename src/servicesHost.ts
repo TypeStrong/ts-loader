@@ -59,7 +59,8 @@ function makeResolversAndModuleResolutionHost(
   const getCurrentDirectory = () => loader.context;
 
   // make a (sync) resolver that follows webpack's rules
-  const resolveSync = makeResolver(loader._compiler!.options);
+  const webpackOptions = loader._compiler!.options;
+  const resolveSync = makeResolver(webpackOptions, loader.fs);
 
   const moduleResolutionHost: ModuleResolutionHostMayBeCacheable = {
     trace: logData => instance.log.log(logData),
@@ -175,9 +176,10 @@ export function makeServicesHost(
         return file.version.toString();
       }
 
-      const outputFileAndKey = instance.solutionBuilderHost?.getOutputFileAndKeyFromReferencedProject(
-        fileName
-      );
+      const outputFileAndKey =
+        instance.solutionBuilderHost?.getOutputFileAndKeyFromReferencedProject(
+          fileName
+        );
       if (outputFileAndKey !== undefined) {
         instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
           outputFileAndKey.key,
@@ -198,9 +200,10 @@ export function makeServicesHost(
 
       if (file === undefined) {
         if (instance.solutionBuilderHost) {
-          const outputFileAndKey = instance.solutionBuilderHost.getOutputFileTextAndKeyFromReferencedProject(
-            fileName
-          );
+          const outputFileAndKey =
+            instance.solutionBuilderHost.getOutputFileTextAndKeyFromReferencedProject(
+              fileName
+            );
           if (outputFileAndKey !== undefined) {
             instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
               outputFileAndKey.key,
@@ -312,9 +315,12 @@ function createWatchFactory(
   filePathKeyMapper: (fileName: string) => FilePathKey,
   compiler: typeof typescript
 ): WatchFactory {
-  const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> = new Map();
-  const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> = new Map();
-  const watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback> = new Map();
+  const watchedFiles: WatchCallbacks<typescript.FileWatcherCallback> =
+    new Map();
+  const watchedDirectories: WatchCallbacks<typescript.DirectoryWatcherCallback> =
+    new Map();
+  const watchedDirectoriesRecursive: WatchCallbacks<typescript.DirectoryWatcherCallback> =
+    new Map();
 
   return {
     watchedFiles,
@@ -473,13 +479,8 @@ export function makeWatchHost(
   instance: TSInstance,
   projectReferences?: ReadonlyArray<typescript.ProjectReference>
 ) {
-  const {
-    compiler,
-    compilerOptions,
-    files,
-    otherFiles,
-    filePathKeyMapper,
-  } = instance;
+  const { compiler, compilerOptions, files, otherFiles, filePathKeyMapper } =
+    instance;
 
   const { watchFile, watchDirectory, invokeFileWatcher } = createWatchFactory(
     filePathKeyMapper,
@@ -507,9 +508,10 @@ export function makeWatchHost(
     readFile: readFileWithCachingText,
 
     watchFile: (fileName, callback, pollingInterval, options) => {
-      const outputFileKey = instance.solutionBuilderHost?.getOutputFileKeyFromReferencedProject(
-        fileName
-      );
+      const outputFileKey =
+        instance.solutionBuilderHost?.getOutputFileKeyFromReferencedProject(
+          fileName
+        );
       if (!outputFileKey || outputFileKey === filePathKeyMapper(fileName)) {
         return watchFile(fileName, callback, pollingInterval, options);
       }
@@ -1175,7 +1177,9 @@ function makeResolveTypeReferenceDirective(
       (compiler as any).createTypeReferenceDirectiveResolutionCache &&
       !instance.typeReferenceResolutionCache
     ) {
-      instance.typeReferenceResolutionCache = (compiler as any).createTypeReferenceDirectiveResolutionCache(
+      instance.typeReferenceResolutionCache = (
+        compiler as any
+      ).createTypeReferenceDirectiveResolutionCache(
         moduleResolutionHost.getCurrentDirectory!(),
         createGetCanonicalFileName(instance),
         instance.compilerOptions,

@@ -1,11 +1,17 @@
 import type * as webpack from 'webpack';
 
 import { create } from 'enhanced-resolve';
+import { LoaderOptions } from './interfaces';
 
 export function makeResolver(
-  options: webpack.WebpackOptionsNormalized
+  options: webpack.WebpackOptionsNormalized,
+  fs: webpack.LoaderContext<LoaderOptions>['fs']
 ): ResolveSync {
-  return create.sync(options.resolve);
+  const resolveOptions = options.resolve;
+  return create.sync({
+    ...resolveOptions,
+    fileSystem: fs,
+  });
 }
 
 export type ResolveSync = (
