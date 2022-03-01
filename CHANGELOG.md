@@ -1,5 +1,13 @@
 # Changelog
 
+## v9.2.7
+
+* [cater for change in resolveTypeReferenceDirective API in TypeScript 4.7](https://github.com/TypeStrong/ts-loader/pull/1422)  [#1421] - thanks @johnny_reilly and @cspotcode for inspiration in ts-node work here: https://github.com/TypeStrong/ts-node/pull/1648
+
+## v9.2.6
+
+* [Docs fix for thread-loader / history](https://github.com/TypeStrong/ts-loader/pull/1377) - thanks @johnnyreilly
+
 ## v9.2.5
 
 * [Add function to get the latest program](https://github.com/TypeStrong/ts-loader/pull/1352) - thanks @Zn4rK

@@ -307,4 +307,29 @@ export interface ResolvedModule {
   isExternalLibraryImport?: boolean;
 }
 
+export interface TSCommon {
+  // Changed in TS 4.7
+  resolveTypeReferenceDirective(
+    typeReferenceDirectiveName: string,
+    containingFile: string | undefined,
+    options: typescript.CompilerOptions,
+    host: typescript.ModuleResolutionHost,
+    redirectedReference?: typescript.ResolvedProjectReference,
+    cache?: typescript.TypeReferenceDirectiveResolutionCache,
+    resolutionMode?: typescript.SourceFile['impliedNodeFormat']
+  ): typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
+}
+
+/**
+ * Compiler APIs we use that are marked internal and not included in TypeScript's public API declarations
+ * @internal
+ */
+export interface TSInternal {
+  // Added in TS 4.7
+  getModeForFileReference?: (
+    ref: typescript.FileReference | string,
+    containingFileMode: typescript.SourceFile['impliedNodeFormat']
+  ) => typescript.SourceFile['impliedNodeFormat'];
+}
+
 export type Severity = 'error' | 'warning';
