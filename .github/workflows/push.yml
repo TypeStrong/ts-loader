@@ -48,7 +48,7 @@ jobs:
     name: Execution Tests Ubuntu
     strategy:
       matrix:
-        node: [12, 14]
+        node: [14, 16]
         ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, 4.2.4, 4.3.2, 4.4.2, 4.5.2, 4.6.2, next]
     runs-on: ubuntu-latest
     steps:
@@ -75,7 +75,7 @@ jobs:
     name: Execution Tests Windows
     strategy:
       matrix:
-        node: [12, 14]
+        node: [14, 16]
         ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, 4.2.4, 4.3.2, 4.4.2, 4.5.2, 4.6.2, next]
     runs-on: windows-latest
     steps:
