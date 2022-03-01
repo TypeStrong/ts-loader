@@ -10,7 +10,7 @@ assets by path unreferencedIndirect/ 1.29 KiB
   asset unreferencedIndirect/tsconfig.tsbuildinfo 1.03 KiB [compared for emit]
   asset unreferencedIndirect/index.js 209 bytes [compared for emit]
   asset unreferencedIndirect/index.d.ts 56 bytes [compared for emit]
-asset bundle.js 3.7 KiB [emitted] (name: main)
+asset bundle.js 3.79 KiB [emitted] (name: main)
 asset indirectWithError/tsconfig.tsbuildinfo 1.31 KiB [compared for emit]
 asset lib/tsconfig.tsbuildinfo 1.31 KiB [compared for emit]
 ./app.ts 223 bytes [built] [code generated] [2 errors]
