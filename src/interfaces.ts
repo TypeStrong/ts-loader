@@ -209,18 +209,6 @@ export interface ModuleResolutionCache
   update(compilerOptions: typescript.CompilerOptions): void;
 }
 
-// Until the API has been released and ts-loader is built against a version of TypeScript that contains it - see https://github.com/microsoft/TypeScript/blob/74993a2a64bb2e423b40204bb54ff749cdd4ef54/src/compiler/moduleNameResolver.ts#L458
-export interface TypeReferenceDirectiveResolutionCache {
-  getOrCreateCacheForDirectory(
-    directoryName: string,
-    redirectedReference?: typescript.ResolvedProjectReference
-  ): Map<
-    string,
-    typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations
-  >;
-  clear(): void;
-  update(compilerOptions: typescript.CompilerOptions): void;
-}
 export interface TSInstance {
   compiler: typeof typescript;
   compilerOptions: typescript.CompilerOptions;
@@ -229,7 +217,7 @@ export interface TSInstance {
   loaderOptions: LoaderOptions;
   rootFileNames: Set<string>;
   moduleResolutionCache?: ModuleResolutionCache;
-  typeReferenceResolutionCache?: TypeReferenceDirectiveResolutionCache;
+  typeReferenceResolutionCache?: typescript.TypeReferenceDirectiveResolutionCache;
   /**
    * a cache of all the files
    */
@@ -360,6 +348,31 @@ export interface ResolvedModule {
   resolvedFileName: string;
   resolvedModule?: ResolvedModule;
   isExternalLibraryImport?: boolean;
+}
+
+export interface TSCommon {
+  // Changed in TS 4.7
+  resolveTypeReferenceDirective(
+    typeReferenceDirectiveName: string,
+    containingFile: string | undefined,
+    options: typescript.CompilerOptions,
+    host: typescript.ModuleResolutionHost,
+    redirectedReference?: typescript.ResolvedProjectReference,
+    cache?: typescript.TypeReferenceDirectiveResolutionCache,
+    resolutionMode?: typescript.SourceFile['impliedNodeFormat']
+  ): typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
+}
+
+/**
+ * Compiler APIs we use that are marked internal and not included in TypeScript's public API declarations
+ * @internal
+ */
+export interface TSInternal {
+  // Added in TS 4.7
+  getModeForFileReference?: (
+    ref: typescript.FileReference | string,
+    containingFileMode: typescript.SourceFile['impliedNodeFormat']
+  ) => typescript.SourceFile['impliedNodeFormat'];
 }
 
 export type Severity = 'error' | 'warning';
