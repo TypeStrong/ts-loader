@@ -29,36 +29,38 @@ export function makeWatchRun(
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;
     } else {
-      const times = compiler.fileTimestamps;
+      compiler.hooks.compilation.tap('ts-loader', compiliation => {
+        compiliation.fileSystemInfo._fileTimestamps.stack.forEach(times => {
+          for (const [filePath, date] of times) {
+            const key = instance.filePathKeyMapper(filePath);
+            const lastTime = lastTimes.get(key) || startTime;
 
-      for (const [filePath, date] of times) {
-        const key = instance.filePathKeyMapper(filePath);
-        const lastTime = lastTimes.get(key) || startTime;
+            if (
+              !date ||
+              date === 'ignore' ||
+              (date.timestamp || date.safeTime) <= lastTime
+            ) {
+              continue;
+            }
 
-        if (
-          !date ||
-          date === 'ignore' ||
-          (date.timestamp || date.safeTime) <= lastTime
-        ) {
-          continue;
-        }
+            lastTimes.set(key, date.timestamp || date.safeTime);
+            promises.push(updateFile(instance, key, filePath, loader, loaderIndex));
+          }
 
-        lastTimes.set(key, date.timestamp || date.safeTime);
-        promises.push(updateFile(instance, key, filePath, loader, loaderIndex));
-      }
-
-      // On watch update add all known dts files expect the ones in node_modules
-      // (skip @types/* and modules with typings)
-      for (const [key, { fileName }] of instance.files.entries()) {
-        if (
-          fileName.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
-          fileName.match(constants.nodeModules) === null
-        ) {
-          promises.push(
-            updateFile(instance, key, fileName, loader, loaderIndex)
-          );
-        }
-      }
+          // On watch update add all known dts files expect the ones in node_modules
+          // (skip @types/* and modules with typings)
+          for (const [key, { fileName }] of instance.files.entries()) {
+            if (
+              fileName.match(constants.dtsDtsxOrDtsDtsxMapRegex) !== null &&
+              fileName.match(constants.nodeModules) === null
+            ) {
+              promises.push(
+                updateFile(instance, key, fileName, loader, loaderIndex)
+              );
+            }
+          }
+        })
+      })
     }
 
     // Update all the watched files from solution builder
