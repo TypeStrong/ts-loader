@@ -29,8 +29,8 @@ export function makeWatchRun(
     if (instance.loaderOptions.transpileOnly) {
       instance.reportTranspileErrors = true;
     } else {
-      compiler.hooks.compilation.tap('ts-loader', compiliation => {
-        compiliation.fileSystemInfo._fileTimestamps.stack.forEach(times => {
+      const times = compiler.fileTimestamps;
+      if (times) {
           for (const [filePath, date] of times) {
             const key = instance.filePathKeyMapper(filePath);
             const lastTime = lastTimes.get(key) || startTime;
@@ -58,9 +58,8 @@ export function makeWatchRun(
                 updateFile(instance, key, fileName, loader, loaderIndex)
               );
             }
-          }
-        })
-      })
+         }
+      }
     }
 
     // Update all the watched files from solution builder
