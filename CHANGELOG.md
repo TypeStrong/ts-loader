@@ -1,8 +1,12 @@
 # Changelog
 
+## v9.2.8
+
+* [Bug fix: support webpack 5 in ts-loader](https://github.com/TypeStrong/ts-loader/pull/1439) [#1438] - thanks @einatbar
+
 ## v9.2.7
 
-* [cater for change in resolveTypeReferenceDirective API in TypeScript 4.7](https://github.com/TypeStrong/ts-loader/pull/1422)  [#1421] - thanks @johnny_reilly and @cspotcode for inspiration in ts-node work here: https://github.com/TypeStrong/ts-node/pull/1648
+* [cater for change in resolveTypeReferenceDirective API in TypeScript 4.7](https://github.com/TypeStrong/ts-loader/pull/1422) [#1421] - thanks @johnny_reilly and @cspotcode for inspiration in ts-node work here: https://github.com/TypeStrong/ts-node/pull/1648
 
 ## v9.2.6
 
