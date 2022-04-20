@@ -378,6 +378,7 @@ export function initializeInstance(
   } else if (typeof customerTransformers === 'string') {
     try {
       customerTransformers = require(customerTransformers);
+      // eslint-disable-next-line prettier/prettier
     } catch (err) {
       throw new Error(
         `Failed to load customTransformers from "${instance.loaderOptions.getCustomTransformers}": ${err.message}`

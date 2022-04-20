@@ -198,6 +198,7 @@ interface PerModuleNameCache {
     result: typescript.ResolvedModuleWithFailedLookupLocations
   ): void;
 }
+
 export interface ModuleResolutionCache
   extends typescript.ModuleResolutionCache {
   directoryToModuleNameMap: CacheWithRedirects<
@@ -206,8 +207,8 @@ export interface ModuleResolutionCache
   moduleNameToDirectoryMap: CacheWithRedirects<PerModuleNameCache>;
   clear(): void;
   update(compilerOptions: typescript.CompilerOptions): void;
-  getPackageJsonInfoCache?(): any;
 }
+
 // Until the API has been released and ts-loader is built against a version of TypeScript that contains it - see https://github.com/microsoft/TypeScript/blob/74993a2a64bb2e423b40204bb54ff749cdd4ef54/src/compiler/moduleNameResolver.ts#L458
 export interface TypeReferenceDirectiveResolutionCache {
   getOrCreateCacheForDirectory(
