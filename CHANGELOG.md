@@ -1,5 +1,10 @@
 # Changelog
 
+## v8.4.0
+
+* [fix: cater for change in resolveTypeReferenceDirective API in 4.7](https://github.com/TypeStrong/ts-loader/pull/1446) - thanks @dragomirtitian
+* This is a backport from v9.2.7 for webpack 4 compatibility
+
 ## v8.3.0
 
 * [Fixed impossibility to have several instances of ts-loader with different compiler options](https://github.com/TypeStrong/ts-loader/issues/1316) - thanks @timocov

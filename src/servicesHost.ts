@@ -17,7 +17,9 @@ import {
   ServiceHostWhichMayBeCacheable,
   SolutionBuilderWithWatchHost,
   SolutionDiagnostics,
+  TSCommon,
   TSInstance,
+  TSInternal,
   WatchCallbacks,
   WatchFactory,
   WatchHost,
@@ -289,16 +291,20 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
   );
 
   const resolveTypeReferenceDirectives = (
-    typeDirectiveNames: string[],
+    typeDirectiveNames: string[] | readonly typescript.FileReference[],
     containingFile: string,
-    redirectedReference?: typescript.ResolvedProjectReference
+    redirectedReference: typescript.ResolvedProjectReference | undefined,
+    options: typescript.CompilerOptions,
+    containingFileMode?: typescript.SourceFile['impliedNodeFormat'] | undefined // new impliedNodeFormat is accepted by compilerHost
   ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
     typeDirectiveNames.map(
       directive =>
         resolveTypeReferenceDirective(
           directive,
           containingFile,
-          redirectedReference
+          options,
+          redirectedReference,
+          containingFileMode
         ).resolvedTypeReferenceDirective
     );
 
@@ -1156,9 +1162,11 @@ export function getSolutionErrors(instance: TSInstance, context: string) {
 }
 
 type ResolveTypeReferenceDirective = (
-  directive: string,
+  directive: string | typescript.FileReference,
   containingFile: string,
-  redirectedReference?: typescript.ResolvedProjectReference
+  options: typescript.CompilerOptions,
+  redirectedReference?: typescript.ResolvedProjectReference,
+  containingFileMode?: typescript.SourceFile['impliedNodeFormat'] | undefined // new impliedNodeFormat is accepted by compilerHost
 ) => typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
 
 function makeResolveTypeReferenceDirective(
@@ -1173,31 +1181,49 @@ function makeResolveTypeReferenceDirective(
   if (customResolveTypeReferenceDirective === undefined) {
     // Until the api is published
     if (
-      (compiler as any).createTypeReferenceDirectiveResolutionCache &&
+      compiler.createTypeReferenceDirectiveResolutionCache !== undefined &&
       !instance.typeReferenceResolutionCache
     ) {
-      instance.typeReferenceResolutionCache = (compiler as any).createTypeReferenceDirectiveResolutionCache(
+      instance.typeReferenceResolutionCache = compiler.createTypeReferenceDirectiveResolutionCache(
         moduleResolutionHost.getCurrentDirectory!(),
         createGetCanonicalFileName(instance),
         instance.compilerOptions,
         instance.moduleResolutionCache?.getPackageJsonInfoCache?.()
       );
     }
-    return (directive, containingFile, redirectedReference) =>
-      // Until the api is published
-      (compiler.resolveTypeReferenceDirective as any)(
-        directive,
+    return (
+      typeDirectiveName,
+      containingFile,
+      options,
+      redirectedReference,
+      containingFileMode
+    ) => {
+      // Copy-pasted from https://github.com/TypeStrong/ts-node/blob/9f789d0d91c6eba30ac7f7aad45194a23b44f159/src/resolver-functions.ts#L139
+      const nameIsString = typeof typeDirectiveName === 'string';
+      const mode = nameIsString
+        ? undefined
+        : ((compiler as any) as TSInternal).getModeForFileReference!(
+            typeDirectiveName,
+            containingFileMode
+          );
+      const strName = nameIsString
+        ? typeDirectiveName
+        : typeDirectiveName.fileName.toLowerCase();
+      return ((compiler as any) as TSCommon).resolveTypeReferenceDirective(
+        strName,
         containingFile,
-        compilerOptions,
+        options,
         moduleResolutionHost,
         redirectedReference,
-        instance.typeReferenceResolutionCache
+        undefined,
+        mode
       );
+    };
   }
 
   return (directive, containingFile) =>
     customResolveTypeReferenceDirective(
-      directive,
+      directive as string, // unsure whether we should evolve this further
       containingFile,
       compilerOptions,
       moduleResolutionHost,
