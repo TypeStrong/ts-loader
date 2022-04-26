@@ -2,7 +2,7 @@
 
 ## v9.2.9
 
-* [make v9 latest following v8 release](https://github.com/TypeStrong/ts-loader/pull/1439) - thanks @johnnyreilly
+* [make v9 latest following v8 release](https://github.com/TypeStrong/ts-loader/pull/1447) - thanks @johnnyreilly
 
 ## v9.2.8
 
