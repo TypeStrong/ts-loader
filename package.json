@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "9.2.9",
+  "version": "9.3.0",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist",
