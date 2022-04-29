@@ -1,5 +1,9 @@
 # Changelog
 
+## v9.3.0
+
+* [simplify configuration for fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/ts-loader/pull/1451) - thanks @piotr-oles
+
 ## v9.2.9
 
 * [make v9 latest following v8 release](https://github.com/TypeStrong/ts-loader/pull/1447) - thanks @johnnyreilly
