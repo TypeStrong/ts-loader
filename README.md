@@ -111,15 +111,17 @@ We have a number of example setups to accommodate different workflows. Our examp
 We probably have more examples than we need.  That said, here's a good way to get started:
 
 - I want the simplest setup going.  Use "[vanilla](examples/vanilla)" `ts-loader`
-- I want the fastest compilation that's available.  Use [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin).  It performs type checking in a separate process with `ts-loader` just handling transpilation.
+- I want the fastest compilation that's available.  Use [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin).  It performs type checking in a separate process with `ts-loader` just handling transpilation.
 
 ### Faster Builds
 
-As your project becomes bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking and *will not output declaration files*.
+As your project becomes bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. 
+The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking and *will not output declaration files*.
 
-You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin). It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking. Also, the plugin has several optimizations to make incremental type checking faster (AST cache, multiple workers).
+You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin).
+It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking.
 
-If you'd like to see a simple setup take a look at [our simple example](examples/fork-ts-checker-webpack-plugin/). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
+If you'd like to see a simple setup take a look at [our example](examples/fork-ts-checker-webpack-plugin/).
 
 ### Yarn Plug’n’Play
 
@@ -280,7 +282,9 @@ module.exports = {
 If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between different dependencies in your application will be lost. `transpileOnly` will *not* speed up compilation of project references.
 
-It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our simple example](examples/fork-ts-checker-webpack-plugin). For a more complex setup take a look at our [more involved example](examples/react-babel-karma-gulp).
+It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our example](examples/fork-ts-checker-webpack-plugin).
+
+> Tip: When you add the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to your webpack config, the `transpileOnly` will default to `true`, so you can skip that option.
 
 If you enable this option, webpack 4 will give you "export not found" warnings any time you re-export a type:
 
@@ -309,7 +313,7 @@ module.exports = {
 
 If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
 
-It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/Realytics/fork-ts-checker-webpack-plugin) to get full type checking again. **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
+It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
 
 ```javascript
         new ForkTsCheckerWebpackPlugin({

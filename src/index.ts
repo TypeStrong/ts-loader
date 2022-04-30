@@ -193,7 +193,7 @@ function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
 
   validateLoaderOptions(loaderOptions);
 
-  const options = makeLoaderOptions(instanceName, loaderOptions);
+  const options = makeLoaderOptions(instanceName, loaderOptions, loaderContext);
 
   cache.set(loaderOptions, options);
 
@@ -259,7 +259,18 @@ ${validLoaderOptions.join(' / ')}
   }
 }
 
-function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
+function makeLoaderOptions(
+  instanceName: string,
+  loaderOptions: LoaderOptions,
+  loaderContext: webpack.LoaderContext<LoaderOptions>
+) {
+  const hasForkTsCheckerWebpackPlugin =
+    loaderContext._compiler?.options.plugins.some(
+      plugin =>
+        typeof plugin === 'object' &&
+        plugin.constructor?.name === 'ForkTsCheckerWebpackPlugin'
+    );
+
   const options = Object.assign(
     {},
     {
@@ -268,7 +279,8 @@ function makeLoaderOptions(instanceName: string, loaderOptions: LoaderOptions) {
       logInfoToStdOut: false,
       compiler: 'typescript',
       context: undefined,
-      transpileOnly: false,
+      // Set default transpileOnly to true if there is an instance of ForkTsCheckerWebpackPlugin
+      transpileOnly: hasForkTsCheckerWebpackPlugin,
       compilerOptions: {},
       appendTsSuffixTo: [],
       appendTsxSuffixTo: [],
