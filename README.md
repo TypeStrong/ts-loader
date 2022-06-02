@@ -11,7 +11,7 @@
   <h3 align="center">ts-loader</h3>
 
   <p align="center">
-    This is the TypeScript loader for webpack.
+    This is the TypeScript <a href="https://webpack.js.org/concepts/loaders">loader</a> for webpack.
     <br />
     <br />
     <a href="https://github.com/TypeStrong/ts-loader#installation">Installation</a>
