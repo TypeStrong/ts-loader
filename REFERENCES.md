@@ -34,7 +34,7 @@ There are a few points to note:
 1. You need to use <code>tsc --build</code> to compile the project.
 1. When you compile the project <code>tsc --build</code> will create a file called tsconfig.tsbuildinfo that contains the signatures and timestamps of all files required to build the project. On subsequent builds TypeScript will use that information to detect the least costly way to type-check and emit changes to your project.
 1. There is no need to use the incremental compiler option. <code>tsc --build</code> will generate and use tsconfig.tsbuildinfo anyway.
-1. If you delete your compiled code and re-run <code>tsc --build</code> the code will **not **be rebuilt unless you also delete the <code>tsconfig.tsbuildinfo</code> file. Use the <code>tsc --build --clean</code> command to do this for you.
+1. If you delete your compiled code and re-run <code>tsc --build</code> the code will **not** be rebuilt unless you also delete the <code>tsconfig.tsbuildinfo</code> file. Use the <code>tsc --build --clean</code> command to do this for you.
 
 1. If you set the <code>declaration</code> and <code>declarationMap</code> settings in <code>tsconfig.json</code> the <code>outDir</code> folder will contain <code>.d.ts</code> and <code>.d.ts.map</code> files alongside the transpiled JavaScript. When you consume the compiled project you should consume the <code>outDir</code> folder, not the <code>src</code>. Even though your root project is in TypeScript it can use full syntax checking without the subproject’s TypeScript source because the <code>outDir</code> folder contains the definitions in the <code>.d.ts</code> file. Vscode (and many other code editors and IDEs) will be able to find the definitions and perform syntax checking in the editor just as if you were not using project references and importing the TypeScript source directly.
 
@@ -154,7 +154,7 @@ Now TypeScript understands that when it sees <code>packages/reference1</code> in
 Unless you are using tsconfig-paths-webpack-plugin you may need to include a corresponding resolve-alias setting in your <code>webpack.config.js</code>:
 ```
     const path = require('path');
-    
+
     module.exports = {
       modules: [
         "node_modules",

@@ -1,11 +1,11 @@
-# Contributer's Guide
+# Contributor's Guide
 
-We welcome contributions from the community and have gathered guidelines 
+We welcome contributions from the community and have gathered guidelines
 here to help you get started.
 
 ## Discussion
 
-While not absolutely required, it is encouraged that you first open an issue 
+While not absolutely required, it is encouraged that you first open an issue
 for any bug or feature request. This allows discussion on the proper course of
 action to take before coding begins.
 
@@ -69,7 +69,7 @@ To investigate slowdowns in build times, it's often helpful to profile webpack &
 1. Start webpack with a debugger attached (see debugging steps above)
 2. Identify the reproducible user scenario that is experiencing slowdowns
 3. In Chrome, open `chrome://inspect` and inspect the running webpack instance
-   Note: Utilizing Chromium instead of Chrome sometimes yeilds better results. If any of the following steps fail or cause a crash, try switching from Chrome to Chromium.
+   Note: Utilizing Chromium instead of Chrome sometimes yields better results. If any of the following steps fail or cause a crash, try switching from Chrome to Chromium.
 4. Switch to the Profiling Tab
 5. Start Recording
 6. Kick off the scenario that's known to be slow
