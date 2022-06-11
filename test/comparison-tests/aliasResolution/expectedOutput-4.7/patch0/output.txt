@@ -1,0 +1,17 @@
+asset bundle.js 2.6 KiB [emitted] (name: main)
+cached modules 120 bytes [cached] 1 module
+./common/components/myComponent.ts 45 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 1:29-53
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,30)[39m[22m
+[1m[31m      TS2307: Cannot find module 'components/myComponent' or its corresponding type declarations.[39m[22m
+ts-loader-default_609318b4f68865d3
+
+ERROR in app.ts
+./app.ts 2:30-55
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(2,31)[39m[22m
+[1m[31m      TS2307: Cannot find module 'components/myComponent2' or its corresponding type declarations.[39m[22m
+ts-loader-default_609318b4f68865d3
+
+webpack compiled with 2 errors
