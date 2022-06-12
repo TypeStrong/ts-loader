@@ -1,4 +1,4 @@
-assets by status 2.18 KiB [compared for emit]
+assets by status 2.35 KiB [compared for emit]
   assets by path lib/*.js 416 bytes
     asset lib/index.js 257 bytes [compared for emit]
     asset lib/helper.js 159 bytes [compared for emit]
@@ -8,7 +8,7 @@ assets by status 2.18 KiB [compared for emit]
   assets by path lib/*.ts 189 bytes
     asset lib/index.d.ts 102 bytes [compared for emit]
     asset lib/helper.d.ts 87 bytes [compared for emit]
-  asset lib/tsconfig.tsbuildinfo 1.16 KiB [compared for emit]
+  asset lib/tsconfig.tsbuildinfo 1.33 KiB [compared for emit]
 assets by status 3.87 KiB [emitted]
   asset bundle.js 3.1 KiB [emitted] (name: main)
   asset tsconfig.tsbuildinfo 781 bytes [emitted]

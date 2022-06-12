@@ -1,5 +1,5 @@
-assets by status 1.46 KiB [compared for emit]
-  asset lib/tsconfig.tsbuildinfo 1.05 KiB [compared for emit]
+assets by status 1.55 KiB [compared for emit]
+  asset lib/tsconfig.tsbuildinfo 1.14 KiB [compared for emit]
   asset lib/index.js.map 188 bytes [compared for emit]
   asset lib/index.js 152 bytes [compared for emit]
   asset lib/index.d.ts 84 bytes [compared for emit]

@@ -1,4 +1,4 @@
-assets by status 1.73 KiB [compared for emit]
+assets by status 1.82 KiB [compared for emit]
   assets by path indirectWithError/ 382 bytes
     assets by path indirectWithError/*.js 259 bytes
       asset indirectWithError/fileWithError.js 140 bytes [compared for emit]
@@ -6,13 +6,13 @@ assets by status 1.73 KiB [compared for emit]
     assets by path indirectWithError/*.ts 123 bytes
       asset indirectWithError/index.d.ts 84 bytes [compared for emit]
       asset indirectWithError/fileWithError.d.ts 39 bytes [compared for emit]
-  assets by path utils/ 1.36 KiB
-    asset utils/tsconfig.tsbuildinfo 1.15 KiB [compared for emit]
+  assets by path utils/ 1.44 KiB
+    asset utils/tsconfig.tsbuildinfo 1.23 KiB [compared for emit]
     asset utils/index.js 174 bytes [compared for emit]
     asset utils/index.d.ts 39 bytes [compared for emit]
-assets by status 4.7 KiB [emitted]
+assets by status 4.79 KiB [emitted]
   asset bundle.js 3.49 KiB [emitted] (name: main)
-  asset indirectWithError/tsconfig.tsbuildinfo 1.21 KiB [emitted]
+  asset indirectWithError/tsconfig.tsbuildinfo 1.3 KiB [emitted]
 cached modules 119 bytes [cached] 1 module
 ./app.ts 187 bytes [built] [code generated]
 ./utils/index.ts 174 bytes [built] [code generated]
