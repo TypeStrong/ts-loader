@@ -2,7 +2,7 @@
 
 ## v9.3.1
 
-* [Bug fix: Generate declaration files for js files if allowJs is set to true](https://github.com/TypeStrong/ts-loader/pull/1483) [#1260] - thanks @hediet
+* [Bug fix: Generate declaration files for js files if allowJs is set to true](https://github.com/TypeStrong/ts-loader/pull/1483) [#1260] - thanks @hediet and @mvilliger
 
 ## v9.3.0
 
