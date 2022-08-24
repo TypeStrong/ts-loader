@@ -219,9 +219,13 @@ don't directly use them. Instead you require them at [split points](https://webp
 
 [TypeScript 2.4 provides support for ECMAScript's new `import()` calls. These calls import a module and return a promise to that module.](https://blogs.msdn.microsoft.com/typescript/2017/06/12/announcing-typescript-2-4-rc/) This is also supported in webpack - details on usage can be found [here](https://webpack.js.org/guides/code-splitting-async/#dynamic-import-import-). Happy code splitting!
 
-### Declarations (.d.ts)
+### Declaration Files (.d.ts)
 
-To output a built .d.ts file, you can set `"declaration": true` in your tsconfig, and use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
+To output declaration files (.d.ts), you can set "declaration": true in your tsconfig and set "transpileOnly" to false.
+
+If you use ts-loader with  "transpileOnly": true along with [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin), you will need to configure fork-ts-checker-webpack-plugin to output definition files, you can learn more on the plugin's documentation page: https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#typescript-options
+
+To output a built .d.ts file, you can use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
 
 ### Failing the build on TypeScript compilation error
 
