@@ -1,7 +1,0 @@
-asset bundle.js 3.49 KiB [emitted] (name: main)
-asset unreferenced/tsconfig.tsbuildinfo 1.12 KiB [emitted]
-asset unreferenced/index.js 183 bytes [emitted]
-asset unreferenced/index.d.ts 48 bytes [emitted]
-cached modules 421 bytes [cached] 3 modules
-./app.ts 187 bytes [built] [code generated]
-webpack compiled successfully
