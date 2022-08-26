@@ -5,9 +5,9 @@ assets by status 369 bytes [compared for emit]
   assets by path lib/*.ts 123 bytes
     asset lib/index.d.ts 84 bytes [compared for emit]
     asset lib/fileWithError.d.ts 39 bytes [compared for emit]
-assets by status 4.64 KiB [emitted]
-  asset bundle.js 3.35 KiB [emitted] (name: main)
-  asset lib/tsconfig.tsbuildinfo 1.3 KiB [emitted]
+assets by status 4.72 KiB [emitted]
+  asset bundle.js 3.39 KiB [emitted] (name: main)
+  asset lib/tsconfig.tsbuildinfo 1.33 KiB [emitted]
 ./app.ts 187 bytes [built] [code generated]
 ./lib/index.ts 119 bytes [built] [code generated]
 ./utils/index.ts 39 bytes [built] [1 error]

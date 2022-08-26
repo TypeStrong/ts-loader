@@ -26,7 +26,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
   \**********************/
 /***/ (() => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesNotBuilt_SemanticErrorInReference/lib/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:52:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:39:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:22:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesNotBuilt_SemanticErrorInReference/lib/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/home/john/code/github/ts-loader/dist/index.js:52:18)/n    at successLoader (/home/john/code/github/ts-loader/dist/index.js:39:5)/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:22:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 
