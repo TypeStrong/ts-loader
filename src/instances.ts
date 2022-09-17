@@ -682,7 +682,7 @@ export function getInputFileNameFromOutput(
   instance: TSInstance,
   filePath: string
 ): string | undefined {
-  if (filePath.match(tsTsxRegex) && !fileExtensionIs(filePath, '.d.ts')) {
+  if (filePath.match(tsTsxRegex) && !/\.d\.([cm]?ts|tsx)$/.test(filePath)) {
     return undefined;
   }
   if (instance.solutionBuilderHost) {
