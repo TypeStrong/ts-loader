@@ -264,7 +264,9 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
     moduleNames: string[],
     containingFile: string,
     _reusedNames?: string[] | undefined,
-    redirectedReference?: typescript.ResolvedProjectReference | undefined
+    redirectedReference?: typescript.ResolvedProjectReference | undefined,
+    _?: typescript.CompilerOptions,
+    containingSourceFile?: typescript.SourceFile
   ): (typescript.ResolvedModule | undefined)[] => {
     const resolvedModules = moduleNames.map(moduleName =>
       resolveModule(
@@ -274,7 +276,8 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
         scriptRegex,
         moduleName,
         containingFile,
-        redirectedReference
+        redirectedReference,
+        containingSourceFile
       )
     );
 
@@ -1249,7 +1252,8 @@ function resolveModule(
   scriptRegex: RegExp,
   moduleName: string,
   containingFile: string,
-  redirectedReference: typescript.ResolvedProjectReference | undefined
+  redirectedReference: typescript.ResolvedProjectReference | undefined,
+  containingSourceFile: typescript.SourceFile | undefined
 ) {
   let resolutionResult: ResolvedModule;
 
@@ -1272,7 +1276,8 @@ function resolveModule(
   const tsResolution = resolveModuleName(
     moduleName,
     containingFile,
-    redirectedReference
+    redirectedReference,
+    containingSourceFile
   );
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
@@ -1297,7 +1302,8 @@ function resolveModule(
 type ResolveModuleName = (
   moduleName: string,
   containingFile: string,
-  redirectedReference: typescript.ResolvedProjectReference | undefined
+  redirectedReference: typescript.ResolvedProjectReference | undefined,
+  containingSourceFile: typescript.SourceFile | undefined
 ) => typescript.ResolvedModuleWithFailedLookupLocations;
 
 function makeResolveModuleName(
@@ -1314,14 +1320,20 @@ function makeResolveModuleName(
         moduleResolutionHost
       );
     }
-    return (moduleName, containingFile, redirectedReference) =>
+    return (
+      moduleName,
+      containingFileName,
+      redirectedReference,
+      containingFile
+    ) =>
       compiler.resolveModuleName(
         moduleName,
-        containingFile,
+        containingFileName,
         compilerOptions,
         moduleResolutionHost,
         instance.moduleResolutionCache,
-        redirectedReference
+        redirectedReference,
+        containingFile?.impliedNodeFormat
       );
   }
 
