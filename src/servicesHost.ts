@@ -260,31 +260,32 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
     instance
   );
 
-  const resolveModuleNames = (
-    moduleNames: string[],
-    containingFile: string,
-    _reusedNames?: string[] | undefined,
-    redirectedReference?: typescript.ResolvedProjectReference | undefined,
-    _?: typescript.CompilerOptions,
-    containingSourceFile?: typescript.SourceFile
-  ): (typescript.ResolvedModule | undefined)[] => {
-    const resolvedModules = moduleNames.map(moduleName =>
-      resolveModule(
-        resolveSync,
-        resolveModuleName,
-        appendTsTsxSuffixesIfRequired,
-        scriptRegex,
-        moduleName,
-        containingFile,
-        redirectedReference,
-        containingSourceFile
-      )
-    );
+  const resolveModuleNames: typescript.ProgramHost<typescript.BuilderProgram>['resolveModuleNames'] =
+    (
+      moduleNames,
+      containingFile,
+      _reusedNames?,
+      redirectedReference?,
+      _?,
+      containingSourceFile?
+    ): (typescript.ResolvedModule | undefined)[] => {
+      const resolvedModules = moduleNames.map(moduleName =>
+        resolveModule(
+          resolveSync,
+          resolveModuleName,
+          appendTsTsxSuffixesIfRequired,
+          scriptRegex,
+          moduleName,
+          containingFile,
+          redirectedReference,
+          containingSourceFile
+        )
+      );
 
-    populateDependencyGraph(resolvedModules, instance, containingFile);
+      populateDependencyGraph(resolvedModules, instance, containingFile);
 
-    return resolvedModules;
-  };
+      return resolvedModules;
+    };
 
   const resolveTypeReferenceDirective = makeResolveTypeReferenceDirective(
     compiler,
