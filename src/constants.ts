@@ -10,6 +10,7 @@ export const LineFeedCode = 1;
 export const extensionRegex = /\.[^.]+$/;
 export const tsxRegex = /\.tsx$/i;
 export const tsTsxRegex = /\.([cm]?ts|tsx)$/i;
+export const declarationRegex = /\.d\.([cm]?ts|tsx)$/i;
 export const dtsDtsxOrDtsDtsxMapRegex = /\.d\.([cm]?ts|tsx)(\.map)?$/i;
 export const dtsTsTsxRegex = /(\.d)?\.([cm]?ts|tsx)$/i;
 export const dtsTsTsxJsJsxRegex = /((\.d)?\.([cm]?[tj]s|[tj]sx))$/i;

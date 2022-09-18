@@ -7,7 +7,12 @@ import * as webpack from 'webpack';
 import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
-import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
+import {
+  declarationRegex,
+  dtsDtsxOrDtsDtsxMapRegex,
+  EOL,
+  tsTsxRegex,
+} from './constants';
 import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
 import { FilePathKey, LoaderOptions, TSFiles, TSInstance } from './interfaces';
 import * as logger from './logger';
@@ -682,7 +687,7 @@ export function getInputFileNameFromOutput(
   instance: TSInstance,
   filePath: string
 ): string | undefined {
-  if (filePath.match(tsTsxRegex) && !/\.d\.([cm]?ts|tsx)$/.test(filePath)) {
+  if (filePath.match(tsTsxRegex) && !declarationRegex.test(filePath)) {
     return undefined;
   }
   if (instance.solutionBuilderHost) {
