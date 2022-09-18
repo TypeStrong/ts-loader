@@ -268,7 +268,7 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
       redirectedReference?,
       _?,
       containingSourceFile?
-    ): (typescript.ResolvedModule | undefined)[] => {
+    ) => {
       const resolvedModules = moduleNames.map(moduleName =>
         resolveModule(
           resolveSync,
