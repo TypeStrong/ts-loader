@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y wget --no-install-recommends \
     && rm -rf /src/*.deb
 
 WORKDIR /TypeStrong/ts-loader
+COPY .git /TypeStrong/ts-loader/.git
 
 # install packages
 COPY package.json yarn.lock index.js /TypeStrong/ts-loader/
