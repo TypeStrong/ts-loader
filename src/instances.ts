@@ -448,13 +448,13 @@ function getScriptRegexp(instance: TSInstance) {
   if (instance.configParseResult.options.resolveJsonModule) {
     // if allowJs is set then we should accept js(x) files
     return instance.configParseResult.options.allowJs === true
-      ? /\.tsx?$|\.json$|\.jsx?$/i
-      : /\.tsx?$|\.json$/i;
+      ? /\.([cm]?[tj]s|[tj]sx|json)$/i
+      : /\.([cm]?ts|tsx|json)$/i;
   }
   // if allowJs is set then we should accept js(x) files
   return instance.configParseResult.options.allowJs === true
-    ? /\.tsx?$|\.jsx?$/i
-    : /\.tsx?$/i;
+    ? /\.([cm]?[tj]s|[tj]sx)$/i
+    : /\.([cm]?ts|tsx)$/i;
 }
 
 export function reportTranspileErrors(
