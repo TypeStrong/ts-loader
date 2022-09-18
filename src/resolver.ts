@@ -8,8 +8,7 @@ export function makeResolver(
   return create.sync(options.resolve);
 }
 
-export type ResolveSync = (
-  context: string | undefined,
-  path: string,
-  moduleName: string
-) => string | false;
+export type ResolveSync = {
+  (context: any, path: string, moduleName: string): string | false;
+  (path: string, moduleName: string): string | false;
+};

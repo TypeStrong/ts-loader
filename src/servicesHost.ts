@@ -1259,7 +1259,6 @@ function resolveModule(
 
   try {
     const originalFileName = resolveSync(
-      undefined,
       path.normalize(path.dirname(containingFile)),
       moduleName
     );
