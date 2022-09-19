@@ -2,7 +2,7 @@
 
 ## v9.4.0
 
-* [Add Support for Resolving `.cjs`, `.mjs`, `.cts` and `.mts` Files](https://github.com/TypeStrong/ts-loader/pull/1503) [#1503]
+* [Add Support for Resolving `.cjs`, `.mjs`, `.cts` and `.mts` Files](https://github.com/TypeStrong/ts-loader/pull/1503) [#1503] - thanks @manuth 
 
 ## v9.3.1
 
