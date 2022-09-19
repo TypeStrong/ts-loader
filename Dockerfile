@@ -36,5 +36,5 @@ COPY test /TypeStrong/ts-loader/test
 
 # regenerate comparison-tests with:
 # docker build -t ts-loader .
-# yarn build
+# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader yarn build
 # docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader yarn run comparison-tests --save-output
