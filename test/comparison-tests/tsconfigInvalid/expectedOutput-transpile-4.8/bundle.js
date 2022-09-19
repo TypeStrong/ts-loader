@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: /u001b[31merror while parsing tsconfig.json/u001b[39m/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:17:18)\");\n\n//# sourceURL=webpack:///./app.ts?");
+eval("throw new Error(\"Module build failed (from ../../index.js):/nError: /u001b[31merror while parsing tsconfig.json/u001b[39m/n    at Object.loader (/TypeStrong/ts-loader/dist/index.js:17:18)\");\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ })
 

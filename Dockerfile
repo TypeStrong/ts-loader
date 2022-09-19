@@ -10,13 +10,14 @@ RUN apt-get update && apt-get install -y wget --no-install-recommends \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update \
-    && apt-get install -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst ttf-freefont \
+    && apt-get install -y google-chrome-unstable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
       --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get purge --auto-remove -y curl \
     && rm -rf /src/*.deb
 
 WORKDIR /TypeStrong/ts-loader
+COPY .git /TypeStrong/ts-loader/.git
 
 # install packages
 COPY package.json yarn.lock index.js /TypeStrong/ts-loader/
@@ -32,3 +33,8 @@ COPY test /TypeStrong/ts-loader/test
 # build and run tests with:
 # docker build -t ts-loader . 
 # docker run -it ts-loader yarn test
+
+# regenerate comparison-tests with:
+# docker build -t ts-loader .
+# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader yarn build
+# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader yarn run comparison-tests --save-output
