@@ -1,11 +1,15 @@
 import type * as webpack from 'webpack';
 
-import { create } from 'enhanced-resolve';
+import { create as _create } from 'enhanced-resolve';
 
 export function makeResolver(
-  options: webpack.WebpackOptionsNormalized
+  _options: webpack.WebpackOptionsNormalized
 ): ResolveSync {
-  return create.sync(options.resolve);
+  /* Currently, `enhanced-resolve` does not work properly alongside `ts-loader`.
+   * This feature is disabled until a proper worflow has been worked out. */
+  return (_context, _path, _moduleName?): string | false => {
+    throw new Error();
+  };
 }
 
 export type ResolveSync = {
