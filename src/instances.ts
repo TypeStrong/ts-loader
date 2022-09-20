@@ -7,7 +7,12 @@ import * as webpack from 'webpack';
 import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
-import { dtsDtsxOrDtsDtsxMapRegex, EOL, tsTsxRegex } from './constants';
+import {
+  declarationRegex,
+  dtsDtsxOrDtsDtsxMapRegex,
+  EOL,
+  tsTsxRegex,
+} from './constants';
 import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
 import { FilePathKey, LoaderOptions, TSFiles, TSInstance } from './interfaces';
 import * as logger from './logger';
@@ -448,13 +453,13 @@ function getScriptRegexp(instance: TSInstance) {
   if (instance.configParseResult.options.resolveJsonModule) {
     // if allowJs is set then we should accept js(x) files
     return instance.configParseResult.options.allowJs === true
-      ? /\.tsx?$|\.json$|\.jsx?$/i
-      : /\.tsx?$|\.json$/i;
+      ? /\.([cm]?[tj]s|[tj]sx|json)$/i
+      : /\.([cm]?ts|tsx|json)$/i;
   }
   // if allowJs is set then we should accept js(x) files
   return instance.configParseResult.options.allowJs === true
-    ? /\.tsx?$|\.jsx?$/i
-    : /\.tsx?$/i;
+    ? /\.([cm]?[tj]s|[tj]sx)$/i
+    : /\.([cm]?ts|tsx)$/i;
 }
 
 export function reportTranspileErrors(
@@ -682,7 +687,7 @@ export function getInputFileNameFromOutput(
   instance: TSInstance,
   filePath: string
 ): string | undefined {
-  if (filePath.match(tsTsxRegex) && !fileExtensionIs(filePath, '.d.ts')) {
+  if (filePath.match(tsTsxRegex) && !declarationRegex.test(filePath)) {
     return undefined;
   }
   if (instance.solutionBuilderHost) {

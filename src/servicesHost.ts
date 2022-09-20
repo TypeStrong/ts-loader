@@ -260,28 +260,32 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
     instance
   );
 
-  const resolveModuleNames = (
-    moduleNames: string[],
-    containingFile: string,
-    _reusedNames?: string[] | undefined,
-    redirectedReference?: typescript.ResolvedProjectReference | undefined
-  ): (typescript.ResolvedModule | undefined)[] => {
-    const resolvedModules = moduleNames.map(moduleName =>
-      resolveModule(
-        resolveSync,
-        resolveModuleName,
-        appendTsTsxSuffixesIfRequired,
-        scriptRegex,
-        moduleName,
-        containingFile,
-        redirectedReference
-      )
-    );
+  const resolveModuleNames: typescript.ProgramHost<typescript.BuilderProgram>['resolveModuleNames'] =
+    (
+      moduleNames,
+      containingFile,
+      _reusedNames?,
+      redirectedReference?,
+      _?,
+      containingSourceFile?
+    ) => {
+      const resolvedModules = moduleNames.map(moduleName =>
+        resolveModule(
+          resolveSync,
+          resolveModuleName,
+          appendTsTsxSuffixesIfRequired,
+          scriptRegex,
+          moduleName,
+          containingFile,
+          redirectedReference,
+          containingSourceFile
+        )
+      );
 
-    populateDependencyGraph(resolvedModules, instance, containingFile);
+      populateDependencyGraph(resolvedModules, instance, containingFile);
 
-    return resolvedModules;
-  };
+      return resolvedModules;
+    };
 
   const resolveTypeReferenceDirective = makeResolveTypeReferenceDirective(
     compiler,
@@ -1249,13 +1253,13 @@ function resolveModule(
   scriptRegex: RegExp,
   moduleName: string,
   containingFile: string,
-  redirectedReference: typescript.ResolvedProjectReference | undefined
+  redirectedReference: typescript.ResolvedProjectReference | undefined,
+  containingSourceFile: typescript.SourceFile | undefined
 ) {
   let resolutionResult: ResolvedModule;
 
   try {
     const originalFileName = resolveSync(
-      undefined,
       path.normalize(path.dirname(containingFile)),
       moduleName
     );
@@ -1272,7 +1276,8 @@ function resolveModule(
   const tsResolution = resolveModuleName(
     moduleName,
     containingFile,
-    redirectedReference
+    redirectedReference,
+    containingSourceFile
   );
   if (tsResolution.resolvedModule !== undefined) {
     const resolvedFileName = path.normalize(
@@ -1297,7 +1302,8 @@ function resolveModule(
 type ResolveModuleName = (
   moduleName: string,
   containingFile: string,
-  redirectedReference: typescript.ResolvedProjectReference | undefined
+  redirectedReference: typescript.ResolvedProjectReference | undefined,
+  containingSourceFile: typescript.SourceFile | undefined
 ) => typescript.ResolvedModuleWithFailedLookupLocations;
 
 function makeResolveModuleName(
@@ -1314,14 +1320,20 @@ function makeResolveModuleName(
         moduleResolutionHost
       );
     }
-    return (moduleName, containingFile, redirectedReference) =>
+    return (
+      moduleName,
+      containingFileName,
+      redirectedReference,
+      containingFile
+    ) =>
       compiler.resolveModuleName(
         moduleName,
-        containingFile,
+        containingFileName,
         compilerOptions,
         moduleResolutionHost,
         instance.moduleResolutionCache,
-        redirectedReference
+        redirectedReference,
+        containingFile?.impliedNodeFormat
       );
   }
 

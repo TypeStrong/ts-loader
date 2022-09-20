@@ -1,5 +1,12 @@
 # Changelog
 
+## 9.4.1
+* [Hotfix: Disable `enhanced-resolve`](https://github.com/TypeStrong/ts-loader/pull/1505) - thanks @manuth
+
+## v9.4.0
+
+* [Add Support for Resolving `.cjs`, `.mjs`, `.cts` and `.mts` Files](https://github.com/TypeStrong/ts-loader/pull/1503) [#1503] - thanks @manuth 
+
 ## v9.3.1
 
 * [Bug fix: Generate declaration files for js files if allowJs is set to true](https://github.com/TypeStrong/ts-loader/pull/1483) [#1260] - thanks @hediet and @mvilliger
