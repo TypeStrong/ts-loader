@@ -5,10 +5,11 @@ import { create } from 'enhanced-resolve';
 export function makeResolver(
   options: webpack.WebpackOptionsNormalized
 ): ResolveSync {
-  const resolver = create.sync(options.resolve);
+  const resolveOptions = options.resolve;
+  const resolver = create.sync(resolveOptions);
 
-  if ('alias' in options || 'fallback' in options) {
-    const neutralOptions = Object.assign({}, options.resolve);
+  if ('alias' in resolveOptions || 'fallback' in resolveOptions) {
+    const neutralOptions = Object.assign({}, resolveOptions);
     delete neutralOptions.alias;
     delete neutralOptions.fallback;
     const neutralResolver = create.sync(neutralOptions);
