@@ -14,11 +14,16 @@ module.exports = {
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
+    extensionAlias: {
+        '.ts': ['.js', '.ts'],
+        '.cts': ['.cjs', '.cts'],
+        '.mts': ['.mjs', '.mts'],
+    },
   },
   module: {
     rules: [
       {
-        test: /.tsx?$/,
+        test: /.([cm]?ts|tsx)$/,
         loader: 'ts-loader',
       },
     ],
