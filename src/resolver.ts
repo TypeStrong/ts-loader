@@ -16,12 +16,17 @@ export function makeResolver(
 
     return (context, path, moduleName?): string | false => {
       const result = resolver(context, path, moduleName);
-      const neutralResult = neutralResolver(context, path, moduleName);
 
-      if (result !== neutralResult) {
+      try {
+        const neutralResult = neutralResolver(context, path, moduleName);
+
+        if (result !== neutralResult) {
+          return result;
+        } else {
+          return false;
+        }
+      } catch {
         return result;
-      } else {
-        return false;
       }
     };
   } else {
