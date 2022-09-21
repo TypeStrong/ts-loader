@@ -1,0 +1,7 @@
+{
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"module": "Node16",
+		"target": "ES6"
+	}
+}
