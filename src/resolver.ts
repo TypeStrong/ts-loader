@@ -24,7 +24,7 @@ export function makeResolver(
       }
     };
   } else {
-    return resolver;
+    return () => false;
   }
 }
 
