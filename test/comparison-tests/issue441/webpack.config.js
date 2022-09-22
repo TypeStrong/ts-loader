@@ -15,5 +15,10 @@ module.exports = {
             loader: '../../index.js'
         }]
     },
-    plugins: [new webpack.IgnorePlugin(/\.d\.ts$/)]
+    plugins: [
+        new webpack.IgnorePlugin(
+            {
+                resourceRegExp: /\.d\.ts$/
+            })
+    ]
 };
