@@ -16,7 +16,7 @@
   \**************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-eval("\nvar dep = __webpack_require__(/*! ./dep */ \"./sub/dep.ts\");\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./a.ts?");
+eval("\nvar dep = __webpack_require__(Object(function webpackMissingModule() { var e = new Error(\"Cannot find module './dep'\"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./a.ts?");
 
 /***/ }),
 
@@ -27,16 +27,6 @@ eval("\nvar dep = __webpack_require__(/*! ./dep */ \"./sub/dep.ts\");\nmodule.ex
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a = __webpack_require__(/*! ./a */ \"./a.ts\");\nconsole.log(a);\n\n\n//# sourceURL=webpack:///./app.ts?");
-
-/***/ }),
-
-/***/ "./sub/dep.ts":
-/*!********************!*\
-  !*** ./sub/dep.ts ***!
-  \********************/
-/***/ ((module) => {
-
-eval("\nvar dep = 'replacement';\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./sub/dep.ts?");
 
 /***/ })
 

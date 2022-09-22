@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \**************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.default = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?");
 
 /***/ })
 

@@ -1,10 +1,11 @@
 assets by path ../../lib/dist/ 295 bytes
   asset ../../lib/dist/index.js 241 bytes [emitted]
   asset ../../lib/dist/index.d.ts 54 bytes [emitted]
-asset index.js 3.25 KiB [emitted] (name: main)
+asset index.js 3.26 KiB [emitted] (name: main)
 asset ../../lib/tsconfig.tsbuildinfo 1.32 KiB [emitted]
-cached modules 413 bytes [cached] 2 modules
 ./src/index.ts 113 bytes [built] [code generated] [2 errors]
+../lib/dist/index.js 241 bytes [built] [code generated]
+../common/dist/index.js 176 bytes [built]
 
 ERROR in app/src/index.ts
 ./src/index.ts 1:9-25

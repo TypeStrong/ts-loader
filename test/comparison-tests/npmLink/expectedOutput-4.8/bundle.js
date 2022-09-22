@@ -26,7 +26,7 @@ eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! lib/foo 
   \**************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nexports.__esModule = true;\nexports.default = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?");
+eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?");
 
 /***/ })
 

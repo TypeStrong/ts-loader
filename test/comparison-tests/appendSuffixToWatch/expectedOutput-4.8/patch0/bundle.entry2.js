@@ -16,7 +16,7 @@
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nexports.__esModule = true;\nexports.default = \"some value\";\n\n\n//# sourceURL=webpack:///./component.vue?");
+eval("\nexports.__esModule = true;\nexports[\"default\"] = \"some value\";\n\n\n//# sourceURL=webpack:///./component.vue?");
 
 /***/ }),
 
