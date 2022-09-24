@@ -1,8 +1,9 @@
-assets by path ../utils/ 1.48 KiB 3 assets
+assets by path ../utils/ 1.48 KiB
+  asset ../utils/tsconfig.tsbuildinfo 1.27 KiB [compared for emit]
+  + 2 assets
 assets by path ../common/ 1.32 KiB
   asset ../common/tsconfig.tsbuildinfo 1.16 KiB [compared for emit]
-  asset ../common/index.js 128 bytes [compared for emit]
-  asset ../common/index.d.ts 42 bytes [compared for emit]
+  + 2 assets
 assets by path ../indirect/ 1.36 KiB
   asset ../indirect/tsconfig.tsbuildinfo 1.16 KiB [compared for emit]
   asset ../indirect/index.js 119 bytes [compared for emit]

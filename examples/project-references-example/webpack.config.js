@@ -16,7 +16,7 @@ module.exports = {
   "module": {
       "rules": [
           {
-              "test": /\.tsx?$/,
+              "test": /\.([cm]?ts|tsx)$/,
               "exclude": /node_modules/,
               "use": {
                   "loader": "ts-loader",
@@ -37,6 +37,11 @@ module.exports = {
     //   packages: path.resolve(__dirname, 'packages/'),
     // },
     extensions: [".js", ".ts", ".tsx"],
+    extensionAlias: {
+      ".js": [".js", ".ts"],
+      ".cjs": [".cjs", ".cts"],
+      ".mjs": [".mjs", ".mts"]
+    },
     plugins: [
       new TsconfigPathsPlugin({
         logLevel: "info",
