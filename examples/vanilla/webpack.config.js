@@ -11,12 +11,17 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
-                loader: 'ts-loader'
-            }
-        ]
+                test: /\.([cm]?ts|tsx)$/,
+                loader: 'ts-loader',
+            },
+        ],
     },
     resolve: {
-        extensions: [ '.ts', '.tsx', '.js' ]
+        extensions: [ '.ts', '.tsx', '.js' ],
+        extensionAlias: {
+            '.ts': ['.js', '.ts'],
+            '.cts': ['.cjs', '.cts'],
+            '.mts': ['.mjs', '.mts']
+        }
     }
 };

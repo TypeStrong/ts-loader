@@ -16,7 +16,7 @@
   \**************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.default = 'a';\n\n\n//# sourceURL=webpack:///./a.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'a';\n\n\n//# sourceURL=webpack:///./a.ts?");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a_1 = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b_1 = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a_1.default);\nconsole.log(b_1.default);\n__webpack_require__.e(/*! require.ensure */ \"d_ts\").then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... from` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    // Note that requiring an ES6 module always returns an object\n    // with the named exports. This means if you want to access\n    // the default export you have to do so manually.\n    // Since we used syntactic sugar for the default export for c, we\n    // go ahead and access the default property.\n    var cDefault = __webpack_require__(/*! ./c */ \"./c.ts\").default;\n    // For d, we imported the whole module so we don't access the default\n    // property yet. \n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    console.log(cDefault);\n    console.log(dModule[\"default\"]);\n}).bind(null, __webpack_require__)).catch(__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a_1 = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b_1 = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a_1.default);\nconsole.log(b_1.default);\n__webpack_require__.e(/*! require.ensure */ \"c_ts-d_ts\").then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... from` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    // Note that requiring an ES6 module always returns an object\n    // with the named exports. This means if you want to access\n    // the default export you have to do so manually.\n    // Since we used syntactic sugar for the default export for c, we\n    // go ahead and access the default property.\n    var cDefault = (__webpack_require__(/*! ./c */ \"./c.ts\")[\"default\"]);\n    // For d, we imported the whole module so we don't access the default\n    // property yet. \n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    console.log(cDefault);\n    console.log(dModule[\"default\"]);\n}).bind(null, __webpack_require__))['catch'](__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -36,17 +36,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \**************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.default = 'b';\n\n\n//# sourceURL=webpack:///./b.ts?");
-
-/***/ }),
-
-/***/ "./c.ts":
-/*!**************!*\
-  !*** ./c.ts ***!
-  \**************/
-/***/ ((__unused_webpack_module, exports) => {
-
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.default = 'c';\n\n\n//# sourceURL=webpack:///./c.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'b';\n\n\n//# sourceURL=webpack:///./b.ts?");
 
 /***/ })
 
@@ -251,19 +241,21 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
 /******/ 			// add "moreModules" to the modules object,
 /******/ 			// then flag all "chunkIds" as loaded and fire callback
 /******/ 			var moduleId, chunkId, i = 0;
-/******/ 			for(moduleId in moreModules) {
-/******/ 				if(__webpack_require__.o(moreModules, moduleId)) {
-/******/ 					__webpack_require__.m[moduleId] = moreModules[moduleId];
+/******/ 			if(chunkIds.some((id) => (installedChunks[id] !== 0))) {
+/******/ 				for(moduleId in moreModules) {
+/******/ 					if(__webpack_require__.o(moreModules, moduleId)) {
+/******/ 						__webpack_require__.m[moduleId] = moreModules[moduleId];
+/******/ 					}
 /******/ 				}
+/******/ 				if(runtime) var result = runtime(__webpack_require__);
 /******/ 			}
-/******/ 			if(runtime) var result = runtime(__webpack_require__);
 /******/ 			if(parentChunkLoadingFunction) parentChunkLoadingFunction(data);
 /******/ 			for(;i < chunkIds.length; i++) {
 /******/ 				chunkId = chunkIds[i];
 /******/ 				if(__webpack_require__.o(installedChunks, chunkId) && installedChunks[chunkId]) {
 /******/ 					installedChunks[chunkId][0]();
 /******/ 				}
-/******/ 				installedChunks[chunkIds[i]] = 0;
+/******/ 				installedChunks[chunkId] = 0;
 /******/ 			}
 /******/ 		
 /******/ 		}

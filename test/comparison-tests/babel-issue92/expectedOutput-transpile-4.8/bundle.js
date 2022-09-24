@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (__WEBPACK_DEFAULT_EXPORT__)\n/* harmony export */ });\n/* harmony import */ var _submodule_submodule__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.tsx\");\n\n/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_submodule_submodule__WEBPACK_IMPORTED_MODULE_0__.default);\n\n//# sourceURL=webpack:///./app.ts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"default\": () => (__WEBPACK_DEFAULT_EXPORT__)\n/* harmony export */ });\n/* harmony import */ var _submodule_submodule__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.tsx\");\n\n/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_submodule_submodule__WEBPACK_IMPORTED_MODULE_0__[\"default\"]);\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 

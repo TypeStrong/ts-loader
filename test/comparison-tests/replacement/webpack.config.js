@@ -15,7 +15,7 @@ module.exports = {
         ]
     },
     plugins: [
-        new webpack.NormalModuleReplacementPlugin(/a\.ts$/, './sub/a.ts')
+        new webpack.NormalModuleReplacementPlugin(/a$/, "./sub/a")
     ]
 }
 

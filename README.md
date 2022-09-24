@@ -156,11 +156,17 @@ If you become aware of issues not caught by the test suite then please let us kn
      resolve: {
        // Add `.ts` and `.tsx` as a resolvable extension.
        extensions: [".ts", ".tsx", ".js"]
+       // Add support for TypeScripts fully qualified ESM imports.
+       extensionAlias: {
+        ".js": [".js", ".ts"],
+        ".cjs": [".cjs", ".cts"],
+        ".mjs": [".mjs", ".mts"]
+       }
      },
      module: {
        rules: [
-         // all files with a `.ts` or `.tsx` extension will be handled by `ts-loader`
-         { test: /\.tsx?$/, loader: "ts-loader" }
+         // all files with a `.ts`, `.cts`, `.mts` or `.tsx` extension will be handled by `ts-loader`
+         { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }
        ]
      }
    };
@@ -730,7 +736,7 @@ Because TS will generate .js and .d.ts files, you should ignore these files, oth
  plugins: [
    new webpack.WatchIgnorePlugin([
      /\.js$/,
-     /\.d\.ts$/
+     /\.d\.[cm]?ts$/
    ])
  ],
 
@@ -739,7 +745,7 @@ plugins: [
   new webpack.WatchIgnorePlugin({
     paths:[
       /\.js$/,
-      /\.d\.ts$/
+      /\.d\.[cm]ts$/
   ]})
 ],
 ```
