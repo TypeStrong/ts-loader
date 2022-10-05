@@ -1,15 +1,37 @@
 import type * as webpack from 'webpack';
 
-import { create as _create } from 'enhanced-resolve';
+import { create } from 'enhanced-resolve';
 
 export function makeResolver(
-  _options: webpack.WebpackOptionsNormalized
+  options: webpack.WebpackOptionsNormalized
 ): ResolveSync {
-  /* Currently, `enhanced-resolve` does not work properly alongside `ts-loader`.
-   * This feature is disabled until a proper worflow has been worked out. */
-  return (_context, _path, _moduleName?): string | false => {
-    throw new Error();
-  };
+  const resolveOptions = options.resolve;
+  const resolver = create.sync(resolveOptions);
+
+  if ('alias' in resolveOptions || 'fallback' in resolveOptions) {
+    const neutralOptions = Object.assign({}, resolveOptions);
+    delete neutralOptions.alias;
+    delete neutralOptions.fallback;
+    const neutralResolver = create.sync(neutralOptions);
+
+    return (context, path, moduleName?): string | false => {
+      const result = resolver(context, path, moduleName);
+
+      try {
+        const neutralResult = neutralResolver(context, path, moduleName);
+
+        if (result !== neutralResult) {
+          return result;
+        } else {
+          return false;
+        }
+      } catch {
+        return result;
+      }
+    };
+  } else {
+    return () => false;
+  }
 }
 
 export type ResolveSync = {
