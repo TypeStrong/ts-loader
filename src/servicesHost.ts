@@ -3,7 +3,7 @@ import type * as typescript from 'typescript';
 import * as webpack from 'webpack';
 import { getParsedCommandLine } from './config';
 import * as constants from './constants';
-import { getOutputFileNames } from './instances';
+import { getCustomTransformers, getOutputFileNames } from './instances';
 import {
   CacheableHost,
   ConfigFileInfo,
@@ -766,6 +766,11 @@ export function makeSolutionBuilderHost(
     reportSolutionBuilderStatus,
     reportWatchStatus
   );
+
+  // Keeps track of the various `typescript.CustomTransformers` for each program that is created.
+  const customTransformers = new Map<string, typescript.CustomTransformers>();
+
+  // let lastBuilderProgram: typescript.CreateProgram | undefined = undefined;
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
     ...sysHost,
     ...moduleResolutionHost,
@@ -789,12 +794,28 @@ export function makeSolutionBuilderHost(
       );
       instance.typeReferenceResolutionCache?.update(instance.compilerOptions);
       instance.moduleResolutionCache?.update(instance.compilerOptions);
+
+      if (options) {
+        // The `configFilePath` is the same value that is used as the `project` parameter of
+        // `getCustomtransformers` below.
+        const project = options.configFilePath?.toString();
+        if (project) {
+          // Custom transformers need a reference to the `typescript.Program`, that reference is
+          // unavailable during the the `getCustomTransformers` callback below.
+          const transformers = getCustomTransformers(instance.loaderOptions, result.getProgram(), result.getProgram);
+          customTransformers.set(project, transformers);
+        }
+      }
+
       return result;
     },
     resolveModuleNames,
     resolveTypeReferenceDirectives,
     diagnostics,
     ...createWatchFactory(filePathKeyMapper, compiler),
+    getCustomTransformers: function (project: string) {
+      return customTransformers.get(project);
+    },
     // Overrides
     writeFile: (name, text, writeByteOrderMark) => {
       const key = filePathKeyMapper(name);
