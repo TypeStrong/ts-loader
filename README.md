@@ -230,7 +230,7 @@ To output declaration files (.d.ts), you can set "declaration": true in your tsc
 
 If you use ts-loader with  "transpileOnly": true along with [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin), you will need to configure fork-ts-checker-webpack-plugin to output definition files, you can learn more on the plugin's documentation page: https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#typescript-options
 
-To output a built .d.ts file, you can use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
+To output a built .d.ts file, you can use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/types-webpack-bundler) in your webpack config.
 
 ### Failing the build on TypeScript compilation error
 
