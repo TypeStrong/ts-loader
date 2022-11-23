@@ -154,7 +154,7 @@ If you become aware of issues not caught by the test suite then please let us kn
      },
      resolve: {
        // Add `.ts` and `.tsx` as a resolvable extension.
-       extensions: [".ts", ".tsx", ".js"]
+       extensions: [".ts", ".tsx", ".js"],
        // Add support for TypeScripts fully qualified ESM imports.
        extensionAlias: {
         ".js": [".js", ".ts"],
