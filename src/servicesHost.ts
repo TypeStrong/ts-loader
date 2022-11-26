@@ -799,7 +799,7 @@ export function makeSolutionBuilderHost(
         // The `configFilePath` is the same value that is used as the `project` parameter of
         // `getCustomtransformers` below.
         const project = options.configFilePath;
-        if (project) {
+        if (typeof project === "string") {
           // Custom transformers need a reference to the `typescript.Program`, that reference is
           // unavailable during the the `getCustomTransformers` callback below.
           const transformers = getCustomTransformers(instance.loaderOptions, result.getProgram(), result.getProgram);
