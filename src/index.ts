@@ -159,7 +159,7 @@ function setModuleMeta(
 function getOptionsHash(loaderOptions: LoaderOptions) {
   const hash = crypto.createHash('sha256');
   Object.keys(loaderOptions).forEach(key => {
-    const value = loaderOptions[key];
+    const value = loaderOptions[key as keyof LoaderOptions];
     if (value !== undefined) {
       const valueString =
         typeof value === 'function' ? value.toString() : JSON.stringify(value);

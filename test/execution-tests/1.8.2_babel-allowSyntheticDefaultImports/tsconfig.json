@@ -7,7 +7,6 @@
     "noImplicitAny": true,
     "preserveConstEnums": true,
     "removeComments": false,
-    "suppressImplicitAnyIndexErrors": true,
     "target": "es2015"
   }
 }
