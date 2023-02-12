@@ -766,7 +766,7 @@ This is your TypeScript loader! We want you to help make it even better. Please 
 
 ## History
 
-`ts-loader` was started by [James Brantly](https://github.com/jbrantly), since 2016 [John Reilly](https://github.com/johnnyreilly) has been taking good care of it. If you're interested, you can [read more about how that came to pass](https://johnnyreilly.com/2016/11/01/but-you-cant-die-i-love-you-ts-loader).
+`ts-loader` was started by [James Brantly](https://github.com/jbrantly), since 2016 [John Reilly](https://github.com/johnnyreilly) has been taking good care of it. If you're interested, you can [read more about how that came to pass](https://johnnyreilly.com/but-you-cant-die-i-love-you-ts-loader).
 
 ## License
 
