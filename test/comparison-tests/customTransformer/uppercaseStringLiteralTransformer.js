@@ -6,7 +6,8 @@ var transformer = function (context) {
         if (node.kind === ts.SyntaxKind.StringLiteral) {
             var text = node.text;
             if (text !== text.toUpperCase()) {
-                return ts.createLiteral(text.toUpperCase());
+                    // createLiteral removed in 5.1 https://github.com/microsoft/TypeScript/issues/53077#issuecomment-1453846217
+                    return ts.createLiteral ? ts.createLiteral(text.toUpperCase()) : ts.createStringLiteral(text.toUpperCase());
             }
         }
         return ts.visitEachChild(node, visitor, context);
