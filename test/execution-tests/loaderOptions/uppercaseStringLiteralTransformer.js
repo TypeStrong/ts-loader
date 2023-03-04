@@ -8,7 +8,7 @@ var transformer = function (context) {
             if (text.match(/^Hello from submodule/) !== null) {
                 if (text !== text.toUpperCase()) {
                     // https://github.com/microsoft/TypeScript/issues/53077#issuecomment-1453846217
-                    return ts.createLiteral ? ts.createLiteral(text.toUpperCase()) : ts.createStringLiteral(text.toUpperCase());
+                    return ts.createLiteral ? ts.createLiteral(text.toUpperCase()) : ts.factory.createStringLiteral(text.toUpperCase());
                 }
             }
         }
