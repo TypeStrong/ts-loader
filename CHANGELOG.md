@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.4.2
+* [Bug fix: Use custom transformer when building solution references](https://github.com/TypeStrong/ts-loader/pull/1550) [#1025] - thanks @feosuna1
+
 ## 9.4.1
 * [Hotfix: Disable `enhanced-resolve`](https://github.com/TypeStrong/ts-loader/pull/1505) - thanks @manuth
 

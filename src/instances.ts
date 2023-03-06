@@ -347,33 +347,6 @@ export function initializeInstance(
 
   instance.initialSetupPending = false;
 
-  // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
-  let { getCustomTransformers: customerTransformers } = instance.loaderOptions;
-  let getCustomTransformers = Function.prototype;
-
-  if (typeof customerTransformers === 'function') {
-    getCustomTransformers = customerTransformers;
-  } else if (typeof customerTransformers === 'string') {
-    try {
-      customerTransformers = require(customerTransformers);
-    } catch (err) {
-      throw new Error(
-        `Failed to load customTransformers from "${
-          instance.loaderOptions.getCustomTransformers
-        }": ${err instanceof Error ? err.message : 'unknown error'}`
-      );
-    }
-
-    if (typeof customerTransformers !== 'function') {
-      throw new Error(
-        `Custom transformers in "${
-          instance.loaderOptions.getCustomTransformers
-        }" should export a function, got ${typeof customerTransformers}`
-      );
-    }
-    getCustomTransformers = customerTransformers;
-  }
-
   if (instance.loaderOptions.transpileOnly) {
     const program = (instance.program =
       instance.configParseResult.projectReferences !== undefined
@@ -385,7 +358,7 @@ export function initializeInstance(
         : instance.compiler.createProgram([], instance.compilerOptions));
 
     const getProgram = () => program;
-    instance.transformers = getCustomTransformers(program, getProgram);
+    instance.transformers = getCustomTransformers(instance.loaderOptions, program, getProgram);
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
@@ -419,6 +392,7 @@ export function initializeInstance(
       const getProgram = () => instance.builderProgram?.getProgram();
       instance.program = getProgram();
       instance.transformers = getCustomTransformers(
+        instance.loaderOptions,
         instance.program,
         getProgram
       );
@@ -436,7 +410,7 @@ export function initializeInstance(
       );
 
       const getProgram = () => instance.languageService!.getProgram();
-      instance.transformers = getCustomTransformers(getProgram(), getProgram);
+      instance.transformers = getCustomTransformers(instance.loaderOptions, getProgram(), getProgram);
     }
 
     addAssetHooks(loader, instance);
@@ -446,6 +420,41 @@ export function initializeInstance(
       makeWatchRun(instance, loader)
     );
   }
+}
+
+export function getCustomTransformers(
+  loaderOptions: LoaderOptions,
+  program: typescript.Program | undefined,
+  getProgram: (() => typescript.Program | undefined) | undefined
+) {
+  // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
+  let { getCustomTransformers: customerTransformers } = loaderOptions;
+  let getCustomTransformers = Function.prototype;
+
+  if (typeof customerTransformers === 'function') {
+    getCustomTransformers = customerTransformers;
+  } else if (typeof customerTransformers === 'string') {
+    try {
+      customerTransformers = require(customerTransformers);
+    } catch (err) {
+      throw new Error(
+        `Failed to load customTransformers from "${
+          loaderOptions.getCustomTransformers
+        }": ${err instanceof Error ? err.message : 'unknown error'}`
+      );
+    }
+
+    if (typeof customerTransformers !== 'function') {
+      throw new Error(
+        `Custom transformers in "${
+          loaderOptions.getCustomTransformers
+        }" should export a function, got ${typeof customerTransformers}`
+      );
+    }
+    getCustomTransformers = customerTransformers;
+  }
+
+  return getCustomTransformers(program, getProgram);
 }
 
 function getScriptRegexp(instance: TSInstance) {

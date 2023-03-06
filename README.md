@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
 [![build and test](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml/badge.svg)](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml)
-[![Downloads](http://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
+[![Downloads](https://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
 [![node version](https://img.shields.io/node/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
@@ -33,12 +33,11 @@
   * [Faster Builds](#faster-builds)
   * [Yarn Plug’n’Play](#yarn-plugnplay)
   * [Babel](#babel)
-  * [Parallelising Builds](#parallelising-builds)
   * [Compatibility](#compatibility)
   * [Configuration](#configuration)
     + [`devtool` / sourcemaps](#devtool--sourcemaps)
   * [Code Splitting and Loading Other Resources](#code-splitting-and-loading-other-resources)
-  * [Declarations (.d.ts)](#declarations-dts)
+  * [Declarations (.d.ts)](#declaration-files-dts)
   * [Failing the build on TypeScript compilation error](#failing-the-build-on-typescript-compilation-error)
   * [`baseUrl` / `paths` module resolution](#baseurl--paths-module-resolution)
   * [Options](#options)
@@ -155,7 +154,7 @@ If you become aware of issues not caught by the test suite then please let us kn
      },
      resolve: {
        // Add `.ts` and `.tsx` as a resolvable extension.
-       extensions: [".ts", ".tsx", ".js"]
+       extensions: [".ts", ".tsx", ".js"],
        // Add support for TypeScripts fully qualified ESM imports.
        extensionAlias: {
         ".js": [".js", ".ts"],
@@ -231,7 +230,7 @@ To output declaration files (.d.ts), you can set "declaration": true in your tsc
 
 If you use ts-loader with  "transpileOnly": true along with [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin), you will need to configure fork-ts-checker-webpack-plugin to output definition files, you can learn more on the plugin's documentation page: https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#typescript-options
 
-To output a built .d.ts file, you can use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/declaration-bundler-webpack-plugin) in your webpack config.
+To output a built .d.ts file, you can use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/types-webpack-bundler) in your webpack config.
 
 ### Failing the build on TypeScript compilation error
 
@@ -767,7 +766,7 @@ This is your TypeScript loader! We want you to help make it even better. Please 
 
 ## History
 
-`ts-loader` was started by [James Brantly](https://github.com/jbrantly), since 2016 [John Reilly](https://github.com/johnnyreilly) has been taking good care of it. If you're interested, you can [read more about how that came to pass](https://blog.johnnyreilly.com/2016/11/01/but-you-cant-die-i-love-you-ts-loader).
+`ts-loader` was started by [James Brantly](https://github.com/jbrantly), since 2016 [John Reilly](https://github.com/johnnyreilly) has been taking good care of it. If you're interested, you can [read more about how that came to pass](https://johnnyreilly.com/but-you-cant-die-i-love-you-ts-loader).
 
 ## License
 
