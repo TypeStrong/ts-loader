@@ -2675,13 +2675,14 @@ isobject@^3.0.0, isobject@^3.0.1:
   version "3.0.1"
   resolved "https://registry.npmjs.org/isobject/-/isobject-3.0.1.tgz"
 
-jasmine-core@^3.0.0:
-  version "3.4.0"
-  resolved "https://registry.npmjs.org/jasmine-core/-/jasmine-core-3.4.0.tgz"
-
 jasmine-core@^3.6.0:
   version "3.7.1"
   resolved "https://registry.npmjs.org/jasmine-core/-/jasmine-core-3.7.1.tgz"
+
+jasmine-core@^4.0.0:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/jasmine-core/-/jasmine-core-4.5.0.tgz#1a6bd0bde3f60996164311c88a0995d67ceda7c3"
+  integrity sha512-9PMzyvhtocxb3aXJVOPqBDswdgyAeSB81QnLop4npOpbqnheaTEwPc9ZloQeVswugPManznQBjD8kWDTjlnHuw==
 
 jest-worker@^27.4.5:
   version "27.5.1"
