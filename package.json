@@ -78,7 +78,7 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^4.0.0",
     "fs-extra": "^11.0.0",
-    "glob": "^7.1.1",
+    "glob": "^9.0.0",
     "husky": "^8.0.0",
     "jasmine-core": "^4.0.0",
     "karma": "^6.0.0",
