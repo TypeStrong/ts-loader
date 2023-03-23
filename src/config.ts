@@ -159,7 +159,7 @@ export function getConfigParseResult(
   return configParseResult;
 }
 
-const extendedConfigCache = new Map() as typescript.Map<typescript.ExtendedConfigCacheEntry>;
+const extendedConfigCache = new Map();
 export function getParsedCommandLine(
   compiler: typeof typescript,
   loaderOptions: LoaderOptions,
