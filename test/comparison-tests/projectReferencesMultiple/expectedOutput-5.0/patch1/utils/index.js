@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.utils = void 0;
 var common_1 = require("../common");
 function utils() {

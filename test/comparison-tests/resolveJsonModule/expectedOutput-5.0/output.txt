@@ -1,6 +1,6 @@
 asset bundle.js 213 bytes [emitted] [minimized] (name: main)
 asset app.d.ts 11 bytes [emitted]
-./app.ts 99 bytes [built] [code generated]
+./app.ts 135 bytes [built] [code generated]
 ./file.json 23 bytes [built] [code generated]
 
 WARNING in configuration

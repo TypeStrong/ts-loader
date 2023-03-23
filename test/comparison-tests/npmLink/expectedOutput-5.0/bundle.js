@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1[\"default\"]);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1.default);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nexports.__esModule = true;\nvar foo_1 = __webpack_require__(/*! lib/foo 
   \**************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nexports.__esModule = true;\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?");
 
 /***/ })
 

@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nvar dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\ndep('');\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\ndep('');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 

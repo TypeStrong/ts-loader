@@ -1,19 +1,21 @@
-assets by status 2.34 KiB [compared for emit]
-  assets by path lib/*.js 403 bytes
-    asset lib/index.js 244 bytes [compared for emit]
-    asset lib/helper.js 159 bytes [compared for emit]
-  assets by path lib/*.map 422 bytes
-    asset lib/index.js.map 232 bytes [compared for emit]
-    asset lib/helper.js.map 190 bytes [compared for emit]
-  assets by path lib/*.ts 171 bytes
-    asset lib/helper.d.ts 87 bytes [compared for emit]
-    asset lib/index.d.ts 84 bytes [compared for emit]
-  asset lib/tsconfig.tsbuildinfo 1.37 KiB [compared for emit]
-assets by status 3.89 KiB [emitted]
-  asset bundle.js 3.08 KiB [emitted] (name: main)
-  asset tsconfig.tsbuildinfo 816 bytes [emitted]
-  asset app.d.ts 11 bytes [emitted]
-./app.ts 131 bytes [built] [code generated]
-./lib/index.ts 211 bytes [built] [code generated]
-./lib/helper.ts 125 bytes [built] [code generated]
-webpack compiled successfully
+asset bundle.js 2.57 KiB [emitted] (name: main)
+./app.ts 39 bytes [built] [code generated] [1 error]
+
+ERROR in ./app.ts
+Module build failed (from ../../index.js):
+Error: Debug Failure. False expression.
+    at updateExtendedConfigFilesWatches (node_modules/typescript/lib/typescript.js:122900:13)
+    at watchReferencedProject (node_modules/typescript/lib/typescript.js:122995:7)
+    at Object.getParsedCommandLine (node_modules/typescript/lib/typescript.js:122796:7)
+    at parseProjectReferenceConfigFile (node_modules/typescript/lib/typescript.js:117844:28)
+    at Array.map (<anonymous>)
+    at Object.createProgram (node_modules/typescript/lib/typescript.js:115897:57)
+    at createBuilderProgramWithReferences (dist/servicesHost.js:300:34)
+    at createNewProgram (node_modules/typescript/lib/typescript.js:122550:24)
+    at synchronizeProgram (node_modules/typescript/lib/typescript.js:122524:9)
+    at Object.createWatchProgram (node_modules/typescript/lib/typescript.js:122432:5)
+    at initializeInstance (dist/instances.js:245:35)
+    at successLoader (dist/index.js:25:40)
+    at Object.loader (dist/index.js:22:5)
+
+webpack compiled with 1 error

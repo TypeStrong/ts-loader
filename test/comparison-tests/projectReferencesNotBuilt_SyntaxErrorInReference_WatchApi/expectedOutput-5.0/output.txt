@@ -1,21 +1,21 @@
-asset bundle.js 2.93 KiB [emitted] (name: main)
-asset lib/tsconfig.tsbuildinfo 1.16 KiB [compared for emit]
-./app.ts 131 bytes [built] [code generated]
-./lib/index.ts 39 bytes [built] [code generated] [1 error]
+asset bundle.js 2.57 KiB [emitted] (name: main)
+./app.ts 39 bytes [built] [code generated] [1 error]
 
-ERROR in ./lib/index.ts
+ERROR in ./app.ts
 Module build failed (from ../../index.js):
-Error: TypeScript emitted no output for lib/index.ts. The most common cause for this is having errors when building referenced projects.
-    at makeSourceMapAndFinish (dist/index.js:52:18)
-    at successLoader (dist/index.js:39:5)
+Error: Debug Failure. False expression.
+    at updateExtendedConfigFilesWatches (node_modules/typescript/lib/typescript.js:122900:13)
+    at watchReferencedProject (node_modules/typescript/lib/typescript.js:122995:7)
+    at Object.getParsedCommandLine (node_modules/typescript/lib/typescript.js:122796:7)
+    at parseProjectReferenceConfigFile (node_modules/typescript/lib/typescript.js:117844:28)
+    at Array.map (<anonymous>)
+    at Object.createProgram (node_modules/typescript/lib/typescript.js:115897:57)
+    at createBuilderProgramWithReferences (dist/servicesHost.js:300:34)
+    at createNewProgram (node_modules/typescript/lib/typescript.js:122550:24)
+    at synchronizeProgram (node_modules/typescript/lib/typescript.js:122524:9)
+    at Object.createWatchProgram (node_modules/typescript/lib/typescript.js:122432:5)
+    at initializeInstance (dist/instances.js:245:35)
+    at successLoader (dist/index.js:25:40)
     at Object.loader (dist/index.js:22:5)
- @ ./app.ts 3:12-28
 
-ERROR in lib/index.ts
-./lib/index.ts 4:11-12
-[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/index.ts(4,12)[39m[22m
-[1m[31m      TS1136: Property assignment expected.[39m[22m
-ts-loader-default_16c1704dade3bd5f
- @ ./app.ts 3:12-28
-
-webpack compiled with 2 errors
+webpack compiled with 1 error

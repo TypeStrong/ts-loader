@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nvar dep1 = __webpack_require__(/*! ./dep1 */ \"./dep1.ts\");\nvar dep2 = __webpack_require__(/*! ./dep2 */ \"./dep2.ts\");\ndep1('');\ndep2('');\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar dep1 = __webpack_require__(/*! ./dep1 */ \"./dep1.ts\");\nvar dep2 = __webpack_require__(/*! ./dep2 */ \"./dep2.ts\");\ndep1('');\ndep2('');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 

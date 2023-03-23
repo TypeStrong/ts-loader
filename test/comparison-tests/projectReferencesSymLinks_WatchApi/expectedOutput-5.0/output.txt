@@ -1,13 +1,21 @@
-assets by path ../../lib/ 1.6 KiB
-  asset ../../lib/tsconfig.tsbuildinfo 1.32 KiB [compared for emit]
-  asset ../../lib/dist/index.js 237 bytes [compared for emit]
-  asset ../../lib/dist/index.d.ts 53 bytes [compared for emit]
-assets by path ../../common/ 1.43 KiB
-  asset ../../common/tsconfig.tsbuildinfo 1.2 KiB [compared for emit]
-  asset ../../common/dist/index.js 176 bytes [compared for emit]
-  asset ../../common/dist/index.d.ts 54 bytes [compared for emit]
-asset index.js 3.25 KiB [emitted] (name: main)
-./src/index.ts 113 bytes [built] [code generated]
-../lib/dist/index.js 237 bytes [built] [code generated]
-../common/dist/index.js 176 bytes [built] [code generated]
-webpack compiled successfully
+asset index.js 2.61 KiB [emitted] (name: main)
+./src/index.ts 39 bytes [built] [code generated] [1 error]
+
+ERROR in ./src/index.ts
+Module build failed (from ../../../index.js):
+Error: Debug Failure. False expression.
+    at updateExtendedConfigFilesWatches (node_modules/typescript/lib/typescript.js:122900:13)
+    at watchReferencedProject (node_modules/typescript/lib/typescript.js:122995:7)
+    at Object.getParsedCommandLine (node_modules/typescript/lib/typescript.js:122796:7)
+    at parseProjectReferenceConfigFile (node_modules/typescript/lib/typescript.js:117844:28)
+    at Array.map (<anonymous>)
+    at Object.createProgram (node_modules/typescript/lib/typescript.js:115897:57)
+    at createBuilderProgramWithReferences (dist/servicesHost.js:300:34)
+    at createNewProgram (node_modules/typescript/lib/typescript.js:122550:24)
+    at synchronizeProgram (node_modules/typescript/lib/typescript.js:122524:9)
+    at Object.createWatchProgram (node_modules/typescript/lib/typescript.js:122432:5)
+    at initializeInstance (dist/instances.js:245:35)
+    at successLoader (dist/index.js:25:40)
+    at Object.loader (dist/index.js:22:5)
+
+webpack compiled with 1 error

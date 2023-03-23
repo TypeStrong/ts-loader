@@ -16,7 +16,7 @@
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ./utils */ \"./utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n(0, utils_1.utils)();\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ./utils */ \"./utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n(0, utils_1.utils)();\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -27,7 +27,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ }),
 
@@ -37,7 +37,7 @@ eval("\nexports.__esModule = true;\nexports.lib = void 0;\nexports.lib = {\n    
   \************************/
 /***/ (() => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple/utils/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/workspaces/ts-loader/dist/index.js:52:18)/n    at successLoader (/workspaces/ts-loader/dist/index.js:39:5)/n    at Object.loader (/workspaces/ts-loader/dist/index.js:22:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
+eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple/utils/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/home/john/code/github/ts-loader/dist/index.js:52:18)/n    at successLoader (/home/john/code/github/ts-loader/dist/index.js:39:5)/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:22:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 

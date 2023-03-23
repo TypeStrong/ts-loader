@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nvar hello = __webpack_require__(/*! hello */ \"hello\");\nvar msg = hello.sayHello('World');\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar hello = __webpack_require__(/*! hello */ \"hello\");\nvar msg = hello.sayHello('World');\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 

@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \*******************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nexports.__esModule = true;\nexports.getMeaningOfLife2 = void 0;\nvar getMeaningOfLife2 = function () { return 45; };\nexports.getMeaningOfLife2 = getMeaningOfLife2;\n\n\n//# sourceURL=webpack:///../common/dist/index.js?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.getMeaningOfLife2 = void 0;\nvar getMeaningOfLife2 = function () { return 45; };\nexports.getMeaningOfLife2 = getMeaningOfLife2;\n\n\n//# sourceURL=webpack:///../common/dist/index.js?");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("\nexports.__esModule = true;\nexports.getMeaningOfLife2 = void 0;\nvar get
   \****************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nexports.getMeaningOfLife3 = void 0;\nvar common_1 = __webpack_require__(/*! common */ \"../common/dist/index.js\");\nvar getMeaningOfLife3 = function () { return (0, common_1.getMeaningOfLife2)(); };\nexports.getMeaningOfLife3 = getMeaningOfLife3;\n\n\n//# sourceURL=webpack:///../lib/dist/index.js?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.getMeaningOfLife3 = void 0;\nvar common_1 = __webpack_require__(/*! common */ \"../common/dist/index.js\");\nvar getMeaningOfLife3 = function () { return (0, common_1.getMeaningOfLife2)(); };\nexports.getMeaningOfLife3 = getMeaningOfLife3;\n\n\n//# sourceURL=webpack:///../lib/dist/index.js?");
 
 /***/ })
 

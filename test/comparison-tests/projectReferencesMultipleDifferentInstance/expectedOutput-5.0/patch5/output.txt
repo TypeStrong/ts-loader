@@ -1,9 +1,9 @@
-asset bundle.js 3.62 KiB [emitted] (name: main)
-asset ../utils/tsconfig.tsbuildinfo 1.53 KiB [emitted]
-cached modules 247 bytes [cached] 2 modules
-cacheable modules 466 bytes
-  ./app.ts 212 bytes [built] [code generated]
-  ../utils/index.ts 254 bytes [built] [1 error]
+asset bundle.js 3.77 KiB [emitted] (name: main)
+asset ../utils/tsconfig.tsbuildinfo 1.87 KiB [emitted]
+cached modules 319 bytes [cached] 2 modules
+cacheable modules 538 bytes
+  ./app.ts 248 bytes [built] [code generated]
+  ../utils/index.ts 290 bytes [built] [1 error]
 
 ERROR in utils/index.ts
 ../utils/index.ts 5:35-50
