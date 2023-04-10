@@ -3,7 +3,7 @@
 # https://github.com/microsoft/vscode-dev-containers/tree/v0.122.1/containers/typescript-node-14/.devcontainer/Dockerfile
 #-------------------------------------------------------------------------------------------------------------
 
-FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:16
+FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:18
 
 # The javascript-node image includes a non-root node user with sudo access. Use 
 # the "remoteUser" property in devcontainer.json to use it. On Linux, the container 
