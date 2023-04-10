@@ -4,7 +4,8 @@
   "dependencies": {
     "@types/react": "16.3.12",
     "@types/react-dom": "16.0.5",
-    "office-ui-fabric-react": "5.88.0",
+    "@types/jasmine": "^2.5.35",
+    "jasmine-core": "^2.3.4",
     "react": "16.3.2",
     "react-dom": "16.3.2"
   }

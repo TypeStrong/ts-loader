@@ -1,3 +1,4 @@
-import { mergeStyles } from 'office-ui-fabric-react/lib/Styling';
+import { version } from 'react';
 
-mergeStyles({});
+export const reactVersion = version;
+console.log('reactVersion', reactVersion);
