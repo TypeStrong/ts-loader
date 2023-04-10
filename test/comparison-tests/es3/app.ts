@@ -1,1 +1,0 @@
-({get x(){ return 1 }})
