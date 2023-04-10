@@ -1,111 +1,58 @@
-lockfileVersion: 5.4
-
-specifiers:
-  '@types/react': 16.3.12
-  '@types/react-dom': 16.0.5
-  office-ui-fabric-react: 5.88.0
-  react: 16.3.2
-  react-dom: 16.3.2
+lockfileVersion: '6.0'
 
 dependencies:
-  '@types/react': 16.3.12
-  '@types/react-dom': 16.0.5
-  office-ui-fabric-react: 5.88.0_5gelftelzfudiavtxrt6uv4xq4
-  react: 16.3.2
-  react-dom: 16.3.2_react@16.3.2
+  '@types/react':
+    specifier: 16.3.12
+    version: 16.3.12
+  '@types/react-dom':
+    specifier: 16.0.5
+    version: 16.0.5
+  react:
+    specifier: 16.3.2
+    version: 16.3.2
+  react-dom:
+    specifier: 16.3.2
+    version: 16.3.2(react@16.3.2)
 
 packages:
 
-  /@microsoft/load-themed-styles/1.10.295:
-    resolution: {integrity: sha512-W+IzEBw8a6LOOfRJM02dTT7BDZijxm+Z7lhtOAz1+y9vQm1Kdz9jlAO+qCEKsfxtUOmKilW8DIRqFw2aUgKeGg==}
-    dev: false
-
-  /@types/node/18.15.11:
+  /@types/node@18.15.11:
     resolution: {integrity: sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==}
     dev: false
 
-  /@types/react-dom/16.0.5:
+  /@types/react-dom@16.0.5:
     resolution: {integrity: sha512-ony2hEYlGXCLWNAWWgbsHR7qVvDbeMRFc5b43+7dhj3n+zXzxz81HV9Yjpc3JD8vLCiwYoSLqFCI6bD0+0zG2Q==}
     dependencies:
       '@types/node': 18.15.11
       '@types/react': 16.3.12
     dev: false
 
-  /@types/react/16.3.12:
+  /@types/react@16.3.12:
     resolution: {integrity: sha512-FfBhLC3QeXXEtjoGGLixS7cB305vzBOM1dZKtbUuXeTfjY0quzRRMxpqylC4QyUaLqdhNLdER0ZdHUGAVlGSCA==}
     dependencies:
       csstype: 2.6.21
     dev: false
 
-  /@uifabric/icons/5.8.0_5gelftelzfudiavtxrt6uv4xq4:
-    resolution: {integrity: sha512-EUhKxYlIPJshg4fQvCNTYSk0p7RhzEWeEAJBV4sao1SKmN0/pZBnkLbDqWjU5VUfdwZZYiIdaLRpM+pyzhniZw==}
-    dependencies:
-      '@uifabric/styling': 5.37.0_5gelftelzfudiavtxrt6uv4xq4
-      tslib: 1.14.1
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@types/react-dom'
-      - react
-      - react-dom
-    dev: false
-
-  /@uifabric/merge-styles/5.17.1:
-    resolution: {integrity: sha512-4/EtO6Ns7kNtKxC+6InShwVQeNQEDT5H8Ex7m/i4OrT9i7csje4YwBQPkkpm31qJwEZEyD7bbAwyLezI63sLhg==}
-    dependencies:
-      tslib: 1.14.1
-    dev: false
-
-  /@uifabric/styling/5.37.0_5gelftelzfudiavtxrt6uv4xq4:
-    resolution: {integrity: sha512-3hC0itW/hWSD5J4uANzUKk8XVGWUNkU+VLjEjWsQ6i5lvwFGaanR6Qy0bTkZdFGqFWMXe91CkBHV7HnvEx7tCA==}
-    dependencies:
-      '@microsoft/load-themed-styles': 1.10.295
-      '@uifabric/merge-styles': 5.17.1
-      '@uifabric/utilities': 5.34.3_5gelftelzfudiavtxrt6uv4xq4
-      tslib: 1.14.1
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@types/react-dom'
-      - react
-      - react-dom
-    dev: false
-
-  /@uifabric/utilities/5.34.3_5gelftelzfudiavtxrt6uv4xq4:
-    resolution: {integrity: sha512-6dERFkNNCUrPUuNG1nxlDDvt7DN5hxb41zp9AmKhK5cXZTYCblmlLBvb/qyielCnicfoagoA+lqH9NgnSE8u/A==}
-    peerDependencies:
-      '@types/react': ^0.14.x || ^15.x || ^16.x
-      '@types/react-dom': ^0.14.x || ^15.x || ^16.x
-      react: ^0.14.9 || ^15.0.1-0 || ^16.0.0-0
-      react-dom: ^0.14.9 || ^15.0.1-0 || ^16.0.0-0
-    dependencies:
-      '@types/react': 16.3.12
-      '@types/react-dom': 16.0.5
-      '@uifabric/merge-styles': 5.17.1
-      prop-types: 15.8.1
-      react: 16.3.2
-      react-dom: 16.3.2_react@16.3.2
-      tslib: 1.14.1
-    dev: false
-
-  /asap/2.0.6:
+  /asap@2.0.6:
     resolution: {integrity: sha512-BSHWgDSAiKs50o2Re8ppvp3seVHXSRM44cdSsT9FfNEUUZLOGWVCsiWaRPWM1Znn+mqZ1OfVZ3z3DWEzSp7hRA==}
     dev: false
 
-  /core-js/1.2.7:
+  /core-js@1.2.7:
     resolution: {integrity: sha512-ZiPp9pZlgxpWRu0M+YWbm6+aQ84XEfH1JRXvfOc/fILWI0VKhLC2LX13X1NYq4fULzLMq7Hfh43CSo2/aIaUPA==}
     deprecated: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
     dev: false
 
-  /csstype/2.6.21:
+  /csstype@2.6.21:
     resolution: {integrity: sha512-Z1PhmomIfypOpoMjRQB70jfvy/wxT50qW08YXO5lMIJkrdq4yOTR+AW7FqutScmB9NkLwxo+jU+kZLbofZZq/w==}
     dev: false
 
-  /encoding/0.1.13:
+  /encoding@0.1.13:
     resolution: {integrity: sha512-ETBauow1T35Y/WZMkio9jiM0Z5xjHHmJ4XmjZOq1l/dXz3lr2sRn87nJy20RupqSh1F2m3HHPSp8ShIPQJrJ3A==}
     dependencies:
       iconv-lite: 0.6.3
     dev: false
 
-  /fbjs/0.8.18:
+  /fbjs@0.8.18:
     resolution: {integrity: sha512-EQaWFK+fEPSoibjNy8IxUtaFOMXcWsY0JaVrQoZR9zC8N2Ygf9iDITPWjUTVIax95b6I742JFLqASHfsag/vKA==}
     dependencies:
       core-js: 1.2.7
@@ -117,75 +64,55 @@ packages:
       ua-parser-js: 0.7.35
     dev: false
 
-  /iconv-lite/0.6.3:
+  /iconv-lite@0.6.3:
     resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
     engines: {node: '>=0.10.0'}
     dependencies:
       safer-buffer: 2.1.2
     dev: false
 
-  /is-stream/1.1.0:
+  /is-stream@1.1.0:
     resolution: {integrity: sha512-uQPm8kcs47jx38atAcWTVxyltQYoPT68y9aWYdV6yWXSyW8mzSat0TL6CiWdZeCdF3KrAvpVtnHbTv4RN+rqdQ==}
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /isomorphic-fetch/2.2.1:
+  /isomorphic-fetch@2.2.1:
     resolution: {integrity: sha512-9c4TNAKYXM5PRyVcwUZrF3W09nQ+sO7+jydgs4ZGW9dhsLG2VOlISJABombdQqQRXCwuYG3sYV/puGf5rp0qmA==}
     dependencies:
       node-fetch: 1.7.3
       whatwg-fetch: 3.6.2
     dev: false
 
-  /js-tokens/4.0.0:
+  /js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
     dev: false
 
-  /loose-envify/1.4.0:
+  /loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
     dependencies:
       js-tokens: 4.0.0
     dev: false
 
-  /node-fetch/1.7.3:
+  /node-fetch@1.7.3:
     resolution: {integrity: sha512-NhZ4CsKx7cYm2vSrBAr2PvFOe6sWDf0UYLRqA6svUYg7+/TSfVAu49jYC4BvQ4Sms9SZgdqGBgroqfDhJdTyKQ==}
     dependencies:
       encoding: 0.1.13
       is-stream: 1.1.0
     dev: false
 
-  /object-assign/4.1.1:
+  /object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /office-ui-fabric-react/5.88.0_5gelftelzfudiavtxrt6uv4xq4:
-    resolution: {integrity: sha512-Rz6q7wlIYwVurNqDusWX9YbvXjDsIS2qbRsam1Dg6iuNTefrZHFGrYV2c7T3NOBMEAA7Nc9muThqogHOF6lxQw==}
-    peerDependencies:
-      react: ^0.14.9 || ^15.0.1-0 || ^16.0.0-0
-      react-dom: ^0.14.9 || ^15.0.1-0 || ^16.0.0-0
-    dependencies:
-      '@microsoft/load-themed-styles': 1.10.295
-      '@uifabric/icons': 5.8.0_5gelftelzfudiavtxrt6uv4xq4
-      '@uifabric/merge-styles': 5.17.1
-      '@uifabric/styling': 5.37.0_5gelftelzfudiavtxrt6uv4xq4
-      '@uifabric/utilities': 5.34.3_5gelftelzfudiavtxrt6uv4xq4
-      prop-types: 15.8.1
-      react: 16.3.2
-      react-dom: 16.3.2_react@16.3.2
-      tslib: 1.14.1
-    transitivePeerDependencies:
-      - '@types/react'
-      - '@types/react-dom'
-    dev: false
-
-  /promise/7.3.1:
+  /promise@7.3.1:
     resolution: {integrity: sha512-nolQXZ/4L+bP/UGlkfaIujX9BKxGwmQ9OT4mOt5yvy8iK1h3wqTEJCijzGANTCCl9nWjY41juyAn2K3Q1hLLTg==}
     dependencies:
       asap: 2.0.6
     dev: false
 
-  /prop-types/15.8.1:
+  /prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
     dependencies:
       loose-envify: 1.4.0
@@ -193,7 +120,7 @@ packages:
       react-is: 16.13.1
     dev: false
 
-  /react-dom/16.3.2_react@16.3.2:
+  /react-dom@16.3.2(react@16.3.2):
     resolution: {integrity: sha512-MMPko3zYncNrz/7gG17wJWUREZDvskZHXOwbttzl0F0L3wDmToyuETuo/r8Y5yvDejwYcRyWI1lvVBjLJWFwKA==}
     deprecated: 'This version of react-dom/server contains a minor vulnerability. Please update react-dom to 16.3.3 or 16.4.2+. Learn more: https://fb.me/cve-2018-6341'
     peerDependencies:
@@ -206,11 +133,11 @@ packages:
       react: 16.3.2
     dev: false
 
-  /react-is/16.13.1:
+  /react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
     dev: false
 
-  /react/16.3.2:
+  /react@16.3.2:
     resolution: {integrity: sha512-o5GPdkhciQ3cEph6qgvYB7LTOHw/GB0qRI6ZFNugj49qJCFfgHwVNjZ5u+b7nif4vOeMIOuYj3CeYe2IBD74lg==}
     engines: {node: '>=0.10.0'}
     dependencies:
@@ -220,22 +147,18 @@ packages:
       prop-types: 15.8.1
     dev: false
 
-  /safer-buffer/2.1.2:
+  /safer-buffer@2.1.2:
     resolution: {integrity: sha512-YZo3K82SD7Riyi0E1EQPojLz7kpepnSQI9IyPbHHg1XXXevb5dJI7tpyN2ADxGcQbHG7vcyRHk0cbwqcQriUtg==}
     dev: false
 
-  /setimmediate/1.0.5:
+  /setimmediate@1.0.5:
     resolution: {integrity: sha512-MATJdZp8sLqDl/68LfQmbP8zKPLQNV6BIZoIgrscFDQ+RsvK/BxeDQOgyxKKoh0y/8h3BqVFnCqQ/gd+reiIXA==}
     dev: false
 
-  /tslib/1.14.1:
-    resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
-    dev: false
-
-  /ua-parser-js/0.7.35:
+  /ua-parser-js@0.7.35:
     resolution: {integrity: sha512-veRf7dawaj9xaWEu9HoTVn5Pggtc/qj+kqTOFvNiN1l0YdxwC1kvel57UCjThjGa3BHBihE8/UJAHI+uQHmd/g==}
     dev: false
 
-  /whatwg-fetch/3.6.2:
+  /whatwg-fetch@3.6.2:
     resolution: {integrity: sha512-bJlen0FcuU/0EMLrdbJ7zOnW6ITZLrZMIarMUVmdKtsGvZna8vxKYaexICWPfZ8qwf9fzNq+UEIZrnSaApt6RA==}
     dev: false
