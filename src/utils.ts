@@ -134,7 +134,7 @@ function getFileLocations(
 
 export function fsReadFile(
   fileName: string,
-  encoding: BufferEncoding | undefined = 'utf8'
+  encoding: typescript.BufferEncoding | undefined = 'utf8'
 ) {
   fileName = path.normalize(fileName);
   try {
