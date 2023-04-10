@@ -132,6 +132,7 @@ function runTests(testName) {
     if (pathExists(path.join(testPath, 'pnpm-lock.yaml'))) {
         console.log('npm install -g pnpm into ' + testPath);
         execSync('npm install -g pnpm', { cwd: testPath, stdio: 'inherit' });
+        execSync('pnpm install', { cwd: testPath, stdio: 'inherit' });
     } else if (pathExists(path.join(testPath, 'package.json'))) {
         console.log('yarn install into ' + testPath);
         execSync('yarn install', { cwd: testPath, stdio: 'inherit' });
