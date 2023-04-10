@@ -1,12 +1,18 @@
 lockfileVersion: '6.0'
 
 dependencies:
+  '@types/jasmine':
+    specifier: ^2.5.35
+    version: 2.5.35
   '@types/react':
     specifier: 16.3.12
     version: 16.3.12
   '@types/react-dom':
     specifier: 16.0.5
     version: 16.0.5
+  jasmine-core:
+    specifier: ^2.3.4
+    version: 2.3.4
   react:
     specifier: 16.3.2
     version: 16.3.2
@@ -15,6 +21,10 @@ dependencies:
     version: 16.3.2(react@16.3.2)
 
 packages:
+
+  /@types/jasmine@2.5.35:
+    resolution: {integrity: sha512-DBseBO+tTFQY3yAC7QZNpH59TtwS7u93g6moA1NYWkGBGF1loOYA5uZ5R6wnA7nH6vj0kN1k1RcLo8uAGL5VfA==}
+    dev: false
 
   /@types/node@18.15.11:
     resolution: {integrity: sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==}
@@ -81,6 +91,10 @@ packages:
     dependencies:
       node-fetch: 1.7.3
       whatwg-fetch: 3.6.2
+    dev: false
+
+  /jasmine-core@2.3.4:
+    resolution: {integrity: sha512-aYZdnbyg7AZ5aqxyVn2fR8OAtm2SbnnQKOVIcQFowT3MpB5DiNsPLXHSzQMBOEL2+a9CvPp1/yY2Z4s4eg5YBw==}
     dev: false
 
   /js-tokens@4.0.0:
