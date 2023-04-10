@@ -16,7 +16,7 @@
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nvar b = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a);\nconsole.log(b);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nvar b = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a);\nconsole.log(b);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 

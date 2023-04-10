@@ -1,6 +1,6 @@
-asset bundle.js 2.59 KiB [emitted] (name: main)
-./app.ts 101 bytes [built] [code generated] [1 error]
-./fake.ts 165 bytes [built] [code generated]
+asset bundle.js 2.67 KiB [emitted] (name: main)
+./app.ts 137 bytes [built] [code generated] [1 error]
+./fake.ts 201 bytes [built] [code generated]
 
 ERROR in app.ts
 ./app.ts 1:29-34

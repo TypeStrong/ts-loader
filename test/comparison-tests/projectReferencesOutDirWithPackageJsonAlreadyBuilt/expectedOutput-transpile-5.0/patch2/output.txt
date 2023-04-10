@@ -1,6 +1,6 @@
-assets by status 2.76 KiB [cached] 1 asset
-asset lib/out/tsconfig.tsbuildinfo 1.22 KiB [emitted]
-cached modules 183 bytes [cached] 1 module
+assets by status 2.8 KiB [cached] 1 asset
+asset lib/out/tsconfig.tsbuildinfo 1.57 KiB [emitted]
+cached modules 219 bytes [cached] 1 module
 ./app.ts 205 bytes [built] [2 errors]
 
 ERROR in ./app.ts 6:2-3

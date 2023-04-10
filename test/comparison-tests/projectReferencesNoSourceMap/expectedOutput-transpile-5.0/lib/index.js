@@ -1,5 +1,5 @@
 "use strict";
-exports.__esModule = true;
+Object.defineProperty(exports, "__esModule", { value: true });
 exports.lib = void 0;
 var foo_1 = require("./foo");
 exports.lib = {

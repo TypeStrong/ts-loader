@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nexports.__esModule = true;\nvar lib_1 = __webpack_require__(/*! ./lib */
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nexports.__esModule = true;\nexports.helper = void 0;\nexports.helper = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4\n};\n\n\n//# sourceURL=webpack:///./lib/helper.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.helper = void 0;\nexports.helper = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4\n};\n\n\n//# sourceURL=webpack:///./lib/helper.ts?");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("\nexports.__esModule = true;\nexports.helper = void 0;\nexports.helper = {
   \**********************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nexports.__esModule = true;\nexports.lib = void 0;\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./lib/helper.ts\");\nexports.lib = {\n    one: helper_1.helper.one,\n    two: helper_1.helper.two,\n    three: helper_1.helper.three,\n    four: 4\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./lib/helper.ts\");\nexports.lib = {\n    one: helper_1.helper.one,\n    two: helper_1.helper.two,\n    three: helper_1.helper.three,\n    four: 4\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ })
 

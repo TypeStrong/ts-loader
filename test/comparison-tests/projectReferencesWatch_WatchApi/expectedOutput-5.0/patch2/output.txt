@@ -1,7 +1,7 @@
-asset bundle.js 2.67 KiB [emitted] (name: main)
-asset lib/tsconfig.tsbuildinfo 1.19 KiB [emitted]
-./app.ts 169 bytes [built] [code generated]
-./lib/index.ts 150 bytes [built] [2 errors]
+asset bundle.js 2.75 KiB [emitted] (name: main)
+asset lib/tsconfig.tsbuildinfo 1.53 KiB [emitted]
+./app.ts 205 bytes [built] [code generated]
+./lib/index.ts 186 bytes [built] [2 errors]
 
 ERROR in lib/index.ts
 ./lib/index.ts 6:2-3
