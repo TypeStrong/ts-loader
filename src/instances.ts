@@ -147,6 +147,11 @@ function successfulTypeScriptInstance(
   }
 
   const { configFilePath, configFile } = configFileAndPath;
+
+  if (configFilePath) {
+    loader.addBuildDependency(configFilePath);
+  }
+
   const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
   if (configFilePath && loaderOptions.projectReferences) {
     const configFileKey = filePathKeyMapper(configFilePath);
