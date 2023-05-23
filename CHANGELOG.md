@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.4.3
+* [Bug fix: add config file as build dependency](https://github.com/TypeStrong/ts-loader/pull/1611) - thanks @alexander-akait
+
 ## 9.4.2
 * [Bug fix: Use custom transformer when building solution references](https://github.com/TypeStrong/ts-loader/pull/1550) [#1025] - thanks @feosuna1
 
