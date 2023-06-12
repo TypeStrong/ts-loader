@@ -1,0 +1,24 @@
+asset bundle.js 662 bytes [emitted] (name: main)
+
+ERROR in main
+Module not found: Error: Can't resolve './src/app.ts' in '.test/esm_packageJsonType'
+resolve './src/app.ts' in '.test/esm_packageJsonType'
+  using description file: package.json (relative path: ./.test/esm_packageJsonType)
+    Field 'browser' doesn't contain a valid alias configuration
+    using description file: package.json (relative path: ./.test/esm_packageJsonType/src/app.ts)
+      no extension
+        Field 'browser' doesn't contain a valid alias configuration
+        src/app.ts doesn't exist
+      .js
+        Field 'browser' doesn't contain a valid alias configuration
+        src/app.ts.js doesn't exist
+      .json
+        Field 'browser' doesn't contain a valid alias configuration
+        src/app.ts.json doesn't exist
+      .wasm
+        Field 'browser' doesn't contain a valid alias configuration
+        src/app.ts.wasm doesn't exist
+      as directory
+        src/app.ts doesn't exist
+
+webpack compiled with 1 error
