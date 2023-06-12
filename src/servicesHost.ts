@@ -33,23 +33,21 @@ import {
   useCaseSensitiveFileNames,
 } from './utils';
 
-function makeResolversAndModuleResolutionHost(
-  scriptRegex: RegExp,
-  loader: webpack.LoaderContext<LoaderOptions>,
+export function makeModuleResolutionHost(
   instance: TSInstance,
-  fileExists: (fileName: string) => boolean,
-  enableFileCaching: boolean
-) {
-  const {
-    compiler,
-    compilerOptions,
-    appendTsTsxSuffixesIfRequired,
-    loaderOptions: {
-      resolveModuleName: customResolveModuleName,
-      resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
-    },
-  } = instance;
-
+  loader: webpack.LoaderContext<LoaderOptions>,
+  enableFileCaching: boolean,
+  fileExists?: (fileName: string) => boolean
+): ModuleResolutionHostMayBeCacheable {
+  const { files, otherFiles, compiler, compilerOptions, filePathKeyMapper } = instance;
+  fileExists ??= (fileName: string) => {
+    const filePathKey = filePathKeyMapper(fileName);
+    return (
+      files.has(filePathKey) ||
+      otherFiles.has(filePathKey) ||
+      compiler.sys.fileExists(fileName)
+    );
+  };
   const newLine =
     compilerOptions.newLine === constants.CarriageReturnLineFeedCode
       ? constants.CarriageReturnLineFeed
@@ -60,10 +58,7 @@ function makeResolversAndModuleResolutionHost(
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
 
-  // make a (sync) resolver that follows webpack's rules
-  const resolveSync = makeResolver(loader._compiler!.options);
-
-  const moduleResolutionHost: ModuleResolutionHostMayBeCacheable = {
+  const host: ModuleResolutionHostMayBeCacheable = {
     trace: logData => instance.log.log(logData),
     fileExists,
     readFile,
@@ -79,21 +74,12 @@ function makeResolversAndModuleResolutionHost(
     getDefaultLibFileName: options => compiler.getDefaultLibFilePath(options),
   };
 
+
   if (enableFileCaching) {
-    addCache(moduleResolutionHost);
+    addCache(host);
   }
 
-  return makeResolvers(
-    compiler,
-    compilerOptions,
-    moduleResolutionHost,
-    customResolveTypeReferenceDirective,
-    customResolveModuleName,
-    resolveSync,
-    appendTsTsxSuffixesIfRequired,
-    scriptRegex,
-    instance
-  );
+  return host;
 
   function readFile(
     filePath: string,
@@ -132,6 +118,42 @@ function makeResolversAndModuleResolutionHost(
       depth
     );
   }
+}
+
+function makeResolversAndModuleResolutionHost(
+  scriptRegex: RegExp,
+  loader: webpack.LoaderContext<LoaderOptions>,
+  instance: TSInstance,
+  fileExists: (fileName: string) => boolean,
+  enableFileCaching: boolean
+) {
+  const {
+    compiler,
+    compilerOptions,
+    appendTsTsxSuffixesIfRequired,
+    loaderOptions: {
+      resolveModuleName: customResolveModuleName,
+      resolveTypeReferenceDirective: customResolveTypeReferenceDirective,
+    },
+  } = instance;
+
+  
+
+  // make a (sync) resolver that follows webpack's rules
+  const resolveSync = makeResolver(loader._compiler!.options);
+  const moduleResolutionHost = makeModuleResolutionHost(instance, loader, enableFileCaching, fileExists);
+
+  return makeResolvers(
+    compiler,
+    compilerOptions,
+    moduleResolutionHost,
+    customResolveTypeReferenceDirective,
+    customResolveModuleName,
+    resolveSync,
+    appendTsTsxSuffixesIfRequired,
+    scriptRegex,
+    instance
+  );
 }
 
 /**

@@ -24,7 +24,9 @@ import {
   arrify,
   formatErrors,
   isReferencedFile,
+  toPath,
 } from './utils';
+import { makeModuleResolutionHost } from './servicesHost';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
@@ -147,6 +149,20 @@ function setModuleMeta(
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
     loaderContext._module!.buildMeta.tsLoaderFileVersion = fileVersion;
+    const path = toPath(loaderContext._module!.resource, instance.compiler, instance.loaderOptions);
+    // Either `instance.program` or `instance.languageService` is always available; see `initializeInstance`
+    const program = instance.program || instance.languageService!.getProgram()!;
+    const sourceFile = program.getSourceFileByPath(path);
+    const impliedNodeFormat = sourceFile
+      ? sourceFile.impliedNodeFormat
+      : instance.compiler.getImpliedNodeFormatForFile(
+          path,
+          instance.moduleResolutionCache?.getPackageJsonInfoCache(),
+          instance.moduleResolutionHost ??= makeModuleResolutionHost(instance, loaderContext, instance.loaderOptions.experimentalFileCaching),
+          instance.compilerOptions); 
+    if (impliedNodeFormat === /*ts.ModuleKind.ESNext*/ 99) {
+      loaderContext._module!.type = "javascript/esm";
+    }
   }
 }
 

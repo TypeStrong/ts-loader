@@ -174,6 +174,7 @@ export interface TSInstance {
   appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
   rootFileNames: Set<string>;
+  moduleResolutionHost?: typescript.ModuleResolutionHost,
   moduleResolutionCache?: ModuleResolutionCache;
   typeReferenceResolutionCache?: typescript.TypeReferenceDirectiveResolutionCache;
   /**

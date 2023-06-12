@@ -1,2 +1,3 @@
+import assert from "assert";
 import externalLib from "./lib/externalLib.js";
-console.log(externalLib);
+assert.deepStrictEqual(externalLib, { default: {} });

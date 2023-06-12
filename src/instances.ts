@@ -383,7 +383,7 @@ export function initializeInstance(
       instance.log.logInfo('Using watch api');
 
       // If there is api available for watch, use it instead of language service
-      instance.watchHost = makeWatchHost(
+      instance.watchHost = instance.moduleResolutionHost = makeWatchHost(
         getScriptRegexp(instance),
         loader,
         instance,
@@ -402,7 +402,7 @@ export function initializeInstance(
         getProgram
       );
     } else {
-      instance.servicesHost = makeServicesHost(
+      instance.servicesHost = instance.moduleResolutionHost = makeServicesHost(
         getScriptRegexp(instance),
         loader,
         instance,
@@ -516,7 +516,7 @@ export function buildSolutionReferences(
     // Use solution builder
     instance.log.logInfo('Using SolutionBuilder api');
     const scriptRegex = getScriptRegexp(instance);
-    instance.solutionBuilderHost = makeSolutionBuilderHost(
+    instance.solutionBuilderHost = instance.moduleResolutionHost = makeSolutionBuilderHost(
       scriptRegex,
       loader,
       instance

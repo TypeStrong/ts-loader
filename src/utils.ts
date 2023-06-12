@@ -350,3 +350,17 @@ export function useCaseSensitiveFileNames(
     ? loaderOptions.useCaseSensitiveFileNames
     : compiler.sys.useCaseSensitiveFileNames;
 }
+
+export function toPath(
+  absoluteFileName: string,
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions
+): typescript.Path {
+  if (!path.isAbsolute(absoluteFileName)) {
+    throw new Error(`Expected argument to 'toPath' to be an absolute filename. Received '${absoluteFileName}'.`);
+  }
+  if (useCaseSensitiveFileNames(compiler, loaderOptions)) {
+    return absoluteFileName as typescript.Path;
+  }
+  return absoluteFileName.toLowerCase() as typescript.Path;
+}

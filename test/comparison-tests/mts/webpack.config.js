@@ -1,8 +1,7 @@
-var path = require('path')
-
+/** @type {import("webpack").Configuration} */
 module.exports = {
     mode: 'development',
-    entry: './app.ts',
+    entry: './app.mts',
     output: {
         filename: 'bundle.js'
     },
@@ -10,7 +9,8 @@ module.exports = {
         rules: [
             { test: /\.[cm]?ts$/, loader: 'ts-loader' }
         ]
+    },
+    externals: {
+      assert: 'commonjs assert'
     }
 }
-
-
