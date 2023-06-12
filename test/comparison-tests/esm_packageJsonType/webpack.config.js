@@ -1,7 +1,7 @@
 /** @type {import("webpack").Configuration} */
 module.exports = {
     mode: 'development',
-    entry: './app.ts',
+    entry: './src/app.ts',
     output: {
         filename: 'bundle.js'
     },
