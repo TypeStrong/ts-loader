@@ -1,6 +1,6 @@
-asset bundle.js 3.65 KiB [emitted] (name: main)
-asset unreferencedIndirect/tsconfig.tsbuildinfo 1.5 KiB [emitted]
-asset unreferencedIndirect/index.js 261 bytes [emitted]
-cached modules 529 bytes [cached] 3 modules
-./app.ts 223 bytes [built] [code generated]
+asset bundle.js A-NUMBER-OF KiB [emitted] (name: main)
+asset unreferencedIndirect/tsconfig.tsbuildinfo A-NUMBER-OF KiB [emitted]
+asset unreferencedIndirect/index.js A-NUMBER-OF bytes [emitted]
+cached modules A-NUMBER-OF bytes [cached] 3 modules
+./app.ts A-NUMBER-OF bytes [built] [code generated]
 webpack compiled successfully

@@ -1,8 +1,8 @@
-asset bundle.js 2.68 KiB [emitted] (name: main)
-asset lib/out/tsconfig.tsbuildinfo 1.55 KiB [compared for emit]
-asset lib/out/index.js.map 191 bytes [compared for emit]
-asset lib/out/index.js 188 bytes [compared for emit]
-asset lib/out/index.d.ts 84 bytes [compared for emit]
-./app.ts 167 bytes [built] [code generated]
-./lib/index.ts 155 bytes [built] [code generated]
+asset bundle.js A-NUMBER-OF KiB [emitted] (name: main)
+asset lib/out/tsconfig.tsbuildinfo A-NUMBER-OF KiB [compared for emit]
+asset lib/out/index.js.map A-NUMBER-OF bytes [compared for emit]
+asset lib/out/index.js A-NUMBER-OF bytes [compared for emit]
+asset lib/out/index.d.ts A-NUMBER-OF bytes [compared for emit]
+./app.ts A-NUMBER-OF bytes [built] [code generated]
+./lib/index.ts A-NUMBER-OF bytes [built] [code generated]
 webpack compiled successfully

@@ -290,15 +290,10 @@ function compareFiles(paths, test, patch) {
             if (!allFiles.hasOwnProperty(file)) {
                 fs.removeSync(path.join(paths.originalExpectedOutput, file));
             }
-         });
+        });
         Object.keys(allFiles).forEach(function (file) {
             const actual = getNormalisedFileContent(file, paths.actualOutput);
-            const expected = getNormalisedFileContent(file, paths.expectedOutput);
-
-            // I believe we always want to copy this
-            // if (actual !== expected) {
-                fs.copySync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
-            // }
+            fs.writeFileSync(path.join(paths.originalExpectedOutput, file), actual);
         });
     }
     else {

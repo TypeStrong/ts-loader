@@ -2,75 +2,96 @@
  * ATTENTION: The "eval" devtool has been used (maybe by default in mode: "development").
  * This devtool is neither made for production nor for readable output files.
  * It uses "eval()" calls to create a separate source file in the browser devtools.
- * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * If you are trying to read the output file, select a different devtool (https:/webpack.js.org/configuration/devtool/)
  * or disable the default devtool with "devtool: false".
- * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ * If you are looking for production-ready output files, see mode: "production" (https:/webpack.js.org/configuration/mode/).
  */
-/******/ (() => { // webpackBootstrap
+/******/ (() => { / webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
-
 /***/ "./component.vue":
-/*!***********************!*\
+/*!**********!*/
   !*** ./component.vue ***!
-  \***********************/
+  /**********/
 /***/ ((__unused_webpack_module, exports) => {
-
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = {\n    data: function () {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//# sourceURL=webpack:///./component.vue?");
-
+eval("
+Object.defineProperty(exports, /"__esModule/", ({ value: true }));
+exports[/"default/"] = {
+    data: function () {
+        return {
+            msg: /"component/"
+        };
+    }
+};
+/# sourceURL=webpack://./component.vue?");
 /***/ }),
-
 /***/ "./helper.ts":
-/*!*******************!*\
+/*!**********!*/
   !*** ./helper.ts ***!
-  \*******************/
+  /**********/
 /***/ ((__unused_webpack_module, exports) => {
-
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.myMethod = void 0;\nfunction myMethod() {\n    console.log('from helper!');\n}\nexports.myMethod = myMethod;\n\n\n//# sourceURL=webpack:///./helper.ts?");
-
+eval("
+Object.defineProperty(exports, /"__esModule/", ({ value: true }));
+exports.myMethod = void 0;
+function myMethod() {
+    console.log('from helper!');
+}
+exports.myMethod = myMethod;
+/# sourceURL=webpack://./helper.ts?");
 /***/ }),
-
 /***/ "./index.vue":
-/*!*******************!*\
+/*!**********!*/
   !*** ./index.vue ***!
-  \*******************/
+  /**********/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports[\"default\"] = {\n    components: { component: component_vue_1.default },\n    data: function () {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//# sourceURL=webpack:///./index.vue?");
-
+eval("
+Object.defineProperty(exports, /"__esModule/", ({ value: true }));
+var component_vue_1 = __webpack_require__(/*! ./component.vue */ /"./component.vue/");
+var helper_1 = __webpack_require__(/*! ./helper */ /"./helper.ts/");
+exports[/"default/"] = {
+    components: { component: component_vue_1.default },
+    data: function () {
+        return {
+            msg: /"world/"
+        };
+    },
+    method: {
+        myMethod: helper_1.myMethod
+    }
+};
+/# sourceURL=webpack://./index.vue?");
 /***/ })
-
 /******/ 	});
-/************************************************************************/
-/******/ 	// The module cache
+/**********/
+/******/ 	/ The module cache
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
-/******/ 	// The require function
+/******/ 	/ The require function
 /******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
+/******/ 		/ Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
 /******/ 			return cachedModule.exports;
 /******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
+/******/ 		/ Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
+/******/ 			/ no module.id needed
+/******/ 			/ no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
-/******/ 		// Execute the module function
+/******/ 		/ Execute the module function
 /******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
 /******/ 	
-/******/ 		// Return the exports of the module
+/******/ 		/ Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
-/************************************************************************/
+/**********/
 /******/ 	
-/******/ 	// startup
-/******/ 	// Load entry module and return exports
-/******/ 	// This entry module can't be inlined because the eval devtool is used.
+/******/ 	/ startup
+/******/ 	/ Load entry module and return exports
+/******/ 	/ This entry module can't be inlined because the eval devtool is used.
 /******/ 	var __webpack_exports__ = __webpack_require__("./index.vue");
 /******/ 	
 /******/ })()

@@ -7,4 +7,4 @@ exports.lib = {
     two: helper_1.helper.two,
     three: helper_1.helper.three
 };
-//# sourceMappingURL=index.js.map
+/# sourceMappingURL=index.js.map

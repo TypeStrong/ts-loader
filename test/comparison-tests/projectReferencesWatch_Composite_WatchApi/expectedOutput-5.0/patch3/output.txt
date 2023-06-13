@@ -1,10 +1,9 @@
-assets by path lib/ 2.07 KiB
-  asset lib/tsconfig.tsbuildinfo 1.52 KiB [emitted]
-  asset lib/index.js.map 228 bytes [emitted]
-  asset lib/index.js 215 bytes [emitted]
-  asset lib/index.d.ts 120 bytes [emitted]
-asset bundle.js 2.74 KiB [emitted] (name: main)
-asset tsconfig.tsbuildinfo 1.03 KiB [emitted]
-./app.ts 205 bytes [built] [code generated]
-./lib/index.ts 182 bytes [built] [code generated]
+assets by path lib/ A-NUMBER-OF KiB asset lib/tsconfig.tsbuildinfo A-NUMBER-OF KiB [emitted]
+  asset lib/index.js.map A-NUMBER-OF bytes [emitted]
+  asset lib/index.js A-NUMBER-OF bytes [emitted]
+  asset lib/index.d.ts A-NUMBER-OF bytes [emitted]
+asset bundle.js A-NUMBER-OF KiB [emitted] (name: main)
+asset tsconfig.tsbuildinfo A-NUMBER-OF KiB [emitted]
+./app.ts A-NUMBER-OF bytes [built] [code generated]
+./lib/index.ts A-NUMBER-OF bytes [built] [code generated]
 webpack compiled successfully

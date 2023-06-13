@@ -8,4 +8,4 @@ exports.lib = {
     three: helper_1.helper.three,
     four: 4
 };
-//# sourceMappingURL=index.js.map
+/# sourceMappingURL=index.js.map

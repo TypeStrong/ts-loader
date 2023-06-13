@@ -1,6 +1,6 @@
-asset bundle.js 3.62 KiB [emitted] (name: main)
-asset .output/app.d.ts 110 bytes [emitted]
-asset .output/sub/dep.d.ts 63 bytes [emitted]
-./app.ts 1.06 KiB [built] [code generated]
-./sub/dep.ts 182 bytes [built] [code generated]
+asset bundle.js A-NUMBER-OF KiB [emitted] (name: main)
+asset .output/app.d.ts A-NUMBER-OF bytes [emitted]
+asset .output/sub/dep.d.ts A-NUMBER-OF bytes [emitted]
+./app.ts A-NUMBER-OF KiB [built] [code generated]
+./sub/dep.ts A-NUMBER-OF bytes [built] [code generated]
 webpack compiled successfully

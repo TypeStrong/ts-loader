@@ -8,4 +8,4 @@ exports.lib = {
     four: 4,
     five: 5,
 };
-//# sourceMappingURL=index.js.map
+/# sourceMappingURL=index.js.map
