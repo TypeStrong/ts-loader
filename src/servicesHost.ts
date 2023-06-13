@@ -58,7 +58,7 @@ export function makeModuleResolutionHost(
   // loader.context seems to work fine on Linux / Mac regardless causes problems for @types resolution on Windows for TypeScript < 2.3
   const getCurrentDirectory = () => loader.context;
 
-  const host: ModuleResolutionHostMayBeCacheable = {
+  const moduleResolutionHost: ModuleResolutionHostMayBeCacheable = {
     trace: logData => instance.log.log(logData),
     fileExists,
     readFile,
@@ -76,10 +76,20 @@ export function makeModuleResolutionHost(
 
 
   if (enableFileCaching) {
-    addCache(host);
+    addCache(moduleResolutionHost);
   }
 
-  return host;
+
+  if (!instance.moduleResolutionCache && !instance.loaderOptions.resolveModuleName) {
+    instance.moduleResolutionCache = createModuleResolutionCache(
+      instance,
+      moduleResolutionHost
+    );
+  }
+
+  instance.moduleResolutionHost = moduleResolutionHost;
+
+  return moduleResolutionHost;
 
   function readFile(
     filePath: string,
@@ -790,7 +800,7 @@ export function makeSolutionBuilderHost(
   );
 
   // Keeps track of the various `typescript.CustomTransformers` for each program that is created.
-  const customTransformers = new Map<string, typescript.CustomTransformers>();
+  const customTransformers = new Map<string, typescript.CustomTransformers | undefined>();
 
   // let lastBuilderProgram: typescript.CreateProgram | undefined = undefined;
   const solutionBuilderHost: SolutionBuilderWithWatchHost = {
@@ -824,7 +834,7 @@ export function makeSolutionBuilderHost(
         if (typeof project === "string") {
           // Custom transformers need a reference to the `typescript.Program`, that reference is
           // unavailable during the the `getCustomTransformers` callback below.
-          const transformers = getCustomTransformers(instance.loaderOptions, result.getProgram(), result.getProgram);
+          const transformers = getCustomTransformers(instance, loader, result.getProgram(), result.getProgram);
           customTransformers.set(project, transformers);
         }
       }
@@ -1357,12 +1367,6 @@ function makeResolveModuleName(
   instance: TSInstance
 ): ResolveModuleName {
   if (customResolveModuleName === undefined) {
-    if (!instance.moduleResolutionCache) {
-      instance.moduleResolutionCache = createModuleResolutionCache(
-        instance,
-        moduleResolutionHost
-      );
-    }
     return (
       moduleName,
       containingFileName,

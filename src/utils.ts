@@ -17,6 +17,7 @@ import {
   TSInstance,
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
+import { makeModuleResolutionHost } from './servicesHost';
 /**
  * The default error formatter.
  */
@@ -363,4 +364,25 @@ export function toPath(
     return absoluteFileName as typescript.Path;
   }
   return absoluteFileName.toLowerCase() as typescript.Path;
+}
+
+export function getImpliedNodeFormat(fileName: string, instance: TSInstance, loaderContext: webpack.LoaderContext<LoaderOptions>) {
+  const file = instance.files.get(instance.filePathKeyMapper(fileName));
+  if (file && file.impliedNodeFormat !== undefined) {
+    return file.impliedNodeFormat || undefined;
+  }
+  const path = toPath(fileName, instance.compiler, instance.loaderOptions);
+  const program = instance.program || instance.languageService!.getProgram()!;
+  const sourceFile = program.getSourceFileByPath(path);
+  const impliedNodeFormat = sourceFile
+    ? sourceFile.impliedNodeFormat
+    : instance.compiler.getImpliedNodeFormatForFile(
+      path,
+      instance.moduleResolutionCache?.getPackageJsonInfoCache(),
+      instance.moduleResolutionHost ??= makeModuleResolutionHost(instance, loaderContext, instance.loaderOptions.experimentalFileCaching),
+      instance.compilerOptions);
+  if (file) {
+    file.impliedNodeFormat = impliedNodeFormat ?? false;
+  }
+  return impliedNodeFormat;
 }

@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
-		"module": "nodenext"
+		"module": "nodenext",
+    "sourceMap": true,
 	},
 }

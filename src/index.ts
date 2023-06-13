@@ -23,10 +23,9 @@ import {
   appendSuffixesIfMatch,
   arrify,
   formatErrors,
+  getImpliedNodeFormat,
   isReferencedFile,
-  toPath,
 } from './utils';
-import { makeModuleResolutionHost } from './servicesHost';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
@@ -149,22 +148,14 @@ function setModuleMeta(
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
     loaderContext._module!.buildMeta.tsLoaderFileVersion = fileVersion;
-    const path = toPath(loaderContext._module!.resource, instance.compiler, instance.loaderOptions);
     // Either `instance.program` or `instance.languageService` is always available; see `initializeInstance`
-    const program = instance.program || instance.languageService!.getProgram()!;
-    const sourceFile = program.getSourceFileByPath(path);
-    const impliedNodeFormat = sourceFile
-      ? sourceFile.impliedNodeFormat
-      : instance.compiler.getImpliedNodeFormatForFile(
-          path,
-          instance.moduleResolutionCache?.getPackageJsonInfoCache(),
-          instance.moduleResolutionHost ??= makeModuleResolutionHost(instance, loaderContext, instance.loaderOptions.experimentalFileCaching),
-          instance.compilerOptions); 
+    const impliedNodeFormat = getImpliedNodeFormat(loaderContext._module!.resource, instance, loaderContext); 
     if (impliedNodeFormat === /*ts.ModuleKind.ESNext*/ 99) {
       loaderContext._module!.type = "javascript/esm";
     }
   }
 }
+
 
 /**
  * Get a unique hash based on the contents of the options
@@ -631,7 +622,7 @@ function getTranspilationEmit(
       compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
       transformers: instance.transformers,
       reportDiagnostics: true,
-      fileName,
+      fileName, 
     });
   const module = loaderContext._module;
 

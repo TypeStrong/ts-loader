@@ -37,7 +37,7 @@ module.exports = require("assert");
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var assert__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! assert */ \"assert\");\n/* harmony import */ var _lib_externalLib_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./lib/externalLib.js */ \"./lib/externalLib.js\");\n\n\nassert__WEBPACK_IMPORTED_MODULE_0__.deepStrictEqual(_lib_externalLib_js__WEBPACK_IMPORTED_MODULE_1__, { default: {} });\n\n\n//# sourceURL=webpack:///./app.mts?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var assert__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! assert */ \"assert\");\n/* harmony import */ var _lib_externalLib_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./lib/externalLib.js */ \"./lib/externalLib.js\");\n\n\nassert__WEBPACK_IMPORTED_MODULE_0__.deepStrictEqual(_lib_externalLib_js__WEBPACK_IMPORTED_MODULE_1__, { default: {} });\nconsole.log(\"PASS\");\n\n\n//# sourceURL=webpack:///./app.mts?");
 
 /***/ })
 

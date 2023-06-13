@@ -26,6 +26,7 @@ import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
+  getImpliedNodeFormat,
   isReferencedFile,
   makeError,
   supportsSolutionBuild,
@@ -363,7 +364,7 @@ export function initializeInstance(
         : instance.compiler.createProgram([], instance.compilerOptions));
 
     const getProgram = () => program;
-    instance.transformers = getCustomTransformers(instance.loaderOptions, program, getProgram);
+    instance.transformers = getCustomTransformers(instance, loader, program, getProgram);
     // Setup watch run for solution building
     if (instance.solutionBuilderHost) {
       addAssetHooks(loader, instance);
@@ -383,7 +384,7 @@ export function initializeInstance(
       instance.log.logInfo('Using watch api');
 
       // If there is api available for watch, use it instead of language service
-      instance.watchHost = instance.moduleResolutionHost = makeWatchHost(
+      instance.watchHost = makeWatchHost(
         getScriptRegexp(instance),
         loader,
         instance,
@@ -394,15 +395,16 @@ export function initializeInstance(
       instance.builderProgram =
         instance.watchOfFilesAndCompilerOptions.getProgram();
 
-      const getProgram = () => instance.builderProgram?.getProgram();
+      const getProgram = () => instance.builderProgram!.getProgram();
       instance.program = getProgram();
       instance.transformers = getCustomTransformers(
-        instance.loaderOptions,
-        instance.program,
+        instance,
+        loader,
+        instance.program!,
         getProgram
       );
     } else {
-      instance.servicesHost = instance.moduleResolutionHost = makeServicesHost(
+      instance.servicesHost = makeServicesHost(
         getScriptRegexp(instance),
         loader,
         instance,
@@ -414,8 +416,8 @@ export function initializeInstance(
         instance.compiler.createDocumentRegistry()
       );
 
-      const getProgram = () => instance.languageService!.getProgram();
-      instance.transformers = getCustomTransformers(instance.loaderOptions, getProgram(), getProgram);
+      const getProgram = () => instance.languageService!.getProgram()!;
+      instance.transformers = getCustomTransformers(instance, loader, getProgram(), getProgram);
     }
 
     addAssetHooks(loader, instance);
@@ -427,14 +429,25 @@ export function initializeInstance(
   }
 }
 
+function getSetImpliedNodeFormatTransformer(instance: TSInstance, loaderContext: webpack.LoaderContext<LoaderOptions>) {
+  return (): typescript.Transformer<typescript.SourceFile> => {
+    return (sourceFile) => {
+      sourceFile.impliedNodeFormat = getImpliedNodeFormat(sourceFile.fileName, instance, loaderContext);
+      return sourceFile;
+    }
+  }
+}
+
 export function getCustomTransformers(
-  loaderOptions: LoaderOptions,
-  program: typescript.Program | undefined,
-  getProgram: (() => typescript.Program | undefined) | undefined
+  instance: TSInstance,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  program: typescript.Program,
+  getProgram: (() => typescript.Program)
 ) {
   // same strategy as https://github.com/s-panferov/awesome-typescript-loader/pull/531/files
+  const { loaderOptions } = instance;
   let { getCustomTransformers: customerTransformers } = loaderOptions;
-  let getCustomTransformers = Function.prototype;
+  let getCustomTransformers;
 
   if (typeof customerTransformers === 'function') {
     getCustomTransformers = customerTransformers;
@@ -459,7 +472,14 @@ export function getCustomTransformers(
     getCustomTransformers = customerTransformers;
   }
 
-  return getCustomTransformers(program, getProgram);
+  let transformers = getCustomTransformers?.(program, getProgram);
+  if (loaderOptions.transpileOnly) {
+    (transformers ??= {}).before = [
+      getSetImpliedNodeFormatTransformer(instance, loaderContext),
+      ...(transformers?.before ?? []),
+    ];
+  }
+  return transformers;
 }
 
 function getScriptRegexp(instance: TSInstance) {
@@ -516,7 +536,7 @@ export function buildSolutionReferences(
     // Use solution builder
     instance.log.logInfo('Using SolutionBuilder api');
     const scriptRegex = getScriptRegexp(instance);
-    instance.solutionBuilderHost = instance.moduleResolutionHost = makeSolutionBuilderHost(
+    instance.solutionBuilderHost = makeSolutionBuilderHost(
       scriptRegex,
       loader,
       instance
