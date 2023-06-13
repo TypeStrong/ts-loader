@@ -429,10 +429,10 @@ export function initializeInstance(
   }
 }
 
-function getSetImpliedNodeFormatTransformer(instance: TSInstance, loaderContext: webpack.LoaderContext<LoaderOptions>) {
+function getSetImpliedNodeFormatTransformer(instance: TSInstance, loaderContext: webpack.LoaderContext<LoaderOptions>, getProgram: () => typescript.Program) {
   return (): typescript.Transformer<typescript.SourceFile> => {
     return (sourceFile) => {
-      sourceFile.impliedNodeFormat = getImpliedNodeFormat(sourceFile.fileName, instance, loaderContext);
+      sourceFile.impliedNodeFormat = getImpliedNodeFormat(sourceFile.fileName, instance, loaderContext, getProgram());
       return sourceFile;
     }
   }
@@ -475,7 +475,7 @@ export function getCustomTransformers(
   let transformers = getCustomTransformers?.(program, getProgram);
   if (loaderOptions.transpileOnly) {
     (transformers ??= {}).before = [
-      getSetImpliedNodeFormatTransformer(instance, loaderContext),
+      getSetImpliedNodeFormatTransformer(instance, loaderContext, getProgram),
       ...(transformers?.before ?? []),
     ];
   }

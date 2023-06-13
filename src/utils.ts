@@ -366,14 +366,13 @@ export function toPath(
   return absoluteFileName.toLowerCase() as typescript.Path;
 }
 
-export function getImpliedNodeFormat(fileName: string, instance: TSInstance, loaderContext: webpack.LoaderContext<LoaderOptions>) {
+export function getImpliedNodeFormat(fileName: string, instance: TSInstance, loaderContext: webpack.LoaderContext<LoaderOptions>, program?: typescript.Program) {
   const file = instance.files.get(instance.filePathKeyMapper(fileName));
   if (file && file.impliedNodeFormat !== undefined) {
     return file.impliedNodeFormat || undefined;
   }
   const path = toPath(fileName, instance.compiler, instance.loaderOptions);
-  const program = instance.program || instance.languageService!.getProgram()!;
-  const sourceFile = program.getSourceFileByPath(path);
+  const sourceFile = program?.getSourceFileByPath(path);
   const impliedNodeFormat = sourceFile
     ? sourceFile.impliedNodeFormat
     : instance.compiler.getImpliedNodeFormatForFile(

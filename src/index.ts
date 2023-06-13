@@ -148,8 +148,12 @@ function setModuleMeta(
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
     loaderContext._module!.buildMeta.tsLoaderFileVersion = fileVersion;
-    // Either `instance.program` or `instance.languageService` is always available; see `initializeInstance`
-    const impliedNodeFormat = getImpliedNodeFormat(loaderContext._module!.resource, instance, loaderContext); 
+    const impliedNodeFormat = getImpliedNodeFormat(
+      loaderContext._module!.resource,
+      instance,
+      loaderContext,
+      instance.program || instance.languageService?.getProgram() || instance.builderProgram?.getProgram()
+    ); 
     if (impliedNodeFormat === /*ts.ModuleKind.ESNext*/ 99) {
       loaderContext._module!.type = "javascript/esm";
     }
