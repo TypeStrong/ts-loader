@@ -149,7 +149,7 @@ function setModuleMeta(
     // treated as new
     loaderContext._module!.buildMeta.tsLoaderFileVersion = fileVersion;
     const impliedNodeFormat = getImpliedNodeFormat(
-      loaderContext._module!.resource,
+      path.normalize(loaderContext.resourcePath),
       instance,
       loaderContext,
       instance.program || instance.languageService?.getProgram() || instance.builderProgram?.getProgram()
