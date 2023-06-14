@@ -23,6 +23,7 @@ import {
   appendSuffixesIfMatch,
   arrify,
   formatErrors,
+  getImpliedNodeFormat,
   isReferencedFile,
 } from './utils';
 
@@ -147,8 +148,18 @@ function setModuleMeta(
     // a previously cached version the TypeScript may be different and therefore should be
     // treated as new
     loaderContext._module!.buildMeta.tsLoaderFileVersion = fileVersion;
+    const impliedNodeFormat = getImpliedNodeFormat(
+      path.normalize(loaderContext.resourcePath),
+      instance,
+      loaderContext,
+      instance.program || instance.languageService?.getProgram() || instance.builderProgram?.getProgram()
+    ); 
+    if (impliedNodeFormat === /*ts.ModuleKind.ESNext*/ 99) {
+      loaderContext._module!.type = "javascript/esm";
+    }
   }
 }
+
 
 /**
  * Get a unique hash based on the contents of the options
@@ -615,7 +626,7 @@ function getTranspilationEmit(
       compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
       transformers: instance.transformers,
       reportDiagnostics: true,
-      fileName,
+      fileName, 
     });
   const module = loaderContext._module;
 

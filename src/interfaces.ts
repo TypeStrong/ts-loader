@@ -174,6 +174,7 @@ export interface TSInstance {
   appendTsTsxSuffixesIfRequired: (filePath: string) => string;
   loaderOptions: LoaderOptions;
   rootFileNames: Set<string>;
+  moduleResolutionHost?: typescript.ModuleResolutionHost,
   moduleResolutionCache?: ModuleResolutionCache;
   typeReferenceResolutionCache?: typescript.TypeReferenceDirectiveResolutionCache;
   /**
@@ -195,7 +196,7 @@ export interface TSInstance {
   version: number;
   dependencyGraph: DependencyGraph;
   filesWithErrors?: TSFiles;
-  transformers: typescript.CustomTransformers;
+  transformers: typescript.CustomTransformers | undefined;
   colors: Chalk;
 
   otherFiles: TSFiles;
@@ -295,6 +296,8 @@ export interface TSFile {
     project?: typescript.ResolvedProjectReference;
     outputFileName?: string;
   };
+  /** false implies a cached value of `undefined` */
+  impliedNodeFormat?: typescript.ModuleKind.CommonJS | typescript.ModuleKind.ESNext | false;
 }
 
 /** where key is filepath */

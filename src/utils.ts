@@ -17,6 +17,7 @@ import {
   TSInstance,
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
+import { makeModuleResolutionHost } from './servicesHost';
 /**
  * The default error formatter.
  */
@@ -349,4 +350,38 @@ export function useCaseSensitiveFileNames(
   return loaderOptions.useCaseSensitiveFileNames !== undefined
     ? loaderOptions.useCaseSensitiveFileNames
     : compiler.sys.useCaseSensitiveFileNames;
+}
+
+export function toPath(
+  absoluteFileName: string,
+  compiler: typeof typescript,
+  loaderOptions: LoaderOptions
+): typescript.Path {
+  if (!path.isAbsolute(absoluteFileName)) {
+    throw new Error(`Expected argument to 'toPath' to be an absolute filename. Received '${absoluteFileName}'.`);
+  }
+  if (useCaseSensitiveFileNames(compiler, loaderOptions)) {
+    return absoluteFileName as typescript.Path;
+  }
+  return absoluteFileName.toLowerCase() as typescript.Path;
+}
+
+export function getImpliedNodeFormat(fileName: string, instance: TSInstance, loaderContext: webpack.LoaderContext<LoaderOptions>, program?: typescript.Program) {
+  const file = instance.files.get(instance.filePathKeyMapper(fileName));
+  if (file && file.impliedNodeFormat !== undefined) {
+    return file.impliedNodeFormat || undefined;
+  }
+  const path = toPath(fileName, instance.compiler, instance.loaderOptions);
+  const sourceFile = program?.getSourceFileByPath(path);
+  const impliedNodeFormat = sourceFile
+    ? sourceFile.impliedNodeFormat
+    : instance.compiler.getImpliedNodeFormatForFile(
+      path,
+      instance.moduleResolutionCache?.getPackageJsonInfoCache(),
+      instance.moduleResolutionHost ??= makeModuleResolutionHost(instance, loaderContext, instance.loaderOptions.experimentalFileCaching),
+      instance.compilerOptions);
+  if (file) {
+    file.impliedNodeFormat = impliedNodeFormat ?? false;
+  }
+  return impliedNodeFormat;
 }
