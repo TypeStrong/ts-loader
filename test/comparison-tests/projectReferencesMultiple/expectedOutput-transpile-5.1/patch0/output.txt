@@ -12,7 +12,7 @@ assets by status 5.16 KiB [emitted]
 ./lib/index.ts 155 bytes [built] [code generated]
 ./utils/index.ts 39 bytes [built] [1 error]
 
-ERROR in ./app.ts 2:4-17
+ERROR in ./app.ts 2:4-10
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError/fileWithError.ts(2,5)[39m[22m
 [1m[31m      TS2322: Type 'boolean' is not assignable to type 'string'.[39m[22m
 ts-loader-default_8f3b13c212135902
