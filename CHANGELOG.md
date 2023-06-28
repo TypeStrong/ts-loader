@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.4.4
+* [Bug fix: let users override skipLibCheck](https://github.com/TypeStrong/ts-loader/pull/1617) - thanks @haakonflatval-cognite
+
 ## 9.4.3
 * [Bug fix: add config file as build dependency](https://github.com/TypeStrong/ts-loader/pull/1611) - thanks @alexander-akait
 

@@ -55,10 +55,15 @@ export function getCompilerOptions(
   configParseResult: typescript.ParsedCommandLine,
   compiler: typeof typescript
 ) {
-  const compilerOptions = Object.assign({}, configParseResult.options, {
-    skipLibCheck: true,
-    suppressOutputPathCheck: true, // This is why: https://github.com/Microsoft/TypeScript/issues/7363
-  } as typescript.CompilerOptions);
+  const defaultOptions = { skipLibCheck: true };
+
+  const compilerOptions = Object.assign(
+    defaultOptions,
+    configParseResult.options,
+    {
+      suppressOutputPathCheck: true, // This is why: https://github.com/Microsoft/TypeScript/issues/7363
+    } as typescript.CompilerOptions
+  );
 
   // if `module` is not specified and not using ES6+ target, default to CJS module output
   if (
