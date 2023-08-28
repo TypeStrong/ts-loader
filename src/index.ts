@@ -25,14 +25,22 @@ import {
   formatErrors,
   isReferencedFile,
 } from './utils';
-import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
+import {
+  RawSourceMap,
+  SourceMapConsumer,
+  SourceMapGenerator,
+} from 'source-map';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
 /**
  * The entry point for ts-loader
  */
-function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string, inputSourceMap?: Record<string, any>) {
+function loader(
+  this: webpack.LoaderContext<LoaderOptions>,
+  contents: string,
+  inputSourceMap?: Record<string, any>
+) {
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
