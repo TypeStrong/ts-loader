@@ -103,7 +103,7 @@ function successLoader(
   );
 }
 
-async function makeSourceMapAndFinish(
+function makeSourceMapAndFinish(
   sourceMapText: string | undefined,
   outputText: string | undefined,
   filePath: string,
@@ -143,10 +143,23 @@ async function makeSourceMapAndFinish(
     loaderContext
   );
 
-  const mappedSourceMap = await mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap);
-
   setModuleMeta(loaderContext, instance, fileVersion);
-  callback(null, output, mappedSourceMap);
+
+  // if we don't have an input source map, we only need to return the newly generated source map
+  // this avoids that we have to make a possibly expensive call to the source-map lib
+  if (inputSourceMap === undefined) {
+    callback(null, output, sourceMap);
+    return;
+  }
+
+  // otherwise we have to make a mapping to the input source map which is asynchronous
+  mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap)
+    .then((mappedSourceMap: RawSourceMap) => {
+      callback(null, output, mappedSourceMap);
+    })
+    .catch((e: Error) => {
+      callback(e);
+    });
 }
 
 function setModuleMeta(
@@ -682,24 +695,31 @@ function makeSourceMap(
  * This is required when ts-loader is not the first loader in the Webpack loader chain.
  * If the input source map is not set, then the newly generated source map is returned.
  */
-async function mapToInputSourceMap(
+function mapToInputSourceMap(
   sourceMap: RawSourceMap,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  inputSourceMap?: Record<string, any>
+  inputSourceMap: Record<string, any>
 ): Promise<RawSourceMap> {
-  // if we don't have an input source map, we only need to return the newly generated source map
-  // this avoids that we have to make a possibly expensive call to the source-map lib
-  if(inputSourceMap === undefined) {
-    return sourceMap;
-  }
-
-  const inMap = inputSourceMap as RawSourceMap;
-  inMap.file = loaderContext.remainingRequest;
-  const sm1 = await new SourceMapConsumer(inMap);
-  const sm2 = await new SourceMapConsumer(sourceMap);
-  const generator = SourceMapGenerator.fromSourceMap(sm2);
-  generator.applySourceMap(sm1);
-  return generator.toJSON();
+  return new Promise<RawSourceMap>((resolve, reject) => {
+    const inMap = inputSourceMap as RawSourceMap;
+    inMap.file = loaderContext.remainingRequest;
+    Promise.all([
+      new SourceMapConsumer(inMap),
+      new SourceMapConsumer(sourceMap),
+    ])
+      .then(sourceMapConsumers => {
+        try {
+          const generator = SourceMapGenerator.fromSourceMap(
+            sourceMapConsumers[1]
+          );
+          generator.applySourceMap(sourceMapConsumers[0]);
+          resolve(generator.toJSON());
+        } catch (e) {
+          reject(e);
+        }
+      })
+      .catch(reject);
+  });
 }
 
 export = loader;
