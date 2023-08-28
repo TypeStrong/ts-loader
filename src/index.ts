@@ -47,7 +47,7 @@ function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string, in
   successLoader(this, contents, callback, instance, inputSourceMap);
 }
 
-async function successLoader(
+function successLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
@@ -80,7 +80,9 @@ async function successLoader(
     ? getTranspilationEmit(filePath, contents, instance, loaderContext)
     : getEmit(rawFilePath, filePath, instance, loaderContext);
 
-  await makeSourceMapAndFinish(
+  // the following function is async, which means it will immediately return and run in the "background"
+  // Webpack will be notified when it's finished when the function calls the `callback` method
+  makeSourceMapAndFinish(
     sourceMapText,
     outputText,
     filePath,
@@ -677,6 +679,8 @@ async function mapToInputSourceMap(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   inputSourceMap?: Record<string, any>
 ): Promise<RawSourceMap> {
+  // if we don't have an input source map, we only need to return the newly generated source map
+  // this avoids that we have to make a possibly expensive call to the source-map lib
   if(inputSourceMap === undefined) {
     return sourceMap;
   }
