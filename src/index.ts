@@ -713,8 +713,18 @@ function mapToInputSourceMap(
             sourceMapConsumers[1]
           );
           generator.applySourceMap(sourceMapConsumers[0]);
-          resolve(generator.toJSON());
+          const mappedSourceMap = generator.toJSON();
+
+          //before resolving, we free memory by calling destroy on the source map consumers
+          sourceMapConsumers.forEach(sourceMapConsumer =>
+            sourceMapConsumer.destroy()
+          );
+          resolve(mappedSourceMap);
         } catch (e) {
+          //before rejecting, we free memory by calling destroy on the source map consumers
+          sourceMapConsumers.forEach(sourceMapConsumer =>
+            sourceMapConsumer.destroy()
+          );
           reject(e);
         }
       })
