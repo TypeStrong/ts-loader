@@ -25,13 +25,14 @@ import {
   formatErrors,
   isReferencedFile,
 } from './utils';
+import { RawSourceMap, SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
 /**
  * The entry point for ts-loader
  */
-function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
+function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string, inputSourceMap?: Record<string, any>) {
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
@@ -43,14 +44,15 @@ function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
   }
   const instance = instanceOrError.instance!;
   buildSolutionReferences(instance, this);
-  successLoader(this, contents, callback, instance);
+  successLoader(this, contents, callback, instance, inputSourceMap);
 }
 
-function successLoader(
+async function successLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance
+  instance: TSInstance,
+  inputSourceMap?: Record<string, any>
 ) {
   initializeInstance(loaderContext, instance);
   reportTranspileErrors(instance, loaderContext);
@@ -78,7 +80,7 @@ function successLoader(
     ? getTranspilationEmit(filePath, contents, instance, loaderContext)
     : getEmit(rawFilePath, filePath, instance, loaderContext);
 
-  makeSourceMapAndFinish(
+  await makeSourceMapAndFinish(
     sourceMapText,
     outputText,
     filePath,
@@ -86,11 +88,12 @@ function successLoader(
     loaderContext,
     fileVersion,
     callback,
-    instance
+    instance,
+    inputSourceMap
   );
 }
 
-function makeSourceMapAndFinish(
+async function makeSourceMapAndFinish(
   sourceMapText: string | undefined,
   outputText: string | undefined,
   filePath: string,
@@ -98,7 +101,8 @@ function makeSourceMapAndFinish(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance
+  instance: TSInstance,
+  inputSourceMap?: Record<string, any>
 ) {
   if (outputText === null || outputText === undefined) {
     setModuleMeta(loaderContext, instance, fileVersion);
@@ -129,8 +133,10 @@ function makeSourceMapAndFinish(
     loaderContext
   );
 
+  const mappedSourceMap = await mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap);
+
   setModuleMeta(loaderContext, instance, fileVersion);
-  callback(null, output, sourceMap);
+  callback(null, output, mappedSourceMap);
 }
 
 function setModuleMeta(
@@ -659,6 +665,29 @@ function makeSourceMap(
       sourcesContent: [contents],
     }),
   };
+}
+
+/**
+ * This method maps the newly generated @param{sourceMap} to the input source map.
+ * This is required when ts-loader is not the first loader in the Webpack loader chain.
+ * If the input source map is not set, then the newly generated source map is returned.
+ */
+async function mapToInputSourceMap(
+  sourceMap: RawSourceMap,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  inputSourceMap?: Record<string, any>
+): Promise<RawSourceMap> {
+  if(inputSourceMap === undefined) {
+    return sourceMap;
+  }
+
+  const inMap = inputSourceMap as RawSourceMap;
+  inMap.file = loaderContext.remainingRequest;
+  const sm1 = await new SourceMapConsumer(inMap);
+  const sm2 = await new SourceMapConsumer(sourceMap);
+  const generator = SourceMapGenerator.fromSourceMap(sm2);
+  generator.applySourceMap(sm1);
+  return generator.toJSON();
 }
 
 export = loader;
