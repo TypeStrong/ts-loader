@@ -154,7 +154,7 @@ function makeSourceMapAndFinish(
 
   // otherwise we have to make a mapping to the input source map which is asynchronous
   mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap)
-    .then((mappedSourceMap: RawSourceMap) => {
+    .then(mappedSourceMap => {
       callback(null, output, mappedSourceMap);
     })
     .catch((e: Error) => {
@@ -693,7 +693,6 @@ function makeSourceMap(
 /**
  * This method maps the newly generated @param{sourceMap} to the input source map.
  * This is required when ts-loader is not the first loader in the Webpack loader chain.
- * If the input source map is not set, then the newly generated source map is returned.
  */
 function mapToInputSourceMap(
   sourceMap: RawSourceMap,
