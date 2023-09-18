@@ -153,7 +153,7 @@ function makeSourceMapAndFinish(
   }
 
   // otherwise we have to make a mapping to the input source map which is asynchronous
-  mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap)
+  mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap as RawSourceMap)
     .then(mappedSourceMap => {
       callback(null, output, mappedSourceMap);
     })
@@ -697,11 +697,18 @@ function makeSourceMap(
 function mapToInputSourceMap(
   sourceMap: RawSourceMap,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  inputSourceMap: Record<string, any>
+  inputSourceMap: RawSourceMap
 ): Promise<RawSourceMap> {
   return new Promise<RawSourceMap>((resolve, reject) => {
-    const inMap = inputSourceMap as RawSourceMap;
-    inMap.file = loaderContext.remainingRequest;
+    const inMap: RawSourceMap = {
+      file: loaderContext.remainingRequest,
+      mappings: inputSourceMap.mappings,
+      names: inputSourceMap.names,
+      sources: inputSourceMap.sources,
+      sourceRoot: inputSourceMap.sourceRoot,
+      sourcesContent: inputSourceMap.sourcesContent,
+      version: inputSourceMap.version,
+    };
     Promise.all([
       new SourceMapConsumer(inMap),
       new SourceMapConsumer(sourceMap),
