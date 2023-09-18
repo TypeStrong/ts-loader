@@ -721,7 +721,7 @@ function mapToInputSourceMap(
           generator.applySourceMap(sourceMapConsumers[0]);
           const mappedSourceMap = generator.toJSON();
 
-          //before resolving, we free memory by calling destroy on the source map consumers
+          // before resolving, we free memory by calling destroy on the source map consumers
           sourceMapConsumers.forEach(sourceMapConsumer =>
             sourceMapConsumer.destroy()
           );
