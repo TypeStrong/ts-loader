@@ -5,7 +5,7 @@ const mkdirp = require('mkdirp');
 const copySync = require('./copySync');
 
 // BASH script to delete old test output
-// find ./test/comparison-tests -type d -name '*expectedOutput*5.0' -print0 | xargs -0 -I {} /bin/rm -rf "{}"
+// find ./test/comparison-tests -type d -name '*expectedOutput*5.1' -print0 | xargs -0 -I {} /bin/rm -rf "{}"
 
 // update this manually when a new version comes out
 const OLD_VERSION = '5.1';
