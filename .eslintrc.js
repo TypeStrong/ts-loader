@@ -30,6 +30,7 @@ module.exports = {
         '@typescript-eslint/no-unused-vars': 'off',
         // '@typescript-eslint/explicit-function-return-type': 'off',
         // '@typescript-eslint/no-namespace': 'off' // maybe we should consider enabling it in the future
+        '@typescript-eslint/consistent-type-imports': 'error', // the replacement of "importsNotUsedAsValues": "error"
       },
     },
   ],

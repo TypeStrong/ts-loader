@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { Chalk } from 'chalk';
+import type { Chalk } from 'chalk';
 import { Console } from 'console';
-import { LoaderOptions } from './interfaces';
+import type { LoaderOptions } from './interfaces';
 
 type InternalLoggerFunc = (whereToLog: any, message: string) => void;
 

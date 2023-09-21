@@ -1,5 +1,5 @@
-import * as webpack from 'webpack';
-import { TSInstance } from './interfaces';
+import type * as webpack from 'webpack';
+import type { TSInstance } from './interfaces';
 
 // Some loaders (e.g. thread-loader) will set the _compiler property to undefined.
 // We can't use undefined as a WeakMap key as it will throw an error at runtime,

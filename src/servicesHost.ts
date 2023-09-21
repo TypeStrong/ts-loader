@@ -1,10 +1,10 @@
 import * as path from 'path';
 import type * as typescript from 'typescript';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 import { getParsedCommandLine } from './config';
 import * as constants from './constants';
 import { getCustomTransformers, getOutputFileNames } from './instances';
-import {
+import type {
   CacheableHost,
   ConfigFileInfo,
   CustomResolveModuleName,
@@ -24,7 +24,8 @@ import {
   WatchFactory,
   WatchHost,
 } from './interfaces';
-import { makeResolver, ResolveSync } from './resolver';
+import type { ResolveSync } from './resolver';
+import { makeResolver } from './resolver';
 import {
   formatErrors,
   fsReadFile,

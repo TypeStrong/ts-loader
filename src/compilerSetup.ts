@@ -1,8 +1,8 @@
 import * as semver from 'semver';
 import type * as typescript from 'typescript';
 
-import { LoaderOptions } from './interfaces';
-import * as logger from './logger';
+import type { LoaderOptions } from './interfaces';
+import type * as logger from './logger';
 
 export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
   let compiler: typeof typescript | undefined;

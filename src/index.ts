@@ -12,7 +12,7 @@ import {
   initializeInstance,
   reportTranspileErrors,
 } from './instances';
-import {
+import type {
   FilePathKey,
   LoaderOptions,
   LoaderOptionsCache,

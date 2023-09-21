@@ -1,11 +1,11 @@
-import { Chalk } from 'chalk';
+import type { Chalk } from 'chalk';
 import * as path from 'path';
 import type * as typescript from 'typescript';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import { getCompilerOptions } from './compilerSetup';
-import { LoaderOptions } from './interfaces';
-import * as logger from './logger';
+import type { LoaderOptions } from './interfaces';
+import type * as logger from './logger';
 import { formatErrors, useCaseSensitiveFileNames } from './utils';
 
 interface ConfigFile {
