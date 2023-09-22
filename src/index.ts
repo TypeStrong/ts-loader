@@ -145,9 +145,14 @@ function makeSourceMapAndFinish(
 
   setModuleMeta(loaderContext, instance, fileVersion);
 
-  // if we don't have an input source map, we only need to return the newly generated source map
+  // there are two cases where we don't need to perform input source map mapping:
+  //   - either the ts-compiler did not generate a source map (tsconfig had `sourceMap` set to false)
+  //   - or we did not get an input source map
+  //
+  // in the first case, we simply return undefined.
+  // in the second case we only need to return the newly generated source map
   // this avoids that we have to make a possibly expensive call to the source-map lib
-  if (inputSourceMap === undefined) {
+  if (sourceMap === undefined || inputSourceMap === undefined) {
     callback(null, output, sourceMap);
     return;
   }
