@@ -1,4 +1,4 @@
-import { Chalk } from 'chalk';
+import type { Chalk } from 'chalk';
 import * as fs from 'fs';
 import * as micromatch from 'micromatch';
 import * as path from 'path';
@@ -6,7 +6,7 @@ import * as webpack from 'webpack';
 import type * as typescript from 'typescript';
 
 import constants = require('./constants');
-import {
+import type {
   ErrorInfo,
   FileLocation,
   FilePathKey,
@@ -134,7 +134,7 @@ function getFileLocations(
 
 export function fsReadFile(
   fileName: string,
-  encoding: typescript.BufferEncoding | undefined = 'utf8'
+  encoding: BufferEncoding | undefined = 'utf8'
 ) {
   fileName = path.normalize(fileName);
   try {

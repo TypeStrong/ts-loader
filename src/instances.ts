@@ -14,7 +14,7 @@ import {
   tsTsxRegex,
 } from './constants';
 import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
-import { FilePathKey, LoaderOptions, TSFiles, TSInstance } from './interfaces';
+import type { FilePathKey, LoaderOptions, TSFiles, TSInstance } from './interfaces';
 import * as logger from './logger';
 import {
   getSolutionErrors,

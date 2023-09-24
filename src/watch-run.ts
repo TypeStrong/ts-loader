@@ -1,8 +1,8 @@
 import * as path from 'path';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import * as constants from './constants';
-import { FilePathKey, LoaderOptions, TSInstance } from './interfaces';
+import type { FilePathKey, LoaderOptions, TSInstance } from './interfaces';
 import { updateFileWithText } from './servicesHost';
 import { fsReadFile } from './utils';
 

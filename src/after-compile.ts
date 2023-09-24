@@ -4,7 +4,7 @@ import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import { getEmitFromWatchHost, getEmitOutput } from './instances';
-import {
+import type {
   FilePathKey,
   LoaderOptions,
   TSFiles,
