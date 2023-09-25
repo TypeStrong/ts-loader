@@ -25,11 +25,8 @@ import {
   formatErrors,
   isReferencedFile,
 } from './utils';
-import {
-  RawSourceMap,
-  SourceMapConsumer,
-  SourceMapGenerator,
-} from 'source-map';
+import type { RawSourceMap } from 'source-map';
+import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
