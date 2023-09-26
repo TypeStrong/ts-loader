@@ -10,7 +10,11 @@ module.exports = {
     devtool: 'source-map',
     module: {
         rules: [
-            { test: /\.ts$/, loader: 'ts-loader' }
+            { test: /\.ts$/, loader: 'ts-loader' },
+            {
+              test: /\.vue$/,
+              loader: "vue-loader",
+            },
         ]
     }
 }
