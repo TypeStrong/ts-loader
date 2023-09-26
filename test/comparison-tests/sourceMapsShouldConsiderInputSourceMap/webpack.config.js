@@ -1,6 +1,8 @@
+const { VueLoaderPlugin } = require("vue-loader");
+
 module.exports = {
     mode: 'development',
-    entry: './a.ts',
+    entry: './index.ts',
     output: {
         filename: 'bundle.js'
     },
@@ -16,5 +18,6 @@ module.exports = {
               loader: "vue-loader",
             },
         ]
-    }
+    },
+    plugins: [new VueLoaderPlugin()],
 }
