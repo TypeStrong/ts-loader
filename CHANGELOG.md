@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.5.0
+* [Feature: map the input source map in case ts-loader is used in a loader pipeline](https://github.com/TypeStrong/ts-loader/pull/1626) - thanks @Ka0o0 and @bojanv55
+
 ## 9.4.4
 * [Bug fix: let users override skipLibCheck](https://github.com/TypeStrong/ts-loader/pull/1617) - thanks @haakonflatval-cognite
 
