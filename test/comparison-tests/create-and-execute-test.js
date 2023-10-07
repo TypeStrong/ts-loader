@@ -1,6 +1,7 @@
 const assert = require("assert");
 const os = require('os');
 const fs = require('fs-extra');
+const execSync = require('child_process').execSync;
 const path = require('path');
 const mkdirp = require('mkdirp');
 const rimraf = require('rimraf');
@@ -109,6 +110,9 @@ function createTest(test, testPath, options) {
         if (test.indexOf("AlreadyBuilt") !== -1) {
             const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"), { newLine: typescript.NewLineKind.LineFeed });
             program.emit();
+        }
+        if(test === "sourceMapsShouldConsiderInputSourceMap") {
+            execSync("npm ci", { cwd: paths.testStagingPath, stdio: 'inherit' });
         }
 
         // ensure output directories

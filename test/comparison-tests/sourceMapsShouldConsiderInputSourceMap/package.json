@@ -1,0 +1,8 @@
+{
+  "name": "source-maps-should-consider-input-source-map",
+  "version": "0.0.1",
+  "dependencies": {
+    "vue": "^3.3.4",
+    "vue-loader": "^17.2.2"
+  }
+}

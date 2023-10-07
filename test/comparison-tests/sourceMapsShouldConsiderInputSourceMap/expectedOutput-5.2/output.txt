@@ -1,0 +1,16 @@
+asset bundle.js 573 KiB [emitted] (name: main) 1 related asset
+runtime modules 1.13 KiB 5 modules
+cacheable modules 485 KiB
+  modules by path ./node_modules/ 483 KiB
+    modules by path ./node_modules/@vue/ 481 KiB 6 modules
+    modules by path ./node_modules/vue/ 2.27 KiB 2 modules
+    ./node_modules/vue-loader/dist/exportHelper.js 328 bytes [built] [code generated]
+  modules by path ./*.vue 1.39 KiB
+    ./App.vue 732 bytes [built] [code generated]
+    ./App.vue?vue&type=template&id=472cff63&ts=true 235 bytes [built] [code generated]
+    ./App.vue?vue&type=script&lang=ts 314 bytes [built] [code generated]
+    + 2 modules
+  modules by path ./*.ts 286 bytes
+    ./index.ts 73 bytes [built] [code generated]
+    ./bootloader.ts 213 bytes [built] [code generated]
+webpack compiled successfully

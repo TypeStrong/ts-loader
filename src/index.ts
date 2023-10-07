@@ -25,13 +25,19 @@ import {
   formatErrors,
   isReferencedFile,
 } from './utils';
+import type { RawSourceMap } from 'source-map';
+import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
 /**
  * The entry point for ts-loader
  */
-function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
+function loader(
+  this: webpack.LoaderContext<LoaderOptions>,
+  contents: string,
+  inputSourceMap?: Record<string, any>
+) {
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
@@ -43,14 +49,15 @@ function loader(this: webpack.LoaderContext<LoaderOptions>, contents: string) {
   }
   const instance = instanceOrError.instance!;
   buildSolutionReferences(instance, this);
-  successLoader(this, contents, callback, instance);
+  successLoader(this, contents, callback, instance, inputSourceMap);
 }
 
 function successLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance
+  instance: TSInstance,
+  inputSourceMap?: Record<string, any>
 ) {
   initializeInstance(loaderContext, instance);
   reportTranspileErrors(instance, loaderContext);
@@ -78,6 +85,8 @@ function successLoader(
     ? getTranspilationEmit(filePath, contents, instance, loaderContext)
     : getEmit(rawFilePath, filePath, instance, loaderContext);
 
+  // the following function is async, which means it will immediately return and run in the "background"
+  // Webpack will be notified when it's finished when the function calls the `callback` method
   makeSourceMapAndFinish(
     sourceMapText,
     outputText,
@@ -86,7 +95,8 @@ function successLoader(
     loaderContext,
     fileVersion,
     callback,
-    instance
+    instance,
+    inputSourceMap
   );
 }
 
@@ -98,7 +108,8 @@ function makeSourceMapAndFinish(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance
+  instance: TSInstance,
+  inputSourceMap?: Record<string, any>
 ) {
   if (outputText === null || outputText === undefined) {
     setModuleMeta(loaderContext, instance, fileVersion);
@@ -130,7 +141,27 @@ function makeSourceMapAndFinish(
   );
 
   setModuleMeta(loaderContext, instance, fileVersion);
-  callback(null, output, sourceMap);
+
+  // there are two cases where we don't need to perform input source map mapping:
+  //   - either the ts-compiler did not generate a source map (tsconfig had `sourceMap` set to false)
+  //   - or we did not get an input source map
+  //
+  // in the first case, we simply return undefined.
+  // in the second case we only need to return the newly generated source map
+  // this avoids that we have to make a possibly expensive call to the source-map lib
+  if (sourceMap === undefined || inputSourceMap === undefined) {
+    callback(null, output, sourceMap);
+    return;
+  }
+
+  // otherwise we have to make a mapping to the input source map which is asynchronous
+  mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap as RawSourceMap)
+    .then(mappedSourceMap => {
+      callback(null, output, mappedSourceMap);
+    })
+    .catch((e: Error) => {
+      callback(e);
+    });
 }
 
 function setModuleMeta(
@@ -659,6 +690,54 @@ function makeSourceMap(
       sourcesContent: [contents],
     }),
   };
+}
+
+/**
+ * This method maps the newly generated @param{sourceMap} to the input source map.
+ * This is required when ts-loader is not the first loader in the Webpack loader chain.
+ */
+function mapToInputSourceMap(
+  sourceMap: RawSourceMap,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  inputSourceMap: RawSourceMap
+): Promise<RawSourceMap> {
+  return new Promise<RawSourceMap>((resolve, reject) => {
+    const inMap: RawSourceMap = {
+      file: loaderContext.remainingRequest,
+      mappings: inputSourceMap.mappings,
+      names: inputSourceMap.names,
+      sources: inputSourceMap.sources,
+      sourceRoot: inputSourceMap.sourceRoot,
+      sourcesContent: inputSourceMap.sourcesContent,
+      version: inputSourceMap.version,
+    };
+    Promise.all([
+      new SourceMapConsumer(inMap),
+      new SourceMapConsumer(sourceMap),
+    ])
+      .then(sourceMapConsumers => {
+        try {
+          const generator = SourceMapGenerator.fromSourceMap(
+            sourceMapConsumers[1]
+          );
+          generator.applySourceMap(sourceMapConsumers[0]);
+          const mappedSourceMap = generator.toJSON();
+
+          // before resolving, we free memory by calling destroy on the source map consumers
+          sourceMapConsumers.forEach(sourceMapConsumer =>
+            sourceMapConsumer.destroy()
+          );
+          resolve(mappedSourceMap);
+        } catch (e) {
+          //before rejecting, we free memory by calling destroy on the source map consumers
+          sourceMapConsumers.forEach(sourceMapConsumer =>
+            sourceMapConsumer.destroy()
+          );
+          reject(e);
+        }
+      })
+      .catch(reject);
+  });
 }
 
 export = loader;
