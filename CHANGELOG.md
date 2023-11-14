@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.5.1
+* [fix: inputSourceMap can be null](https://github.com/TypeStrong/ts-loader/pull/1639) [#1638] - thanks @johnnyreilly and @michaeltford
+
 ## 9.5.0
 * [Feature: map the input source map in case ts-loader is used in a loader pipeline](https://github.com/TypeStrong/ts-loader/pull/1626) - thanks @Ka0o0 and @bojanv55
 
