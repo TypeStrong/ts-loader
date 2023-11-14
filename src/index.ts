@@ -149,7 +149,7 @@ function makeSourceMapAndFinish(
   // in the first case, we simply return undefined.
   // in the second case we only need to return the newly generated source map
   // this avoids that we have to make a possibly expensive call to the source-map lib
-  if (sourceMap === undefined || inputSourceMap === undefined) {
+  if (sourceMap === undefined || !inputSourceMap) {
     callback(null, output, sourceMap);
     return;
   }
