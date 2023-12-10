@@ -14,7 +14,7 @@ ERROR in tsconfig.json
 ERROR in ./app.ts
 Module build failed (from ../../index.js):
 Error: [31merror while parsing tsconfig.json[39m
-    at Object.loader (dist/index.js:17:18)
+    at Object.loader (dist/index.js:18:18)
 
 2 errors have detailed information that is not shown.
 Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.

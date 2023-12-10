@@ -11,9 +11,9 @@ ts-loader-default_d3199d8b31480e4e
 ERROR in ./lib/index.ts
 Module build failed (from ../../index.js):
 Error: TypeScript emitted no output for lib/index.ts. The most common cause for this is having errors when building referenced projects.
-    at makeSourceMapAndFinish (dist/index.js:52:18)
-    at successLoader (dist/index.js:39:5)
-    at Object.loader (dist/index.js:22:5)
+    at makeSourceMapAndFinish (dist/index.js:55:18)
+    at successLoader (dist/index.js:42:5)
+    at Object.loader (dist/index.js:23:5)
  @ ./app.ts 3:12-28
 
 webpack compiled with 2 errors

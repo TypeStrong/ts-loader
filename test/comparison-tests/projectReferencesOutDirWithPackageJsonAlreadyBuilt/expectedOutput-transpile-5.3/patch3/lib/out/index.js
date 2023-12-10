@@ -5,7 +5,7 @@ exports.lib = {
     one: 1,
     two: 2,
     three: 3,
-    four: 4,
+    four: 4, // Add new number
     five: 5,
 };
 //# sourceMappingURL=index.js.map
