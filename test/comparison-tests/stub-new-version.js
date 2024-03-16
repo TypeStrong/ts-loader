@@ -5,11 +5,11 @@ const mkdirp = require('mkdirp');
 const copySync = require('./copySync');
 
 // BASH script to delete old test output
-// find ./test/comparison-tests -type d -name '*expectedOutput*5.2' -print0 | xargs -0 -I {} /bin/rm -rf "{}"
+// find ./test/comparison-tests -type d -name '*expectedOutput*5.3' -print0 | xargs -0 -I {} /bin/rm -rf "{}"
 
 // update this manually when a new version comes out
-const OLD_VERSION = '5.2';
-const NEW_VERSION = '5.3';
+const OLD_VERSION = '5.3';
+const NEW_VERSION = '5.4';
 
 fs.readdirSync(__dirname).forEach(function(test) {
   const testPath = path.join(__dirname, test);
