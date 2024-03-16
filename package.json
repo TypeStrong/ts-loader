@@ -73,7 +73,7 @@
     "babel-preset-es2015": "^6.0.0",
     "babel-preset-es2016": "^6.16.0",
     "babel-preset-react": "^6.0.0",
-    "escape-string-regexp": "^2.0.0",
+    "escape-string-regexp": "^5.0.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.0.0",
     "eslint-plugin-node": "^11.1.0",
