@@ -1,0 +1,8 @@
+assets by status 3.71 KiB [cached] 1 asset
+asset ../utils/tsconfig.tsbuildinfo 1.54 KiB [emitted]
+asset ../utils/index.js 249 bytes [emitted]
+cached modules 294 bytes [cached] 2 modules
+cacheable modules 497 bytes
+  ./app.ts 248 bytes [built]
+  ../utils/index.ts 249 bytes [built]
+webpack compiled successfully
