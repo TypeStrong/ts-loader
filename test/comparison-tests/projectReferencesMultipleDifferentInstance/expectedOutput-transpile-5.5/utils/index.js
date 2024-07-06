@@ -1,8 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.utils = void 0;
+exports.utils = utils;
 var common_1 = require("../common");
 function utils() {
     (0, common_1.common)();
 }
-exports.utils = utils;

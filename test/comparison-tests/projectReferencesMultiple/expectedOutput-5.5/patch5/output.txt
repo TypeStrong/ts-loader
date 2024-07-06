@@ -1,6 +1,6 @@
-asset bundle.js 3.65 KiB [emitted] (name: main)
-asset unreferenced/tsconfig.tsbuildinfo 1.75 KiB [emitted]
-cached modules 529 bytes [cached] 3 modules
+asset bundle.js 3.6 KiB [emitted] (name: main)
+asset unreferenced/tsconfig.tsbuildinfo 1.68 KiB [emitted]
+cached modules 480 bytes [cached] 3 modules
 ./app.ts 223 bytes [built] [code generated]
 
 ERROR in unreferenced/index.ts

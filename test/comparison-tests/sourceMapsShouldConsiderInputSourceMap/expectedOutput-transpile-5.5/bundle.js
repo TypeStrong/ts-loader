@@ -157,12 +157,11 @@ exports["default"] = (0, vue_1.defineComponent)({
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.render = void 0;
+exports.render = render;
 var vue_1 = __webpack_require__(/*! vue */ "./node_modules/vue/index.js");
 function render(_ctx, _cache, $props, $setup, $data, $options) {
     return ((0, vue_1.openBlock)(), (0, vue_1.createElementBlock)("h1", null, "Hello World!"));
 }
-exports.render = render;
 
 
 /***/ }),

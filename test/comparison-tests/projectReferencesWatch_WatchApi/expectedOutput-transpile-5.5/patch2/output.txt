@@ -1,5 +1,5 @@
 assets by status 2.75 KiB [cached] 1 asset
-asset lib/tsconfig.tsbuildinfo 1.53 KiB [emitted]
+asset lib/tsconfig.tsbuildinfo 1.45 KiB [emitted]
 ./app.ts 205 bytes [built] [2 errors]
 ./lib/index.ts 186 bytes [built]
 

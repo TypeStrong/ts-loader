@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.unreferenced = void 0;
+exports.unreferenced = unreferenced;
 function unreferenced() {
     return "i am unreferenced";
 }
-exports.unreferenced = unreferenced;

@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \**************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.common = void 0;\nfunction common() {\n    return 35;\n}\nexports.common = common;\n\n\n//# sourceURL=webpack:///../common/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.common = common;\nfunction common() {\n    return 35;\n}\n\n\n//# sourceURL=webpack:///../common/index.ts?");
 
 /***/ }),
 
@@ -46,7 +46,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \*************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.utils2 = exports.utils = void 0;\nvar common_1 = __webpack_require__(/*! ../common */ \"../common/index.ts\");\nfunction utils() {\n    (0, common_1.common)();\n}\nexports.utils = utils;\nfunction utils2() { return \"hello\"; }\nexports.utils2 = utils2;\n\n\n//# sourceURL=webpack:///../utils/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.utils = utils;\nexports.utils2 = utils2;\nvar common_1 = __webpack_require__(/*! ../common */ \"../common/index.ts\");\nfunction utils() {\n    (0, common_1.common)();\n}\nfunction utils2() { return \"hello\"; }\n\n\n//# sourceURL=webpack:///../utils/index.ts?");
 
 /***/ })
 
