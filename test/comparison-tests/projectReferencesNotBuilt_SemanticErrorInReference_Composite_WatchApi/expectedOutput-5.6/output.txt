@@ -1,17 +1,14 @@
-asset bundle.js 3.03 KiB [emitted] (name: main)
-asset lib/tsconfig.tsbuildinfo 1.5 KiB [compared for emit]
-asset tsconfig.tsbuildinfo 995 bytes [emitted]
-asset app.d.ts 11 bytes [emitted]
+assets by status 2.19 KiB [compared for emit]
+  asset lib/tsconfig.tsbuildinfo 1.7 KiB [compared for emit]
+  asset lib/index.js.map 218 bytes [compared for emit]
+  asset lib/index.js 200 bytes [compared for emit]
+  asset lib/index.d.ts 84 bytes [compared for emit]
+assets by status 3.87 KiB [emitted]
+  asset bundle.js 2.69 KiB [emitted] (name: main)
+  asset tsconfig.tsbuildinfo 1.17 KiB [emitted]
+  asset app.d.ts 11 bytes [emitted]
 ./app.ts 167 bytes [built] [code generated]
-./lib/index.ts 39 bytes [built] [code generated] [1 error]
-
-ERROR in ./lib/index.ts
-Module build failed (from ../../index.js):
-Error: TypeScript emitted no output for lib/index.ts. The most common cause for this is having errors when building referenced projects.
-    at makeSourceMapAndFinish (dist/index.js:55:18)
-    at successLoader (dist/index.js:42:5)
-    at Object.loader (dist/index.js:23:5)
- @ ./app.ts 3:12-28
+./lib/index.ts 167 bytes [built] [code generated] [1 error]
 
 ERROR in lib/index.ts
 ./lib/index.ts 6:6-7
@@ -20,4 +17,4 @@ ERROR in lib/index.ts
 ts-loader-default_16c1704dade3bd5f
  @ ./app.ts 3:12-28
 
-webpack compiled with 2 errors
+webpack compiled with 1 error

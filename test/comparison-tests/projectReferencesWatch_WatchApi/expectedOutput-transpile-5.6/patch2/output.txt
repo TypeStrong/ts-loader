@@ -1,7 +1,9 @@
-assets by status 2.75 KiB [cached] 1 asset
-asset lib/tsconfig.tsbuildinfo 1.45 KiB [emitted]
+asset bundle.js 2.75 KiB [emitted] (name: main)
+asset lib/tsconfig.tsbuildinfo 1.58 KiB [emitted]
+asset lib/index.js.map 231 bytes [emitted]
+asset lib/index.js 223 bytes [emitted]
 ./app.ts 205 bytes [built] [2 errors]
-./lib/index.ts 186 bytes [built]
+./lib/index.ts 190 bytes [built] [code generated]
 
 ERROR in ./app.ts 6:2-3
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/index.ts(6,3)[39m[22m

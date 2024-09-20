@@ -7,6 +7,7 @@
  * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
  */
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
 /***/ "./app.ts":
@@ -15,8 +16,17 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-"use strict";
 eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ./utils */ \"./utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n(0, utils_1.utils)();\n\n\n//# sourceURL=webpack:///./app.ts?");
+
+/***/ }),
+
+/***/ "./common/index.ts":
+/*!*************************!*\
+  !*** ./common/index.ts ***!
+  \*************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.common = common;\nfunction common() {\n    return 30;\n}\n\n\n//# sourceURL=webpack:///./common/index.ts?");
 
 /***/ }),
 
@@ -24,9 +34,9 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
 /*!**********************!*\
   !*** ./lib/index.ts ***!
   \**********************/
-/***/ (() => {
+/***/ ((__unused_webpack_module, exports) => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/lib/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/home/john/code/github/ts-loader/dist/index.js:55:18)/n    at successLoader (/home/john/code/github/ts-loader/dist/index.js:42:5)/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:23:5)\");\n\n//# sourceURL=webpack:///./lib/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?");
 
 /***/ }),
 
@@ -34,9 +44,9 @@ eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeS
 /*!************************!*\
   !*** ./utils/index.ts ***!
   \************************/
-/***/ (() => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /projectReferencesMultiple.transpile/utils/index.ts. The most common cause for this is having errors when building referenced projects./n    at makeSourceMapAndFinish (/home/john/code/github/ts-loader/dist/index.js:55:18)/n    at successLoader (/home/john/code/github/ts-loader/dist/index.js:42:5)/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:23:5)\");\n\n//# sourceURL=webpack:///./utils/index.ts?");
+eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.utils = utils;\nvar common_1 = __webpack_require__(/*! ../common */ \"./common/index.ts\");\nfunction utils() {\n    (0, common_1.common)();\n}\n\n\n//# sourceURL=webpack:///./utils/index.ts?");
 
 /***/ })
 
