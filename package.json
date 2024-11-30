@@ -91,7 +91,7 @@
     "lint-staged": "^8.0.0",
     "markdown-toc": "^1.2.0",
     "mkdirp": "^0.5.1",
-    "mocha": "^6.0.0",
+    "mocha": "^10.0.0",
     "prettier": "^2.0.5",
     "rimraf": "^2.6.2",
     "typescript": "^5.7.2",
