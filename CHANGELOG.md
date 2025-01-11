@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.5.2
+* [fix: add more detailed error messages](https://github.com/TypeStrong/ts-loader/pull/1665) - thanks @hai-x
+
 ## 9.5.1
 * [fix: inputSourceMap can be null](https://github.com/TypeStrong/ts-loader/pull/1639) [#1638] - thanks @johnnyreilly and @michaeltford
 
