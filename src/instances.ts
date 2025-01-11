@@ -375,7 +375,7 @@ export function initializeInstance(
   } else {
     if (!loader._compiler!.hooks) {
       throw new Error(
-        "You may be using an old version of webpack; please check you're using at least version 4"
+        "You may be using an old version of webpack; please check you're using at least version 4. Or you should set `transpileOnly` or `happyPackMode` to true when using with `thread-loader`."
       );
     }
 

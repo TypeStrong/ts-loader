@@ -382,7 +382,6 @@ function createWatchFactory(
     }
     return result;
   }
-  ``;
 
   function invokeRecursiveDirectoryWatcher(
     directory: string,
