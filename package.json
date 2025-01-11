@@ -76,7 +76,7 @@
     "escape-string-regexp": "^2.0.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.0.0",
-    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-n": "^14.0.0",
     "eslint-plugin-prettier": "^4.0.0",
     "fs-extra": "^11.0.0",
     "glob": "^7.1.1",
