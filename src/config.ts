@@ -50,6 +50,10 @@ export function getConfigFile(
       )[0];
     }
   } else {
+    if (loaderOptions.configFile !== undefined) {
+      configFileError = new Error(`Cannot find '${loaderOptions.configFile }' in folder '${path.dirname(loader.resourcePath)}'`);
+    }
+
     if (compilerCompatible) {
       log.logInfo(compilerDetailsLogMessage);
     }
