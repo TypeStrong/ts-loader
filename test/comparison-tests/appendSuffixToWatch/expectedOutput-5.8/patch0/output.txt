@@ -1,0 +1,5 @@
+assets by status 2.66 KiB [cached] 1 asset
+asset bundle.entry1.js 1.18 KiB [emitted] (name: entry1)
+cached modules 274 bytes [cached] 2 modules
+./entry1.ts 27 bytes [built] [code generated]
+webpack compiled successfully

@@ -1,0 +1,5 @@
+asset bundle.js 3.2 KiB [emitted] (name: main)
+./app.ts 167 bytes [built] [code generated]
+./lib/index.ts 247 bytes [built] [code generated]
+./lib/helper.ts 161 bytes [built] [code generated]
+webpack compiled successfully

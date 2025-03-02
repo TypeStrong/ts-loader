@@ -1,0 +1,12 @@
+asset bundle.js 2.19 KiB [emitted] (name: main)
+asset .output/sub/dep.d.ts 99 bytes [emitted]
+asset .output/app.d.ts 59 bytes [emitted]
+./app.ts 128 bytes [built] [code generated] [1 error]
+
+ERROR in app.ts
+./app.ts 4:18-21
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(4,19)[39m[22m
+[1m[31m      TS2709: Cannot use namespace 'dep' as a type.[39m[22m
+ts-loader-default_609318b4f68865d3
+
+webpack compiled with 1 error

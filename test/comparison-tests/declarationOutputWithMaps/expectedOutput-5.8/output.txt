@@ -1,0 +1,9 @@
+assets by path .output/sub/ 248 bytes
+  asset .output/sub/dep.d.ts.map 152 bytes [emitted]
+  asset .output/sub/dep.d.ts 96 bytes [emitted]
+asset bundle.js 3.62 KiB [emitted] (name: main)
+asset .output/app.d.ts.map 197 bytes [emitted]
+asset .output/app.d.ts 143 bytes [emitted]
+./app.ts 1.06 KiB [built] [code generated]
+./sub/dep.ts 182 bytes [built] [code generated]
+webpack compiled successfully

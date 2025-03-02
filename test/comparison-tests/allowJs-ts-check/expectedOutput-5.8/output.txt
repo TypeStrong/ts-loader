@@ -1,0 +1,13 @@
+asset bundle.js 3.45 KiB [emitted] (name: main)
+./src/index.js 207 bytes [built] [code generated]
+./src/error1.js 290 bytes [built] [code generated]
+./src/error2.js 303 bytes [built] [code generated] [1 error]
+
+ERROR in src/error2.js
+./src/error2.js 4:9-12
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36msrc/error2.js(4,10)[39m[22m
+[1m[31m      TS2339: Property 'bar' does not exist on type 'Class2'.[39m[22m
+ts-loader-default_609318b4f68865d3
+ @ ./src/index.js 4:15-34
+
+webpack compiled with 1 error
