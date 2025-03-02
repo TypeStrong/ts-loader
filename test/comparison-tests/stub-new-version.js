@@ -8,8 +8,8 @@ const copySync = require('./copySync');
 // find ./test/comparison-tests -type d -name '*expectedOutput*5.6' -print0 | xargs -0 -I {} /bin/rm -rf "{}"
 
 // update this manually when a new version comes out
-const OLD_VERSION = '5.6';
-const NEW_VERSION = '5.7';
+const OLD_VERSION = '5.7';
+const NEW_VERSION = '5.8';
 
 fs.readdirSync(__dirname).forEach(function(test) {
   const testPath = path.join(__dirname, test);
