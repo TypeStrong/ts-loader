@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar dep1 = __webpack_require__(/*! ./dep1 */ \"./dep1.ts\");\nvar dep2 = __webpack_require__(/*! ./dep2 */ \"./dep2.ts\");\ndep1('');\ndep2('');\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar dep1 = __webpack_require__(/*! ./dep1 */ \"./dep1.ts\");\nvar dep2 = __webpack_require__(/*! ./dep2 */ \"./dep2.ts\");\ndep1('');\ndep2('');\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \*****************/
 /***/ ((module) => {
 
-eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep1.ts?");
+eval("{\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep1.ts?\n}");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//#
   \*****************/
 /***/ ((module) => {
 
-eval("\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep2.ts?");
+eval("{\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//# sourceURL=webpack:///./dep2.ts?\n}");
 
 /***/ })
 

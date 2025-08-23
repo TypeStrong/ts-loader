@@ -16,17 +16,7 @@
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _submodule_es5__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./submodule-es5 */ \"./submodule-es5/index.ts\");\n/* harmony import */ var _submodule_es5__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_submodule_es5__WEBPACK_IMPORTED_MODULE_0__);\n/* harmony import */ var _submodule_es6__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./submodule-es6 */ \"./submodule-es6/index.ts\");\n/* harmony import */ var _submodule_es6__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_submodule_es6__WEBPACK_IMPORTED_MODULE_1__);\n\n\n\n\n//# sourceURL=webpack:///./app.ts?");
-
-/***/ }),
-
-/***/ "./submodule-es6/index.ts":
-/*!********************************!*\
-  !*** ./submodule-es6/index.ts ***!
-  \********************************/
-/***/ (() => {
-
-eval("const set = new Set([42]);\nfor (const value of set) {\n    console.log(value);\n}\nconst string = 'Hello from es6 file';\nconsole.log(string);\n\n\n//# sourceURL=webpack:///./submodule-es6/index.ts?");
+eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _submodule_es5__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./submodule-es5 */ \"./submodule-es5/index.ts\");\n/* harmony import */ var _submodule_es5__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_submodule_es5__WEBPACK_IMPORTED_MODULE_0__);\n/* harmony import */ var _submodule_es6__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./submodule-es6 */ \"./submodule-es6/index.ts\");\n/* harmony import */ var _submodule_es6__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_submodule_es6__WEBPACK_IMPORTED_MODULE_1__);\n\n\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -36,7 +26,17 @@ eval("const set = new Set([42]);\nfor (const value of set) {\n    console.log(va
   \********************************/
 /***/ (() => {
 
-eval("var string = 'Hello from es5 file';\nconsole.log(string);\n\n\n//# sourceURL=webpack:///./submodule-es5/index.ts?");
+eval("{var string = 'Hello from es5 file';\nconsole.log(string);\n\n\n//# sourceURL=webpack:///./submodule-es5/index.ts?\n}");
+
+/***/ }),
+
+/***/ "./submodule-es6/index.ts":
+/*!********************************!*\
+  !*** ./submodule-es6/index.ts ***!
+  \********************************/
+/***/ (() => {
+
+eval("{const set = new Set([42]);\nfor (const value of set) {\n    console.log(value);\n}\nconst string = 'Hello from es6 file';\nconsole.log(string);\n\n\n//# sourceURL=webpack:///./submodule-es6/index.ts?\n}");
 
 /***/ })
 

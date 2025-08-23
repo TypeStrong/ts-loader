@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("({ get x() { return 1; } });\nSymbol;\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{({ get x() { return 1; } });\nSymbol;\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

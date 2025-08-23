@@ -1,4 +1,4 @@
-asset bundle.js 2.76 KiB [emitted] (name: main)
+asset bundle.js 2.77 KiB [emitted] (name: main)
 asset lib/tsconfig.tsbuildinfo 1.55 KiB [emitted]
 asset lib/index.js.map 241 bytes [emitted]
 asset lib/index.js 233 bytes [emitted]

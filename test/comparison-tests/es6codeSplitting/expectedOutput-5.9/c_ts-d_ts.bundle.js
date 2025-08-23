@@ -15,7 +15,7 @@
   \**************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'c';\n\n\n//# sourceURL=webpack:///./c.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'c';\n\n\n//# sourceURL=webpack:///./c.ts?\n}");
 
 /***/ }),
 
@@ -25,7 +25,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \**************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'd';\n\n\n//# sourceURL=webpack:///./d.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'd';\n\n\n//# sourceURL=webpack:///./d.ts?\n}");
 
 /***/ })
 

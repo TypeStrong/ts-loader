@@ -16,7 +16,7 @@
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.Class1 = void 0;\nvar Class1 = /** @class */ (function () {\n    function Class1() {\n    }\n    Class1.prototype.foo = function () {\n        this.bar;\n    };\n    return Class1;\n}());\nexports.Class1 = Class1;\n\n\n//# sourceURL=webpack:///./src/error1.js?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.Class1 = void 0;\nvar Class1 = /** @class */ (function () {\n    function Class1() {\n    }\n    Class1.prototype.foo = function () {\n        this.bar;\n    };\n    return Class1;\n}());\nexports.Class1 = Class1;\n\n\n//# sourceURL=webpack:///./src/error1.js?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.Class2 = void 0;\n// @ts-check\nvar Class2 = /** @class */ (function () {\n    function Class2() {\n    }\n    Class2.prototype.foo = function () {\n        this.bar;\n    };\n    return Class2;\n}());\nexports.Class2 = Class2;\n\n\n//# sourceURL=webpack:///./src/error2.js?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.Class2 = void 0;\n// @ts-check\nvar Class2 = /** @class */ (function () {\n    function Class2() {\n    }\n    Class2.prototype.foo = function () {\n        this.bar;\n    };\n    return Class2;\n}());\nexports.Class2 = Class2;\n\n\n//# sourceURL=webpack:///./src/error2.js?\n}");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \**********************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar error1_1 = __webpack_require__(/*! ./error1 */ \"./src/error1.js\");\nvar error2_1 = __webpack_require__(/*! ./error2 */ \"./src/error2.js\");\nnew error1_1.Class1().foo();\nnew error2_1.Class2().foo();\n\n\n//# sourceURL=webpack:///./src/index.js?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar error1_1 = __webpack_require__(/*! ./error1 */ \"./src/error1.js\");\nvar error2_1 = __webpack_require__(/*! ./error2 */ \"./src/error2.js\");\nnew error1_1.Class1().foo();\nnew error2_1.Class2().foo();\n\n\n//# sourceURL=webpack:///./src/index.js?\n}");
 
 /***/ })
 

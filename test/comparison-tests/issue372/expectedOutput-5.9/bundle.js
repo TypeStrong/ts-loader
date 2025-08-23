@@ -16,7 +16,7 @@
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./foo.ts\");\nvar foo;\nfoo.bar = 'foobar' + foo_1.s;\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./foo.ts\");\nvar foo;\nfoo.bar = 'foobar' + foo_1.s;\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -27,7 +27,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.s = void 0;\nvar sString = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nexports.s = sString;\n\n\n//# sourceURL=webpack:///./foo.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.s = void 0;\nvar sString = __webpack_require__(/*! a */ \"./node_modules/a/index.js\");\nexports.s = sString;\n\n\n//# sourceURL=webpack:///./foo.ts?\n}");
 
 /***/ }),
 
@@ -37,7 +37,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \*********************************/
 /***/ ((module) => {
 
-eval("module.exports = 'a';\n\n//# sourceURL=webpack:///./node_modules/a/index.js?");
+eval("{module.exports = 'a';\n\n//# sourceURL=webpack:///./node_modules/a/index.js?\n}");
 
 /***/ })
 

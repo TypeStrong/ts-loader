@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'a';\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'a';\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

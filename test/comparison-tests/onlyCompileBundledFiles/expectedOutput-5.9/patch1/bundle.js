@@ -16,7 +16,17 @@
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar submodule = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.ts\");\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(submodule);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar submodule = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.ts\");\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(submodule);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+
+/***/ }),
+
+/***/ "./lib/externalLib.js":
+/*!****************************!*\
+  !*** ./lib/externalLib.js ***!
+  \****************************/
+/***/ ((module) => {
+
+eval("{module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?\n}");
 
 /***/ }),
 
@@ -27,17 +37,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
 "use strict";
-eval("\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(\"\");\nvar message = \"Hello from submodule\";\nmodule.exports = message;\n\n\n//# sourceURL=webpack:///./submodule/submodule.ts?");
-
-/***/ }),
-
-/***/ "./lib/externalLib.js":
-/*!****************************!*\
-  !*** ./lib/externalLib.js ***!
-  \****************************/
-/***/ ((module) => {
-
-eval("module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?");
+eval("{\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(\"\");\nvar message = \"Hello from submodule\";\nmodule.exports = message;\n\n\n//# sourceURL=webpack:///./submodule/submodule.ts?\n}");
 
 /***/ })
 

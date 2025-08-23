@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconsole.log('do something');\n// The DEBUG constant will be inlined by webpack's DefinePlugin (see config)\n// The whole if-statement can then be removed by UglifyJS\nif (false) { var debug; }\nconsole.log('do something else');\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconsole.log('do something');\n// The DEBUG constant will be inlined by webpack's DefinePlugin (see config)\n// The whole if-statement can then be removed by UglifyJS\nif (false) // removed by dead control flow\n{ var debug; }\nconsole.log('do something else');\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

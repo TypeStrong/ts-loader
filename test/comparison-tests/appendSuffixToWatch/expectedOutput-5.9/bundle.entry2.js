@@ -16,7 +16,7 @@
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = \"some value\";\n\n\n//# sourceURL=webpack:///./component.vue?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = \"some value\";\n\n\n//# sourceURL=webpack:///./component.vue?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \*******************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nconsole.log(component_vue_1.default);\n\n\n//# sourceURL=webpack:///./entry2.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nconsole.log(component_vue_1.default);\n\n\n//# sourceURL=webpack:///./entry2.ts?\n}");
 
 /***/ })
 

@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("/// <reference path=\"../../node_modules/@types/node/index.d.ts\" />\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{/// <reference path=\"../../node_modules/@types/node/index.d.ts\" />\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

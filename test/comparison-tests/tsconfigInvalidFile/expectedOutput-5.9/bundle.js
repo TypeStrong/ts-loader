@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("throw new Error(\"Module build failed (from ../../index.js):/nError: /u001b[31mA file specified in tsconfig.json could not be found: /tsconfigInvalidFile/i-am-a-file-what-does-not-exist.ts/u001b[39m/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:18:18)\");\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{throw new Error(\"Module build failed (from ../../index.js):/nError: /u001b[31mA file specified in tsconfig.json could not be found: /tsconfigInvalidFile/i-am-a-file-what-does-not-exist.ts/u001b[39m/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:18:18)\");\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

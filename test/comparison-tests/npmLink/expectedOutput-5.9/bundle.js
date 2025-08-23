@@ -10,23 +10,23 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./app.ts":
-/*!****************!*\
-  !*** ./app.ts ***!
-  \****************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1.default);\n\n\n//# sourceURL=webpack:///./app.ts?");
-
-/***/ }),
-
 /***/ "../../test/comparison-tests/testLib/foo.ts":
 /*!**************************************************!*\
   !*** ../../test/comparison-tests/testLib/foo.ts ***!
   \**************************************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'foo';\n\n\n//# sourceURL=webpack:///../../test/comparison-tests/testLib/foo.ts?\n}");
+
+/***/ }),
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar foo_1 = __webpack_require__(/*! lib/foo */ \"../../test/comparison-tests/testLib/foo.ts\");\nconsole.log(foo_1.default);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

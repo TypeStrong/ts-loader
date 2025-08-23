@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar myComponent = __webpack_require__(/*! api */ \"./fake.ts\");\nconsole.log(myComponent);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar myComponent = __webpack_require__(/*! api */ \"./fake.ts\");\nconsole.log(myComponent);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \*****************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.sayHello = sayHello;\nfunction sayHello(name) {\n    return \"Hello, \".concat(name, \"!\");\n}\n\n\n//# sourceURL=webpack:///./fake.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.sayHello = sayHello;\nfunction sayHello(name) {\n    return \"Hello, \".concat(name, \"!\");\n}\n\n\n//# sourceURL=webpack:///./fake.ts?\n}");
 
 /***/ })
 

@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("var Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    Foo.prototype.getSomething = function () {\n        return null;\n    };\n    return Foo;\n}());\nvar foo = new Foo();\nvar x = foo.getSomething();\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{var Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    Foo.prototype.getSomething = function () {\n        return null;\n    };\n    return Foo;\n}());\nvar foo = new Foo();\nvar x = foo.getSomething();\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

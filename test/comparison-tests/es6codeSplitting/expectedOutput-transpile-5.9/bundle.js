@@ -16,7 +16,7 @@
   \**************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'a';\n\n\n//# sourceURL=webpack:///./a.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'a';\n\n\n//# sourceURL=webpack:///./a.ts?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a_1 = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b_1 = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a_1.default);\nconsole.log(b_1.default);\n__webpack_require__.e(/*! require.ensure */ \"c_ts-d_ts\").then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... from` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    // Note that requiring an ES6 module always returns an object\n    // with the named exports. This means if you want to access\n    // the default export you have to do so manually.\n    // Since we used syntactic sugar for the default export for c, we\n    // go ahead and access the default property.\n    var cDefault = (__webpack_require__(/*! ./c */ \"./c.ts\")[\"default\"]);\n    // For d, we imported the whole module so we don't access the default\n    // property yet. \n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    console.log(cDefault);\n    console.log(dModule[\"default\"]);\n}).bind(null, __webpack_require__))['catch'](__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a_1 = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b_1 = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a_1.default);\nconsole.log(b_1.default);\n__webpack_require__.e(/*! require.ensure */ \"c_ts-d_ts\").then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... from` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    // Note that requiring an ES6 module always returns an object\n    // with the named exports. This means if you want to access\n    // the default export you have to do so manually.\n    // Since we used syntactic sugar for the default export for c, we\n    // go ahead and access the default property.\n    var cDefault = (__webpack_require__(/*! ./c */ \"./c.ts\")[\"default\"]);\n    // For d, we imported the whole module so we don't access the default\n    // property yet. \n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    console.log(cDefault);\n    console.log(dModule[\"default\"]);\n}).bind(null, __webpack_require__))['catch'](__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \**************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'b';\n\n\n//# sourceURL=webpack:///./b.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = 'b';\n\n\n//# sourceURL=webpack:///./b.ts?\n}");
 
 /***/ })
 
@@ -134,6 +134,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
 /******/ 					script.setAttribute("nonce", __webpack_require__.nc);
 /******/ 				}
 /******/ 		
+/******/ 		
 /******/ 				script.src = url;
 /******/ 			}
 /******/ 			inProgress[url] = [done];
@@ -147,7 +148,6 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
 /******/ 				doneFns && doneFns.forEach((fn) => (fn(event)));
 /******/ 				if(prev) return prev(event);
 /******/ 			}
-/******/ 			;
 /******/ 			var timeout = setTimeout(onScriptComplete.bind(null, undefined, { type: 'timeout', target: script }), 120000);
 /******/ 			script.onerror = onScriptComplete.bind(null, script.onerror);
 /******/ 			script.onload = onScriptComplete.bind(null, script.onload);
@@ -161,17 +161,20 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
 /******/ 		if (__webpack_require__.g.importScripts) scriptUrl = __webpack_require__.g.location + "";
 /******/ 		var document = __webpack_require__.g.document;
 /******/ 		if (!scriptUrl && document) {
-/******/ 			if (document.currentScript)
-/******/ 				scriptUrl = document.currentScript.src
+/******/ 			if (document.currentScript && document.currentScript.tagName.toUpperCase() === 'SCRIPT')
+/******/ 				scriptUrl = document.currentScript.src;
 /******/ 			if (!scriptUrl) {
 /******/ 				var scripts = document.getElementsByTagName("script");
-/******/ 				if(scripts.length) scriptUrl = scripts[scripts.length - 1].src
+/******/ 				if(scripts.length) {
+/******/ 					var i = scripts.length - 1;
+/******/ 					while (i > -1 && (!scriptUrl || !/^http(s?):/.test(scriptUrl))) scriptUrl = scripts[i--].src;
+/******/ 				}
 /******/ 			}
 /******/ 		}
 /******/ 		// When supporting browsers where an automatic publicPath is not supported you must specify an output.publicPath manually via configuration
 /******/ 		// or pass an empty string ("") and set the __webpack_public_path__ variable from your code to use your own logic.
 /******/ 		if (!scriptUrl) throw new Error("Automatic publicPath is not supported in this browser");
-/******/ 		scriptUrl = scriptUrl.replace(/#.*$/, "").replace(/\?.*$/, "").replace(/\/[^\/]+$/, "/");
+/******/ 		scriptUrl = scriptUrl.replace(/^blob:/, "").replace(/#.*$/, "").replace(/\?.*$/, "").replace(/\/[^\/]+$/, "/");
 /******/ 		__webpack_require__.p = scriptUrl;
 /******/ 	})();
 /******/ 	
@@ -220,7 +223,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
 /******/ 								}
 /******/ 							};
 /******/ 							__webpack_require__.l(url, loadingEnded, "chunk-" + chunkId, chunkId);
-/******/ 						} else installedChunks[chunkId] = 0;
+/******/ 						}
 /******/ 					}
 /******/ 				}
 /******/ 		};

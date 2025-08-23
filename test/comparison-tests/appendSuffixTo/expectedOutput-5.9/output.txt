@@ -1,4 +1,4 @@
-asset bundle.js 3.36 KiB [emitted] (name: main)
+asset bundle.js 3.37 KiB [emitted] (name: main)
 ./index.vue 382 bytes [built] [code generated]
 ./component.vue 187 bytes [built] [code generated]
 ./helper.ts 163 bytes [built] [code generated]

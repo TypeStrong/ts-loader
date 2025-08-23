@@ -4,7 +4,7 @@ assets by path lib/*.js 488 bytes
 assets by path lib/*.map 442 bytes
   asset lib/index.js.map 232 bytes [emitted]
   asset lib/helper.js.map 210 bytes [emitted]
-asset bundle.js 3.22 KiB [emitted] (name: main)
+asset bundle.js 3.23 KiB [emitted] (name: main)
 asset lib/tsconfig.tsbuildinfo 1.76 KiB [emitted]
 asset lib/helper.d.ts 105 bytes [emitted]
 cached modules 247 bytes [cached] 1 module

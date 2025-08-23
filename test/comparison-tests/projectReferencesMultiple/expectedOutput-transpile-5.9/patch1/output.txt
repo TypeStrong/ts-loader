@@ -1,4 +1,4 @@
-assets by status 3.6 KiB [cached] 1 asset
+assets by status 3.61 KiB [cached] 1 asset
 asset indirectWithError/tsconfig.tsbuildinfo 1.71 KiB [emitted]
 asset indirectWithError/fileWithError.js 154 bytes [emitted]
 cached modules 294 bytes [cached] 2 modules

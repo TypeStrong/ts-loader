@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("Hello.sayHello('Hi');\nHello.sayHi('Hi');\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{Hello.sayHello('Hi');\nHello.sayHi('Hi');\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

@@ -5,7 +5,7 @@ assets by path ../common/ 1.71 KiB
 assets by path ../utils/ 1.91 KiB
   asset ../utils/tsconfig.tsbuildinfo 1.67 KiB [emitted]
   asset ../utils/index.js 249 bytes [emitted]
-asset bundle.js 3.71 KiB [emitted] (name: main)
+asset bundle.js 3.72 KiB [emitted] (name: main)
 cached modules 155 bytes [cached] 1 module
 code generated modules 497 bytes [code generated]
   ./app.ts 248 bytes [built] [code generated]

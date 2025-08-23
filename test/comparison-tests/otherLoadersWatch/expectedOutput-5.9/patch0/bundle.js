@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar message_1 = __webpack_require__(/*! ./message */ \"./message.ts\");\nconsole.log(message_1.message);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar message_1 = __webpack_require__(/*! ./message */ \"./message.ts\");\nconsole.log(message_1.message);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar 
   \********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.message = void 0;\nexports.message = 'Hello, world!';\n\n\n//# sourceURL=webpack:///./message.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.message = void 0;\nexports.message = 'Hello, world!';\n\n\n//# sourceURL=webpack:///./message.ts?\n}");
 
 /***/ })
 

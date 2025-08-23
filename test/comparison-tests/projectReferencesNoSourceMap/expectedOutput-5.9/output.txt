@@ -4,7 +4,7 @@ assets by path lib/*.js 325 bytes
 assets by path lib/*.ts 135 bytes
   asset lib/index.d.ts 101 bytes [compared for emit]
   asset lib/foo.d.ts 34 bytes [compared for emit]
-asset bundle.js 3.1 KiB [emitted] (name: main)
+asset bundle.js 3.11 KiB [emitted] (name: main)
 asset lib/tsconfig.tsbuildinfo 1.74 KiB [compared for emit]
 ./app.ts 167 bytes [built] [code generated]
 ./lib/index.ts 205 bytes [built] [code generated]

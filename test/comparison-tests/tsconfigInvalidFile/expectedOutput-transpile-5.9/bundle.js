@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _lib_src_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib/src/index */ \"./lib/src/index.ts\");\n\nconsole.log(_lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.one, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.two, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _lib_src_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib/src/index */ \"./lib/src/index.ts\");\n\nconsole.log(_lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.one, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.two, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _lib
   \**************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"lib\": () => (/* binding */ lib)\n/* harmony export */ });\nconst lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?");
+eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   lib: () => (/* binding */ lib)\n/* harmony export */ });\nconst lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?\n}");
 
 /***/ })
 

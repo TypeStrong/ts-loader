@@ -10,23 +10,13 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./app.ts":
-/*!****************!*\
-  !*** ./app.ts ***!
-  \****************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar lib_1 = __webpack_require__(/*! ../lib */ \"../lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ../utils */ \"../utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n(0, utils_1.utils)();\n\n\n//# sourceURL=webpack:///./app.ts?");
-
-/***/ }),
-
 /***/ "../common/index.ts":
 /*!**************************!*\
   !*** ../common/index.ts ***!
   \**************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.common = common;\nfunction common() {\n    return 35;\n}\n\n\n//# sourceURL=webpack:///../common/index.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.common = common;\nfunction common() {\n    return 35;\n}\n\n\n//# sourceURL=webpack:///../common/index.ts?\n}");
 
 /***/ }),
 
@@ -36,7 +26,7 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///../lib/index.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///../lib/index.ts?\n}");
 
 /***/ }),
 
@@ -46,7 +36,17 @@ eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexpo
   \*************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.utils = utils;\nvar common_1 = __webpack_require__(/*! ../common */ \"../common/index.ts\");\nfunction utils() {\n    (0, common_1.common)();\n}\n\n\n//# sourceURL=webpack:///../utils/index.ts?");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.utils = utils;\nvar common_1 = __webpack_require__(/*! ../common */ \"../common/index.ts\");\nfunction utils() {\n    (0, common_1.common)();\n}\n\n\n//# sourceURL=webpack:///../utils/index.ts?\n}");
+
+/***/ }),
+
+/***/ "./app.ts":
+/*!****************!*\
+  !*** ./app.ts ***!
+  \****************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar lib_1 = __webpack_require__(/*! ../lib */ \"../lib/index.ts\");\nvar utils_1 = __webpack_require__(/*! ../utils */ \"../utils/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n(0, utils_1.utils)();\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

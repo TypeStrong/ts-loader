@@ -15,7 +15,7 @@
   \**************/
 /***/ ((module) => {
 
-eval("\nmodule.exports = 'c';\n\n\n//# sourceURL=webpack:///./c.ts?");
+eval("{\nmodule.exports = 'c';\n\n\n//# sourceURL=webpack:///./c.ts?\n}");
 
 /***/ }),
 
@@ -25,7 +25,7 @@ eval("\nmodule.exports = 'c';\n\n\n//# sourceURL=webpack:///./c.ts?");
   \**************/
 /***/ ((module) => {
 
-eval("\nmodule.exports = 'd';\n\n\n//# sourceURL=webpack:///./d.ts?");
+eval("{\nmodule.exports = 'd';\n\n\n//# sourceURL=webpack:///./d.ts?\n}");
 
 /***/ })
 

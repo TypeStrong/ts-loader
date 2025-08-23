@@ -16,7 +16,7 @@
   \*******************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"BaseComponent\": () => (/* binding */ BaseComponent)\n/* harmony export */ });\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nvar BaseComponent = function BaseComponent() {\n  _classCallCheck(this, BaseComponent);\n};\n\n//# sourceURL=webpack:///./index.tsx?");
+eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   BaseComponent: () => (/* binding */ BaseComponent)\n/* harmony export */ });\nfunction _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError(\"Cannot call a class as a function\"); } }\n\nvar BaseComponent = function BaseComponent() {\n  _classCallCheck(this, BaseComponent);\n};\n\n//# sourceURL=webpack:///./index.tsx?\n}");
 
 /***/ })
 

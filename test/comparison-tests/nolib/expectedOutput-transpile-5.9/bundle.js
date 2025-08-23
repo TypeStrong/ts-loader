@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("parseInt('10');\n\n\n//# sourceURL=webpack:///./app.ts?");
+eval("{parseInt('10');\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 
