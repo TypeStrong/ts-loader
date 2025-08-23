@@ -102,8 +102,12 @@ function updateFile(
       loader.loadModule(request, (err, source) => {
         if (err) {
           reject(err);
-        } else {
+        } else if (typeof source === 'string') {
           const text = JSON.parse(source);
+          updateFileWithText(instance, key, filePath, () => text);
+          resolve();
+        } else if (Buffer.isBuffer(source)) {
+          const text = JSON.parse(source.toString('utf8'));
           updateFileWithText(instance, key, filePath, () => text);
           resolve();
         }
