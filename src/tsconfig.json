@@ -12,6 +12,7 @@
     "outDir": "../dist",
     "declarationDir": "../dist",
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "skipLibCheck": true
   }
 }
