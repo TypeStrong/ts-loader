@@ -141,7 +141,7 @@ function successfulTypeScriptInstance(
       error: makeError(
         loaderOptions,
         colors.red('error while reading tsconfig.json:' + EOL + message),
-        file
+        file ?? ''
       ),
     };
   }

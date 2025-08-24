@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.5.3
+* [chore: typescript 5.9 upgrade](https://github.com/TypeStrong/ts-loader/pull/1676) - thanks @johnnyreilly
+
 ## 9.5.2
 * [fix: add more detailed error messages](https://github.com/TypeStrong/ts-loader/pull/1665) - thanks @hai-x
 

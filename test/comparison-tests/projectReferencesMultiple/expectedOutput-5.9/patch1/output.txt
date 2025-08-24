@@ -1,0 +1,8 @@
+asset bundle.js 3.61 KiB [emitted] (name: main)
+asset indirectWithError/tsconfig.tsbuildinfo 1.71 KiB [emitted]
+asset indirectWithError/fileWithError.js 154 bytes [emitted]
+cached modules 294 bytes [cached] 2 modules
+cacheable modules 409 bytes
+  ./app.ts 223 bytes [built] [code generated]
+  ./utils/index.ts 186 bytes [built] [code generated]
+webpack compiled successfully

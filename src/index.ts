@@ -298,6 +298,7 @@ function makeLoaderOptions(
   const hasForkTsCheckerWebpackPlugin =
     loaderContext._compiler?.options.plugins.some(
       plugin =>
+        plugin !== null &&
         typeof plugin === 'object' &&
         plugin.constructor?.name === 'ForkTsCheckerWebpackPlugin'
     );
@@ -477,7 +478,7 @@ function getEmit(
 
   addDependenciesFromSolutionBuilder(instance, filePath, addDependency);
 
-  loaderContext._module!.buildMeta.tsLoaderDefinitionFileVersions =
+  if (loaderContext._module && loaderContext._module.buildMeta) loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions =
     dependencies.map(
       defFilePath =>
         path.relative(loaderContext.rootContext, defFilePath) +

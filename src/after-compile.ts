@@ -462,7 +462,7 @@ function removeCompilationTSLoaderErrors(
   loaderOptions: LoaderOptions
 ) {
   compilation.errors = compilation.errors.filter(
-    error => error.details !== tsLoaderSource(loaderOptions)
+    error => error instanceof webpack.WebpackError && error.details !== tsLoaderSource(loaderOptions)
   );
 }
 

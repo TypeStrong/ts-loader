@@ -1,0 +1,1 @@
+(()=>{"use strict";var o,r={624:o=>{o.exports={foo:"bar"}}},t={};o=function o(e){var s=t[e];if(void 0!==s)return s.exports;var n=t[e]={exports:{}};return r[e](n,n.exports,o),n.exports}(624),console.log(o.foo)})();

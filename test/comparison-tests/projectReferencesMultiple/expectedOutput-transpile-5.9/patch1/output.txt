@@ -1,0 +1,8 @@
+assets by status 3.61 KiB [cached] 1 asset
+asset indirectWithError/tsconfig.tsbuildinfo 1.71 KiB [emitted]
+asset indirectWithError/fileWithError.js 154 bytes [emitted]
+cached modules 294 bytes [cached] 2 modules
+cacheable modules 409 bytes
+  ./app.ts 223 bytes [built]
+  ./utils/index.ts 186 bytes [built]
+webpack compiled successfully
