@@ -1,7 +1,7 @@
 # Changelog
 
 ## 9.5.5
-* [fix: TS5011 errors with TypeScript 6.0: transpileModule called with rootDir: undefined](https://github.com/TypeStrong/ts-loader/pull/1679) [#1678] - thanks @errorx666
+* [fix: TS5011 errors with TypeScript 6.0: transpileModule called with rootDir: undefined](https://github.com/TypeStrong/ts-loader/pull/1679) [#1678] - thanks @julioz and @errorx666
 
 ## 9.5.4
 * [chore: typescript 5.9 upgrade](https://github.com/TypeStrong/ts-loader/pull/1676) - thanks @johnnyreilly
