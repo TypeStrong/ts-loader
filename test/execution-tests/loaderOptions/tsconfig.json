@@ -1,5 +1,9 @@
 {
 	"compilerOptions": {
-		"noEmitOnError": true
+		"noEmitOnError": true,
+		"types": [
+			"jasmine"
+		],
+		"module": "commonjs"
 	}
 }

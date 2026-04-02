@@ -1,8 +1,11 @@
 {
 	"compilerOptions": {
 		"target": "es6",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"noEmitOnError": true,
-        "jsx": "react"
+		"jsx": "react",
+		"types": [
+			"jasmine"
+		]
 	}
 }

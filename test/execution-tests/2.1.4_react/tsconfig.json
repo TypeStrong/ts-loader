@@ -1,14 +1,17 @@
 {
-    "compilerOptions": {
-        "jsx": "react",
-        "target": "es5",
-        "noImplicitAny": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "noEmitOnError": true,
-        "removeComments": false,
-        "preserveConstEnums": true,
-        "sourceMap": true,
-        "skipLibCheck": true
-    }
+	"compilerOptions": {
+		"jsx": "react",
+		"target": "es6",
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"noEmitOnError": true,
+		"removeComments": false,
+		"preserveConstEnums": true,
+		"sourceMap": true,
+		"skipLibCheck": true,
+		"types": [
+			"jasmine"
+		]
+	}
 }

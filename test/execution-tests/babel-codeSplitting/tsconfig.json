@@ -1,15 +1,18 @@
 {
-    "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "lib": [
-            "dom",
-            "es2015"
-        ],
-        "target": "es2015",
-        "moduleResolution": "node",
-        "noEmitOnError": true,
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"lib": [
+			"dom",
+			"es2015"
+		],
+		"target": "es2015",
+		"moduleResolution": "bundler",
+		"noEmitOnError": true,
 		"removeComments": false,
-        "sourceMap": true,
-        "skipLibCheck": true
-    }
+		"sourceMap": true,
+		"skipLibCheck": true,
+		"types": [
+			"jasmine"
+		]
+	}
 }

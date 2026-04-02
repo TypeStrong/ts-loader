@@ -1,7 +1,9 @@
 {
 	"compilerOptions": {
-    "target": "esnext",
-    "jsx": "react",
-    "noEmitOnError": true
-  }
+		"target": "esnext",
+		"jsx": "react",
+		"noEmitOnError": true,
+		"noUncheckedSideEffectImports": false,
+		"noImplicitAny": false
+	}
 }

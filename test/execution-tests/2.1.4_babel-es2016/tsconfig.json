@@ -1,14 +1,21 @@
 {
-  "compileOnSave": false,
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "lib": ["dom", "es2015", "es2016"],
-    "module": "es2015",
-    "moduleResolution": "node",
-    "noEmitOnError": true,
-    "noImplicitAny": true,
-    "preserveConstEnums": true,
-    "removeComments": false,
-    "target": "es2016"
-  }
+	"compileOnSave": false,
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"lib": [
+			"dom",
+			"es2015",
+			"es2016"
+		],
+		"module": "es2015",
+		"moduleResolution": "bundler",
+		"noEmitOnError": true,
+		"noImplicitAny": true,
+		"preserveConstEnums": true,
+		"removeComments": false,
+		"target": "es2016",
+		"types": [
+			"jasmine"
+		]
+	}
 }

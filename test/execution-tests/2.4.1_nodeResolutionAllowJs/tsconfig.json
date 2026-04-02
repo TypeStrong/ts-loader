@@ -2,8 +2,11 @@
 	"compilerOptions": {
 		"noEmitOnError": true,
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 		"allowJs": true,
-	    "strict": true
+		"strict": true,
+		"types": [
+			"jasmine"
+		]
 	}
 }

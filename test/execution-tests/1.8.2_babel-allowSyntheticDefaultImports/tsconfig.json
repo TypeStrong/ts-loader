@@ -1,12 +1,15 @@
 {
-  "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
-    "module": "es2015",
-    "noEmitOnError": true,
-    "noImplicitAny": true,
-    "preserveConstEnums": true,
-    "removeComments": false,
-    "target": "es2015"
-  }
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"moduleResolution": "bundler",
+		"module": "es2015",
+		"noEmitOnError": true,
+		"noImplicitAny": true,
+		"preserveConstEnums": true,
+		"removeComments": false,
+		"target": "es2015",
+		"types": [
+			"jasmine"
+		]
+	}
 }

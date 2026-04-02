@@ -1,10 +1,13 @@
 {
-  "compilerOptions": {
-	"noEmitOnError": true,
-	"noErrorTruncation": true,
-    "incremental": true,
-	"outDir": "./dist",
-	"target": "es5",
-	"module": "es6"
-  }
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"noErrorTruncation": true,
+		"incremental": true,
+		"outDir": "./dist",
+		"target": "es6",
+		"module": "es6",
+		"types": [
+			"jasmine"
+		]
+	}
 }

@@ -2,6 +2,9 @@
 	"compilerOptions": {
 		"noEmitOnError": true,
 		"module": "Node16",
-		"target": "ES6"
+		"target": "ES6",
+		"types": [
+			"jasmine"
+		]
 	}
 }

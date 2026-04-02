@@ -1,6 +1,9 @@
 {
 	"compilerOptions": {
 		"noEmitOnError": true,
-		"resolveJsonModule": true
+		"resolveJsonModule": true,
+		"types": [
+			"jasmine"
+		]
 	}
 }
