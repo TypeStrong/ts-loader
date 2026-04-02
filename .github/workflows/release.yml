@@ -7,12 +7,13 @@ name: release
 # Permission to generate an OIDC token for trusted publishing to npm
 permissions:
   id-token: write
+  contents: read
 
 jobs:
   build_test_and_publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: install node
         uses: actions/setup-node@v6
