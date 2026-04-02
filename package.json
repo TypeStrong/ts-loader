@@ -101,5 +101,8 @@
   "peerDependencies": {
     "typescript": "*",
     "webpack": "^5.0.0"
+  },
+  "publishConfig": {
+    "provenance": true
   }
 }
