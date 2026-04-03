@@ -1,9 +1,10 @@
 {
 	"compilerOptions": {
-			"sourceMap": true
+		"sourceMap": true,
+		"module": "commonjs"
 	},
 	"files": [
-        "i-am-a-file-what-does-not-exist.ts",
-        "app.ts"
-    ]
+		"i-am-a-file-what-does-not-exist.ts",
+		"app.ts"
+	]
 }

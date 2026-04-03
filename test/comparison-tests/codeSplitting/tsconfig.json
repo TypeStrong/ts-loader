@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		
+		"module": "commonjs"
 	},
 	"files": [
 		"require.d.ts"

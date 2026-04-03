@@ -1,11 +1,14 @@
 {
-    "compilerOptions": {
+	"compilerOptions": {
 		"target": "es6",
-        "jsx": "preserve",
-        "moduleResolution": "node",
-        "noEmitOnError": true
+		"jsx": "preserve",
+		"moduleResolution": "bundler",
+		"noEmitOnError": true,
+		"types": [
+			"jasmine"
+		]
 	},
-    "files": [
-        "./src/app-shim.d.ts"
-    ]
+	"files": [
+		"./src/app-shim.d.ts"
+	]
 }

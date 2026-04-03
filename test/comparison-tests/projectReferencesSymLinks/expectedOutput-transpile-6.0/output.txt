@@ -1,0 +1,13 @@
+assets by path ../../lib/ 15.3 KiB
+  asset ../../lib/tsconfig.tsbuildinfo 15 KiB [compared for emit]
+  asset ../../lib/dist/index.js 259 bytes [compared for emit]
+  asset ../../lib/dist/index.d.ts 53 bytes [compared for emit]
+assets by path ../../common/ 15.1 KiB
+  asset ../../common/tsconfig.tsbuildinfo 14.8 KiB [compared for emit]
+  asset ../../common/dist/index.js 196 bytes [compared for emit]
+  asset ../../common/dist/index.d.ts 54 bytes [compared for emit]
+asset index.js 3.36 KiB [emitted] (name: main)
+./src/index.ts 151 bytes [built] [code generated]
+../lib/dist/index.js 259 bytes [built] [code generated]
+../common/dist/index.js 196 bytes [built] [code generated]
+webpack compiled successfully

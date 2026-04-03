@@ -1,9 +1,12 @@
 {
-  "compilerOptions": {
-    "noEmitOnError": true,
-    "noImplicitAny": true,
-    "preserveConstEnums": true,
-    "removeComments": false,
-    "target": "es6"
-  }
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"noImplicitAny": true,
+		"preserveConstEnums": true,
+		"removeComments": false,
+		"target": "es6",
+		"types": [
+			"jasmine"
+		]
+	}
 }

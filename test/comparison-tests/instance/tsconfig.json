@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
+		"module": "commonjs"
 	},
 	"files": [
 		"i-dont-exist"

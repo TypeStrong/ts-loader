@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     "lib": ["es2018"],
+    "types": ["node"],
     "target": "es2018",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "declaration": true,
     "outDir": "../dist",
     "declarationDir": "../dist",

@@ -1,5 +1,8 @@
 {
-    "files": [
-        "lib/externalLib.d.ts"
-    ]
+	"files": [
+		"lib/externalLib.d.ts"
+	],
+	"compilerOptions": {
+		"module": "commonjs"
+	}
 }

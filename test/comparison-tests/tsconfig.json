@@ -4,7 +4,9 @@
         "checkJs": true,
         "module": "commonjs",
         "noEmit": true,
-        "lib": ["es2016"]
+        "lib": ["es2016"],
+        "types": ["node"],
+        "strict": false
     },
     "files": [
         "getProgram.js",

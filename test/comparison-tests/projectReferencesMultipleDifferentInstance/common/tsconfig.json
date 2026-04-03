@@ -1,6 +1,7 @@
 {
-  "compilerOptions": {
-    "composite": true,
-    "types": []
-  }
+	"compilerOptions": {
+		"composite": true,
+		"types": [],
+		"module": "commonjs"
+	}
 }

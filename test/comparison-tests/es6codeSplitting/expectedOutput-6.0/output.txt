@@ -1,0 +1,17 @@
+asset bundle.js 12.9 KiB [emitted] (name: main)
+asset c_ts-d_ts.bundle.js 1.19 KiB [emitted]
+runtime modules 6.14 KiB 7 modules
+cacheable modules 1.56 KiB
+  ./app.ts 1.17 KiB [built] [code generated] [1 error]
+  ./a.ts 100 bytes [built] [code generated]
+  ./b.ts 100 bytes [built] [code generated]
+  ./c.ts 100 bytes [built] [code generated]
+  ./d.ts 100 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 24:26-40
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(24,27)[39m[22m
+[1m[31m      TS2571: Object is of type 'unknown'.[39m[22m
+ts-loader-default_609318b4f68865d3
+
+webpack compiled with 1 error

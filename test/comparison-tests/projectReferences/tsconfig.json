@@ -1,11 +1,14 @@
 {
-    "compilerOptions": {
-        "types": []
-    },
-    "files": [
-        "./app.ts"
-    ],
-    "references": [
-        { "path": "./lib" }
-    ]
+	"compilerOptions": {
+		"types": [],
+		"module": "commonjs"
+	},
+	"files": [
+		"./app.ts"
+	],
+	"references": [
+		{
+			"path": "./lib"
+		}
+	]
 }

@@ -1,0 +1,33 @@
+assets by path indirectWithError/ 15.5 KiB 5 assets
+assets by path lib/ 15.5 KiB 5 assets
+assets by path utils/ 15.1 KiB
+  asset utils/tsconfig.tsbuildinfo 14.9 KiB [compared for emit]
+  + 2 assets
+assets by path common/ 15 KiB
+  asset common/tsconfig.tsbuildinfo 14.8 KiB [compared for emit]
+  + 2 assets
+assets by path unreferenced/ 15 KiB
+  asset unreferenced/tsconfig.tsbuildinfo 14.8 KiB [compared for emit]
+  + 2 assets
+assets by path unreferencedIndirect/ 15 KiB
+  asset unreferencedIndirect/tsconfig.tsbuildinfo 14.8 KiB [compared for emit]
+  + 2 assets
+asset bundle.js 3.62 KiB [emitted] (name: main)
+./app.ts 227 bytes [built] [code generated]
+./lib/index.ts 155 bytes [built] [code generated]
+./utils/index.ts 188 bytes [built] [code generated]
+./common/index.ts 139 bytes [built] [code generated]
+
+ERROR in lib/fileWithError.ts
+2:4-10
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mlib/fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'boolean' is not assignable to type 'string'.[39m[22m
+ts-loader-default_b7d520153c6e6cf9
+
+ERROR in indirectWithError/fileWithError.ts
+2:4-10
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mindirectWithError/fileWithError.ts(2,5)[39m[22m
+[1m[31m      TS2322: Type 'boolean' is not assignable to type 'string'.[39m[22m
+ts-loader-default_b7d520153c6e6cf9
+
+webpack compiled with 2 errors

@@ -1,11 +1,16 @@
 {
-  "compilerOptions": {
-    "noEmitOnError": true
-  },
-  "include": [
-    "./node_modules/whitelistedModule"
-  ],
-  "files": [
-    "./node_modules/whitelistedFiles/file.ts"
-  ]
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"types": [
+			"node",
+			"jasmine"
+		],
+		"module": "commonjs"
+	},
+	"include": [
+		"./node_modules/whitelistedModule"
+	],
+	"files": [
+		"./node_modules/whitelistedFiles/file.ts"
+	]
 }

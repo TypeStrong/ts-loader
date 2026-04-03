@@ -2,7 +2,8 @@
 	"compilerOptions": {
 		"declaration": true,
 		"declarationDir": ".output",
-		"allowJs": true
+		"allowJs": true,
+		"module": "commonjs"
 	},
 	"files": [
 		"./app.ts",

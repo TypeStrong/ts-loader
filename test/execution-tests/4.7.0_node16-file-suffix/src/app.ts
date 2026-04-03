@@ -12,7 +12,7 @@ export class App {
     /**
      * A component for writing log-messages.
      */
-    private logger: Logger = null;
+    private logger: Logger | null = null;
 
     /**
      * Gets a component for writing log-messages.

@@ -1,13 +1,14 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "composite": true,
-    "sourceMap": true,
-    "outDir": "./out",
-    "rootDir": "./src",
-    "types": []
-  },
-  "files": [
-    "./src/index.ts"
-  ]
+	"compilerOptions": {
+		"target": "esnext",
+		"composite": true,
+		"sourceMap": true,
+		"outDir": "./out",
+		"rootDir": "./src",
+		"types": [],
+		"module": "commonjs"
+	},
+	"files": [
+		"./src/index.ts"
+	]
 }

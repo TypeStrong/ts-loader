@@ -1,0 +1,13 @@
+assets by path lib/*.js 490 bytes
+  asset lib/index.js 282 bytes [emitted]
+  asset lib/helper.js 208 bytes [emitted]
+assets by path lib/*.map 442 bytes
+  asset lib/index.js.map 232 bytes [emitted]
+  asset lib/helper.js.map 210 bytes [emitted]
+asset lib/tsconfig.tsbuildinfo 15 KiB [emitted]
+asset bundle.js 3.23 KiB [emitted] (name: main)
+asset lib/helper.d.ts 105 bytes [emitted]
+./app.ts 169 bytes [built] [code generated]
+./lib/index.ts 249 bytes [built] [code generated]
+./lib/helper.ts 174 bytes [built] [code generated]
+webpack compiled successfully

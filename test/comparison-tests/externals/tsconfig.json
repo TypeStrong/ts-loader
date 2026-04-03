@@ -1,5 +1,8 @@
 {
 	"files": [
 		"hello.d.ts"
-	]
+	],
+	"compilerOptions": {
+		"module": "commonjs"
+	}
 }

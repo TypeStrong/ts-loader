@@ -1,11 +1,16 @@
 {
-  "files": [
-    "./src/app.ts"
-  ],
-  "references": [
-    { "path": "./lib" }
-  ],
-  "compilerOptions": {
-    "noEmitOnError": true
-  }
+	"files": [
+		"./src/app.ts"
+	],
+	"references": [
+		{
+			"path": "./lib"
+		}
+	],
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"types": [
+			"jasmine"
+		]
+	}
 }

@@ -1,6 +1,6 @@
 import type { Chalk } from 'chalk';
 import * as fs from 'fs';
-import * as micromatch from 'micromatch';
+import micromatch from 'micromatch';
 import * as path from 'path';
 import * as webpack from 'webpack';
 import type * as typescript from 'typescript';

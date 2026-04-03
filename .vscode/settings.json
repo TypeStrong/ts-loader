@@ -1,5 +1,10 @@
 {
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "github.copilot.nextEditSuggestions.enabled": true,
+  "chat.tools.terminal.autoApprove": {
+    "git blame": true,
+    "sed": true
   }
 }

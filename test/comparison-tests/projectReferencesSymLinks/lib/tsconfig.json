@@ -1,11 +1,14 @@
 {
-    "compilerOptions": {
-        "composite": true,
-        "outDir": "dist",
-        "rootDir": "src",
-        "types": []
-    },
-    "references": [
-        { "path": "../common" }
-    ]
+	"compilerOptions": {
+		"composite": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"types": [],
+		"module": "commonjs"
+	},
+	"references": [
+		{
+			"path": "../common"
+		}
+	]
 }
