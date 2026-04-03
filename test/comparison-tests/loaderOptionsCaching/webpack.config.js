@@ -19,11 +19,11 @@ module.exports = {
                 },
             },
             {
-                test: /submodule-es5.*\.ts$/,
+                test: /submodule-es2016.*\.ts$/,
                 loader: 'ts-loader',
                 options: {
                     compilerOptions: {
-                        target: 'es5',
+                        target: 'es2016',
                     },
                 },
             }
