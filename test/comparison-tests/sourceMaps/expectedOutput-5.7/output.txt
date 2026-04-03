@@ -1,3 +1,0 @@
-asset bundle.js 206 bytes [emitted] (name: main) 1 related asset
-./a.ts 28 bytes [built] [code generated]
-webpack compiled successfully

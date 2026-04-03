@@ -1,5 +1,0 @@
-asset bundle.js 3.45 KiB [emitted] (name: main)
-./src/index.js 207 bytes [built] [code generated]
-./src/error1.js 290 bytes [built] [code generated]
-./src/error2.js 303 bytes [built] [code generated]
-webpack compiled successfully
