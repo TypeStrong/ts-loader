@@ -46,9 +46,25 @@ let failingTests = [];
 
 // set up new empty staging area
 const stagingPath = path.resolve(__dirname, '../../.test');
-rimraf.sync(stagingPath);
+removeStagingPath(stagingPath);
 
 runTests();
+
+function removeStagingPath(folderPath) {
+  const maxAttempts = 5;
+  let attempt = 0;
+  while (++attempt <= maxAttempts) {
+    try {
+      rimraf.sync(folderPath);
+      return;
+    } catch (error) {
+      if (error && error.code === 'ENOTEMPTY' && attempt < maxAttempts) {
+        continue;
+      }
+      throw error;
+    }
+  }
+}
 
 // --------------------------------------------------------------
 
