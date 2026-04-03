@@ -14,9 +14,9 @@
 /*!****************!*\
   !*** ./app.ts ***!
   \****************/
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-eval("{\nvar __extends = (this && this.__extends) || (function () {\n    var extendStatics = function (d, b) {\n        extendStatics = Object.setPrototypeOf ||\n            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||\n            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };\n        return extendStatics(d, b);\n    };\n    return function (d, b) {\n        if (typeof b !== \"function\" && b !== null)\n            throw new TypeError(\"Class extends value \" + String(b) + \" is not a constructor or null\");\n        extendStatics(d, b);\n        function __() { this.constructor = d; }\n        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());\n    };\n})();\nvar dep = __webpack_require__(/*! ./sub/dep */ \"./sub/dep.ts\");\nvar Test = /** @class */ (function (_super) {\n    __extends(Test, _super);\n    function Test() {\n        return _super !== null && _super.apply(this, arguments) || this;\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}(dep));\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nconst dep = __webpack_require__(/*! ./sub/dep */ \"./sub/dep.ts\");\nclass Test extends dep {\n    doSomething() {\n    }\n}\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("{\nvar __extends = (this && this.__extends) || (function () {\n    var ext
   \********************/
 /***/ ((module) => {
 
-eval("{\nvar Test = /** @class */ (function () {\n    function Test() {\n    }\n    Test.prototype.doSomething = function () {\n    };\n    return Test;\n}());\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./sub/dep.ts?\n}");
+eval("{\nclass Test {\n    doSomething() {\n    }\n}\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./sub/dep.ts?\n}");
 
 /***/ })
 
@@ -50,7 +50,7 @@ eval("{\nvar Test = /** @class */ (function () {\n    function Test() {\n    }\n
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;

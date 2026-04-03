@@ -1,11 +1,12 @@
 {
-  "compilerOptions": {
-    "composite": true,
-    "sourceMap": true,
-    "types": []
-  },
-  "files": [
-    "./index.ts",
-    "./helper.ts"
-  ]
+	"compilerOptions": {
+		"composite": true,
+		"sourceMap": true,
+		"types": [],
+		"module": "commonjs"
+	},
+	"files": [
+		"./index.ts",
+		"./helper.ts"
+	]
 }

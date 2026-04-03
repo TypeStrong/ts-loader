@@ -1,5 +1,12 @@
-asset bundle.js 2.96 KiB [emitted] (name: main)
-./app.ts 146 bytes [built] [code generated]
-./foo.ts 146 bytes [built] [code generated]
+asset bundle.js 4.37 KiB [emitted] (name: main)
+./app.ts 148 bytes [built] [code generated] [1 error]
+./foo.ts 1.49 KiB [built] [code generated]
 ./node_modules/a/index.js 21 bytes [built] [code generated]
-webpack compiled successfully
+
+ERROR in app.ts
+./app.ts 4:0-3
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(4,1)[39m[22m
+[1m[31m      TS2454: Variable 'foo' is used before being assigned.[39m[22m
+ts-loader-default_609318b4f68865d3
+
+webpack compiled with 1 error

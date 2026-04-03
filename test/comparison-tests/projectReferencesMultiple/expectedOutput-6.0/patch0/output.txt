@@ -1,10 +1,10 @@
-asset bundle.js 3.61 KiB [emitted] (name: main)
-asset lib/tsconfig.tsbuildinfo 1.71 KiB [emitted]
+asset lib/tsconfig.tsbuildinfo 15 KiB [emitted]
+asset bundle.js 3.62 KiB [emitted] (name: main)
 asset lib/fileWithError.js 141 bytes [emitted]
 cached modules 294 bytes [cached] 2 modules
-cacheable modules 409 bytes
-  ./app.ts 223 bytes [built] [code generated]
-  ./utils/index.ts 186 bytes [built]
+cacheable modules 415 bytes
+  ./app.ts 227 bytes [built] [code generated]
+  ./utils/index.ts 188 bytes [built]
 
 ERROR in indirectWithError/fileWithError.ts
 2:4-10

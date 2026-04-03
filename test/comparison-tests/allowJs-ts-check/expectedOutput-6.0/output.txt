@@ -1,13 +1,20 @@
-asset bundle.js 3.46 KiB [emitted] (name: main)
-./src/index.js 207 bytes [built] [code generated]
-./src/error1.js 290 bytes [built] [code generated]
-./src/error2.js 303 bytes [built] [code generated] [1 error]
+asset bundle.js 3.25 KiB [emitted] (name: main)
+./src/index.js 211 bytes [built] [code generated]
+./src/error1.js 180 bytes [built] [code generated]
+./src/error2.js 193 bytes [built] [code generated] [1 error]
+
+ERROR in tsconfig.json
+tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS5011: The common source directory of 'tsconfig.json' is './src'. The 'rootDir' setting must be explicitly set to this or another path to adjust your output's file layout.[39m[22m
+[1m[31m  Visit https://aka.ms/ts6 for migration information.[39m[22m
+ts-loader-default_609318b4f68865d3
 
 ERROR in src/error2.js
 ./src/error2.js 4:9-12
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36msrc/error2.js(4,10)[39m[22m
 [1m[31m      TS2339: Property 'bar' does not exist on type 'Class2'.[39m[22m
 ts-loader-default_609318b4f68865d3
- @ ./src/index.js 4:15-34
+ @ ./src/index.js 4:17-36
 
-webpack compiled with 1 error
+webpack compiled with 2 errors

@@ -26,7 +26,7 @@ eval("{module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceUR
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething('');\n\n\n//# sourceURL=webpack:///./src/app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething('');\n\n\n//# sourceURL=webpack:///./src/app.ts?\n}");
 
 /***/ })
 

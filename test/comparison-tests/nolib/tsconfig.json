@@ -1,5 +1,6 @@
 {
-    "compilerOptions": {
-        "noLib": true
-    }
+	"compilerOptions": {
+		"noLib": true,
+		"module": "commonjs"
+	}
 }

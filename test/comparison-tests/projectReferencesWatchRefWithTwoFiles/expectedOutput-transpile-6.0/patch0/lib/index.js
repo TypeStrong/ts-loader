@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.lib = void 0;
-var helper_1 = require("./helper");
+const helper_1 = require("./helper");
 exports.lib = {
     one: helper_1.helper.one,
     two: helper_1.helper.two,

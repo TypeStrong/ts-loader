@@ -14,9 +14,9 @@
 /*!****************!*\
   !*** ./app.ts ***!
   \****************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _lib_src_index__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./lib/src/index */ \"./lib/src/index.ts\");\n\nconsole.log(_lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.one, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.two, _lib_src_index__WEBPACK_IMPORTED_MODULE_0__.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst index_1 = __webpack_require__(/*! ./lib/src/index */ \"./lib/src/index.ts\");\nconsole.log(index_1.lib.one, index_1.lib.two, index_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -24,9 +24,9 @@ eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _li
 /*!**************************!*\
   !*** ./lib/src/index.ts ***!
   \**************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
-eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   lib: () => (/* binding */ lib)\n/* harmony export */ });\nconst lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n\n\n//# sourceURL=webpack:///./lib/src/index.ts?\n}");
 
 /***/ })
 
@@ -55,35 +55,6 @@ eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpa
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
-/************************************************************************/
-/******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			for(var key in definition) {
-/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 				}
-/******/ 			}
-/******/ 		};
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
-/******/ 	
-/******/ 	/* webpack/runtime/make namespace object */
-/******/ 	(() => {
-/******/ 		// define __esModule on exports
-/******/ 		__webpack_require__.r = (exports) => {
-/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 			}
-/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 		};
-/******/ 	})();
 /******/ 	
 /************************************************************************/
 /******/ 	

@@ -6,5 +6,5 @@ exports.lib = {
     two: 2,
     three: 3
 };
-var y = 10;
+const y = 10;
 //# sourceMappingURL=index.js.map

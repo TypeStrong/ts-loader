@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/out/index.js\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three, lib_1.lib.four, lib_1.lib.five); // consume new number\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst lib_1 = __webpack_require__(/*! ./lib */ \"./lib/out/index.js\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three, lib_1.lib.four, lib_1.lib.five); // consume new number\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 

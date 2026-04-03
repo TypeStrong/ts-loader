@@ -1,6 +1,6 @@
-asset bundle.js 3.16 KiB [emitted] (name: main)
-cached modules 204 bytes [cached] 2 modules
-./app.ts 206 bytes [built] [code generated] [1 error]
+asset bundle.js 3.17 KiB [emitted] (name: main)
+cached modules 206 bytes [cached] 2 modules
+./app.ts 210 bytes [built] [code generated] [1 error]
 
 ERROR in app.ts
 ./app.ts 3:12-24

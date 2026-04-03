@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"declaration": true,
-		"declarationDir": ".output"
+		"declarationDir": ".output",
+		"module": "commonjs"
 	}
 }

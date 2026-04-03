@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a = __webpack_require__(/*! a */ \"./node_modules/a/index.ts\");\nconsole.log(a);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst a = __webpack_require__(/*! a */ \"./node_modules/a/index.ts\");\nconsole.log(a);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 

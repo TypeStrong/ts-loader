@@ -1,7 +1,22 @@
-asset bundle.js 5.09 KiB [emitted] (name: main)
+asset bundle.js 4.66 KiB [emitted] (name: main)
 runtime modules 937 bytes 4 modules
-cacheable modules 248 bytes
+cacheable modules 205 bytes
   ./app.ts 52 bytes [built] [code generated]
-  ./submodule-es5/index.ts 57 bytes [built] [code generated]
-  ./submodule-es6/index.ts 139 bytes [built] [code generated]
-webpack compiled successfully
+  ./submodule-es6/index.ts 153 bytes [built] [code generated]
+
+ERROR in ./app.ts 1:0-25
+Module not found: Error: Can't resolve './submodule-es5' in '.test/loaderOptionsCaching'
+resolve './submodule-es5' in '.test/loaderOptionsCaching'
+  using description file: package.json (relative path: ./.test/loaderOptionsCaching)
+    Field 'browser' doesn't contain a valid alias configuration
+    using description file: package.json (relative path: ./.test/loaderOptionsCaching/submodule-es5)
+      no extension
+        Field 'browser' doesn't contain a valid alias configuration
+        submodule-es5 doesn't exist
+      .ts
+        Field 'browser' doesn't contain a valid alias configuration
+        submodule-es5.ts doesn't exist
+      as directory
+        submodule-es5 doesn't exist
+
+webpack compiled with 1 error

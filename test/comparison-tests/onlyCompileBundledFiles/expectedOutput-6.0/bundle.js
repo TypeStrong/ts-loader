@@ -13,66 +13,20 @@
 /*!****************!*\
   !*** ./app.ts ***!
   \****************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (() => {
 
-"use strict";
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar submodule = __webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.ts\");\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(submodule);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
-
-/***/ }),
-
-/***/ "./lib/externalLib.js":
-/*!****************************!*\
-  !*** ./lib/externalLib.js ***!
-  \****************************/
-/***/ ((module) => {
-
-eval("{module.exports = {\n    doSomething: function() { }   \n}\n\n//# sourceURL=webpack:///./lib/externalLib.js?\n}");
-
-/***/ }),
-
-/***/ "./submodule/submodule.ts":
-/*!********************************!*\
-  !*** ./submodule/submodule.ts ***!
-  \********************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-"use strict";
-eval("{\nvar externalLib = __webpack_require__(/*! externalLib */ \"./lib/externalLib.js\");\nexternalLib.doSomething(\"\");\nvar message = \"Hello from submodule\";\nmodule.exports = message;\n\n\n//# sourceURL=webpack:///./submodule/submodule.ts?\n}");
+eval("{throw new Error(\"Module build failed (from ../../index.js):/nError: /u001b[31merror while parsing tsconfig.json/u001b[39m/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:51:18)\");\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 
 /******/ 	});
 /************************************************************************/
-/******/ 	// The module cache
-/******/ 	var __webpack_module_cache__ = {};
-/******/ 	
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/ 		// Check if module is in cache
-/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
-/******/ 		if (cachedModule !== undefined) {
-/******/ 			return cachedModule.exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
-/******/ 			exports: {}
-/******/ 		};
-/******/ 	
-/******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
-/******/ 	
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/ 	
-/************************************************************************/
 /******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	// This entry module can't be inlined because the eval devtool is used.
-/******/ 	var __webpack_exports__ = __webpack_require__("./app.ts");
+/******/ 	// This entry module doesn't tell about it's top-level declarations so it can't be inlined
+/******/ 	var __webpack_exports__ = {};
+/******/ 	__webpack_modules__["./app.ts"]();
 /******/ 	
 /******/ })()
 ;

@@ -1,11 +1,14 @@
 {
-    "references": [
-        { "path": "../lib" }
-    ],
-    "compilerOptions": {
-        "outDir": "dist",
-        "rootDir": "src",
-        "preserveSymlinks": true,
-        "types": []
-    }
+	"references": [
+		{
+			"path": "../lib"
+		}
+	],
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src",
+		"preserveSymlinks": true,
+		"types": [],
+		"module": "commonjs"
+	}
 }

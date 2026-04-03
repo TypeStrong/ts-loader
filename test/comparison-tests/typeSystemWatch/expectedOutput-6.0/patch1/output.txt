@@ -1,3 +1,10 @@
-asset bundle.js 1.36 KiB [emitted] (name: main)
-./app.ts 212 bytes [built] [code generated]
-webpack compiled successfully
+asset bundle.js 1.28 KiB [emitted] (name: main)
+./app.ts 125 bytes [built] [code generated] [1 error]
+
+ERROR in app.ts
+./app.ts 6:2-8
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(6,3)[39m[22m
+[1m[31m      TS2322: Type 'null' is not assignable to type 'AType'.[39m[22m
+ts-loader-default_609318b4f68865d3
+
+webpack compiled with 1 error

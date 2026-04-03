@@ -16,7 +16,7 @@
   \****************/
 /***/ ((module) => {
 
-eval("{\nvar Test = /** @class */ (function () {\n    function Test() {\n    }\n    return Test;\n}());\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nclass Test {\n    _field;\n}\nmodule.exports = Test;\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

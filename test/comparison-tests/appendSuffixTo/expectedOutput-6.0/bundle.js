@@ -16,7 +16,7 @@
   \***********************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = {\n    data: function () {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//# sourceURL=webpack:///./component.vue?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = {\n    data() {\n        return {\n            msg: \"component\"\n        };\n    }\n};\n\n\n//# sourceURL=webpack:///./component.vue?\n}");
 
 /***/ }),
 
@@ -34,9 +34,9 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexp
 /*!*******************!*\
   !*** ./index.vue ***!
   \*******************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar component_vue_1 = __webpack_require__(/*! ./component.vue */ \"./component.vue\");\nvar helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports[\"default\"] = {\n    components: { component: component_vue_1.default },\n    data: function () {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//# sourceURL=webpack:///./index.vue?\n}");
+eval("{\nvar __importDefault = (this && this.__importDefault) || function (mod) {\n    return (mod && mod.__esModule) ? mod : { \"default\": mod };\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst component_vue_1 = __importDefault(__webpack_require__(/*! ./component.vue */ \"./component.vue\"));\nconst helper_1 = __webpack_require__(/*! ./helper */ \"./helper.ts\");\nexports[\"default\"] = {\n    components: { component: component_vue_1.default },\n    data() {\n        return {\n            msg: \"world\"\n        };\n    },\n    method: {\n        myMethod: helper_1.myMethod\n    }\n};\n\n\n//# sourceURL=webpack:///./index.vue?\n}");
 
 /***/ })
 
@@ -60,7 +60,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -70,7 +70,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar
 /******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	// This entry module can't be inlined because the eval devtool is used.
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
 /******/ 	var __webpack_exports__ = __webpack_require__("./index.vue");
 /******/ 	
 /******/ })()

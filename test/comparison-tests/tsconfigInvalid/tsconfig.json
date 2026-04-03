@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "es2",
-		"sourceMap": "maybe"
+		"sourceMap": "maybe",
+		"module": "commonjs"
 	}
 }

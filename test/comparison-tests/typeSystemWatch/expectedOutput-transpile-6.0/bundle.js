@@ -7,6 +7,7 @@
  * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
  */
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
 /***/ "./app.ts":
@@ -15,7 +16,7 @@
   \****************/
 /***/ (() => {
 
-eval("{var Foo = /** @class */ (function () {\n    function Foo() {\n    }\n    Foo.prototype.getSomething = function () {\n        return null;\n    };\n    return Foo;\n}());\nvar foo = new Foo();\nvar x = foo.getSomething();\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nclass Foo {\n    getSomething() {\n        return null;\n    }\n}\nvar foo = new Foo();\nvar x = foo.getSomething();\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

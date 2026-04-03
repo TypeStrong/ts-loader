@@ -1,7 +1,7 @@
-asset bundle.js 2.2 KiB [emitted] (name: main)
+asset bundle.js 2.13 KiB [emitted] (name: main)
 asset .output/sub/dep.d.ts 99 bytes [emitted]
 asset .output/app.d.ts 59 bytes [emitted]
-./app.ts 128 bytes [built] [code generated] [1 error]
+./app.ts 64 bytes [built] [code generated] [1 error]
 
 ERROR in app.ts
 ./app.ts 4:18-21

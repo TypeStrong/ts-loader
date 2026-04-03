@@ -24,9 +24,9 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexp
 /*!****************!*\
   !*** ./app.ts ***!
   \****************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar a_1 = __webpack_require__(/*! ./a */ \"./a.ts\");\nvar b_1 = __webpack_require__(/*! ./b */ \"./b.ts\");\nconsole.log(a_1.default);\nconsole.log(b_1.default);\n__webpack_require__.e(/*! require.ensure */ \"c_ts-d_ts\").then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... from` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    // Note that requiring an ES6 module always returns an object\n    // with the named exports. This means if you want to access\n    // the default export you have to do so manually.\n    // Since we used syntactic sugar for the default export for c, we\n    // go ahead and access the default property.\n    var cDefault = (__webpack_require__(/*! ./c */ \"./c.ts\")[\"default\"]);\n    // For d, we imported the whole module so we don't access the default\n    // property yet. \n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    console.log(cDefault);\n    console.log(dModule[\"default\"]);\n}).bind(null, __webpack_require__))['catch'](__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nvar __importDefault = (this && this.__importDefault) || function (mod) {\n    return (mod && mod.__esModule) ? mod : { \"default\": mod };\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst a_1 = __importDefault(__webpack_require__(/*! ./a */ \"./a.ts\"));\nconst b_1 = __importDefault(__webpack_require__(/*! ./b */ \"./b.ts\"));\nconsole.log(a_1.default);\nconsole.log(b_1.default);\n__webpack_require__.e(/*! require.ensure */ \"c_ts-d_ts\").then((function (require) {\n    // These require calls are emitted (note these are NOT TypeScript\n    // `import ... from` statements). `require.ensure` is defined in\n    // require.d.ts. Webpack sees this and automatically puts c and d\n    // into a separate chunk. \n    // Note that requiring an ES6 module always returns an object\n    // with the named exports. This means if you want to access\n    // the default export you have to do so manually.\n    // Since we used syntactic sugar for the default export for c, we\n    // go ahead and access the default property.\n    var cDefault = (__webpack_require__(/*! ./c */ \"./c.ts\")[\"default\"]);\n    // For d, we imported the whole module so we don't access the default\n    // property yet. \n    var dModule = __webpack_require__(/*! ./d */ \"./d.ts\");\n    console.log(cDefault);\n    console.log(dModule[\"default\"]);\n}).bind(null, __webpack_require__))['catch'](__webpack_require__.oe);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -60,7 +60,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexp
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -272,7 +272,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexp
 /******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	// This entry module can't be inlined because the eval devtool is used.
+/******/ 	// This entry module is referenced by other modules so it can't be inlined
 /******/ 	var __webpack_exports__ = __webpack_require__("./app.ts");
 /******/ 	
 /******/ })()

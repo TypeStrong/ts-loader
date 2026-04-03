@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\ndep('');\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst dep = __webpack_require__(/*! ./dep */ \"./dep.ts\");\ndep('');\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("{\nfunction doSomething(input) {\n}\nmodule.exports = doSomething;\n\n\n//
   \****************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-eval("{\nvar dep = __webpack_require__(/*! ./deeperDep */ \"./deeperDep.ts\");\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./dep.ts?\n}");
+eval("{\nconst dep = __webpack_require__(/*! ./deeperDep */ \"./deeperDep.ts\");\nmodule.exports = dep;\n\n\n//# sourceURL=webpack:///./dep.ts?\n}");
 
 /***/ })
 

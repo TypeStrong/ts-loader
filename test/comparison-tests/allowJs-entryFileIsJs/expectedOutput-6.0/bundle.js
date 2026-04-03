@@ -7,6 +7,7 @@
  * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
  */
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
 /***/ "./src/index.js":
@@ -15,7 +16,7 @@
   \**********************/
 /***/ (() => {
 
-eval("{console.log('working');\n\n\n//# sourceURL=webpack:///./src/index.js?\n}");
+eval("{\nconsole.log('working');\n\n\n//# sourceURL=webpack:///./src/index.js?\n}");
 
 /***/ })
 

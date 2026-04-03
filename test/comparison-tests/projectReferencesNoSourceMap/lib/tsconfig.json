@@ -1,10 +1,11 @@
 {
-  "compilerOptions": {
-    "composite": true,
-    "types": []
-  },
-  "files": [
-    "./index.ts",
-    "./foo.ts"
-  ]
+	"compilerOptions": {
+		"composite": true,
+		"types": [],
+		"module": "commonjs"
+	},
+	"files": [
+		"./index.ts",
+		"./foo.ts"
+	]
 }

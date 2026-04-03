@@ -1,12 +1,15 @@
 {
-    "compilerOptions": {
-        "composite": true,
-        "outDir": "dist",
-        "rootDir": "src",
-        "preserveSymlinks": true,
-        "types": []
-    },
-    "references": [
-        { "path": "../common" }
-    ]
+	"compilerOptions": {
+		"composite": true,
+		"outDir": "dist",
+		"rootDir": "src",
+		"preserveSymlinks": true,
+		"types": [],
+		"module": "commonjs"
+	},
+	"references": [
+		{
+			"path": "../common"
+		}
+	]
 }

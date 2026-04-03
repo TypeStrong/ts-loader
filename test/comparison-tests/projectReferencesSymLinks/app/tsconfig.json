@@ -1,10 +1,13 @@
 {
-    "references": [
-        { "path": "../lib" }
-    ],
-    "compilerOptions": {
-        "outDir": "dist",
-        "rootDir": "src",
-        "types": []
-    }
+	"references": [
+		{
+			"path": "../lib"
+		}
+	],
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src",
+		"types": [],
+		"module": "commonjs"
+	}
 }

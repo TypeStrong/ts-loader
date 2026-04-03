@@ -1,5 +1,8 @@
 {
-  "exclude": [
-    "patch*"
-  ]
+	"exclude": [
+		"patch*"
+	],
+	"compilerOptions": {
+		"module": "commonjs"
+	}
 }

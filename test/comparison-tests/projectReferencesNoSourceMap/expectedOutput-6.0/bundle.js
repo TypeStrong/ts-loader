@@ -16,7 +16,7 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst lib_1 = __webpack_require__(/*! ./lib */ \"./lib/index.ts\");\nconsole.log(lib_1.lib.one, lib_1.lib.two, lib_1.lib.three);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -36,7 +36,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexp
   \**********************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nvar foo_1 = __webpack_require__(/*! ./foo */ \"./lib/foo.ts\");\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    foo: foo_1.foo\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nconst foo_1 = __webpack_require__(/*! ./foo */ \"./lib/foo.ts\");\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    foo: foo_1.foo\n};\n\n\n//# sourceURL=webpack:///./lib/index.ts?\n}");
 
 /***/ })
 

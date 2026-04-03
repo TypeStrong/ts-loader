@@ -1,21 +1,21 @@
-assets by path indirectWithError/ 2.26 KiB 5 assets
-assets by path lib/ 2.26 KiB 5 assets
-assets by path utils/ 1.88 KiB
-  asset utils/tsconfig.tsbuildinfo 1.67 KiB [compared for emit]
+assets by path indirectWithError/ 15.5 KiB 5 assets
+assets by path lib/ 15.5 KiB 5 assets
+assets by path utils/ 15.1 KiB
+  asset utils/tsconfig.tsbuildinfo 14.9 KiB [compared for emit]
   + 2 assets
-assets by path common/ 1.71 KiB
-  asset common/tsconfig.tsbuildinfo 1.53 KiB [compared for emit]
+assets by path common/ 15 KiB
+  asset common/tsconfig.tsbuildinfo 14.8 KiB [compared for emit]
   + 2 assets
-assets by path unreferenced/ 1.75 KiB
-  asset unreferenced/tsconfig.tsbuildinfo 1.53 KiB [compared for emit]
+assets by path unreferenced/ 15 KiB
+  asset unreferenced/tsconfig.tsbuildinfo 14.8 KiB [compared for emit]
   + 2 assets
-assets by path unreferencedIndirect/ 1.79 KiB
-  asset unreferencedIndirect/tsconfig.tsbuildinfo 1.53 KiB [compared for emit]
+assets by path unreferencedIndirect/ 15 KiB
+  asset unreferencedIndirect/tsconfig.tsbuildinfo 14.8 KiB [compared for emit]
   + 2 assets
-asset bundle.js 3.61 KiB [emitted] (name: main)
-./app.ts 223 bytes [built] [code generated] [2 errors]
+asset bundle.js 3.62 KiB [emitted] (name: main)
+./app.ts 227 bytes [built] [code generated] [2 errors]
 ./lib/index.ts 155 bytes [built] [code generated]
-./utils/index.ts 186 bytes [built] [code generated]
+./utils/index.ts 188 bytes [built] [code generated]
 ./common/index.ts 139 bytes [built] [code generated]
 
 ERROR in ./app.ts 2:4-10

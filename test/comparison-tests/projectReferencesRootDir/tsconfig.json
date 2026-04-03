@@ -1,10 +1,15 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "types": []
-  },
-  "files": ["./app.ts"],
-  "references": [
-    { "path": "./lib" }
-  ]
+	"compilerOptions": {
+		"target": "esnext",
+		"types": [],
+		"module": "commonjs"
+	},
+	"files": [
+		"./app.ts"
+	],
+	"references": [
+		{
+			"path": "./lib"
+		}
+	]
 }

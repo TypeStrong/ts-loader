@@ -1,10 +1,15 @@
 {
-  "compilerOptions": {
-    "composite": true,
-    "types": []
-  },
-  "references": [
-    { "path": "../common" },
-    { "path": "../indirect" }
-  ]
+	"compilerOptions": {
+		"composite": true,
+		"types": [],
+		"module": "commonjs"
+	},
+	"references": [
+		{
+			"path": "../common"
+		},
+		{
+			"path": "../indirect"
+		}
+	]
 }

@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("{throw new Error(\"Module parse failed: Unexpected token (2:1)/nFile was processed with these loaders:/n * ../../index.js/nYou may need an additional loader to handle the result of these loaders./n| var a;/n>  == 0;/n| \");\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{throw new Error(\"Module parse failed: Unexpected token (3:1)/nFile was processed with these loaders:/n * ../../index.js/nYou may need an additional loader to handle the result of these loaders./n| /\"use strict/\";/n| var a;/n>  == 0;/n| \");\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 

@@ -1,5 +1,5 @@
 assets by status 0 bytes [cached] 1 asset
-./app.ts 27 bytes [built] [code generated] [1 error]
+./app.ts 41 bytes [built] [code generated] [1 error]
 
 ERROR in app.ts
 ./app.ts 4:0-1

@@ -1,11 +1,12 @@
-asset bundle.js 1.38 KiB [emitted] (name: main)
-./app.ts 14 bytes [built] [code generated] [1 error]
+asset bundle.js 1.4 KiB [emitted] (name: main)
+./app.ts 28 bytes [built] [code generated] [1 error]
 
-ERROR in ./app.ts 2:1
-Module parse failed: Unexpected token (2:1)
+ERROR in ./app.ts 3:1
+Module parse failed: Unexpected token (3:1)
 File was processed with these loaders:
  * ../../index.js
 You may need an additional loader to handle the result of these loaders.
+| "use strict";
 | var a;
 >  == 0;
 |

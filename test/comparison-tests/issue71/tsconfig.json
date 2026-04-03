@@ -1,5 +1,6 @@
 {
 	"compilerOptions": {
-		"noEmitOnError": true
+		"noEmitOnError": true,
+		"module": "commonjs"
 	}
 }

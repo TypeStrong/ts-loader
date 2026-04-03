@@ -1,7 +1,11 @@
 {
-  "compilerOptions": {
-    "resolveJsonModule": true,
-    "composite": true
-  },
-  "include": ["app.ts", "file.json"]
+	"compilerOptions": {
+		"resolveJsonModule": true,
+		"composite": true,
+		"module": "commonjs"
+	},
+	"include": [
+		"app.ts",
+		"file.json"
+	]
 }

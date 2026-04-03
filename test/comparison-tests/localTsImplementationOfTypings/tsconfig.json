@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		
+		"module": "commonjs"
 	},
 	"include": [
 		"app.ts"

@@ -1,9 +1,12 @@
 {
-  "compilerOptions": {
-    "composite": true,
-    "types": []
-  },
-  "references": [
-    { "path": "../unreferencedIndirect" }
-  ]
+	"compilerOptions": {
+		"composite": true,
+		"types": [],
+		"module": "commonjs"
+	},
+	"references": [
+		{
+			"path": "../unreferencedIndirect"
+		}
+	]
 }

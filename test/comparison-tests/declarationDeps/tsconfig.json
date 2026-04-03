@@ -1,5 +1,8 @@
 {
-    "files": [
-        "./references.d.ts"
-    ]
+	"files": [
+		"./references.d.ts"
+	],
+	"compilerOptions": {
+		"module": "commonjs"
+	}
 }
