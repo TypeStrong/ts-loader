@@ -9,7 +9,8 @@ bundle.js
 npm-debug.log
 /.test/
 /test/execution-tests/**/typings
-!/test/**/expectedOutput-*/**
+!/test/**/expectedOutput/**
+!/test/**/expectedOutput-transpile/**
 /**/node_modules
 /dist
 /test/execution-tests/**/dist

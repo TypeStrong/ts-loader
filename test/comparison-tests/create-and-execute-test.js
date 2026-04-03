@@ -29,7 +29,6 @@ if (saveOutputMode) {
     console.log('Will save output as --save-output was supplied...');
 }
 
-const typescriptVersion = semver.major(typescript.version) + '.' + semver.minor(typescript.version);
 const FLAKY = '_FLAKY_';
 const IGNORE = '_IGNORE_';
 
@@ -144,12 +143,12 @@ function createPaths(stagingPath, test, options) {
     const testStagingPath = path.join(stagingPath, test + (options.transpileOnly ? '.transpile' : ''));
     rimraf.sync(testStagingPath); // Make sure it's clean
 
-    const transpilePath = options.transpileOnly ? 'transpile-' : '';
+    const transpilePath = options.transpileOnly ? 'expectedOutput-transpile' : 'expectedOutput';
     return {
         testStagingPath: testStagingPath,
         actualOutput: path.join(testStagingPath, 'actualOutput'),
-        expectedOutput: path.join(testStagingPath, 'expectedOutput-' + transpilePath + typescriptVersion),
-        originalExpectedOutput: path.join(testPath, 'expectedOutput-' + transpilePath + typescriptVersion),
+        expectedOutput: path.join(testStagingPath, transpilePath),
+        originalExpectedOutput: path.join(testPath, transpilePath),
         outputPath: testStagingPath,
     };
 }
@@ -213,11 +212,11 @@ function createWebpackWatchHandler(done, paths, testState, options, test) {
 function setPathsAndGetPatch(paths, testState, options) {
     let patch = '';
     if (testState.iteration > 0) {
-        const transpilePath = options.transpileOnly ? 'transpile-' : '';
+        const transpilePath = options.transpileOnly ? 'expectedOutput-transpile' : 'expectedOutput';
         patch = 'patch' + (testState.iteration - 1);
         paths.actualOutput = path.join(paths.testStagingPath, 'actualOutput', patch);
-        paths.expectedOutput = path.join(paths.testStagingPath, 'expectedOutput-' + transpilePath + typescriptVersion, patch);
-        paths.originalExpectedOutput = path.join(testPath, 'expectedOutput-' + transpilePath + typescriptVersion, patch)
+        paths.expectedOutput = path.join(paths.testStagingPath, transpilePath, patch);
+        paths.originalExpectedOutput = path.join(testPath, transpilePath, patch);
         mkdirp.sync(paths.actualOutput);
         mkdirp.sync(paths.expectedOutput);
         if (saveOutputMode) mkdirp.sync(paths.originalExpectedOutput);

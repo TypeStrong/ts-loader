@@ -41,20 +41,6 @@ yarn comparison-tests -- --save-output --single-test <name>       # regenerate o
 
 > Note: test name casing must be exact when using `--single-test`.
 
-### Seeding snapshots for a new TypeScript version
-
-When adding support for a new TypeScript version, run:
-
-```bash
-yarn comparison-tests-generate
-```
-
-This does two things:
-1. `git clean -xfd test/comparison-tests` — wipes all untracked/generated files in the test directory.
-2. Runs `test/comparison-tests/stub-new-version.js`, which copies every `expectedOutput-{OLD}/` and `expectedOutput-transpile-{OLD}/` folder to the corresponding `expectedOutput-{NEW}/` counterpart across all test sub-directories.
-
-The `OLD_VERSION` and `NEW_VERSION` constants at the top of `stub-new-version.js` must be updated manually before running this script each time a new TypeScript version is introduced. After running, review and commit the seeded snapshots, then use `--save-output` to correct any that differ from the new version's actual output.
-
 ## Execution tests (`test/execution-tests/`)
 
 Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. The harness compiles the project and **runs the compiled code** — useful for asserting correct runtime behaviour. These are matrix-tested in CI across Node 20/22 and TypeScript 5.x versions.
