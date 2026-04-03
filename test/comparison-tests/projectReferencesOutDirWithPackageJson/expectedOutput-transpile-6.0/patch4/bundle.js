@@ -26,7 +26,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\ncon
   \**************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3\n};\n//# sourceMappingURL=index.js.map\n\n//# sourceURL=webpack:///./lib/out/index.js?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.lib = void 0;\nexports.lib = {\n    one: 1,\n    two: 2,\n    three: 3,\n    four: 4, // Add new number\n    five: 5,\n};\n//# sourceMappingURL=index.js.map\n\n//# sourceURL=webpack:///./lib/out/index.js?\n}");
 
 /***/ })
 
