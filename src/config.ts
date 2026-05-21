@@ -20,7 +20,8 @@ export function getConfigFile(
   loaderOptions: LoaderOptions,
   compilerCompatible: boolean,
   log: logger.Logger,
-  compilerDetailsLogMessage: string
+  compilerDetailsLogMessage: string,
+  WebpackError: typeof webpack.WebpackError
 ) {
   const configFilePath = findConfigFile(
     compiler,
@@ -45,6 +46,7 @@ export function getConfigFile(
         loaderOptions,
         colors,
         compiler,
+        WebpackError,
         { file: configFilePath },
         loader.context
       )[0];
