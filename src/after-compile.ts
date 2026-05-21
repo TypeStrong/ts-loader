@@ -240,7 +240,11 @@ function provideErrorsToWebpack(
     const associatedModules = modules.get(instance.filePathKeyMapper(fileName));
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        removeModuleTSLoaderError(module, loaderOptions);
+        removeModuleTSLoaderError(
+          module,
+          loaderOptions,
+          instance.isWebpack5
+        );
 
         // append errors
         const formattedErrors = formatErrors(
@@ -304,7 +308,11 @@ function provideSolutionErrorsToWebpack(
     const associatedModules = modules.get(filePath);
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        removeModuleTSLoaderError(module, loaderOptions);
+        removeModuleTSLoaderError(
+          module,
+          loaderOptions,
+          instance.isWebpack5
+        );
 
         // append errors
         const formattedErrors = formatErrors(
@@ -373,40 +381,47 @@ function provideDeclarationFilesToWebpack(
       continue;
     }
 
-    addDeclarationFilesAsAsset(getEmitOutput(instance, fileName), compilation);
+    addDeclarationFilesAsAsset(
+      getEmitOutput(instance, fileName),
+      compilation,
+      instance.isWebpack5
+    );
   }
 }
 
 function addDeclarationFilesAsAsset<T extends ts.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
+  isWebpack5: boolean,
   skipOutputFile?: (outputFile: T) => boolean
 ) {
-  outputFilesToAsset(outputFiles, compilation, outputFile =>
-    skipOutputFile && skipOutputFile(outputFile)
-      ? true
-      : !outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+  outputFilesToAsset(
+    outputFiles,
+    compilation,
+    isWebpack5,
+    outputFile =>
+      skipOutputFile && skipOutputFile(outputFile)
+        ? true
+        : !outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
   );
 }
 
 function outputFileToAsset(
   outputFile: ts.OutputFile,
-  compilation: webpack.Compilation
+  compilation: webpack.Compilation,
+  isWebpack5: boolean
 ) {
   const assetPath = path
     .relative(compilation.compiler.outputPath, outputFile.name)
     // According to @alexander-akait (and @sokra) we should always '/' https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-799606985
     .replace(/\\/g, '/');
 
-  if (typeof compilation.emitAsset === 'function') {
-    // webpack 5+
-    // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
+  if (isWebpack5) {
     compilation.emitAsset(
       assetPath,
       new webpack.sources.RawSource(outputFile.text)
     );
   } else {
-    // webpack 4 fallback: assign directly to compilation.assets
     (compilation as any).assets[assetPath] = {
       source: () => outputFile.text,
       size: () => Buffer.byteLength(outputFile.text, 'utf8'),
@@ -417,11 +432,12 @@ function outputFileToAsset(
 function outputFilesToAsset<T extends ts.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
+  isWebpack5: boolean,
   skipOutputFile?: (outputFile: T) => boolean
 ) {
   for (const outputFile of outputFiles) {
     if (!skipOutputFile || !skipOutputFile(outputFile)) {
-      outputFileToAsset(outputFile, compilation);
+      outputFileToAsset(outputFile, compilation, isWebpack5);
     }
   }
 }
@@ -437,7 +453,11 @@ function provideTsBuildInfoFilesToWebpack(
     // Ensure emit is complete
     getEmitFromWatchHost(instance);
     if (instance.watchHost.tsbuildinfo) {
-      outputFileToAsset(instance.watchHost.tsbuildinfo, compilation);
+      outputFileToAsset(
+        instance.watchHost.tsbuildinfo,
+        compilation,
+        instance.isWebpack5
+      );
     }
 
     instance.watchHost.outputFiles.clear();
@@ -454,7 +474,11 @@ function provideAssetsFromSolutionBuilderHost(
 ) {
   if (instance.solutionBuilderHost) {
     // written files
-    outputFilesToAsset(instance.solutionBuilderHost.writtenFiles, compilation);
+    outputFilesToAsset(
+      instance.solutionBuilderHost.writtenFiles,
+      compilation,
+      instance.isWebpack5
+    );
     instance.solutionBuilderHost.writtenFiles.length = 0;
   }
 }
@@ -483,43 +507,42 @@ function removeCompilationTSLoaderErrors(
 
 function removeModuleTSLoaderError(
   module: webpack.Module,
-  loaderOptions: LoaderOptions
+  loaderOptions: LoaderOptions,
+  isWebpack5: boolean
 ) {
-  // webpack 5 exposes getWarnings()/getErrors()/clearWarningsAndErrors() methods.
-  // webpack 4 uses direct .warnings / .errors arrays on the module object.
   const webpackModule = module as any;
-  const warnings: webpack.WebpackError[] =
-    typeof webpackModule.getWarnings === 'function'
-      ? Array.from(webpackModule.getWarnings() || [])
-      : (webpackModule.warnings || []).slice();
-  const errors: webpack.WebpackError[] =
-    typeof webpackModule.getErrors === 'function'
-      ? Array.from(webpackModule.getErrors() || [])
-      : (webpackModule.errors || []).slice();
-
-  if (typeof webpackModule.clearWarningsAndErrors === 'function') {
+  if (isWebpack5) {
+    const warnings: webpack.WebpackError[] = Array.from(
+      webpackModule.getWarnings() || []
+    );
+    const errors: webpack.WebpackError[] = Array.from(
+      webpackModule.getErrors() || []
+    );
     webpackModule.clearWarningsAndErrors();
+    warnings.forEach((warning: webpack.WebpackError) => {
+      module.addWarning!(warning);
+    });
+    errors
+      .filter(
+        (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
+      )
+      .forEach((error: webpack.WebpackError) => {
+        module.addError!(error);
+      });
   } else {
+    const warnings: webpack.WebpackError[] = (webpackModule.warnings || []).slice();
+    const errors: webpack.WebpackError[] = (webpackModule.errors || []).slice();
     webpackModule.warnings = [];
     webpackModule.errors = [];
-  }
-
-  warnings.forEach(warning => {
-    if (typeof module.addWarning === 'function') {
-      module.addWarning(warning);
-    } else {
+    warnings.forEach((warning: webpack.WebpackError) => {
       webpackModule.warnings.push(warning);
-    }
-  });
-  errors
-    .filter(
-      (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
-    )
-    .forEach(error => {
-      if (typeof module.addError === 'function') {
-        module.addError(error);
-      } else {
-        webpackModule.errors.push(error);
-      }
     });
+    errors
+      .filter(
+        (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
+      )
+      .forEach((error: webpack.WebpackError) => {
+        webpackModule.errors.push(error);
+      });
+  }
 }

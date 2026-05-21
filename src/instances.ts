@@ -26,6 +26,7 @@ import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
+  isWebpack5,
   isReferencedFile,
   makeError,
   supportsSolutionBuild,
@@ -149,8 +150,7 @@ function successfulTypeScriptInstance(
   const { configFilePath, configFile } = configFileAndPath;
 
   if (configFilePath) {
-    // addBuildDependency is a webpack 5+ API; guard for webpack 4 compatibility
-    if (typeof (loader as any).addBuildDependency === 'function') {
+    if (isWebpack5) {
       loader.addBuildDependency(configFilePath);
     }
   }
@@ -219,6 +219,7 @@ function successfulTypeScriptInstance(
     // quick return for transpiling
     // we do need to check for any issues with TS options though
     const transpileInstance: TSInstance = {
+      isWebpack5,
       compiler,
       compilerOptions,
       appendTsTsxSuffixesIfRequired,
@@ -277,6 +278,7 @@ function successfulTypeScriptInstance(
   }
 
   const instance: TSInstance = {
+    isWebpack5,
     compiler,
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
@@ -323,10 +325,7 @@ function addAssetHooks(
     instance.configFilePath
   );
 
-  // webpack 5+: assets must be emitted via the processAssets hook so they do not
-  // conflict with other plugins that use afterCompile for asset emission.
-  // webpack 4: afterCompile handles both errors and assets in a single pass.
-  if ('processAssets' in loader._compilation!.hooks) {
+  if (instance.isWebpack5) {
     const makeAssetsCallback = (compilation: webpack.Compilation) => {
       (compilation.hooks as any).processAssets.tap(
         {
@@ -348,7 +347,6 @@ function addAssetHooks(
     // For future calls in watch mode we need to watch for a new compilation and add the hook
     loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
   } else {
-    // webpack 4 fallback: use afterCompile which fires after every compilation
     loader._compiler!.hooks.afterCompile.tapAsync(
       'ts-loader',
       (compilation: webpack.Compilation, callback: () => void) => {

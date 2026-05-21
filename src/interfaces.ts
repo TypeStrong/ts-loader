@@ -168,6 +168,7 @@ export interface ModuleResolutionCache
 }
 
 export interface TSInstance {
+  isWebpack5: boolean;
   compiler: typeof typescript;
   compilerOptions: typescript.CompilerOptions;
   /** Used for Vue for the most part */
