@@ -26,7 +26,7 @@ import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
-  isWebpack5,
+  isWebpack5 as detectWebpack5,
   isReferencedFile,
   makeError,
   supportsSolutionBuild,
@@ -52,6 +52,9 @@ export function getTypeScriptInstance(
     loaderOptions.instance
   );
   if (existing) {
+    if (existing.configFilePath && existing.isWebpack5) {
+      loader.addBuildDependency(existing.configFilePath);
+    }
     if (!existing.initialSetupPending) {
       ensureProgram(existing);
     }
@@ -149,17 +152,14 @@ function successfulTypeScriptInstance(
 
   const { configFilePath, configFile } = configFileAndPath;
 
-  if (configFilePath) {
-    if (isWebpack5) {
-      loader.addBuildDependency(configFilePath);
-    }
-  }
-
   const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
   if (configFilePath && loaderOptions.projectReferences) {
     const configFileKey = filePathKeyMapper(configFilePath);
     const existing = getExistingSolutionBuilderHost(configFileKey);
     if (existing) {
+      if (configFilePath && existing.isWebpack5) {
+        loader.addBuildDependency(configFilePath);
+      }
       // Reuse the instance if config file for project references is shared.
       setTSInstanceInCache(loader._compiler, loaderOptions.instance, existing);
       return { instance: existing };
@@ -219,7 +219,7 @@ function successfulTypeScriptInstance(
     // quick return for transpiling
     // we do need to check for any issues with TS options though
     const transpileInstance: TSInstance = {
-      isWebpack5,
+      isWebpack5: detectWebpack5,
       compiler,
       compilerOptions,
       appendTsTsxSuffixesIfRequired,
@@ -245,6 +245,9 @@ function successfulTypeScriptInstance(
       loaderOptions.instance,
       transpileInstance
     );
+    if (configFilePath && transpileInstance.isWebpack5) {
+      loader.addBuildDependency(configFilePath);
+    }
     return { instance: transpileInstance };
   }
 
@@ -278,7 +281,7 @@ function successfulTypeScriptInstance(
   }
 
   const instance: TSInstance = {
-    isWebpack5,
+    isWebpack5: detectWebpack5,
     compiler,
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
@@ -299,6 +302,9 @@ function successfulTypeScriptInstance(
   };
 
   setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
+  if (configFilePath && instance.isWebpack5) {
+    loader.addBuildDependency(configFilePath);
+  }
   return { instance };
 }
 
