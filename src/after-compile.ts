@@ -398,11 +398,20 @@ function outputFileToAsset(
     // According to @alexander-akait (and @sokra) we should always '/' https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-799606985
     .replace(/\\/g, '/');
 
-  // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
-  compilation.emitAsset(
-    assetPath,
-    new webpack.sources.RawSource(outputFile.text)
-  );
+  if (typeof compilation.emitAsset === 'function') {
+    // webpack 5+
+    // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
+    compilation.emitAsset(
+      assetPath,
+      new webpack.sources.RawSource(outputFile.text)
+    );
+  } else {
+    // webpack 4 fallback: assign directly to compilation.assets
+    (compilation as any).assets[assetPath] = {
+      source: () => outputFile.text,
+      size: () => Buffer.byteLength(outputFile.text, 'utf8'),
+    };
+  }
 }
 
 function outputFilesToAsset<T extends ts.OutputFile>(
@@ -461,8 +470,14 @@ function removeCompilationTSLoaderErrors(
   compilation: webpack.Compilation,
   loaderOptions: LoaderOptions
 ) {
+  const loaderSource = tsLoaderSource(loaderOptions);
+  // Filter out ts-loader's own errors so they can be re-added fresh each
+  // compilation. The `details` field is set on every error created by makeError().
+  // We check the property directly rather than instanceof webpack.WebpackError
+  // so this works with both webpack 4 (where WebpackError was not a public export)
+  // and webpack 5.
   compilation.errors = compilation.errors.filter(
-    error => error instanceof webpack.WebpackError && error.details !== tsLoaderSource(loaderOptions)
+    error => (error as any).details !== loaderSource
   );
 }
 
@@ -470,14 +485,41 @@ function removeModuleTSLoaderError(
   module: webpack.Module,
   loaderOptions: LoaderOptions
 ) {
-  const warnings = module.getWarnings();
-  const errors = module.getErrors();
-  module.clearWarningsAndErrors();
+  // webpack 5 exposes getWarnings()/getErrors()/clearWarningsAndErrors() methods.
+  // webpack 4 uses direct .warnings / .errors arrays on the module object.
+  const webpackModule = module as any;
+  const warnings: webpack.WebpackError[] =
+    typeof webpackModule.getWarnings === 'function'
+      ? Array.from(webpackModule.getWarnings() || [])
+      : (webpackModule.warnings || []).slice();
+  const errors: webpack.WebpackError[] =
+    typeof webpackModule.getErrors === 'function'
+      ? Array.from(webpackModule.getErrors() || [])
+      : (webpackModule.errors || []).slice();
 
-  Array.from(warnings || []).forEach(warning => module.addWarning(warning));
-  Array.from(errors || [])
+  if (typeof webpackModule.clearWarningsAndErrors === 'function') {
+    webpackModule.clearWarningsAndErrors();
+  } else {
+    webpackModule.warnings = [];
+    webpackModule.errors = [];
+  }
+
+  warnings.forEach(warning => {
+    if (typeof module.addWarning === 'function') {
+      module.addWarning(warning);
+    } else {
+      webpackModule.warnings.push(warning);
+    }
+  });
+  errors
     .filter(
       (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
     )
-    .forEach(error => module.addError(error));
+    .forEach(error => {
+      if (typeof module.addError === 'function') {
+        module.addError(error);
+      } else {
+        webpackModule.errors.push(error);
+      }
+    });
 }

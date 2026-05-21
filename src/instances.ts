@@ -149,7 +149,10 @@ function successfulTypeScriptInstance(
   const { configFilePath, configFile } = configFileAndPath;
 
   if (configFilePath) {
-    loader.addBuildDependency(configFilePath);
+    // addBuildDependency is a webpack 5+ API; guard for webpack 4 compatibility
+    if (typeof (loader as any).addBuildDependency === 'function') {
+      loader.addBuildDependency(configFilePath);
+    }
   }
 
   const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
@@ -320,26 +323,39 @@ function addAssetHooks(
     instance.configFilePath
   );
 
-  const makeAssetsCallback = (compilation: webpack.Compilation) => {
-    compilation.hooks.processAssets.tap(
-      {
-        name: 'ts-loader',
-        stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
-      },
-      () => {
-        cachedMakeAfterCompile(compilation, () => {
-          return null;
-        });
+  // webpack 5+: assets must be emitted via the processAssets hook so they do not
+  // conflict with other plugins that use afterCompile for asset emission.
+  // webpack 4: afterCompile handles both errors and assets in a single pass.
+  if ('processAssets' in loader._compilation!.hooks) {
+    const makeAssetsCallback = (compilation: webpack.Compilation) => {
+      (compilation.hooks as any).processAssets.tap(
+        {
+          name: 'ts-loader',
+          stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        },
+        () => {
+          cachedMakeAfterCompile(compilation, () => {
+            return null;
+          });
+        }
+      );
+    };
+
+    // We need to add the hook above for each run.
+    // For the first run, we just need to add the hook to loader._compilation
+    makeAssetsCallback(loader._compilation!);
+
+    // For future calls in watch mode we need to watch for a new compilation and add the hook
+    loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
+  } else {
+    // webpack 4 fallback: use afterCompile which fires after every compilation
+    loader._compiler!.hooks.afterCompile.tapAsync(
+      'ts-loader',
+      (compilation: webpack.Compilation, callback: () => void) => {
+        cachedMakeAfterCompile(compilation, callback);
       }
     );
-  };
-
-  // We need to add the hook above for each run.
-  // For the first run, we just need to add the hook to loader._compilation
-  makeAssetsCallback(loader._compilation!);
-
-  // For future calls in watch mode we need to watch for a new compilation and add the hook
-  loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
+  }
 }
 
 export function initializeInstance(
