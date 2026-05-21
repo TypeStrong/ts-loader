@@ -18,7 +18,6 @@ import type {
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
 
-export const isWebpack5 = !!(webpack as any).sources;
 /**
  * The default error formatter.
  */

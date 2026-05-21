@@ -26,7 +26,6 @@ import {
   appendSuffixesIfMatch,
   ensureProgram,
   formatErrors,
-  isWebpack5 as detectWebpack5,
   isReferencedFile,
   makeError,
   supportsSolutionBuild,
@@ -35,6 +34,7 @@ import {
 import { makeWatchRun } from './watch-run';
 
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
+const detectWebpack5 = !!(webpack as any).sources;
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
