@@ -605,7 +605,7 @@ function getTranspilationEmit(
     sourceMapText,
     diagnostics,
   } = instance.compiler.transpileModule(contents, {
-    compilerOptions: { ...instance.compilerOptions, rootDir: undefined },
+    compilerOptions: instance.compilerOptions,
     transformers: instance.transformers,
     reportDiagnostics: true,
     fileName,
