@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: install
         run: yarn install
@@ -24,7 +24,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: copy files
         shell: pwsh
@@ -52,10 +52,10 @@ jobs:
         ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, 4.2.4, 4.3.2, 4.4.2, 4.5.2, next]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: install node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
 
@@ -79,10 +79,10 @@ jobs:
         ts: [3.8.3, 3.9.3, 4.0.3, 4.1.5, 4.2.4, 4.3.2, 4.4.2, 4.5.2, next]
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: install node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
 
@@ -112,7 +112,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
 
       - name: install
         run: yarn install

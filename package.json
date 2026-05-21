@@ -30,7 +30,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/TypeStrong/ts-loader.git"
+    "url": "git+https://github.com/TypeStrong/ts-loader.git"
   },
   "keywords": [
     "ts-loader",
@@ -103,5 +103,8 @@
   "peerDependencies": {
     "typescript": "*",
     "webpack": "*"
+  },
+  "publishConfig": {
+    "provenance": true
   }
 }
