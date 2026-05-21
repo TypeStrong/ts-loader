@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type * as ts from 'typescript';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import * as constants from './constants';
 import { getEmitFromWatchHost, getEmitOutput } from './instances';
@@ -105,6 +105,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
       loaderOptions,
       instance.colors,
       compiler,
+      compilation.compiler.webpack.WebpackError,
       { file: configFilePath || 'tsconfig.json' },
       compilation.compiler.context
     );
@@ -125,7 +126,7 @@ function determineModules(
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    if (module instanceof webpack.NormalModule && module.resource) {
+    if (module instanceof compilation.compiler.webpack.NormalModule && module.resource) {
       const modulePath = filePathKeyMapper(module.resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
@@ -248,6 +249,7 @@ function provideErrorsToWebpack(
           loaderOptions,
           instance.colors,
           compiler,
+          compilation.compiler.webpack.WebpackError,
           { module },
           compilation.compiler.context
         );
@@ -269,6 +271,7 @@ function provideErrorsToWebpack(
         loaderOptions,
         instance.colors,
         compiler,
+        compilation.compiler.webpack.WebpackError,
         { file: fileName },
         compilation.compiler.context
       );
@@ -312,6 +315,7 @@ function provideSolutionErrorsToWebpack(
           loaderOptions,
           instance.colors,
           compiler,
+          compilation.compiler.webpack.WebpackError,
           { module },
           compilation.compiler.context
         );
@@ -333,6 +337,7 @@ function provideSolutionErrorsToWebpack(
         loaderOptions,
         instance.colors,
         compiler,
+        compilation.compiler.webpack.WebpackError,
         { file: path.resolve(perFileDiagnostics[0].file!.fileName) },
         compilation.compiler.context
       );
@@ -348,6 +353,7 @@ function provideSolutionErrorsToWebpack(
       instance.loaderOptions,
       instance.colors,
       instance.compiler,
+      compilation.compiler.webpack.WebpackError,
       { file: 'tsconfig.json' },
       compilation.compiler.context
     )
@@ -401,7 +407,7 @@ function outputFileToAsset(
   // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
   compilation.emitAsset(
     assetPath,
-    new webpack.sources.RawSource(outputFile.text)
+    new compilation.compiler.webpack.sources.RawSource(outputFile.text)
   );
 }
 
@@ -462,7 +468,7 @@ function removeCompilationTSLoaderErrors(
   loaderOptions: LoaderOptions
 ) {
   compilation.errors = compilation.errors.filter(
-    error => error instanceof webpack.WebpackError && error.details !== tsLoaderSource(loaderOptions)
+    error => error instanceof compilation.compiler.webpack.WebpackError && error.details !== tsLoaderSource(loaderOptions)
   );
 }
 

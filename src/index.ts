@@ -41,7 +41,11 @@ function loader(
   this.cacheable && this.cacheable();
   const callback = this.async();
   const options = getLoaderOptions(this);
-  const instanceOrError = getTypeScriptInstance(options, this);
+
+  // TODO :: improve this construct
+  const WebpackError = this._compiler?.webpack.WebpackError!;
+
+  const instanceOrError = getTypeScriptInstance(options, this, WebpackError);
 
   if (instanceOrError.error !== undefined) {
     callback(new Error(instanceOrError.error.message));
@@ -49,7 +53,7 @@ function loader(
   }
   const instance = instanceOrError.instance!;
   buildSolutionReferences(instance, this);
-  successLoader(this, contents, callback, instance, inputSourceMap);
+  successLoader(this, contents, callback, instance, WebpackError, inputSourceMap);
 }
 
 function successLoader(
@@ -57,10 +61,11 @@ function successLoader(
   contents: string,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
   instance: TSInstance,
+  WebpackError: typeof webpack.WebpackError,
   inputSourceMap?: Record<string, any>
 ) {
   initializeInstance(loaderContext, instance);
-  reportTranspileErrors(instance, loaderContext);
+  reportTranspileErrors(instance, loaderContext, WebpackError);
   const rawFilePath = path.normalize(loaderContext.resourcePath);
 
   const filePath =
@@ -82,7 +87,7 @@ function successLoader(
     instance
   );
   const { outputText, sourceMapText } = instance.loaderOptions.transpileOnly
-    ? getTranspilationEmit(filePath, contents, instance, loaderContext)
+    ? getTranspilationEmit(filePath, contents, instance, loaderContext, WebpackError)
     : getEmit(rawFilePath, filePath, instance, loaderContext);
 
   // the following function is async, which means it will immediately return and run in the "background"
@@ -629,7 +634,8 @@ function getTranspilationEmit(
   fileName: string,
   contents: string,
   instance: TSInstance,
-  loaderContext: webpack.LoaderContext<LoaderOptions>
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  WebpackError: typeof webpack.WebpackError,
 ) {
   if (isReferencedFile(instance, fileName)) {
     const outputFiles =
@@ -662,6 +668,7 @@ function getTranspilationEmit(
       instance.loaderOptions,
       instance.colors,
       instance.compiler,
+      WebpackError,
       { module },
       loaderContext.context
     );

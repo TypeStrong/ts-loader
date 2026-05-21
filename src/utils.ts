@@ -2,7 +2,7 @@ import type { Chalk } from 'chalk';
 import * as fs from 'fs';
 import micromatch from 'micromatch';
 import * as path from 'path';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 import type * as typescript from 'typescript';
 
 import constants = require('./constants');
@@ -45,6 +45,7 @@ export function formatErrors(
   loaderOptions: LoaderOptions,
   colors: Chalk,
   compiler: typeof typescript,
+  WebpackError: typeof webpack.WebpackError,
   merge: { file?: string; module?: webpack.Module },
   context: string
 ): webpack.WebpackError[] {
@@ -100,7 +101,8 @@ export function formatErrors(
               : loaderOptions.errorFormatter(errorInfo, colors);
 
           const error = makeError(
-            loaderOptions,
+            WebpackError,
+            loaderOptions, 
             message,
             merge.file === undefined ? errorInfo.file : merge.file,
             start,
@@ -145,13 +147,14 @@ export function fsReadFile(
 }
 
 export function makeError(
+  WebpackError: typeof webpack.WebpackError,
   loaderOptions: LoaderOptions,
   message: string,
   file: string,
   location?: FileLocation,
-  endLocation?: FileLocation
+  endLocation?: FileLocation,
 ): webpack.WebpackError {
-  const error = new webpack.WebpackError(message);
+  const error = new WebpackError(message);
   error.file = file;
   error.loc =
     location === undefined

@@ -2,7 +2,7 @@ import * as chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
 import type * as typescript from 'typescript';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import { makeAfterCompile } from './after-compile';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
@@ -44,7 +44,8 @@ const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
  */
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: webpack.LoaderContext<LoaderOptions>
+  loader: webpack.LoaderContext<LoaderOptions>,
+  WebpackError: typeof webpack.WebpackError
 ): { instance?: TSInstance; error?: webpack.WebpackError } {
   const existing = getTSInstanceFromCache(
     loader._compiler!,
@@ -65,7 +66,7 @@ export function getTypeScriptInstance(
 
   if (compiler.errorMessage !== undefined) {
     return {
-      error: makeError(loaderOptions, colors.red(compiler.errorMessage), ''),
+      error: makeError(WebpackError, loaderOptions, colors.red(compiler.errorMessage), ''),
     };
   }
 
@@ -76,7 +77,8 @@ export function getTypeScriptInstance(
     colors,
     compiler.compiler!,
     compiler.compilerCompatible!,
-    compiler.compilerDetailsLogMessage!
+    compiler.compilerDetailsLogMessage!,
+    WebpackError
   );
 }
 
@@ -123,7 +125,8 @@ function successfulTypeScriptInstance(
   colors: chalk.Chalk,
   compiler: typeof typescript,
   compilerCompatible: boolean,
-  compilerDetailsLogMessage: string
+  compilerDetailsLogMessage: string,
+  WebpackError: typeof webpack.WebpackError,
 ) {
   const configFileAndPath = getConfigFile(
     compiler,
@@ -132,13 +135,15 @@ function successfulTypeScriptInstance(
     loaderOptions,
     compilerCompatible,
     log,
-    compilerDetailsLogMessage!
+    compilerDetailsLogMessage!,
+    WebpackError
   );
 
   if (configFileAndPath.configFileError !== undefined) {
     const { message, file } = configFileAndPath.configFileError;
     return {
       error: makeError(
+        WebpackError,
         loaderOptions,
         colors.red('error while reading tsconfig.json:' + EOL + message),
         file ?? ''
@@ -179,6 +184,7 @@ function successfulTypeScriptInstance(
       loaderOptions,
       colors,
       compiler,
+      WebpackError,
       { file: configFilePath },
       loader.context
     );
@@ -187,6 +193,7 @@ function successfulTypeScriptInstance(
 
     return {
       error: makeError(
+        WebpackError,
         loaderOptions,
         colors.red('error while parsing tsconfig.json'),
         configFilePath || ''
@@ -264,6 +271,7 @@ function successfulTypeScriptInstance(
   } catch (exc) {
     return {
       error: makeError(
+        WebpackError,
         loaderOptions,
         colors.red(
           `A file specified in tsconfig.json could not be found: ${normalizedFilePath!}`
@@ -324,7 +332,7 @@ function addAssetHooks(
     compilation.hooks.processAssets.tap(
       {
         name: 'ts-loader',
-        stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        stage: compilation.compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
       },
       () => {
         cachedMakeAfterCompile(compilation, () => {
@@ -478,7 +486,8 @@ function getScriptRegexp(instance: TSInstance) {
 
 export function reportTranspileErrors(
   instance: TSInstance,
-  loader: webpack.LoaderContext<LoaderOptions>
+  loader: webpack.LoaderContext<LoaderOptions>,
+  WebpackError: typeof webpack.WebpackError,
 ) {
   if (!instance.reportTranspileErrors) {
     return;
@@ -489,7 +498,8 @@ export function reportTranspileErrors(
   if (!instance.loaderOptions.happyPackMode) {
     const solutionErrors: webpack.WebpackError[] = getSolutionErrors(
       instance,
-      loader.context
+      loader.context,
+      WebpackError
     );
     const diagnostics = instance.program!.getOptionsDiagnostics();
     const errors = formatErrors(
@@ -497,6 +507,7 @@ export function reportTranspileErrors(
       instance.loaderOptions,
       instance.colors,
       instance.compiler,
+      WebpackError,
       { file: instance.configFilePath || 'tsconfig.json' },
       loader.context
     );

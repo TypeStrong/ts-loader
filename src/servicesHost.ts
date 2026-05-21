@@ -1163,7 +1163,7 @@ export function makeSolutionBuilderHost(
   }
 }
 
-export function getSolutionErrors(instance: TSInstance, context: string) {
+export function getSolutionErrors(instance: TSInstance, context: string, WebpackError: typeof webpack.WebpackError) {
   const solutionErrors: webpack.WebpackError[] = [];
   if (
     instance.solutionBuilderHost &&
@@ -1177,6 +1177,7 @@ export function getSolutionErrors(instance: TSInstance, context: string) {
             instance.loaderOptions,
             instance.colors,
             instance.compiler,
+            WebpackError,
             { file: filePath ? undefined : 'tsconfig.json' },
             context
           )
