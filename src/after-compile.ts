@@ -510,15 +510,14 @@ function removeModuleTSLoaderError(
   loaderOptions: LoaderOptions,
   isWebpack5: boolean
 ) {
-  const webpackModule = module as any;
   if (isWebpack5) {
     const warnings: webpack.WebpackError[] = Array.from(
-      webpackModule.getWarnings() || []
+      module.getWarnings!() || []
     );
     const errors: webpack.WebpackError[] = Array.from(
-      webpackModule.getErrors() || []
+      module.getErrors!() || []
     );
-    webpackModule.clearWarningsAndErrors();
+    module.clearWarningsAndErrors!();
     warnings.forEach((warning: webpack.WebpackError) => {
       module.addWarning!(warning);
     });
@@ -530,6 +529,7 @@ function removeModuleTSLoaderError(
         module.addError!(error);
       });
   } else {
+    const webpackModule = module as any;
     const warnings: webpack.WebpackError[] = (webpackModule.warnings || []).slice();
     const errors: webpack.WebpackError[] = (webpackModule.errors || []).slice();
     webpackModule.warnings = [];
