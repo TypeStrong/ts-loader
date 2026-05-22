@@ -120,21 +120,24 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  */
 function determineModules(
   compilation: webpack.Compilation,
-  { filePathKeyMapper }: TSInstance
+  { filePathKeyMapper, isWebpack5 }: TSInstance
 ) {
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    const normalModule = module as webpack.Module & { resource?: string };
-    if (typeof normalModule.resource === 'string') {
-      const modulePath = filePathKeyMapper(normalModule.resource);
+    const resource = isWebpack5
+      ? (module as webpack.NormalModule).resource
+      : (module as webpack.Module & { resource?: string }).resource;
+
+    if (typeof resource === 'string') {
+      const modulePath = filePathKeyMapper(resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
-        if (!existingModules.includes(normalModule)) {
-          existingModules.push(normalModule);
+        if (!existingModules.includes(module)) {
+          existingModules.push(module);
         }
       } else {
-        modules.set(modulePath, [normalModule]);
+        modules.set(modulePath, [module]);
       }
     }
   });
