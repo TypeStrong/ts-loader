@@ -41,7 +41,8 @@ function loader(
 ) {
   this.cacheable && this.cacheable();
   const callback = this.async();
-  const options = getLoaderOptions(this, typeof this.getOptions === 'function');
+  const isWebpack5 = typeof this.getOptions === 'function';
+  const options = getLoaderOptions(this, isWebpack5);
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
