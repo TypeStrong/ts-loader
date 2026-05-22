@@ -43,7 +43,7 @@ function loader(
   const callback = this.async();
   const isWebpack5 = typeof this.getOptions === 'function';
   const options = getLoaderOptions(this, isWebpack5);
-  const instanceOrError = getTypeScriptInstance(options, this);
+  const instanceOrError = getTypeScriptInstance(options, this, isWebpack5);
 
   if (instanceOrError.error !== undefined) {
     callback(new Error(instanceOrError.error.message));

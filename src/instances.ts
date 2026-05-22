@@ -34,7 +34,6 @@ import {
 import { makeWatchRun } from './watch-run';
 
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
-const detectWebpack5 = !!(webpack as any).sources;
 
 /**
  * The loader is executed once for each file seen by webpack. However, we need to keep
@@ -45,7 +44,8 @@ const detectWebpack5 = !!(webpack as any).sources;
  */
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: webpack.LoaderContext<LoaderOptions>
+  loader: webpack.LoaderContext<LoaderOptions>,
+  isWebpack5: boolean
 ): { instance?: TSInstance; error?: webpack.WebpackError } {
   const existing = getTSInstanceFromCache(
     loader._compiler!,
@@ -73,6 +73,7 @@ export function getTypeScriptInstance(
   return successfulTypeScriptInstance(
     loaderOptions,
     loader,
+    isWebpack5,
     log,
     colors,
     compiler.compiler!,
@@ -120,6 +121,7 @@ function createFilePathKeyMapper(
 function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>,
+  isWebpack5: boolean,
   log: logger.Logger,
   colors: chalk.Chalk,
   compiler: typeof typescript,
@@ -149,7 +151,7 @@ function successfulTypeScriptInstance(
 
   const { configFilePath, configFile } = configFileAndPath;
 
-  if (configFilePath && detectWebpack5) {
+  if (configFilePath && isWebpack5) {
     loader.addBuildDependency(configFilePath);
   }
 
@@ -217,7 +219,7 @@ function successfulTypeScriptInstance(
     // quick return for transpiling
     // we do need to check for any issues with TS options though
     const transpileInstance: TSInstance = {
-      isWebpack5: detectWebpack5,
+      isWebpack5,
       compiler,
       compilerOptions,
       appendTsTsxSuffixesIfRequired,
@@ -276,7 +278,7 @@ function successfulTypeScriptInstance(
   }
 
   const instance: TSInstance = {
-    isWebpack5: detectWebpack5,
+    isWebpack5,
     compiler,
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
