@@ -45,7 +45,11 @@ export function makeAfterCompile(
       callback();
       return;
     }
-    removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
+    removeCompilationTSLoaderErrors(
+      compilation,
+      instance.loaderOptions,
+      instance.isWebpack5
+    );
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
       getCompilerOptionDiagnostics,
@@ -123,10 +127,14 @@ function determineModules(
   { filePathKeyMapper, isWebpack5 }: TSInstance
 ) {
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
+  const isWebpack5Compilation =
+    isWebpack5 || !!(compilation as any).compiler?.webpack;
 
   compilation.modules.forEach(module => {
-    const resource = isWebpack5
-      ? (module as webpack.NormalModule).resource
+    const resource = isWebpack5Compilation
+      ? module instanceof webpack.NormalModule
+        ? module.resource
+        : undefined
       : (module as webpack.Module & { resource?: string }).resource;
 
     if (typeof resource === 'string') {
@@ -260,13 +268,15 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        formattedErrors.forEach(error => {
-          if (module.addError) {
-            module.addError(error);
-          } else {
-            module.errors.push(error);
-          }
-        });
+        if (!moduleHasErrors(module, instance.isWebpack5)) {
+          formattedErrors.forEach(error => {
+            if (module.addError) {
+              module.addError(error);
+            } else {
+              module.errors.push(error);
+            }
+          });
+        }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -328,13 +338,15 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        formattedErrors.forEach(error => {
-          if (module.addError) {
-            module.addError(error);
-          } else {
-            module.errors.push(error);
-          }
-        });
+        if (!moduleHasErrors(module, instance.isWebpack5)) {
+          formattedErrors.forEach(error => {
+            if (module.addError) {
+              module.addError(error);
+            } else {
+              module.errors.push(error);
+            }
+          });
+        }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -496,17 +508,18 @@ function provideAssetsFromSolutionBuilderHost(
  */
 function removeCompilationTSLoaderErrors(
   compilation: webpack.Compilation,
-  loaderOptions: LoaderOptions
+  loaderOptions: LoaderOptions,
+  isWebpack5: boolean
 ) {
-  const loaderSource = tsLoaderSource(loaderOptions);
   // Filter out ts-loader's own errors so they can be re-added fresh each
-  // compilation. The `details` field is set on every error created by makeError().
-  // We check the property directly rather than instanceof webpack.WebpackError
-  // so this works with both webpack 4 (where WebpackError was not a public export)
-  // and webpack 5.
+  // compilation.
   compilation.errors = compilation.errors.filter(
-    error => (error as any).details !== loaderSource
+    error => !isTSLoaderCompilationError(error, loaderOptions)
   );
+
+  compilation.modules.forEach(module => {
+    removeModuleTSLoaderError(module, loaderOptions, isWebpack5);
+  });
 }
 
 function removeModuleTSLoaderError(
@@ -527,7 +540,7 @@ function removeModuleTSLoaderError(
     });
     errors
       .filter(
-        (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
+        (error: any) => !isTSLoaderModuleError(error, loaderOptions)
       )
       .forEach((error: webpack.WebpackError) => {
         module.addError!(error);
@@ -543,10 +556,32 @@ function removeModuleTSLoaderError(
     });
     errors
       .filter(
-        (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
+        (error: any) => !isTSLoaderModuleError(error, loaderOptions)
       )
       .forEach((error: webpack.WebpackError) => {
         webpackModule.errors.push(error);
       });
   }
+}
+
+function isTSLoaderCompilationError(error: any, loaderOptions: LoaderOptions) {
+  const source = tsLoaderSource(loaderOptions);
+  return error?.loaderSource === source || error?.details === source;
+}
+
+function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
+  const source = tsLoaderSource(loaderOptions);
+  return (
+    error?.loaderSource === source ||
+    error?.details === source ||
+    error?.error?.loaderSource === source ||
+    error?.error?.details === source
+  );
+}
+
+function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
+  return isWebpack5
+    ? Array.from(module.getErrors!() || []).length > 0
+    : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
+        .length > 0;
 }
