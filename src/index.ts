@@ -322,12 +322,12 @@ function makeLoaderOptions(
   loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
   const hasForkTsCheckerWebpackPlugin =
-    loaderContext._compiler?.options.plugins.some(
+    loaderContext._compiler?.options.plugins?.some(
       plugin =>
         plugin !== null &&
         typeof plugin === 'object' &&
         plugin.constructor?.name === 'ForkTsCheckerWebpackPlugin'
-    );
+    ) ?? false;
 
   const options = Object.assign(
     {},

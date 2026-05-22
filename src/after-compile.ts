@@ -125,15 +125,16 @@ function determineModules(
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    if (module instanceof webpack.NormalModule && module.resource) {
-      const modulePath = filePathKeyMapper(module.resource);
+    const normalModule = module as webpack.Module & { resource?: string };
+    if (typeof normalModule.resource === 'string') {
+      const modulePath = filePathKeyMapper(normalModule.resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
-        if (!existingModules.includes(module)) {
-          existingModules.push(module);
+        if (!existingModules.includes(normalModule)) {
+          existingModules.push(normalModule);
         }
       } else {
-        modules.set(modulePath, [module]);
+        modules.set(modulePath, [normalModule]);
       }
     }
   });
