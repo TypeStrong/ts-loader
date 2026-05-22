@@ -61,7 +61,7 @@
   },
   "devDependencies": {
     "@types/micromatch": "^4.0.0",
-    "@types/node": "^25.9.1",
+    "@types/node": "*",
     "@types/semver": "^7.3.4",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
