@@ -204,8 +204,10 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
  * either retrieves loader options from the cache
  * or creates them, adds them to the cache and returns
  */
-function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
-  const loaderOptions = loaderContext.getOptions();
+function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>, isWebpack5: boolean) {
+  const loaderOptions = isWebpack5 
+    ? loaderContext.getOptions()
+    : loaderUtils.getOptions<LoaderOptions>(loaderContext) || ({} as LoaderOptions);
 
   // If no instance name is given in the options, use the hash of the loader options
   // In this way, if different options are given the instances will be different
