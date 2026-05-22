@@ -19,6 +19,7 @@ import type {
   LogLevel,
   TSInstance,
 } from './interfaces';
+import { getWebpack4LoaderOptions } from './loaderUtils';
 import {
   appendSuffixesIfMatch,
   arrify,
@@ -29,11 +30,6 @@ import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
-const requireFromTsLoader = module.require.bind(module) as NodeJS.Require;
-type LoaderUtilsModule = {
-  getOptions<T>(loaderContext: { query: string }): T;
-};
-let loaderUtils: LoaderUtilsModule | undefined;
 
 /**
  * The entry point for ts-loader
@@ -239,22 +235,6 @@ function getLoaderOptions(
   cache.set(loaderOptions, options);
 
   return options;
-}
-
-function getWebpack4LoaderOptions(
-  loaderContext: webpack.LoaderContext<LoaderOptions>
-) {
-  if (!loaderUtils) {
-    try {
-      loaderUtils = requireFromTsLoader('loader-utils') as LoaderUtilsModule;
-    } catch {
-      throw new Error(
-        'ts-loader requires loader-utils to be installed when used with webpack 4.'
-      );
-    }
-  }
-
-  return loaderUtils.getOptions<LoaderOptions>(loaderContext as any) || ({} as LoaderOptions);
 }
 
 type ValidLoaderOptions = keyof LoaderOptions;
