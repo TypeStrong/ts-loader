@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import * as loaderUtils from 'loader-utils';
 import * as path from 'path';
 import type * as typescript from 'typescript';
 import type * as webpack from 'webpack';
@@ -40,7 +41,7 @@ function loader(
 ) {
   this.cacheable && this.cacheable();
   const callback = this.async();
-  const options = getLoaderOptions(this);
+  const options = getLoaderOptions(this, typeof this.getOptions === 'function');
   const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
@@ -204,10 +205,14 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
  * either retrieves loader options from the cache
  * or creates them, adds them to the cache and returns
  */
-function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>, isWebpack5: boolean) {
-  const loaderOptions = isWebpack5 
+function getLoaderOptions(
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  isWebpack5: boolean
+) {
+  const loaderOptions = isWebpack5
     ? loaderContext.getOptions()
-    : loaderUtils.getOptions<LoaderOptions>(loaderContext) || ({} as LoaderOptions);
+    : loaderUtils.getOptions<LoaderOptions>(loaderContext as any) ||
+      ({} as LoaderOptions);
 
   // If no instance name is given in the options, use the hash of the loader options
   // In this way, if different options are given the instances will be different
