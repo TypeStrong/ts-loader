@@ -2,8 +2,7 @@ import type * as webpack from 'webpack';
 
 import type { LoaderOptions } from './interfaces';
 
-const requireFromTsLoader = module.require.bind(module) as NodeJS.Require;
-type LoaderUtilsModule = {
+interface LoaderUtilsModule {
   getOptions<T>(loaderContext: { query: string }): T;
 };
 let loaderUtils: LoaderUtilsModule | undefined;
@@ -13,7 +12,7 @@ export function getWebpack4LoaderOptions(
 ) {
   if (!loaderUtils) {
     try {
-      loaderUtils = requireFromTsLoader('loader-utils') as LoaderUtilsModule;
+      loaderUtils = module.require('loader-utils') as LoaderUtilsModule;
     } catch {
       throw new Error(
         'ts-loader requires loader-utils to be installed when used with webpack 4.'
