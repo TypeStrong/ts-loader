@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type * as ts from 'typescript';
+import type ts from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
@@ -127,17 +127,15 @@ function determineModules(
   { filePathKeyMapper, isWebpack5 }: TSInstance
 ) {
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
-  const isWebpack5Compilation =
-    isWebpack5 || !!(compilation as any).compiler?.webpack;
 
   compilation.modules.forEach(module => {
-    const resource = isWebpack5Compilation
+    const resource = isWebpack5
       ? module instanceof webpack.NormalModule
         ? module.resource
         : undefined
       : (module as webpack.Module & { resource?: string }).resource;
 
-    if (typeof resource === 'string') {
+    if (resource) {
       const modulePath = filePathKeyMapper(resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
@@ -268,15 +266,13 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        // if (!moduleHasErrors(module, instance.isWebpack5)) {
-          formattedErrors.forEach(error => {
-            if (module.addError) {
-              module.addError(error);
-            } else {
-              module.errors.push(error);
-            }
-          });
-        // }
+        formattedErrors.forEach(error => {
+          if (module.addError) {
+            module.addError(error);
+          } else {
+            module.errors.push(error);
+          }
+        });
 
         compilation.errors.push(...formattedErrors);
       });
@@ -338,15 +334,13 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        // if (!moduleHasErrors(module, instance.isWebpack5)) {
-          formattedErrors.forEach(error => {
-            if (module.addError) {
-              module.addError(error);
-            } else {
-              module.errors.push(error);
-            }
-          });
-        // }
+        formattedErrors.forEach(error => {
+          if (module.addError) {
+            module.addError(error);
+          } else {
+            module.errors.push(error);
+          }
+        });
 
         compilation.errors.push(...formattedErrors);
       });
@@ -556,7 +550,7 @@ function removeModuleTSLoaderError(
     });
     errors
       .filter(
-        (error: any) => !isTSLoaderModuleError(error, loaderOptions)
+        (error) => !isTSLoaderModuleError(error, loaderOptions)
       )
       .forEach((error: webpack.WebpackError) => {
         webpackModule.errors.push(error);
@@ -578,10 +572,3 @@ function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
     error?.error?.details === source
   );
 }
-
-// function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
-//   return isWebpack5
-//     ? Array.from(module.getErrors!() || []).length > 0
-//     : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
-//         .length > 0;
-// }
