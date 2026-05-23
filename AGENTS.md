@@ -8,6 +8,8 @@ Use `yarn` (not npm).
 
 ## Key commands
 
+Note: test scripts clean test directories first using `git clean -xfd`.
+
 ```bash
 yarn build              # compile src/ → dist/ (tsc --project "./src")
 yarn lint               # type-check + ESLint (no separate typecheck script)
@@ -43,7 +45,7 @@ yarn comparison-tests -- --save-output --single-test <name>       # regenerate o
 
 ## Execution tests (`test/execution-tests/`)
 
-Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. The harness compiles the project and **runs the compiled code** — useful for asserting correct runtime behaviour. These are matrix-tested in CI across Node 20/22 and TypeScript 5.x versions.
+Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. The harness compiles the project and **runs the compiled code** — useful for asserting correct runtime behaviour. These are matrix-tested in CI across multiple Node and TypeScript versions (see `.github/workflows/push.yml` for the current matrix).
 
 Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 

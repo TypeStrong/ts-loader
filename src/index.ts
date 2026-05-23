@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
 import type * as typescript from 'typescript';
-import type * as webpack from 'webpack';
+import * as webpack from 'webpack';
 
 import * as constants from './constants';
 import {
@@ -32,6 +32,8 @@ import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
+const isWebpack5 = webpack.version.startsWith('5.');
+
 /**
  * The entry point for ts-loader
  */
@@ -43,7 +45,6 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  const isWebpack5 = typeof this.getOptions === 'function';
   const options = getLoaderOptions(this, isWebpack5);
   const instanceOrError = getTypeScriptInstance(options, this, isWebpack5);
 

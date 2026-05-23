@@ -266,7 +266,7 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (!moduleHasErrors(module, instance.isWebpack5)) {
+        // if (!moduleHasErrors(module, instance.isWebpack5)) {
           formattedErrors.forEach(error => {
             if (module.addError) {
               module.addError(error);
@@ -274,7 +274,7 @@ function provideErrorsToWebpack(
               module.errors.push(error);
             }
           });
-        }
+        // }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -336,7 +336,7 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (!moduleHasErrors(module, instance.isWebpack5)) {
+        // if (!moduleHasErrors(module, instance.isWebpack5)) {
           formattedErrors.forEach(error => {
             if (module.addError) {
               module.addError(error);
@@ -344,7 +344,7 @@ function provideSolutionErrorsToWebpack(
               module.errors.push(error);
             }
           });
-        }
+        // }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -577,9 +577,9 @@ function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
   );
 }
 
-function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
-  return isWebpack5
-    ? Array.from(module.getErrors!() || []).length > 0
-    : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
-        .length > 0;
-}
+// function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
+//   return isWebpack5
+//     ? Array.from(module.getErrors!() || []).length > 0
+//     : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
+//         .length > 0;
+// }
