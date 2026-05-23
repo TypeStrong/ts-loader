@@ -60,6 +60,7 @@
     "source-map": "^0.7.4"
   },
   "devDependencies": {
+    "@types/eslint": "8.56.12",
     "@types/micromatch": "^4.0.0",
     "@types/node": "*",
     "@types/semver": "^7.3.4",
@@ -86,8 +87,8 @@
     "karma-mocha-reporter": "^2.0.0",
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.0",
-    "loader-utils": "^1.4.2",
     "lint-staged": "^8.0.0",
+    "loader-utils": "^1.4.2",
     "markdown-toc": "^1.2.0",
     "mkdirp": "^0.5.1",
     "mocha": "^6.0.0",
