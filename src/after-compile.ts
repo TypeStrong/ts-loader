@@ -266,13 +266,15 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        formattedErrors.forEach(error => {
-          if (module.addError) {
-            module.addError(error);
-          } else {
-            module.errors.push(error);
-          }
-        });
+        if (!moduleHasErrors(module, instance.isWebpack5)) {
+          formattedErrors.forEach(error => {
+            if (module.addError) {
+              module.addError(error);
+            } else {
+              module.errors.push(error);
+            }
+          });
+        }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -334,13 +336,15 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        formattedErrors.forEach(error => {
-          if (module.addError) {
-            module.addError(error);
-          } else {
-            module.errors.push(error);
-          }
-        });
+        if (!moduleHasErrors(module, instance.isWebpack5)) {
+          formattedErrors.forEach(error => {
+            if (module.addError) {
+              module.addError(error);
+            } else {
+              module.errors.push(error);
+            }
+          });
+        }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -571,4 +575,11 @@ function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
     error?.error?.loaderSource === source ||
     error?.error?.details === source
   );
+}
+
+function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
+  return isWebpack5
+    ? Array.from(module.getErrors!() || []).length > 0
+    : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
+        .length > 0;
 }
