@@ -268,7 +268,7 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (!moduleHasErrors(module, instance.isWebpack5)) {
+        // if (!moduleHasErrors(module, instance.isWebpack5)) {
           formattedErrors.forEach(error => {
             if (module.addError) {
               module.addError(error);
@@ -276,7 +276,7 @@ function provideErrorsToWebpack(
               module.errors.push(error);
             }
           });
-        }
+        // }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -338,7 +338,7 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (!moduleHasErrors(module, instance.isWebpack5)) {
+        // if (!moduleHasErrors(module, instance.isWebpack5)) {
           formattedErrors.forEach(error => {
             if (module.addError) {
               module.addError(error);
@@ -346,7 +346,7 @@ function provideSolutionErrorsToWebpack(
               module.errors.push(error);
             }
           });
-        }
+        // }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -528,21 +528,21 @@ function removeModuleTSLoaderError(
   isWebpack5: boolean
 ) {
   if (isWebpack5) {
-    const warnings: webpack.WebpackError[] = Array.from(
+    const warnings = Array.from(
       module.getWarnings!() || []
     );
-    const errors: webpack.WebpackError[] = Array.from(
+    const errors = Array.from(
       module.getErrors!() || []
     );
     module.clearWarningsAndErrors!();
-    warnings.forEach((warning: webpack.WebpackError) => {
+    warnings.forEach(warning => {
       module.addWarning!(warning);
     });
     errors
       .filter(
-        (error: any) => !isTSLoaderModuleError(error, loaderOptions)
+        (error) => !isTSLoaderModuleError(error, loaderOptions)
       )
-      .forEach((error: webpack.WebpackError) => {
+      .forEach((error) => {
         module.addError!(error);
       });
   } else {
@@ -579,9 +579,9 @@ function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
   );
 }
 
-function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
-  return isWebpack5
-    ? Array.from(module.getErrors!() || []).length > 0
-    : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
-        .length > 0;
-}
+// function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
+//   return isWebpack5
+//     ? Array.from(module.getErrors!() || []).length > 0
+//     : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
+//         .length > 0;
+// }

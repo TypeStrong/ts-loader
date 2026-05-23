@@ -35,15 +35,20 @@ export function makeWatchRun(
             const key = instance.filePathKeyMapper(filePath);
             const lastTime = lastTimes.get(key) || startTime;
 
-            if (
-              !date ||
-              date === 'ignore' ||
-              (date.timestamp || date.safeTime) <= lastTime
-            ) {
+            if (!date || date === 'ignore') {
               continue;
             }
 
-            lastTimes.set(key, date.timestamp || date.safeTime);
+            // Webpack may provide entries without timestamp values; skip those.
+            const fileTime =
+              ('timestamp' in date ? date.timestamp : undefined) ??
+              ('safeTime' in date ? date.safeTime : undefined);
+
+            if (fileTime === undefined || fileTime <= lastTime) {
+              continue;
+            }
+
+            lastTimes.set(key, fileTime);
             promises.push(updateFile(instance, key, filePath, loader, loaderIndex));
           }
 
