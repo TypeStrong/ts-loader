@@ -265,7 +265,7 @@ function successfulTypeScriptInstance(
       });
       rootFileNames.add(normalizedFilePath);
     });
-  } catch (exc) {
+  } catch (_e) {
     return {
       error: makeError(
         loaderOptions,

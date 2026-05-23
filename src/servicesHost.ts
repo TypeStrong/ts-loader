@@ -1292,7 +1292,7 @@ function resolveModule(
         resolutionResult = { resolvedFileName, originalFileName };
       }
     }
-  } catch (e) {}
+  } catch (_e) {}
 
   const tsResolution = resolveModuleName(
     moduleName,

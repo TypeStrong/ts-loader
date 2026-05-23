@@ -6,7 +6,7 @@
   "types": "dist",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
-    "lint": "tsc --project \"./src\" --noEmit && eslint -c .eslintrc.js --ext .ts ./src",
+    "lint": "tsc --project \"./src\" --noEmit && eslint --ext .ts ./src",
     "comparison-tests": "git clean -xfd test/comparison-tests && npm link --legacy-peer-deps ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
     "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",
@@ -40,7 +40,7 @@
     "ts"
   ],
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=18.18.0"
   },
   "author": "John Reilly <johnny_reilly@hotmail.com> (https://johnnyreilly.com)",
   "contributors": [
@@ -63,8 +63,8 @@
     "@types/micromatch": "^4.0.0",
     "@types/node": "*",
     "@types/semver": "^7.3.4",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
@@ -73,10 +73,9 @@
     "babel-preset-es2016": "^6.16.0",
     "babel-preset-react": "^6.0.0",
     "escape-string-regexp": "^2.0.0",
-    "eslint": "^8.0.0",
-    "eslint-config-prettier": "^8.0.0",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-prettier": "^4.0.0",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "eslint-plugin-n": "^17.0.0",
     "fs-extra": "^11.0.0",
     "glob": "^7.1.1",
     "husky": "^8.0.0",

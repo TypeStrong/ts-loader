@@ -179,7 +179,6 @@ export function getParsedCommandLine(
         compiler,
         loaderOptions
       ),
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       onUnRecoverableConfigFileDiagnostic: () => {},
     },
     extendedConfigCache

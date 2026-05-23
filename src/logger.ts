@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import type { Chalk } from 'chalk';
 import { Console } from 'console';
 import type { LoaderOptions } from './interfaces';

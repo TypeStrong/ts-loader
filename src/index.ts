@@ -40,6 +40,7 @@ function loader(
   contents: string,
   inputSourceMap?: Record<string, any>
 ) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
   const isWebpack5 = typeof this.getOptions === 'function';
@@ -755,6 +756,6 @@ export = loader;
  */
 // eslint-disable-next-line @typescript-eslint/no-namespace
 namespace loader {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface Options extends LoaderOptions {}
 }

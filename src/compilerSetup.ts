@@ -12,7 +12,7 @@ export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
 
   try {
     compiler = require(loaderOptions.compiler);
-  } catch (e) {
+  } catch (_e) {
     errorMessage =
       loaderOptions.compiler === 'typescript'
         ? 'Could not load TypeScript. Try installing with `yarn add typescript` or `npm install typescript`. If TypeScript is installed globally, try using `yarn link typescript` or `npm link typescript`.'

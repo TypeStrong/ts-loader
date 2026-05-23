@@ -140,7 +140,7 @@ export function fsReadFile(
   fileName = path.normalize(fileName);
   try {
     return fs.readFileSync(fileName, encoding);
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 }
