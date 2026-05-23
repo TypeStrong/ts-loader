@@ -39,10 +39,12 @@ export function makeWatchRun(
               continue;
             }
 
-            // Webpack may provide entries without timestamp values; skip those.
+            // Webpack versions can provide timestamp values as a number or object.
             const fileTime =
-              ('timestamp' in date ? date.timestamp : undefined) ??
-              ('safeTime' in date ? date.safeTime : undefined);
+              typeof date === 'object'
+                  ? ('timestamp' in date ? date.timestamp : undefined) ??
+                    ('safeTime' in date ? date.safeTime : undefined)
+                  : undefined;
 
             if (fileTime === undefined || fileTime <= lastTime) {
               continue;
