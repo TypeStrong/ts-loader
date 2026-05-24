@@ -25,6 +25,7 @@ import {
   arrify,
   formatErrors,
   isReferencedFile,
+  tsLoaderSource,
 } from './utils';
 import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
@@ -124,9 +125,11 @@ function makeSourceMapAndFinish(
         'See: https://github.com/Microsoft/TypeScript/issues/12358'
       : '';
 
-    callback(new Error(
+    const error = new Error(
       `TypeScript emitted no output for ${filePath}.${additionalGuidance}`
-    ), outputText, undefined);
+    ) as webpack.WebpackError;
+    error.details = tsLoaderSource(instance.loaderOptions);
+    callback(error, outputText, undefined);
     return;
   }
 
