@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
 import type typescript from 'typescript';
-import * as webpack from 'webpack';
+import type * as webpack from 'webpack';
 
 import * as constants from './constants';
 import {
@@ -19,7 +19,7 @@ import type {
   LogLevel,
   TSInstance,
 } from './interfaces';
-import { getWebpack4LoaderOptions } from './loaderUtils';
+import * as loaderUtils from './loaderUtils';
 import {
   appendSuffixesIfMatch,
   arrify,
@@ -30,8 +30,6 @@ import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
-
-const isWebpack5 = webpack.version.startsWith('5.');
 
 /**
  * The entry point for ts-loader
@@ -44,8 +42,8 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  const options = getLoaderOptions(this, isWebpack5);
-  const instanceOrError = getTypeScriptInstance(options, this, isWebpack5);
+  const options = getLoaderOptions(this);
+  const instanceOrError = getTypeScriptInstance(options, this);
 
   if (instanceOrError.error !== undefined) {
     callback(new Error(instanceOrError.error.message));
@@ -205,12 +203,9 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
  * or creates them, adds them to the cache and returns
  */
 function getLoaderOptions(
-  loaderContext: webpack.LoaderContext<LoaderOptions>,
-  isWebpack5: boolean
+  loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
-  const loaderOptions = isWebpack5
-    ? loaderContext.getOptions()
-    : getWebpack4LoaderOptions(loaderContext);
+  const loaderOptions = loaderUtils.getOptions(loaderContext);
 
   // If no instance name is given in the options, use the hash of the loader options
   // In this way, if different options are given the instances will be different

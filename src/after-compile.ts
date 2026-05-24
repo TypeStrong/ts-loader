@@ -19,6 +19,7 @@ import {
   populateReverseDependencyGraph,
   tsLoaderSource,
 } from './utils';
+import { isWebpack5 } from './loaderUtils';
 
 /**
  * This returns a function that has options to add assets and also to provide errors to webpack
@@ -47,8 +48,7 @@ export function makeAfterCompile(
     }
     removeCompilationTSLoaderErrors(
       compilation,
-      instance.loaderOptions,
-      instance.isWebpack5
+      instance.loaderOptions
     );
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
@@ -124,7 +124,7 @@ function provideCompilerOptionDiagnosticErrorsToWebpack(
  */
 function determineModules(
   compilation: webpack.Compilation,
-  { filePathKeyMapper, isWebpack5 }: TSInstance
+  { filePathKeyMapper }: TSInstance
 ) {
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
@@ -253,7 +253,6 @@ function provideErrorsToWebpack(
         removeModuleTSLoaderError(
           module,
           loaderOptions,
-          instance.isWebpack5
         );
 
         // append errors
@@ -266,7 +265,7 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (!moduleHasErrors(module, instance.isWebpack5)) {
+        if (!moduleHasWebpackErrors(module)) {
           formattedErrors.forEach(error => {
             if (module.addError) {
               module.addError(error);
@@ -323,7 +322,6 @@ function provideSolutionErrorsToWebpack(
         removeModuleTSLoaderError(
           module,
           loaderOptions,
-          instance.isWebpack5
         );
 
         // append errors
@@ -336,7 +334,7 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        if (!moduleHasErrors(module, instance.isWebpack5)) {
+        if (!moduleHasWebpackErrors(module)) {
           formattedErrors.forEach(error => {
             if (module.addError) {
               module.addError(error);
@@ -398,7 +396,6 @@ function provideDeclarationFilesToWebpack(
     addDeclarationFilesAsAsset(
       getEmitOutput(instance, fileName),
       compilation,
-      instance.isWebpack5
     );
   }
 }
@@ -406,13 +403,11 @@ function provideDeclarationFilesToWebpack(
 function addDeclarationFilesAsAsset<T extends typescript.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
-  isWebpack5: boolean,
   skipOutputFile?: (outputFile: T) => boolean
 ) {
   outputFilesToAsset(
     outputFiles,
     compilation,
-    isWebpack5,
     outputFile =>
       skipOutputFile && skipOutputFile(outputFile)
         ? true
@@ -422,8 +417,7 @@ function addDeclarationFilesAsAsset<T extends typescript.OutputFile>(
 
 function outputFileToAsset(
   outputFile: typescript.OutputFile,
-  compilation: webpack.Compilation,
-  isWebpack5: boolean
+  compilation: webpack.Compilation
 ) {
   const assetPath = path
     .relative(compilation.compiler.outputPath, outputFile.name)
@@ -446,12 +440,11 @@ function outputFileToAsset(
 function outputFilesToAsset<T extends typescript.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
-  isWebpack5: boolean,
   skipOutputFile?: (outputFile: T) => boolean
 ) {
   for (const outputFile of outputFiles) {
     if (!skipOutputFile || !skipOutputFile(outputFile)) {
-      outputFileToAsset(outputFile, compilation, isWebpack5);
+      outputFileToAsset(outputFile, compilation);
     }
   }
 }
@@ -470,7 +463,6 @@ function provideTsBuildInfoFilesToWebpack(
       outputFileToAsset(
         instance.watchHost.tsbuildinfo,
         compilation,
-        instance.isWebpack5
       );
     }
 
@@ -491,7 +483,6 @@ function provideAssetsFromSolutionBuilderHost(
     outputFilesToAsset(
       instance.solutionBuilderHost.writtenFiles,
       compilation,
-      instance.isWebpack5
     );
     instance.solutionBuilderHost.writtenFiles.length = 0;
   }
@@ -506,8 +497,7 @@ function provideAssetsFromSolutionBuilderHost(
  */
 function removeCompilationTSLoaderErrors(
   compilation: webpack.Compilation,
-  loaderOptions: LoaderOptions,
-  isWebpack5: boolean
+  loaderOptions: LoaderOptions
 ) {
   // Filter out ts-loader's own errors so they can be re-added fresh each
   // compilation.
@@ -516,14 +506,13 @@ function removeCompilationTSLoaderErrors(
   );
 
   compilation.modules.forEach(module => {
-    removeModuleTSLoaderError(module, loaderOptions, isWebpack5);
+    removeModuleTSLoaderError(module, loaderOptions);
   });
 }
 
 function removeModuleTSLoaderError(
   module: webpack.Module,
-  loaderOptions: LoaderOptions,
-  isWebpack5: boolean
+  loaderOptions: LoaderOptions
 ) {
   if (isWebpack5) {
     const warnings = Array.from(
@@ -577,9 +566,10 @@ function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
   );
 }
 
-function moduleHasErrors(module: webpack.Module, isWebpack5: boolean) {
-  return isWebpack5
-    ? Array.from(module.getErrors!() || []).length > 0
-    : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
-        .length > 0;
+/**
+ * This is only tested for in webpack 4, I'm not sure quite why, but behaviour 
+ * around errors in webpack 5 modules seems to be different.
+ */
+function moduleHasWebpackErrors(module: webpack.Module) {
+  return isWebpack5 || ((module.errors as webpack.WebpackError[] | undefined) || []).length > 0;
 }

@@ -32,6 +32,7 @@ import {
   useCaseSensitiveFileNames,
 } from './utils';
 import { makeWatchRun } from './watch-run';
+import { isWebpack5 } from './loaderUtils';
 
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
@@ -44,8 +45,7 @@ const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
  */
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: webpack.LoaderContext<LoaderOptions>,
-  isWebpack5: boolean
+  loader: webpack.LoaderContext<LoaderOptions>
 ): { instance?: TSInstance; error?: webpack.WebpackError } {
   const existing = getTSInstanceFromCache(
     loader._compiler!,
@@ -73,7 +73,6 @@ export function getTypeScriptInstance(
   return successfulTypeScriptInstance(
     loaderOptions,
     loader,
-    isWebpack5,
     log,
     colors,
     compiler.compiler!,
@@ -121,7 +120,6 @@ function createFilePathKeyMapper(
 function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>,
-  isWebpack5: boolean,
   log: logger.Logger,
   colors: chalk.Chalk,
   compiler: typeof typescript,
@@ -219,7 +217,6 @@ function successfulTypeScriptInstance(
     // quick return for transpiling
     // we do need to check for any issues with TS options though
     const transpileInstance: TSInstance = {
-      isWebpack5,
       compiler,
       compilerOptions,
       appendTsTsxSuffixesIfRequired,
@@ -278,7 +275,6 @@ function successfulTypeScriptInstance(
   }
 
   const instance: TSInstance = {
-    isWebpack5,
     compiler,
     compilerOptions,
     appendTsTsxSuffixesIfRequired,
@@ -325,7 +321,7 @@ function addAssetHooks(
     instance.configFilePath
   );
 
-  if (instance.isWebpack5) {
+  if (isWebpack5) {
     const makeAssetsCallback = (compilation: webpack.Compilation) => {
       (compilation.hooks as any).processAssets.tap(
         {
