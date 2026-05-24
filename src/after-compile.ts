@@ -129,11 +129,8 @@ function determineModules(
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    const webpackModule = module as webpack.Module & {
-      resource?: string;
-      resourceResolveData?: { path?: string };
-    };
-    const resource = webpackModule.resource || webpackModule.resourceResolveData?.path;
+    const resource = (module as webpack.NormalModule).resource || 
+      (module as webpack.NormalModule).resourceResolveData?.path;
 
     if (resource) {
       const modulePath = filePathKeyMapper(resource);
@@ -514,12 +511,7 @@ function removeModuleTSLoaderError(
   module: webpack.Module,
   loaderOptions: LoaderOptions
 ) {
-  if (
-    module.getWarnings &&
-    module.getErrors &&
-    module.clearWarningsAndErrors &&
-    module.addError
-  ) {
+  if (isWebpack5) {
     const warnings = Array.from(
       module.getWarnings!() || []
     );
@@ -572,10 +564,8 @@ function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
 }
 
 function moduleHasWebpackErrors(module: webpack.Module) {
-  if (module.getNumberOfErrors) {
-    return module.getNumberOfErrors() > 0;
-  }
-
-  return ((((module as any).errors as webpack.WebpackError[] | undefined) || [])
-    .length > 0);
+  return module.getNumberOfErrors
+    ? module.getNumberOfErrors() > 0
+    : ((((module as any).errors as webpack.WebpackError[] | undefined) || [])
+      .length > 0);
 }
