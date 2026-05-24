@@ -566,10 +566,9 @@ function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
   );
 }
 
-/**
- * This is only tested for in webpack 4, I'm not sure quite why, but behaviour 
- * around errors in webpack 5 modules seems to be different.
- */
 function moduleHasWebpackErrors(module: webpack.Module) {
-  return isWebpack5 || ((module.errors as webpack.WebpackError[] | undefined) || []).length > 0;
+    return isWebpack5
+        ? module.getNumberOfErrors() > 0
+        : (((module as any).errors as webpack.WebpackError[] | undefined) || [])
 }
+
