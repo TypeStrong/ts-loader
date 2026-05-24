@@ -4,6 +4,7 @@
         "checkJs": true,
         "module": "commonjs",
         "noEmit": true,
+        "skipLibCheck": true,
         "lib": ["es2016"],
         "types": ["node"],
         "strict": false

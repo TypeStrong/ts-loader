@@ -26,7 +26,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\ncon
   \*********************************/
 /***/ (() => {
 
-eval("{throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts. By default, ts-loader will not compile .ts files in node_modules./nYou should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option./nSee: https://github.com/Microsoft/TypeScript/issues/12358/n    at makeSourceMapAndFinish (/home/john/code/github/ts-loader/dist/index.js:88:18)/n    at successLoader (/home/john/code/github/ts-loader/dist/index.js:75:5)/n    at Object.loader (/home/john/code/github/ts-loader/dist/index.js:56:5)\");\n\n//# sourceURL=webpack:///./node_modules/a/index.ts?\n}");
+eval("{throw new Error(\"Module build failed (from ../../index.js):/nError: TypeScript emitted no output for /nodeModulesMeaningfulErrorWhenImportingTs/node_modules/a/index.ts. By default, ts-loader will not compile .ts files in node_modules./nYou should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option./nSee: https://github.com/Microsoft/TypeScript/issues/12358/n    at makeSourceMapAndFinish (/Users/johnreilly/code/github/ts-loader/dist/index.js:90:18)/n    at successLoader (/Users/johnreilly/code/github/ts-loader/dist/index.js:77:5)/n    at Object.loader (/Users/johnreilly/code/github/ts-loader/dist/index.js:58:5)\");\n\n//# sourceURL=webpack:///./node_modules/a/index.ts?\n}");
 
 /***/ })
 
