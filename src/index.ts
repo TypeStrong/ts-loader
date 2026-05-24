@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
@@ -25,7 +25,6 @@ import {
   arrify,
   formatErrors,
   isReferencedFile,
-  tsLoaderSource,
 } from './utils';
 import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
@@ -127,12 +126,9 @@ function makeSourceMapAndFinish(
         'See: https://github.com/Microsoft/TypeScript/issues/12358'
       : '';
 
-    const error = new Error(
+    callback(new Error(
       `TypeScript emitted no output for ${filePath}.${additionalGuidance}`
-    ) as Error & { loaderSource?: string; details?: string };
-    error.loaderSource = tsLoaderSource(instance.loaderOptions);
-    error.details = tsLoaderSource(instance.loaderOptions);
-    callback(error, outputText, undefined);
+    ), outputText, undefined);
     return;
   }
 

@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import micromatch from 'micromatch';
 import * as path from 'path';
 import * as webpack from 'webpack';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 
 import constants = require('./constants');
 import type {

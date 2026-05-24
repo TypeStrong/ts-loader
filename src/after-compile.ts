@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type ts from 'typescript';
+import type typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
@@ -230,7 +230,7 @@ function provideErrorsToWebpack(
     }
 
     const sourceFile = program && program.getSourceFile(fileName);
-    const errors: ts.Diagnostic[] = [];
+    const errors: typescript.Diagnostic[] = [];
     if (program && sourceFile) {
       errors.push(
         ...program!.getSyntacticDiagnostics(sourceFile),
@@ -403,7 +403,7 @@ function provideDeclarationFilesToWebpack(
   }
 }
 
-function addDeclarationFilesAsAsset<T extends ts.OutputFile>(
+function addDeclarationFilesAsAsset<T extends typescript.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
   isWebpack5: boolean,
@@ -421,7 +421,7 @@ function addDeclarationFilesAsAsset<T extends ts.OutputFile>(
 }
 
 function outputFileToAsset(
-  outputFile: ts.OutputFile,
+  outputFile: typescript.OutputFile,
   compilation: webpack.Compilation,
   isWebpack5: boolean
 ) {
@@ -443,7 +443,7 @@ function outputFileToAsset(
   }
 }
 
-function outputFilesToAsset<T extends ts.OutputFile>(
+function outputFilesToAsset<T extends typescript.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
   isWebpack5: boolean,

@@ -1,5 +1,5 @@
 import * as semver from 'semver';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 
 import type { LoaderOptions } from './interfaces';
 import type * as logger from './logger';

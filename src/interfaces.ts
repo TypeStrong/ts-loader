@@ -1,4 +1,4 @@
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 
 import type { Chalk } from 'chalk';
 import type * as logger from './logger';

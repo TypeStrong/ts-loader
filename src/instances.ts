@@ -1,7 +1,7 @@
 import * as chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { makeAfterCompile } from './after-compile';
