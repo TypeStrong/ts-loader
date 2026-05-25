@@ -230,8 +230,8 @@ function provideErrorsToWebpack(
     const errors: typescript.Diagnostic[] = [];
     if (program && sourceFile) {
       errors.push(
-        ...program!.getSyntacticDiagnostics(sourceFile),
-        ...program!
+        ...program.getSyntacticDiagnostics(sourceFile),
+        ...program
           .getSemanticDiagnostics(sourceFile)
           // Output file has not been built from source file - this message is redundant with
           // program.getOptionsDiagnostics() separately added in instances.ts
@@ -518,16 +518,16 @@ function removeModuleTSLoaderError(
     const errors = Array.from(
       module.getErrors() || []
     );
-    module.clearWarningsAndErrors!();
+    module.clearWarningsAndErrors();
     warnings.forEach(warning => {
-      module.addWarning!(warning);
+      module.addWarning(warning);
     });
     errors
       .filter(
         (error) => !isTSLoaderModuleError(error, loaderOptions)
       )
       .forEach((error) => {
-        module.addError!(error);
+        module.addError(error);
       });
   } else {
     const webpackModule = module as any;

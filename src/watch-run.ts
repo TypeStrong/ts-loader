@@ -74,7 +74,7 @@ export function makeWatchRun(
       for (const {
         fileName,
       } of instance.solutionBuilderHost.watchedFiles.values()) {
-        instance.solutionBuilderHost!.updateSolutionBuilderInputFile(fileName);
+        instance.solutionBuilderHost.updateSolutionBuilderInputFile(fileName);
       }
       instance.solutionBuilderHost.clearCache();
     }

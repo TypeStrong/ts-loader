@@ -76,7 +76,7 @@ export function getTypeScriptInstance(
     log,
     colors,
     compiler.compiler!,
-    compiler.compilerCompatible!,
+    compiler.compilerCompatible,
     compiler.compilerDetailsLogMessage!
   );
 }
@@ -88,7 +88,7 @@ function createFilePathKeyMapper(
   // Cache file path key - a map lookup is much faster than filesystem/regex operations & the result will never change
   const filePathMapperCache = new Map<string, FilePathKey>();
   // FileName lowercasing copied from typescript
-  const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g;
+  const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
   return useCaseSensitiveFileNames(compiler, loaderOptions)
     ? pathResolve
     : toFileNameLowerCase;
@@ -133,7 +133,7 @@ function successfulTypeScriptInstance(
     loaderOptions,
     compilerCompatible,
     log,
-    compilerDetailsLogMessage!
+    compilerDetailsLogMessage
   );
 
   if (configFileAndPath.configFileError !== undefined) {
@@ -227,7 +227,7 @@ function successfulTypeScriptInstance(
       version: 0,
       program: undefined, // temporary, to be set later
       dependencyGraph: new Map(),
-      transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
+      transformers: {}, // this is only set temporarily, custom transformers are created further down
       colors,
       initialSetupPending: true,
       reportTranspileErrors: true,
@@ -284,7 +284,7 @@ function successfulTypeScriptInstance(
     otherFiles,
     languageService: null,
     version: 0,
-    transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
+    transformers: {}, // this is only set temporarily, custom transformers are created further down
     dependencyGraph: new Map(),
     colors,
     initialSetupPending: true,
@@ -452,8 +452,10 @@ export function getCustomTransformers(
     try {
       customerTransformers = require(customerTransformers);
     } catch (err) {
+      // eslint-disable-next-line preserve-caught-error
       throw new Error(
         `Failed to load customTransformers from "${
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           loaderOptions.getCustomTransformers
         }": ${err instanceof Error ? err.message : 'unknown error'}`
       );
@@ -462,6 +464,7 @@ export function getCustomTransformers(
     if (typeof customerTransformers !== 'function') {
       throw new Error(
         `Custom transformers in "${
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           loaderOptions.getCustomTransformers
         }" should export a function, got ${typeof customerTransformers}`
       );
@@ -787,7 +790,7 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
       if (result.affected === sourceFile) {
         instance.watchHost!.outputFiles.set(
           instance.filePathKeyMapper(
-            (result.affected as typescript.SourceFile).fileName
+            result.affected.fileName
           ),
           outputFiles.slice()
         );

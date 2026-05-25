@@ -98,7 +98,7 @@ function makeResolversAndModuleResolutionHost(
 
   function readFile(
     filePath: string,
-    encoding?: BufferEncoding | undefined
+    encoding?: BufferEncoding
   ): string | undefined {
     return (
       instance.compiler.sys.readFile(filePath, encoding) ||
@@ -207,7 +207,7 @@ export function makeServicesHost(
               fileName
             );
           if (outputFileAndKey !== undefined) {
-            instance.solutionBuilderHost!.outputAffectingInstanceVersion.set(
+            instance.solutionBuilderHost.outputAffectingInstanceVersion.set(
               outputFileAndKey.key,
               true
             );
@@ -301,7 +301,7 @@ function makeResolvers<T extends typescript.ModuleResolutionHost>(
     containingFile: string,
     redirectedReference: typescript.ResolvedProjectReference | undefined,
     options: typescript.CompilerOptions,
-    containingFileMode?: typescript.SourceFile['impliedNodeFormat'] | undefined // new impliedNodeFormat is accepted by compilerHost
+    containingFileMode?: typescript.SourceFile['impliedNodeFormat'] // new impliedNodeFormat is accepted by compilerHost
   ): (typescript.ResolvedTypeReferenceDirective | undefined)[] =>
     typeDirectiveNames.map(
       directive =>
@@ -621,12 +621,15 @@ function identity<T>(x: T) {
 function toLowerCase(x: string) {
   return x.toLowerCase();
 }
-const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g;
+
+const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
+
 function toFileNameLowerCase(x: string) {
   return fileNameLowerCaseRegExp.test(x)
     ? x.replace(fileNameLowerCaseRegExp, toLowerCase)
     : x;
 }
+
 function createGetCanonicalFileName(instance: TSInstance) {
   return useCaseSensitiveFileNames(instance.compiler, instance.loaderOptions)
     ? identity
@@ -653,7 +656,7 @@ function createModuleResolutionCache(
     cache.update = options => {
       if (!options.configFile) return;
       const ref: typescript.ResolvedProjectReference = {
-        sourceFile: options.configFile! as typescript.TsConfigSourceFile,
+        sourceFile: options.configFile as typescript.TsConfigSourceFile,
         commandLine: { options } as typescript.ParsedCommandLine,
       };
       cache.directoryToModuleNameMap.setOwnMap(
@@ -1126,7 +1129,7 @@ export function makeSolutionBuilderHost(
         if (result) {
           return result.outputNames
             .map(getTypeScriptOutputFile)
-            .filter(output => !!output) as typescript.OutputFile[];
+            .filter(output => !!output);
         }
       }
     }
@@ -1191,7 +1194,7 @@ type ResolveTypeReferenceDirective = (
   containingFile: string,
   options: typescript.CompilerOptions,
   redirectedReference?: typescript.ResolvedProjectReference,
-  containingFileMode?: typescript.SourceFile['impliedNodeFormat'] | undefined // new impliedNodeFormat is accepted by compilerHost
+  containingFileMode?: typescript.SourceFile['impliedNodeFormat'] // new impliedNodeFormat is accepted by compilerHost
 ) => typescript.ResolvedTypeReferenceDirectiveWithFailedLookupLocations;
 
 function makeResolveTypeReferenceDirective(
@@ -1292,7 +1295,7 @@ function resolveModule(
         resolutionResult = { resolvedFileName, originalFileName };
       }
     }
-  } catch (_e) {}
+  } catch (_e) { /* empty */ }
 
   const tsResolution = resolveModuleName(
     moduleName,

@@ -108,7 +108,7 @@ export function formatErrors(
             end
           );
 
-          return Object.assign(error, merge) as webpack.WebpackError;
+          return Object.assign(error, merge);
         });
 }
 

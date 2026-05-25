@@ -734,6 +734,7 @@ function mapToInputSourceMap(
           sourceMapConsumers.forEach(sourceMapConsumer =>
             sourceMapConsumer.destroy()
           );
+          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           reject(e);
         }
       })
