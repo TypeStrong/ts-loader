@@ -499,7 +499,7 @@ function removeCompilationTSLoaderErrors(
   // Filter out ts-loader's own errors so they can be re-added fresh each
   // compilation.
   compilation.errors = compilation.errors.filter(
-    error => !isTSLoaderCompilationError(error, loaderOptions)
+    error => error instanceof webpack.WebpackError && !isTSLoaderModuleError(error, loaderOptions)
   );
 
   compilation.modules.forEach(module => {
@@ -513,10 +513,10 @@ function removeModuleTSLoaderError(
 ) {
   if (isWebpack5) {
     const warnings = Array.from(
-      module.getWarnings!() || []
+      module.getWarnings() || []
     );
     const errors = Array.from(
-      module.getErrors!() || []
+      module.getErrors() || []
     );
     module.clearWarningsAndErrors!();
     warnings.forEach(warning => {
@@ -535,32 +535,21 @@ function removeModuleTSLoaderError(
     const errors: webpack.WebpackError[] = (webpackModule.errors || []).slice();
     webpackModule.warnings = [];
     webpackModule.errors = [];
-    warnings.forEach((warning: webpack.WebpackError) => {
+    warnings.forEach((warning) => {
       webpackModule.warnings.push(warning);
     });
     errors
       .filter(
         (error) => !isTSLoaderModuleError(error, loaderOptions)
       )
-      .forEach((error: webpack.WebpackError) => {
+      .forEach((error) => {
         webpackModule.errors.push(error);
       });
   }
 }
 
-function isTSLoaderCompilationError(error: any, loaderOptions: LoaderOptions) {
-  const source = tsLoaderSource(loaderOptions);
-  return error?.loaderSource === source || error?.details === source;
-}
-
-function isTSLoaderModuleError(error: any, loaderOptions: LoaderOptions) {
-  const source = tsLoaderSource(loaderOptions);
-  return (
-    error?.loaderSource === source ||
-    error?.details === source ||
-    error?.error?.loaderSource === source ||
-    error?.error?.details === source
-  );
+function isTSLoaderModuleError(error: webpack.WebpackError, loaderOptions: LoaderOptions) {
+  return error?.details === tsLoaderSource(loaderOptions);
 }
 
 function moduleHasWebpackErrors(module: webpack.Module) {
