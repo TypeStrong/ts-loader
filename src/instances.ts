@@ -313,15 +313,15 @@ function addAssetHooks(
   loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance
 ) {
-  // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
-  // We need to get the function once and then reuse it, otherwise it will be recreated each time
-  // and all files will always be checked.
-  const cachedMakeAfterCompile = makeAfterCompile(
-    instance,
-    instance.configFilePath
-  );
-
   if (isWebpack5) {
+    // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
+    // We need to get the function once and then reuse it, otherwise it will be recreated each time
+    // and all files will always be checked.
+    const cachedMakeAfterCompile = makeAfterCompile(
+      instance,
+      instance.configFilePath
+    );
+
     const makeAssetsCallback = (compilation: webpack.Compilation) => {
       compilation.hooks.processAssets.tap(
         {
@@ -343,20 +343,11 @@ function addAssetHooks(
     // For future calls in watch mode we need to watch for a new compilation and add the hook
     loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
   } else {
-      const makeAssetsCallback = (compilation: webpack.Compilation) => {
-        compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
-          cachedMakeAfterCompile(compilation, () => {
-            return null;
-          })
-        );
-      };
-
-      // We need to add the hook above for each run.
-      // For the first run, we just need to add the hook to loader._compilation
-      makeAssetsCallback(loader._compilation!);
-
-      // For future calls in watch mode we need to watch for a new compilation and add the hook
-      loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
+      // add makeAfterCompile with addAssets = true to emit assets and report errors
+      loader._compiler!.hooks.afterCompile.tapAsync(
+        'ts-loader',
+        makeAfterCompile(instance, instance.configFilePath)
+      );
   }
 }
 
