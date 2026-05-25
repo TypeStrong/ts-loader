@@ -17,6 +17,7 @@ import type {
   TSInstance,
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
+import { isWebpack5 } from './loaderUtils';
 
 /**
  * The default error formatter.
@@ -145,12 +146,6 @@ export function fsReadFile(
   }
 }
 
-// Cache the WebpackError constructor at module load time.
-// In webpack 4, WebpackError was an internal class not exported from the main package.
-const WebpackErrorClass = (webpack as any).WebpackError as
-  | (typeof webpack.WebpackError)
-  | undefined;
-
 export function makeError(
   loaderOptions: LoaderOptions,
   message: string,
@@ -158,17 +153,28 @@ export function makeError(
   location?: FileLocation,
   endLocation?: FileLocation
 ): webpack.WebpackError {
-  const error: webpack.WebpackError = WebpackErrorClass
-    ? new WebpackErrorClass(message)
-    : (new Error(message) as unknown as webpack.WebpackError);
-  error.file = file;
-  error.loc =
-    location === undefined
-      ? { name: file }
-      : makeWebpackLocation(location, endLocation);
-  error.details = tsLoaderSource(loaderOptions);
+  if (isWebpack5) {
+    const error = new webpack.WebpackError(message);
+    error.file = file;
+    error.loc =
+      location === undefined
+        ? { name: file }
+        : makeWebpackLocation(location, endLocation);
+    error.details = tsLoaderSource(loaderOptions);
 
-  return error;
+    return error;
+  } 
+
+  return {
+    message,
+    file,
+    loc:
+      location === undefined
+        ? undefined
+        : makeWebpackLocation(location, endLocation),
+    location,
+    loaderSource: tsLoaderSource(loaderOptions),
+  } as unknown as webpack.WebpackError;
 }
 
 /** Not exported from webpack so declared locally */
