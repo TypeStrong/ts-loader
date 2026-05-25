@@ -149,13 +149,13 @@ function successfulTypeScriptInstance(
 
   const { configFilePath, configFile } = configFileAndPath;
 
+  const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
   if (configFilePath) {
     if (isWebpack5) {
       loader.addBuildDependency(configFilePath);
     }
 
     if (loaderOptions.projectReferences) {
-      const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
       const configFileKey = filePathKeyMapper(configFilePath);
       const existing = getExistingSolutionBuilderHost(configFileKey);
       if (existing) {
