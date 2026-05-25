@@ -6,9 +6,14 @@ export default defineConfig(
   js.configs.recommended,
   tseslint.configs.recommendedTypeChecked,
   {
+    files: ['eslint.config.mjs'],
+    extends: [tseslint.configs.disableTypeChecked],
+  },
+  {
+    files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
       parserOptions: {
-        projectService: true,
+        projectService: true
       },
     },
     rules: {
