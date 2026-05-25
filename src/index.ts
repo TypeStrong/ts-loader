@@ -29,6 +29,15 @@ import {
 import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
 
+/** 
+ * we can only use SourceMapConsumer if the version available has a destroy method
+ * see https://github.com/mozilla/source-map/blob/master/CHANGELOG.md#070
+ */
+const canUseSourceMapConsumer = 
+  typeof SourceMapConsumer === 'function' && 
+  typeof SourceMapConsumer.prototype === 'object' && 
+  typeof SourceMapConsumer.prototype.destroy === 'function';
+
 const loaderOptionsCache: LoaderOptionsCache = {};
 
 /**
@@ -140,14 +149,15 @@ function makeSourceMapAndFinish(
 
   setModuleMeta(loaderContext, instance, fileVersion);
 
-  // there are two cases where we don't need to perform input source map mapping:
+  // there are three cases where we don't need to perform input source map mapping:
   //   - either the ts-compiler did not generate a source map (tsconfig had `sourceMap` set to false)
   //   - or we did not get an input source map
+  //   - or the version of source-map available does not have a destroy method
   //
   // in the first case, we simply return undefined.
-  // in the second case we only need to return the newly generated source map
+  // in the second / third cases we only need to return the newly generated source map
   // this avoids that we have to make a possibly expensive call to the source-map lib
-  if (sourceMap === undefined || !inputSourceMap) {
+  if (sourceMap === undefined || !inputSourceMap || !canUseSourceMapConsumer) {
     callback(null, output, sourceMap);
     return;
   }
