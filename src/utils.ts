@@ -173,7 +173,7 @@ export function makeError(
         ? undefined
         : makeWebpackLocation(location, endLocation),
     location,
-    loaderSource: tsLoaderSource(loaderOptions),
+    details: tsLoaderSource(loaderOptions),
   } as unknown as webpack.WebpackError;
 }
 
