@@ -501,10 +501,6 @@ function removeCompilationTSLoaderErrors(
   compilation.errors = compilation.errors.filter(
     error => error instanceof webpack.WebpackError && !isTSLoaderModuleError(error, loaderOptions)
   );
-
-  compilation.modules.forEach(module => {
-    removeModuleTSLoaderError(module, loaderOptions);
-  });
 }
 
 function removeModuleTSLoaderError(

@@ -323,7 +323,7 @@ function addAssetHooks(
 
   if (isWebpack5) {
     const makeAssetsCallback = (compilation: webpack.Compilation) => {
-      (compilation.hooks as any).processAssets.tap(
+      compilation.hooks.processAssets.tap(
         {
           name: 'ts-loader',
           stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
@@ -343,12 +343,20 @@ function addAssetHooks(
     // For future calls in watch mode we need to watch for a new compilation and add the hook
     loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
   } else {
-    loader._compiler!.hooks.afterCompile.tapAsync(
-      'ts-loader',
-      (compilation: webpack.Compilation, callback: () => void) => {
-        cachedMakeAfterCompile(compilation, callback);
-      }
-    );
+      const makeAssetsCallback = (compilation: webpack.Compilation) => {
+        compilation.hooks.afterProcessAssets.tap('ts-loader', () =>
+          cachedMakeAfterCompile(compilation, () => {
+            return null;
+          })
+        );
+      };
+
+      // We need to add the hook above for each run.
+      // For the first run, we just need to add the hook to loader._compilation
+      makeAssetsCallback(loader._compilation!);
+
+      // For future calls in watch mode we need to watch for a new compilation and add the hook
+      loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
   }
 }
 
