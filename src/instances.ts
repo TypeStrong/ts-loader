@@ -149,18 +149,20 @@ function successfulTypeScriptInstance(
 
   const { configFilePath, configFile } = configFileAndPath;
 
-  if (configFilePath && isWebpack5) {
-    loader.addBuildDependency(configFilePath);
-  }
+  if (configFilePath) {
+    if (isWebpack5) {
+      loader.addBuildDependency(configFilePath);
+    }
 
-  const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
-  if (configFilePath && loaderOptions.projectReferences) {
-    const configFileKey = filePathKeyMapper(configFilePath);
-    const existing = getExistingSolutionBuilderHost(configFileKey);
-    if (existing) {
-      // Reuse the instance if config file for project references is shared.
-      setTSInstanceInCache(loader._compiler, loaderOptions.instance, existing);
-      return { instance: existing };
+    if (loaderOptions.projectReferences) {
+      const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
+      const configFileKey = filePathKeyMapper(configFilePath);
+      const existing = getExistingSolutionBuilderHost(configFileKey);
+      if (existing) {
+        // Reuse the instance if config file for project references is shared.
+        setTSInstanceInCache(loader._compiler, loaderOptions.instance, existing);
+        return { instance: existing };
+      }
     }
   }
 

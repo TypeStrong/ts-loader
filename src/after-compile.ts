@@ -46,10 +46,7 @@ export function makeAfterCompile(
       callback();
       return;
     }
-    removeCompilationTSLoaderErrors(
-      compilation,
-      instance.loaderOptions
-    );
+    removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
 
     provideCompilerOptionDiagnosticErrorsToWebpack(
       getCompilerOptionDiagnostics,
@@ -247,10 +244,7 @@ function provideErrorsToWebpack(
     const associatedModules = modules.get(instance.filePathKeyMapper(fileName));
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        removeModuleTSLoaderError(
-          module,
-          loaderOptions,
-        );
+        removeModuleTSLoaderError(module, loaderOptions);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -316,10 +310,7 @@ function provideSolutionErrorsToWebpack(
     const associatedModules = modules.get(filePath);
     if (associatedModules !== undefined) {
       associatedModules.forEach(module => {
-        removeModuleTSLoaderError(
-          module,
-          loaderOptions,
-        );
+        removeModuleTSLoaderError(module, loaderOptions);
 
         // append errors
         const formattedErrors = formatErrors(
@@ -390,10 +381,7 @@ function provideDeclarationFilesToWebpack(
       continue;
     }
 
-    addDeclarationFilesAsAsset(
-      getEmitOutput(instance, fileName),
-      compilation,
-    );
+    addDeclarationFilesAsAsset(getEmitOutput(instance, fileName), compilation);
   }
 }
 
@@ -457,10 +445,7 @@ function provideTsBuildInfoFilesToWebpack(
     // Ensure emit is complete
     getEmitFromWatchHost(instance);
     if (instance.watchHost.tsbuildinfo) {
-      outputFileToAsset(
-        instance.watchHost.tsbuildinfo,
-        compilation,
-      );
+      outputFileToAsset(instance.watchHost.tsbuildinfo, compilation);
     }
 
     instance.watchHost.outputFiles.clear();
@@ -477,10 +462,7 @@ function provideAssetsFromSolutionBuilderHost(
 ) {
   if (instance.solutionBuilderHost) {
     // written files
-    outputFilesToAsset(
-      instance.solutionBuilderHost.writtenFiles,
-      compilation,
-    );
+    outputFilesToAsset(instance.solutionBuilderHost.writtenFiles, compilation);
     instance.solutionBuilderHost.writtenFiles.length = 0;
   }
 }
