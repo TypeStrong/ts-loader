@@ -499,7 +499,7 @@ function removeCompilationTSLoaderErrors(
   // Filter out ts-loader's own errors so they can be re-added fresh each
   // compilation.
   compilation.errors = compilation.errors.filter(
-    error => error instanceof webpack.WebpackError && !isTSLoaderModuleError(error, loaderOptions)
+    error => !isTSLoaderModuleError(error as webpack.WebpackError, loaderOptions)
   );
 }
 
