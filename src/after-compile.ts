@@ -126,9 +126,8 @@ function determineModules(
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    const resource = (module as webpack.NormalModule).resource || 
-      (module as webpack.NormalModule).resourceResolveData?.path;
-
+    const resource = (module as webpack.NormalModule).resource;
+      // || (module as webpack.NormalModule).resourceResolveData?.path; // not sure this is needed
     if (resource) {
       const modulePath = filePathKeyMapper(resource);
       const existingModules = modules.get(modulePath);
