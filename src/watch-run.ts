@@ -5,6 +5,7 @@ import * as constants from './constants';
 import type { FilePathKey, LoaderOptions, TSInstance } from './interfaces';
 import { updateFileWithText } from './servicesHost';
 import { fsReadFile } from './utils';
+import { isWebpack5 } from './loaderUtils';
 
 /**
  * Make function which will manually update changed files
@@ -35,15 +36,32 @@ export function makeWatchRun(
             const key = instance.filePathKeyMapper(filePath);
             const lastTime = lastTimes.get(key) || startTime;
 
-            if (
-              !date ||
-              date === 'ignore' ||
-              (date.timestamp || date.safeTime) <= lastTime
-            ) {
-              continue;
+            let fileTime: number | undefined;
+
+            if (isWebpack5) {
+              if (!date || date === 'ignore') {
+                continue;
+              }
+
+              // Webpack versions can provide timestamp values as a number or object.
+              fileTime =
+                typeof date === 'object'
+                    ? ('timestamp' in date ? date.timestamp : undefined) ??
+                      ('safeTime' in date ? date.safeTime : undefined)
+                    : undefined;
+
+              if (fileTime === undefined || fileTime <= lastTime) {
+                continue;
+              }
+            } else {
+              // in webpack 4 date is a number https://github.com/webpack/webpack/blob/dfffd6a241bf1d593b3fd31b4b279f96f4a4aab1/lib/Compiler.js#L141-L142
+              if (date as unknown as number <= lastTime) {
+                continue;
+              }
+              fileTime = date as unknown as number;
             }
 
-            lastTimes.set(key, date.timestamp || date.safeTime);
+            lastTimes.set(key, fileTime);
             promises.push(updateFile(instance, key, filePath, loader, loaderIndex));
           }
 
@@ -67,7 +85,7 @@ export function makeWatchRun(
       for (const {
         fileName,
       } of instance.solutionBuilderHost.watchedFiles.values()) {
-        instance.solutionBuilderHost!.updateSolutionBuilderInputFile(fileName);
+        instance.solutionBuilderHost.updateSolutionBuilderInputFile(fileName);
       }
       instance.solutionBuilderHost.clearCache();
     }

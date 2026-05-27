@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.6.0
+* [feat: add webpack 4 support back](https://github.com/TypeStrong/ts-loader/pull/1697) - thanks @johnnyreilly and @tweet
+
 ## 9.5.7
 * [fix: TS5011 errors with TypeScript 6.0: transpileModule called with rootDir: undefined](https://github.com/TypeStrong/ts-loader/pull/1679) [#1678] - thanks @julioz and @errorx666
 * [feat: migrate to trusted publishing](https://github.com/TypeStrong/ts-loader/pull/1680) - thanks @johnnyreilly

@@ -1,5 +1,5 @@
 import * as semver from 'semver';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 
 import type { LoaderOptions } from './interfaces';
 import type * as logger from './logger';
@@ -12,7 +12,7 @@ export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
 
   try {
     compiler = require(loaderOptions.compiler);
-  } catch (e) {
+  } catch (_e) {
     errorMessage =
       loaderOptions.compiler === 'typescript'
         ? 'Could not load TypeScript. Try installing with `yarn add typescript` or `npm install typescript`. If TypeScript is installed globally, try using `yarn link typescript` or `npm link typescript`.'

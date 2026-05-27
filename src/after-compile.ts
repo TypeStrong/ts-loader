@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type * as ts from 'typescript';
+import type typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import * as constants from './constants';
@@ -19,6 +19,7 @@ import {
   populateReverseDependencyGraph,
   tsLoaderSource,
 } from './utils';
+import { addErrorToModule, isWebpack5 } from './loaderUtils';
 
 /**
  * This returns a function that has options to add assets and also to provide errors to webpack
@@ -125,8 +126,10 @@ function determineModules(
   const modules: Map<FilePathKey, webpack.Module[]> = new Map();
 
   compilation.modules.forEach(module => {
-    if (module instanceof webpack.NormalModule && module.resource) {
-      const modulePath = filePathKeyMapper(module.resource);
+    const resource = (module as webpack.NormalModule).resource;
+      // || (module as webpack.NormalModule).resourceResolveData?.path; // not sure this is needed
+    if (resource) {
+      const modulePath = filePathKeyMapper(resource);
       const existingModules = modules.get(modulePath);
       if (existingModules !== undefined) {
         if (!existingModules.includes(module)) {
@@ -220,11 +223,11 @@ function provideErrorsToWebpack(
     }
 
     const sourceFile = program && program.getSourceFile(fileName);
-    const errors: ts.Diagnostic[] = [];
+    const errors: typescript.Diagnostic[] = [];
     if (program && sourceFile) {
       errors.push(
-        ...program!.getSyntacticDiagnostics(sourceFile),
-        ...program!
+        ...program.getSyntacticDiagnostics(sourceFile),
+        ...program
           .getSemanticDiagnostics(sourceFile)
           // Output file has not been built from source file - this message is redundant with
           // program.getOptionsDiagnostics() separately added in instances.ts
@@ -252,13 +255,9 @@ function provideErrorsToWebpack(
           compilation.compiler.context
         );
 
-        formattedErrors.forEach(error => {
-          if (module.addError) {
-            module.addError(error);
-          } else {
-            module.errors.push(error);
-          }
-        });
+        if (!moduleHasWebpackErrors(module)) {
+          formattedErrors.forEach(error => addErrorToModule(module, error));
+        }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -316,13 +315,9 @@ function provideSolutionErrorsToWebpack(
           compilation.compiler.context
         );
 
-        formattedErrors.forEach(error => {
-          if (module.addError) {
-            module.addError(error);
-          } else {
-            module.errors.push(error);
-          }
-        });
+        if (!moduleHasWebpackErrors(module)) {
+          formattedErrors.forEach(error => addErrorToModule(module, error));
+        }
 
         compilation.errors.push(...formattedErrors);
       });
@@ -377,20 +372,23 @@ function provideDeclarationFilesToWebpack(
   }
 }
 
-function addDeclarationFilesAsAsset<T extends ts.OutputFile>(
+function addDeclarationFilesAsAsset<T extends typescript.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
   skipOutputFile?: (outputFile: T) => boolean
 ) {
-  outputFilesToAsset(outputFiles, compilation, outputFile =>
-    skipOutputFile && skipOutputFile(outputFile)
-      ? true
-      : !outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
+  outputFilesToAsset(
+    outputFiles,
+    compilation,
+    outputFile =>
+      skipOutputFile && skipOutputFile(outputFile)
+        ? true
+        : !outputFile.name.match(constants.dtsDtsxOrDtsDtsxMapRegex)
   );
 }
 
 function outputFileToAsset(
-  outputFile: ts.OutputFile,
+  outputFile: typescript.OutputFile,
   compilation: webpack.Compilation
 ) {
   const assetPath = path
@@ -398,14 +396,20 @@ function outputFileToAsset(
     // According to @alexander-akait (and @sokra) we should always '/' https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-799606985
     .replace(/\\/g, '/');
 
-  // As suggested by @JonWallsten here: https://github.com/TypeStrong/ts-loader/pull/1251#issuecomment-800032753
-  compilation.emitAsset(
-    assetPath,
-    new webpack.sources.RawSource(outputFile.text)
-  );
+  if (isWebpack5) {
+    compilation.emitAsset(
+      assetPath,
+      new webpack.sources.RawSource(outputFile.text)
+    );
+  } else {
+    (compilation as any).assets[assetPath] = {
+      source: () => outputFile.text,
+      size: () => Buffer.byteLength(outputFile.text, 'utf8'),
+    };
+  }
 }
 
-function outputFilesToAsset<T extends ts.OutputFile>(
+function outputFilesToAsset<T extends typescript.OutputFile>(
   outputFiles: T[] | IterableIterator<T>,
   compilation: webpack.Compilation,
   skipOutputFile?: (outputFile: T) => boolean
@@ -461,8 +465,10 @@ function removeCompilationTSLoaderErrors(
   compilation: webpack.Compilation,
   loaderOptions: LoaderOptions
 ) {
+  // Filter out ts-loader's own errors so they can be re-added fresh each
+  // compilation.
   compilation.errors = compilation.errors.filter(
-    error => error instanceof webpack.WebpackError && error.details !== tsLoaderSource(loaderOptions)
+    error => !isTSLoaderModuleError(error as webpack.WebpackError, loaderOptions)
   );
 }
 
@@ -470,14 +476,50 @@ function removeModuleTSLoaderError(
   module: webpack.Module,
   loaderOptions: LoaderOptions
 ) {
-  const warnings = module.getWarnings();
-  const errors = module.getErrors();
-  module.clearWarningsAndErrors();
+  if (isWebpack5) {
+    const warnings = Array.from(
+      module.getWarnings() || []
+    );
+    const errors = Array.from(
+      module.getErrors() || []
+    );
+    module.clearWarningsAndErrors();
+    warnings.forEach(warning => {
+      module.addWarning(warning);
+    });
+    errors
+      .filter(
+        (error) => !isTSLoaderModuleError(error, loaderOptions)
+      )
+      .forEach((error) => {
+        module.addError(error);
+      });
+  } else {
+    const webpackModule = module as any;
+    const warnings: webpack.WebpackError[] = (webpackModule.warnings || []).slice();
+    const errors: webpack.WebpackError[] = (webpackModule.errors || []).slice();
+    webpackModule.warnings = [];
+    webpackModule.errors = [];
+    warnings.forEach((warning) => {
+      webpackModule.warnings.push(warning);
+    });
+    errors
+      .filter(
+        (error) => !isTSLoaderModuleError(error, loaderOptions)
+      )
+      .forEach((error) => {
+        webpackModule.errors.push(error);
+      });
+  }
+}
 
-  Array.from(warnings || []).forEach(warning => module.addWarning(warning));
-  Array.from(errors || [])
-    .filter(
-      (error: any) => error.loaderSource !== tsLoaderSource(loaderOptions)
-    )
-    .forEach(error => module.addError(error));
+function isTSLoaderModuleError(error: webpack.WebpackError, loaderOptions: LoaderOptions) {
+  return error?.details === tsLoaderSource(loaderOptions);
+}
+
+function moduleHasWebpackErrors(module: webpack.Module) {
+  return module.getNumberOfErrors
+    ? module.getNumberOfErrors() > 0
+    : ((((module as any).errors as webpack.WebpackError[] | undefined) || [])
+      .length > 0);
 }

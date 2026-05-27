@@ -1,10 +1,11 @@
 import * as chalk from 'chalk';
 import * as fs from 'fs';
 import * as path from 'path';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { makeAfterCompile } from './after-compile';
+import { addErrorToModule } from './loaderUtils';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
 import {
@@ -32,6 +33,7 @@ import {
   useCaseSensitiveFileNames,
 } from './utils';
 import { makeWatchRun } from './watch-run';
+import { isWebpack5 } from './loaderUtils';
 
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
@@ -75,7 +77,7 @@ export function getTypeScriptInstance(
     log,
     colors,
     compiler.compiler!,
-    compiler.compilerCompatible!,
+    compiler.compilerCompatible,
     compiler.compilerDetailsLogMessage!
   );
 }
@@ -87,7 +89,7 @@ function createFilePathKeyMapper(
   // Cache file path key - a map lookup is much faster than filesystem/regex operations & the result will never change
   const filePathMapperCache = new Map<string, FilePathKey>();
   // FileName lowercasing copied from typescript
-  const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_\. ]+/g;
+  const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
   return useCaseSensitiveFileNames(compiler, loaderOptions)
     ? pathResolve
     : toFileNameLowerCase;
@@ -132,7 +134,7 @@ function successfulTypeScriptInstance(
     loaderOptions,
     compilerCompatible,
     log,
-    compilerDetailsLogMessage!
+    compilerDetailsLogMessage
   );
 
   if (configFileAndPath.configFileError !== undefined) {
@@ -148,18 +150,20 @@ function successfulTypeScriptInstance(
 
   const { configFilePath, configFile } = configFileAndPath;
 
-  if (configFilePath) {
-    loader.addBuildDependency(configFilePath);
-  }
-
   const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
-  if (configFilePath && loaderOptions.projectReferences) {
-    const configFileKey = filePathKeyMapper(configFilePath);
-    const existing = getExistingSolutionBuilderHost(configFileKey);
-    if (existing) {
-      // Reuse the instance if config file for project references is shared.
-      setTSInstanceInCache(loader._compiler, loaderOptions.instance, existing);
-      return { instance: existing };
+  if (configFilePath) {
+    if (isWebpack5) {
+      loader.addBuildDependency(configFilePath);
+    }
+
+    if (loaderOptions.projectReferences) {
+      const configFileKey = filePathKeyMapper(configFilePath);
+      const existing = getExistingSolutionBuilderHost(configFileKey);
+      if (existing) {
+        // Reuse the instance if config file for project references is shared.
+        setTSInstanceInCache(loader._compiler, loaderOptions.instance, existing);
+        return { instance: existing };
+      }
     }
   }
 
@@ -183,7 +187,7 @@ function successfulTypeScriptInstance(
       loader.context
     );
 
-    errors.forEach(error => module.addError(error));
+    errors.forEach(error => addErrorToModule(module, error));
 
     return {
       error: makeError(
@@ -226,7 +230,7 @@ function successfulTypeScriptInstance(
       version: 0,
       program: undefined, // temporary, to be set later
       dependencyGraph: new Map(),
-      transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
+      transformers: {}, // this is only set temporarily, custom transformers are created further down
       colors,
       initialSetupPending: true,
       reportTranspileErrors: true,
@@ -261,7 +265,7 @@ function successfulTypeScriptInstance(
       });
       rootFileNames.add(normalizedFilePath);
     });
-  } catch (exc) {
+  } catch (_e) {
     return {
       error: makeError(
         loaderOptions,
@@ -283,7 +287,7 @@ function successfulTypeScriptInstance(
     otherFiles,
     languageService: null,
     version: 0,
-    transformers: {} as typescript.CustomTransformers, // this is only set temporarily, custom transformers are created further down
+    transformers: {}, // this is only set temporarily, custom transformers are created further down
     dependencyGraph: new Map(),
     colors,
     initialSetupPending: true,
@@ -312,34 +316,42 @@ function addAssetHooks(
   loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance
 ) {
-  // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
-  // We need to get the function once and then reuse it, otherwise it will be recreated each time
-  // and all files will always be checked.
-  const cachedMakeAfterCompile = makeAfterCompile(
-    instance,
-    instance.configFilePath
-  );
-
-  const makeAssetsCallback = (compilation: webpack.Compilation) => {
-    compilation.hooks.processAssets.tap(
-      {
-        name: 'ts-loader',
-        stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
-      },
-      () => {
-        cachedMakeAfterCompile(compilation, () => {
-          return null;
-        });
-      }
+  if (isWebpack5) {
+    // makeAfterCompile is a closure.  It returns a function which closes over the variable checkAllFilesForErrors
+    // We need to get the function once and then reuse it, otherwise it will be recreated each time
+    // and all files will always be checked.
+    const cachedMakeAfterCompile = makeAfterCompile(
+      instance,
+      instance.configFilePath
     );
-  };
 
-  // We need to add the hook above for each run.
-  // For the first run, we just need to add the hook to loader._compilation
-  makeAssetsCallback(loader._compilation!);
+    const makeAssetsCallback = (compilation: webpack.Compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: 'ts-loader',
+          stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        },
+        () => {
+          cachedMakeAfterCompile(compilation, () => {
+            return null;
+          });
+        }
+      );
+    };
 
-  // For future calls in watch mode we need to watch for a new compilation and add the hook
-  loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
+    // We need to add the hook above for each run.
+    // For the first run, we just need to add the hook to loader._compilation
+    makeAssetsCallback(loader._compilation!);
+
+    // For future calls in watch mode we need to watch for a new compilation and add the hook
+    loader._compiler!.hooks.compilation.tap('ts-loader', makeAssetsCallback);
+  } else {
+      // add makeAfterCompile with addAssets = true to emit assets and report errors
+      loader._compiler!.hooks.afterCompile.tapAsync(
+        'ts-loader',
+        makeAfterCompile(instance, instance.configFilePath)
+      );
+  }
 }
 
 export function initializeInstance(
@@ -442,8 +454,10 @@ export function getCustomTransformers(
     try {
       customerTransformers = require(customerTransformers);
     } catch (err) {
+      // eslint-disable-next-line preserve-caught-error
       throw new Error(
         `Failed to load customTransformers from "${
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           loaderOptions.getCustomTransformers
         }": ${err instanceof Error ? err.message : 'unknown error'}`
       );
@@ -452,6 +466,7 @@ export function getCustomTransformers(
     if (typeof customerTransformers !== 'function') {
       throw new Error(
         `Custom transformers in "${
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           loaderOptions.getCustomTransformers
         }" should export a function, got ${typeof customerTransformers}`
       );
@@ -501,7 +516,11 @@ export function reportTranspileErrors(
       loader.context
     );
 
-    [...solutionErrors, ...errors].forEach(error => module!.addError(error));
+    [...solutionErrors, ...errors].forEach(error => {
+      if (module) {
+        addErrorToModule(module, error);
+      }
+    });
   }
 }
 
@@ -777,7 +796,7 @@ export function getEmitFromWatchHost(instance: TSInstance, filePath?: string) {
       if (result.affected === sourceFile) {
         instance.watchHost!.outputFiles.set(
           instance.filePathKeyMapper(
-            (result.affected as typescript.SourceFile).fileName
+            result.affected.fileName
           ),
           outputFiles.slice()
         );

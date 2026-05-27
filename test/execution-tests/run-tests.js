@@ -5,6 +5,7 @@ var fs = require('fs-extra');
 var path = require('path');
 var execSync = require('child_process').execSync;
 var typescript = require('typescript');
+var webpack = require('webpack');
 var semver = require('semver');
 var pathExists = require('../pathExists');
 
@@ -73,6 +74,17 @@ function isHighEnoughTypeScriptVersion (testName) {
         var minTsVersion = minTsVersionAndTestName[0];
         if (semver.lt(typescript.version, minTsVersion)) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
+            return false;
+        }
+    } else if (minTsVersionAndTestName.length === 3) {
+        var minTsVersion = minTsVersionAndTestName[0];
+        if (semver.lt(typescript.version, minTsVersion)) {
+            console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
+            return false;
+        }
+        var minWebpackVersion = minTsVersionAndTestName[1];
+        if (semver.lt(webpack.version, minWebpackVersion)) {
+            console.log('Skipping test ' + testName + ' as its minimum version of ' + minWebpackVersion + ' is greater than our current version of webpack: ' + webpack.version);
             return false;
         }
     }

@@ -1,6 +1,6 @@
 import type { Chalk } from 'chalk';
 import * as path from 'path';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 import type * as webpack from 'webpack';
 
 import { getCompilerOptions } from './compilerSetup';
@@ -179,7 +179,6 @@ export function getParsedCommandLine(
         compiler,
         loaderOptions
       ),
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
       onUnRecoverableConfigFileDiagnostic: () => {},
     },
     extendedConfigCache

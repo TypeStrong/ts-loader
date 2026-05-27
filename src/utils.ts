@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import micromatch from 'micromatch';
 import * as path from 'path';
 import * as webpack from 'webpack';
-import type * as typescript from 'typescript';
+import type typescript from 'typescript';
 
 import constants = require('./constants');
 import type {
@@ -17,6 +17,8 @@ import type {
   TSInstance,
 } from './interfaces';
 import { getInputFileNameFromOutput } from './instances';
+import { isWebpack5 } from './loaderUtils';
+
 /**
  * The default error formatter.
  */
@@ -107,7 +109,7 @@ export function formatErrors(
             end
           );
 
-          return Object.assign(error, merge) as webpack.WebpackError;
+          return Object.assign(error, merge);
         });
 }
 
@@ -139,7 +141,7 @@ export function fsReadFile(
   fileName = path.normalize(fileName);
   try {
     return fs.readFileSync(fileName, encoding);
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 }
@@ -151,25 +153,28 @@ export function makeError(
   location?: FileLocation,
   endLocation?: FileLocation
 ): webpack.WebpackError {
-  const error = new webpack.WebpackError(message);
-  error.file = file;
-  error.loc =
-    location === undefined
-      ? { name: file }
-      : makeWebpackLocation(location, endLocation);
-  error.details = tsLoaderSource(loaderOptions);
+  if (isWebpack5) {
+    const error = new webpack.WebpackError(message);
+    error.file = file;
+    error.loc =
+      location === undefined
+        ? { name: file }
+        : makeWebpackLocation(location, endLocation);
+    error.details = tsLoaderSource(loaderOptions);
 
-  return error;
+    return error;
+  } 
 
-  // return {
-  //   message,
-  //   file,
-  //   loc:
-  //     location === undefined
-  //       ? { name: file }
-  //       : makeWebpackLocation(location, endLocation),
-  //   details: tsLoaderSource(loaderOptions),
-  // };
+  return {
+    message,
+    file,
+    loc:
+      location === undefined
+        ? undefined
+        : makeWebpackLocation(location, endLocation),
+    location,
+    details: tsLoaderSource(loaderOptions),
+  } as unknown as webpack.WebpackError;
 }
 
 /** Not exported from webpack so declared locally */
