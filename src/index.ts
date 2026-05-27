@@ -676,10 +676,30 @@ function getTranspilationEmit(
       loaderContext.context
     );
 
-    errors.forEach(error => module!.addError(error));
+    errors.forEach(error => addErrorToModule(module, error));
   }
 
   return { outputText, sourceMapText };
+}
+
+function addErrorToModule(
+  module: webpack.LoaderContext<LoaderOptions>['_module'],
+  error: webpack.WebpackError
+) {
+  if (!module) {
+    return;
+  }
+
+  if (module.addError) {
+    module.addError(error);
+    return;
+  }
+
+  const webpackModule = module as any;
+  if (!webpackModule.errors) {
+    webpackModule.errors = [];
+  }
+  webpackModule.errors.push(error);
 }
 
 function makeSourceMap(

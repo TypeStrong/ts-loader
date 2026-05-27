@@ -186,7 +186,7 @@ function successfulTypeScriptInstance(
       loader.context
     );
 
-    errors.forEach(error => module.addError(error));
+    errors.forEach(error => addErrorToModule(module, error));
 
     return {
       error: makeError(
@@ -515,8 +515,30 @@ export function reportTranspileErrors(
       loader.context
     );
 
-    [...solutionErrors, ...errors].forEach(error => module!.addError(error));
+    [...solutionErrors, ...errors].forEach(error =>
+      addErrorToModule(module, error)
+    );
   }
+}
+
+function addErrorToModule(
+  module: webpack.LoaderContext<LoaderOptions>['_module'],
+  error: webpack.WebpackError
+) {
+  if (!module) {
+    return;
+  }
+
+  if (module.addError) {
+    module.addError(error);
+    return;
+  }
+
+  const webpackModule = module as any;
+  if (!webpackModule.errors) {
+    webpackModule.errors = [];
+  }
+  webpackModule.errors.push(error);
 }
 
 export function buildSolutionReferences(
