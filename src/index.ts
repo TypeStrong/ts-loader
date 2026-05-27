@@ -28,6 +28,7 @@ import {
 } from './utils';
 import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
+import { addErrorToModule } from './loaderUtils';
 
 /** 
  * we can only use SourceMapConsumer if the version available has a destroy method
@@ -676,30 +677,14 @@ function getTranspilationEmit(
       loaderContext.context
     );
 
-    errors.forEach(error => addErrorToModule(module, error));
+    errors.forEach(error => {
+      if (module) {
+        addErrorToModule(module, error);
+      }
+    });
   }
 
   return { outputText, sourceMapText };
-}
-
-function addErrorToModule(
-  module: webpack.LoaderContext<LoaderOptions>['_module'],
-  error: webpack.WebpackError
-) {
-  if (!module) {
-    return;
-  }
-
-  if (module.addError) {
-    module.addError(error);
-    return;
-  }
-
-  const webpackModule = module as any;
-  if (!webpackModule.errors) {
-    webpackModule.errors = [];
-  }
-  webpackModule.errors.push(error);
 }
 
 function makeSourceMap(

@@ -19,7 +19,7 @@ import {
   populateReverseDependencyGraph,
   tsLoaderSource,
 } from './utils';
-import { isWebpack5 } from './loaderUtils';
+import { addErrorToModule, isWebpack5 } from './loaderUtils';
 
 /**
  * This returns a function that has options to add assets and also to provide errors to webpack
@@ -256,13 +256,7 @@ function provideErrorsToWebpack(
         );
 
         if (!moduleHasWebpackErrors(module)) {
-          formattedErrors.forEach(error => {
-            if (module.addError) {
-              module.addError(error);
-            } else {
-              module.errors.push(error);
-            }
-          });
+          formattedErrors.forEach(error => addErrorToModule(module, error));
         }
 
         compilation.errors.push(...formattedErrors);
@@ -322,13 +316,7 @@ function provideSolutionErrorsToWebpack(
         );
 
         if (!moduleHasWebpackErrors(module)) {
-          formattedErrors.forEach(error => {
-            if (module.addError) {
-              module.addError(error);
-            } else {
-              module.errors.push(error);
-            }
-          });
+          formattedErrors.forEach(error => addErrorToModule(module, error));
         }
 
         compilation.errors.push(...formattedErrors);

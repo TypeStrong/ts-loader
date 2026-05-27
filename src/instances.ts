@@ -5,6 +5,7 @@ import type typescript from 'typescript';
 import * as webpack from 'webpack';
 
 import { makeAfterCompile } from './after-compile';
+import { addErrorToModule } from './loaderUtils';
 import { getCompiler, getCompilerOptions } from './compilerSetup';
 import { getConfigFile, getConfigParseResult } from './config';
 import {
@@ -515,30 +516,12 @@ export function reportTranspileErrors(
       loader.context
     );
 
-    [...solutionErrors, ...errors].forEach(error =>
-      addErrorToModule(module, error)
-    );
+    [...solutionErrors, ...errors].forEach(error => {
+      if (module) {
+        addErrorToModule(module, error);
+      }
+    });
   }
-}
-
-function addErrorToModule(
-  module: webpack.LoaderContext<LoaderOptions>['_module'],
-  error: webpack.WebpackError
-) {
-  if (!module) {
-    return;
-  }
-
-  if (module.addError) {
-    module.addError(error);
-    return;
-  }
-
-  const webpackModule = module as any;
-  if (!webpackModule.errors) {
-    webpackModule.errors = [];
-  }
-  webpackModule.errors.push(error);
 }
 
 export function buildSolutionReferences(

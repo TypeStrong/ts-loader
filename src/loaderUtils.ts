@@ -28,3 +28,14 @@ export function getOptions(
 
   return loaderUtils.getOptions<LoaderOptions>(loaderContext as any) || ({} as LoaderOptions);
 }
+
+/**
+ * webpack 4 and webpack 5 have different APIs for adding errors to modules. This function abstracts that away.
+ */
+export function addErrorToModule(module: webpack.Module, error: webpack.WebpackError) {
+  if (isWebpack5) {
+    module.addError(error);
+  } else {
+    module.errors.push(error);
+  }
+}
