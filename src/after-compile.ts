@@ -478,10 +478,10 @@ function removeModuleTSLoaderError(
 ) {
   if (isWebpack5) {
     const warnings = Array.from(
-      module.getWarnings() || []
+      module.getWarnings() || (module.warnings as webpack.WebpackError[]) || []
     );
     const errors = Array.from(
-      module.getErrors() || []
+      module.getErrors() || (module.errors as webpack.WebpackError[]) || []
     );
     module.clearWarningsAndErrors();
     warnings.forEach(warning => {
