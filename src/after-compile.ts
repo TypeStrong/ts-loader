@@ -476,12 +476,12 @@ function removeModuleTSLoaderError(
   module: webpack.Module,
   loaderOptions: LoaderOptions
 ) {
-  if (isWebpack5) {
+  if (isWebpack5 && module.getWarnings) {
     const warnings = Array.from(
-      module.getWarnings() || (module.warnings as webpack.WebpackError[]) || []
+      module.getWarnings() || []
     );
     const errors = Array.from(
-      module.getErrors() || (module.errors as webpack.WebpackError[]) || []
+      module.getErrors() || []
     );
     module.clearWarningsAndErrors();
     warnings.forEach(warning => {
