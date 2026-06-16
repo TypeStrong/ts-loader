@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.6.1
+* [fix: rspack support](https://github.com/TypeStrong/ts-loader/pull/1699) - thanks @johnnyreilly and @bhollis
+
 ## 9.6.0
 * [feat: add webpack 4 support back](https://github.com/TypeStrong/ts-loader/pull/1697) - thanks @johnnyreilly and @tweet
 

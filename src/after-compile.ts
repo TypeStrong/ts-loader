@@ -476,7 +476,7 @@ function removeModuleTSLoaderError(
   module: webpack.Module,
   loaderOptions: LoaderOptions
 ) {
-  if (isWebpack5) {
+  if (isWebpack5 && module.getWarnings) {
     const warnings = Array.from(
       module.getWarnings() || []
     );
