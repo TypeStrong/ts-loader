@@ -1,4 +1,3 @@
-import * as semver from 'semver';
 import type typescript from 'typescript';
 
 import type { LoaderOptions } from './interfaces';
@@ -25,12 +24,17 @@ export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
     }`;
     compilerCompatible = false;
     if (loaderOptions.compiler === 'typescript') {
-      if (
-        compiler!.version !== undefined &&
-        semver.gte(compiler!.version, '3.6.3')
-      ) {
-        // don't log yet in this case, if a tsconfig.json exists we want to combine the message
-        compilerCompatible = true;
+      if (compiler!.version !== undefined) {
+        const [major, minor, patch] = compiler!.version
+          .split(".")
+          // Avoid NaN
+          .map(part => Number(part) || 0);
+        // >= 3.6.3
+        const compareScore = major - 3 || minor - 6 || patch - 3;
+        if (compareScore >= 0) {
+          // don't log yet in this case, if a tsconfig.json exists we want to combine the message
+          compilerCompatible = true;
+        }
       } else {
         log.logError(
           `${compilerDetailsLogMessage}. This version is incompatible with ts-loader. Please upgrade to the latest version of TypeScript.`
