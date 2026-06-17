@@ -27,8 +27,7 @@ export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
       if (compiler!.version !== undefined) {
         const [major, minor, patch] = compiler!.version
           .split(".")
-          // Avoid NaN
-          .map(part => Number(part) || 0);
+          .map(Number);
         // >= 3.6.3
         const compareScore = major - 3 || minor - 6 || patch - 3;
         if (compareScore >= 0) {
