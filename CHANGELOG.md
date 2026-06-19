@@ -1,5 +1,8 @@
 # Changelog
 
+## 9.6.2
+* [chore: trim runtime dependencies — remove enhanced-resolve/semver, swap micromatch → picomatch](https://github.com/TypeStrong/ts-loader/pull/1701) - thanks @johnnyreilly
+
 ## 9.6.1
 * [fix: rspack support](https://github.com/TypeStrong/ts-loader/pull/1699) - thanks @johnnyreilly and @bhollis
 
