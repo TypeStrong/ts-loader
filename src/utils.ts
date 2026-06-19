@@ -65,8 +65,20 @@ export function formatErrors(
               context,
               diagnostic.file.fileName
             );
-            const isMatch = picomatch(loaderOptions.reportFiles);
-            if (!isMatch(relativeFileName)) {
+            // Split positive and negative patterns to replicate micromatch semantics:
+            // a file must match a positive pattern AND not match any negative pattern.
+            const positivePatterns = loaderOptions.reportFiles.filter(
+              p => !p.startsWith('!')
+            );
+            const negativePatterns = loaderOptions.reportFiles
+              .filter(p => p.startsWith('!'))
+              .map(p => p.slice(1));
+            const matchPos = picomatch(
+              positivePatterns.length > 0 ? positivePatterns : ['**']
+            );
+            const matchNeg =
+              negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
+            if (!matchPos(relativeFileName) || (matchNeg && matchNeg(relativeFileName))) {
               return false;
             }
           }
