@@ -3,23 +3,6 @@ import type typescript from 'typescript';
 import type { LoaderOptions } from './interfaces';
 import type * as logger from './logger';
 
-/**
- * Compare two semver-formatted version strings.
- * Returns true if v1 >= v2.
- */
-function versionGte(v1: string, v2: string): boolean {
-  const parts1 = v1.split('.').map(Number);
-  const parts2 = v2.split('.').map(Number);
-  const len = Math.max(parts1.length, parts2.length);
-  for (let i = 0; i < len; i++) {
-    const a = parts1[i] ?? 0;
-    const b = parts2[i] ?? 0;
-    if (a > b) return true;
-    if (a < b) return false;
-  }
-  return true;
-}
-
 export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
   let compiler: typeof typescript | undefined;
   let errorMessage: string | undefined;
@@ -41,10 +24,7 @@ export function getCompiler(loaderOptions: LoaderOptions, log: logger.Logger) {
     }`;
     compilerCompatible = false;
     if (loaderOptions.compiler === 'typescript') {
-      if (
-        compiler!.version !== undefined &&
-        versionGte(compiler!.version, '3.6.3')
-      ) {
+      if (compiler!.version !== undefined) {
         // don't log yet in this case, if a tsconfig.json exists we want to combine the message
         compilerCompatible = true;
       } else {
