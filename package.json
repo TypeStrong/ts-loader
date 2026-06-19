@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "*",
+    "@types/node": "^26.0.0",
     "@types/picomatch": "^4.0.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
