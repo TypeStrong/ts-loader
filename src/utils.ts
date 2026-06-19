@@ -50,6 +50,30 @@ export function formatErrors(
   merge: { file?: string; module?: webpack.Module },
   context: string
 ): webpack.WebpackError[] {
+  // Split positive and negative patterns to replicate micromatch semantics:
+  // a file must match a positive pattern AND not match any negative pattern.
+  const { positivePatterns, negativePatterns } =
+    loaderOptions.reportFiles.reduce<{
+      positivePatterns: string[];
+      negativePatterns: string[];
+    }>(
+      (acc, p) => {
+        if (p.startsWith('!')) {
+          acc.negativePatterns.push(p.slice(1));
+        } else {
+          acc.positivePatterns.push(p);
+        }
+        return acc;
+      },
+      { positivePatterns: [], negativePatterns: [] }
+    );
+  const matchPos =
+    loaderOptions.reportFiles.length > 0
+      ? picomatch(positivePatterns.length > 0 ? positivePatterns : ['**'])
+      : null;
+  const matchNeg =
+    negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
+
   return diagnostics === undefined
     ? []
     : diagnostics
@@ -57,37 +81,15 @@ export function formatErrors(
           if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
             return false;
           }
-          if (
-            loaderOptions.reportFiles.length > 0 &&
-            diagnostic.file !== undefined
-          ) {
+          if (matchPos !== null && diagnostic.file !== undefined) {
             const relativeFileName = path.relative(
               context,
               diagnostic.file.fileName
             );
-            // Split positive and negative patterns to replicate micromatch semantics:
-            // a file must match a positive pattern AND not match any negative pattern.
-            const { positivePatterns, negativePatterns } =
-              loaderOptions.reportFiles.reduce<{
-                positivePatterns: string[];
-                negativePatterns: string[];
-              }>(
-                (acc, p) => {
-                  if (p.startsWith('!')) {
-                    acc.negativePatterns.push(p.slice(1));
-                  } else {
-                    acc.positivePatterns.push(p);
-                  }
-                  return acc;
-                },
-                { positivePatterns: [], negativePatterns: [] }
-              );
-            const matchPos = picomatch(
-              positivePatterns.length > 0 ? positivePatterns : ['**']
-            );
-            const matchNeg =
-              negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
-            if (!matchPos(relativeFileName) || (matchNeg && matchNeg(relativeFileName))) {
+            if (
+              !matchPos(relativeFileName) ||
+              (matchNeg && matchNeg(relativeFileName))
+            ) {
               return false;
             }
           }
@@ -181,7 +183,7 @@ export function makeError(
     error.details = tsLoaderSource(loaderOptions);
 
     return error;
-  } 
+  }
 
   return {
     message,
@@ -334,7 +336,8 @@ export function ensureProgram(instance: TSInstance) {
         instance.watchHost.updateRootFileNames();
       }
       if (instance.watchOfFilesAndCompilerOptions) {
-        instance.builderProgram = instance.watchOfFilesAndCompilerOptions.getProgram();
+        instance.builderProgram =
+          instance.watchOfFilesAndCompilerOptions.getProgram();
         instance.program = instance.builderProgram.getProgram();
       }
       instance.hasUnaccountedModifiedFiles = false;
