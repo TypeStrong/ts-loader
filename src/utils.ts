@@ -67,12 +67,21 @@ export function formatErrors(
             );
             // Split positive and negative patterns to replicate micromatch semantics:
             // a file must match a positive pattern AND not match any negative pattern.
-            const positivePatterns = loaderOptions.reportFiles.filter(
-              p => !p.startsWith('!')
-            );
-            const negativePatterns = loaderOptions.reportFiles
-              .filter(p => p.startsWith('!'))
-              .map(p => p.slice(1));
+            const { positivePatterns, negativePatterns } =
+              loaderOptions.reportFiles.reduce<{
+                positivePatterns: string[];
+                negativePatterns: string[];
+              }>(
+                (acc, p) => {
+                  if (p.startsWith('!')) {
+                    acc.negativePatterns.push(p.slice(1));
+                  } else {
+                    acc.positivePatterns.push(p);
+                  }
+                  return acc;
+                },
+                { positivePatterns: [], negativePatterns: [] }
+              );
             const matchPos = picomatch(
               positivePatterns.length > 0 ? positivePatterns : ['**']
             );
