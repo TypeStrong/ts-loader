@@ -39,6 +39,40 @@ function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
 }
 
 /**
+ * Build a file-matcher from a reportFiles pattern array that replicates
+ * micromatch semantics: a file must match a positive pattern AND not match
+ * any negative pattern. Returns null when reportFiles is empty (no filtering).
+ */
+function makeReportFilesMatcher(
+  reportFiles: string[],
+): ((fileName: string) => boolean) | null {
+  if (reportFiles.length === 0) {
+    return null;
+  }
+  const { positivePatterns, negativePatterns } = reportFiles.reduce<{
+    positivePatterns: string[];
+    negativePatterns: string[];
+  }>(
+    (acc, p) => {
+      if (p.startsWith('!')) {
+        acc.negativePatterns.push(p.slice(1));
+      } else {
+        acc.positivePatterns.push(p);
+      }
+      return acc;
+    },
+    { positivePatterns: [], negativePatterns: [] },
+  );
+  const matchPos = picomatch(
+    positivePatterns.length > 0 ? positivePatterns : ['**'],
+  );
+  const matchNeg =
+    negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
+  return (fileName: string) =>
+    matchPos(fileName) && !(matchNeg && matchNeg(fileName));
+}
+
+/**
  * Take TypeScript errors, parse them and format to webpack errors
  * Optionally adds a file name
  */
@@ -48,31 +82,9 @@ export function formatErrors(
   colors: Chalk,
   compiler: typeof typescript,
   merge: { file?: string; module?: webpack.Module },
-  context: string
+  context: string,
 ): webpack.WebpackError[] {
-  // Split positive and negative patterns to replicate micromatch semantics:
-  // a file must match a positive pattern AND not match any negative pattern.
-  const { positivePatterns, negativePatterns } =
-    loaderOptions.reportFiles.reduce<{
-      positivePatterns: string[];
-      negativePatterns: string[];
-    }>(
-      (acc, p) => {
-        if (p.startsWith('!')) {
-          acc.negativePatterns.push(p.slice(1));
-        } else {
-          acc.positivePatterns.push(p);
-        }
-        return acc;
-      },
-      { positivePatterns: [], negativePatterns: [] }
-    );
-  const matchPos =
-    loaderOptions.reportFiles.length > 0
-      ? picomatch(positivePatterns.length > 0 ? positivePatterns : ['**'])
-      : null;
-  const matchNeg =
-    negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
+  const matchesReportFiles = makeReportFilesMatcher(loaderOptions.reportFiles);
 
   return diagnostics === undefined
     ? []
@@ -81,15 +93,12 @@ export function formatErrors(
           if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
             return false;
           }
-          if (matchPos !== null && diagnostic.file !== undefined) {
+          if (matchesReportFiles !== null && diagnostic.file !== undefined) {
             const relativeFileName = path.relative(
               context,
-              diagnostic.file.fileName
+              diagnostic.file.fileName,
             );
-            if (
-              !matchPos(relativeFileName) ||
-              (matchNeg && matchNeg(relativeFileName))
-            ) {
+            if (!matchesReportFiles(relativeFileName)) {
               return false;
             }
           }
@@ -108,7 +117,7 @@ export function formatErrors(
             ].toLowerCase() as Severity,
             content: compiler.flattenDiagnosticMessageText(
               diagnostic.messageText,
-              constants.EOL
+              constants.EOL,
             ),
             file: file === undefined ? '' : path.normalize(file.fileName),
             line: start === undefined ? 0 : start.line,
@@ -126,7 +135,7 @@ export function formatErrors(
             message,
             merge.file === undefined ? errorInfo.file : merge.file,
             start,
-            end
+            end,
           );
 
           return Object.assign(error, merge);
@@ -136,7 +145,7 @@ export function formatErrors(
 function getFileLocations(
   file: typescript.SourceFile,
   position: number,
-  length = 0
+  length = 0,
 ) {
   const startLC = file.getLineAndCharacterOfPosition(position);
   const start: FileLocation = {
@@ -156,7 +165,7 @@ function getFileLocations(
 
 export function fsReadFile(
   fileName: string,
-  encoding: BufferEncoding | undefined = 'utf8'
+  encoding: BufferEncoding | undefined = 'utf8',
 ) {
   fileName = path.normalize(fileName);
   try {
@@ -171,7 +180,7 @@ export function makeError(
   message: string,
   file: string,
   location?: FileLocation,
-  endLocation?: FileLocation
+  endLocation?: FileLocation,
 ): webpack.WebpackError {
   if (isWebpack5) {
     const error = new webpack.WebpackError(message);
@@ -205,7 +214,7 @@ interface WebpackSourcePosition {
 
 function makeWebpackLocation(
   location: FileLocation,
-  endLocation?: FileLocation
+  endLocation?: FileLocation,
 ) {
   const start: WebpackSourcePosition = {
     line: location.line,
@@ -225,7 +234,7 @@ export function tsLoaderSource(loaderOptions: LoaderOptions) {
 export function appendSuffixIfMatch(
   patterns: (RegExp | string)[],
   filePath: string,
-  suffix: string
+  suffix: string,
 ): string {
   if (patterns.length > 0) {
     for (const regexp of patterns) {
@@ -239,7 +248,7 @@ export function appendSuffixIfMatch(
 
 export function appendSuffixesIfMatch(
   suffixDict: { [suffix: string]: (RegExp | string)[] },
-  filePath: string
+  filePath: string,
 ): string {
   let amendedPath = filePath;
   for (const suffix in suffixDict) {
@@ -263,10 +272,10 @@ export function unorderedRemoveItem<T>(array: T[], item: T): boolean {
 export function populateDependencyGraph(
   resolvedModules: ResolvedModule[],
   instance: TSInstance,
-  containingFile: string
+  containingFile: string,
 ) {
   resolvedModules = resolvedModules.filter(
-    mod => mod !== null && mod !== undefined
+    mod => mod !== null && mod !== undefined,
   );
   if (resolvedModules.length) {
     const containingFileKey = instance.filePathKeyMapper(containingFile);
@@ -288,7 +297,7 @@ export function populateReverseDependencyGraph(instance: TSInstance) {
         instance.solutionBuilderHost
           ? getInputFileNameFromOutput(instance, resolvedFileName) ||
               resolvedFileName
-          : resolvedFileName
+          : resolvedFileName,
       );
       let map = reverseDependencyGraph.get(key);
       if (!map) {
@@ -307,7 +316,7 @@ export function populateReverseDependencyGraph(instance: TSInstance) {
 export function collectAllDependants(
   reverseDependencyGraph: ReverseDependencyGraph,
   fileName: FilePathKey,
-  result: Map<FilePathKey, true> = new Map()
+  result: Map<FilePathKey, true> = new Map(),
 ): Map<FilePathKey, true> {
   result.set(fileName, true);
   const dependants = reverseDependencyGraph.get(fileName);
@@ -363,14 +372,14 @@ export function isReferencedFile(instance: TSInstance, filePath: string) {
   return (
     !!instance.solutionBuilderHost &&
     !!instance.solutionBuilderHost.watchedFiles.get(
-      instance.filePathKeyMapper(filePath)
+      instance.filePathKeyMapper(filePath),
     )
   );
 }
 
 export function useCaseSensitiveFileNames(
   compiler: typeof typescript,
-  loaderOptions: LoaderOptions
+  loaderOptions: LoaderOptions,
 ) {
   return loaderOptions.useCaseSensitiveFileNames !== undefined
     ? loaderOptions.useCaseSensitiveFileNames
