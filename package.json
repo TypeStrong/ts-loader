@@ -54,16 +54,13 @@
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
     "chalk": "^4.1.0",
-    "enhanced-resolve": "^5.0.0",
-    "micromatch": "^4.0.0",
-    "semver": "^7.3.4",
+    "picomatch": "^4.0.0",
     "source-map": "^0.7.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/micromatch": "^4.0.0",
     "@types/node": "*",
-    "@types/semver": "^7.3.4",
+    "@types/picomatch": "^4.0.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",

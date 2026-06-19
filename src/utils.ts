@@ -1,6 +1,6 @@
 import type { Chalk } from 'chalk';
 import * as fs from 'fs';
-import micromatch from 'micromatch';
+import picomatch from 'picomatch';
 import * as path from 'path';
 import * as webpack from 'webpack';
 import type typescript from 'typescript';
@@ -65,11 +65,8 @@ export function formatErrors(
               context,
               diagnostic.file.fileName
             );
-            const matchResult = micromatch(
-              [relativeFileName],
-              loaderOptions.reportFiles
-            );
-            if (matchResult.length === 0) {
+            const isMatch = picomatch(loaderOptions.reportFiles);
+            if (!isMatch(relativeFileName)) {
               return false;
             }
           }
