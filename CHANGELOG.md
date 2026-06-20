@@ -3,6 +3,8 @@
 ## 9.6.2
 * [chore: trim runtime dependencies — remove enhanced-resolve/semver, swap micromatch → picomatch](https://github.com/TypeStrong/ts-loader/pull/1701) - thanks @johnnyreilly
 
+Officially ts-loader has supported 3.6.3+ versions of TypeScript. This change means that certain scenarios with older versions of TS will now certainly fail. If anyone is actually using these versions it would be surprising.
+
 ## 9.6.1
 * [fix: rspack support](https://github.com/TypeStrong/ts-loader/pull/1699) - thanks @johnnyreilly and @bhollis
 
