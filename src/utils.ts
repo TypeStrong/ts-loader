@@ -93,14 +93,10 @@ export function formatErrors(
           if (loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
             return false;
           }
-          if (matchesReportFiles !== null && diagnostic.file !== undefined) {
-            const relativeFileName = path.relative(
-              context,
-              diagnostic.file.fileName,
-            );
-            if (!matchesReportFiles(relativeFileName)) {
+          if (matchesReportFiles !== null && 
+            diagnostic.file !== undefined && 
+            !matchesReportFiles(path.relative(context, diagnostic.file.fileName))) {
               return false;
-            }
           }
           return true;
         })
