@@ -1,6 +1,6 @@
 {
   "name": "ts-loader",
-  "version": "9.6.1",
+  "version": "9.6.2",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist",
@@ -54,16 +54,13 @@
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
     "chalk": "^4.1.0",
-    "enhanced-resolve": "^5.0.0",
-    "micromatch": "^4.0.0",
-    "semver": "^7.3.4",
+    "picomatch": "^4.0.0",
     "source-map": "^0.7.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/micromatch": "^4.0.0",
-    "@types/node": "*",
-    "@types/semver": "^7.3.4",
+    "@types/node": "^26.0.0",
+    "@types/picomatch": "^4.0.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
@@ -74,7 +71,6 @@
     "escape-string-regexp": "^2.0.0",
     "eslint": "^10.0.0",
     "eslint-config-prettier": "^10.0.0",
-    "eslint-plugin-n": "^17.0.0",
     "fs-extra": "^11.0.0",
     "glob": "^7.1.1",
     "husky": "^8.0.0",
@@ -92,6 +88,7 @@
     "mocha": "^6.0.0",
     "prettier": "^2.0.5",
     "rimraf": "^2.6.2",
+    "semver": "^7.8.5",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.59.4",
     "webpack": "^5.74.0",

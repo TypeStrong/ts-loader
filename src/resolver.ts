@@ -1,7 +1,5 @@
 import type * as webpack from 'webpack';
 
-import { create as _create } from 'enhanced-resolve';
-
 export function makeResolver(
   _options: webpack.WebpackOptionsNormalized
 ): ResolveSync {
