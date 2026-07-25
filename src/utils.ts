@@ -379,5 +379,5 @@ export function useCaseSensitiveFileNames(
 ) {
   return loaderOptions.useCaseSensitiveFileNames !== undefined
     ? loaderOptions.useCaseSensitiveFileNames
-    : compiler.sys.useCaseSensitiveFileNames;
+    : compiler.sys?.useCaseSensitiveFileNames ?? true;
 }

@@ -20,6 +20,7 @@ import {
   tsLoaderSource,
 } from './utils';
 import { addErrorToModule, isWebpack5 } from './loaderUtils';
+import { emitNativeDeclarationFiles } from './native';
 
 /**
  * This returns a function that has options to add assets and also to provide errors to webpack
@@ -42,6 +43,7 @@ export function makeAfterCompile(
     }
 
     if (instance.loaderOptions.transpileOnly) {
+      emitNativeDeclarationFiles(instance, compilation);
       provideAssetsFromSolutionBuilderHost(instance, compilation);
       callback();
       return;

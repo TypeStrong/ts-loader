@@ -215,6 +215,78 @@ export interface TSInstance {
   initialSetupPending: boolean;
   configParseResult: typescript.ParsedCommandLine;
   log: logger.Logger;
+  nativeInstance?: NativeInstance;
+}
+
+export interface NativeDeclarationOutput {
+  name: string;
+  text: string;
+}
+
+export interface NativeInstance {
+  api: NativeApi;
+  snapshot?: NativeSnapshot;
+  configFilePath: string;
+  openedProject: boolean;
+  declarationOutputs: Map<string, NativeDeclarationOutput>;
+  diagnosticCategory?: Record<number, string>;
+}
+
+export interface NativeApi {
+  updateSnapshot(params?: unknown): NativeSnapshot;
+  runWithTemporaryFileUpdate(
+    baseSnapshot: NativeSnapshot,
+    file: string,
+    newText: string,
+    cb: (newSnapshot: NativeSnapshot) => void
+  ): void;
+}
+
+export interface NativeSnapshot {
+  getProject(configFileName: string): NativeProject | undefined;
+  getDefaultProjectForFile(file: string): NativeProject | undefined;
+  dispose?: () => void;
+}
+
+export interface NativeProject {
+  program: NativeProgram;
+}
+
+export interface NativeProgram {
+  getJavaScriptEmit(files: readonly string[]): NativeEmitOutput;
+  getDeclarationEmit(files: readonly string[]): NativeEmitOutput;
+  getProgramDiagnostics(): readonly NativeDiagnostic[];
+  getGlobalDiagnostics(): readonly NativeDiagnostic[];
+  getConfigFileParsingDiagnostics(): readonly NativeDiagnostic[];
+  getSourceFile(fileName: string): NativeSourceFile | undefined;
+  getSourceFileNames(): readonly string[];
+  getConfigFileNames(): readonly string[];
+  isSourceFileFromExternalLibrary(file: NativeSourceFile): boolean;
+  isSourceFileDefaultLibrary(file: NativeSourceFile): boolean;
+}
+
+export interface NativeEmitOutput {
+  emitSkipped: boolean;
+  diagnostics: readonly NativeDiagnostic[];
+  outputFiles: ReadonlyMap<string, NativeEmitOutputFile>;
+}
+
+export interface NativeEmitOutputFile {
+  text: string;
+  sourceFileName?: string;
+}
+
+export interface NativeDiagnostic {
+  fileName?: string;
+  pos: number;
+  end: number;
+  code: number;
+  category: number;
+  text: string;
+}
+
+export interface NativeSourceFile {
+  getLineAndCharacterOfPosition(position: number): { line: number; character: number };
 }
 
 export interface LoaderOptionsCache {
@@ -280,6 +352,7 @@ export interface LoaderOptions {
   resolveModuleName: CustomResolveModuleName;
   resolveTypeReferenceDirective: CustomResolveTypeReferenceDirective;
   useCaseSensitiveFileNames?: boolean;
+  experimentalNativeApi: boolean;
 }
 
 export interface TSFile {

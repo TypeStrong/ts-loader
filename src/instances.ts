@@ -34,6 +34,7 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 import { isWebpack5 } from './loaderUtils';
+import { createNativeInstance, resolveConfigFilePath } from './native';
 
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
@@ -127,6 +128,16 @@ function successfulTypeScriptInstance(
   compilerCompatible: boolean,
   compilerDetailsLogMessage: string
 ) {
+  if (loaderOptions.experimentalNativeApi) {
+    return successfulNativeTypeScriptInstance(
+      loaderOptions,
+      loader,
+      log,
+      colors,
+      compiler
+    );
+  }
+
   const configFileAndPath = getConfigFile(
     compiler,
     colors,
@@ -146,6 +157,79 @@ function successfulTypeScriptInstance(
         file ?? ''
       ),
     };
+  }
+
+  function successfulNativeTypeScriptInstance(
+    loaderOptions: LoaderOptions,
+    loader: webpack.LoaderContext<LoaderOptions>,
+    log: logger.Logger,
+    colors: chalk.Chalk,
+    compiler: typeof typescript
+  ) {
+    const configFilePath = resolveConfigFilePath(
+      loader.resourcePath,
+      loaderOptions.configFile
+    );
+
+    if (!configFilePath) {
+      return {
+        error: makeError(
+          loaderOptions,
+          colors.red(`Could not find config file "${loaderOptions.configFile}".`),
+          loaderOptions.configFile
+        ),
+      };
+    }
+
+    log.logInfo(`ts-loader: Using native TypeScript API with ${configFilePath}`);
+    if (isWebpack5) {
+      loader.addBuildDependency(configFilePath);
+    }
+
+    const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
+    const appendTsTsxSuffixesIfRequired =
+      loaderOptions.appendTsSuffixTo.length > 0 ||
+      loaderOptions.appendTsxSuffixTo.length > 0
+        ? (filePath: string) =>
+            appendSuffixesIfMatch(
+              {
+                '.ts': loaderOptions.appendTsSuffixTo,
+                '.tsx': loaderOptions.appendTsxSuffixTo,
+              },
+              filePath
+            )
+        : (filePath: string) => filePath;
+
+    const instance: TSInstance = {
+      compiler,
+      compilerOptions: {} as typescript.CompilerOptions,
+      appendTsTsxSuffixesIfRequired,
+      loaderOptions,
+      rootFileNames: new Set<string>(),
+      files: new Map(),
+      otherFiles: new Map(),
+      version: 0,
+      dependencyGraph: new Map(),
+      transformers: {},
+      colors,
+      initialSetupPending: true,
+      reportTranspileErrors: false,
+      configFilePath,
+      configParseResult: {
+        options: {},
+        fileNames: [],
+        errors: [],
+        wildcardDirectories: {},
+        compileOnSave: false,
+        raw: {},
+      } as typescript.ParsedCommandLine,
+      log,
+      filePathKeyMapper,
+      nativeInstance: createNativeInstance(loaderOptions, configFilePath),
+    };
+
+    setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
+    return { instance };
   }
 
   const { configFilePath, configFile } = configFileAndPath;
@@ -365,6 +449,10 @@ export function initializeInstance(
   instance.initialSetupPending = false;
 
   if (instance.loaderOptions.transpileOnly) {
+    if (instance.nativeInstance) {
+      addAssetHooks(loader, instance);
+      return;
+    }
     const program = (instance.program =
       instance.configParseResult.projectReferences !== undefined
         ? instance.compiler.createProgram({
@@ -495,6 +583,9 @@ export function reportTranspileErrors(
   instance: TSInstance,
   loader: webpack.LoaderContext<LoaderOptions>
 ) {
+  if (instance.nativeInstance) {
+    return;
+  }
   if (!instance.reportTranspileErrors) {
     return;
   }
