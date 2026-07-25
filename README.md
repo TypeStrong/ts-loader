@@ -43,6 +43,7 @@
   * [Options](#options)
   * [Loader Options](#loader-options)
     + [transpileOnly](#transpileonly)
+    + [experimentalNativeApi](#experimentalnativeapi)
     + [happyPackMode](#happypackmode)
     + [resolveModuleName and resolveTypeReferenceDirective](#resolvemodulename-and-resolvetypereferencedirective)
     + [getCustomTransformers](#getcustomtransformers)
@@ -115,7 +116,7 @@ We probably have more examples than we need.  That said, here's a good way to ge
 ### Faster Builds
 
 As your project becomes bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. 
-The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking and *will not output declaration files*.
+The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking and (outside experimental native mode) *will not output declaration files*.
 
 You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin).
 It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking.
@@ -314,6 +315,26 @@ module.exports = {
   }
 }
 ```
+
+#### experimentalNativeApi
+| Type | Default Value |
+|------|--------------|
+| `boolean` | `false`|
+
+Experimental opt-in for TypeScript 7 native APIs in emit-focused workflows.
+
+This mode is currently limited to transpile-style usage and must be combined with:
+
+- `transpileOnly: true`
+- a TypeScript package that exposes `<compiler>/unstable/sync` (for example `typescript@7.1.0-dev.20260725.1`)
+
+Current guardrails in this mode:
+
+- unsupported: `getCustomTransformers`
+- unsupported: `projectReferences`
+- unsupported: `experimentalWatchApi`
+- unsupported: `resolveModuleName` and `resolveTypeReferenceDirective`
+- unsupported: `happyPackMode`
 
 #### happyPackMode
 | Type | Default Value |
