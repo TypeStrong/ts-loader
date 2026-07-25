@@ -202,7 +202,7 @@ function successfulTypeScriptInstance(
 
     const instance: TSInstance = {
       compiler,
-      compilerOptions: {} as typescript.CompilerOptions,
+      compilerOptions: {},
       appendTsTsxSuffixesIfRequired,
       loaderOptions,
       rootFileNames: new Set<string>(),
@@ -222,7 +222,7 @@ function successfulTypeScriptInstance(
         wildcardDirectories: {},
         compileOnSave: false,
         raw: {},
-      } as typescript.ParsedCommandLine,
+      },
       log,
       filePathKeyMapper,
       nativeInstance: createNativeInstance(loaderOptions, configFilePath),

@@ -73,10 +73,8 @@ export function getNativeTranspilationEmit(
 ) {
   const nativeInstance = instance.nativeInstance!;
   const snapshot = updateSnapshot(nativeInstance, fileName);
-  let emitResult: NativeEmitOutput | undefined;
-  let declarationEmitResult: NativeEmitOutput | undefined;
-  let diagnostics: NativeDiagnostic[] = [];
-  let program: NativeProgram | undefined;
+  let outputText: string | undefined;
+  let sourceMapText: string | undefined;
 
   nativeInstance.api.runWithTemporaryFileUpdate(
     snapshot,
@@ -91,30 +89,30 @@ export function getNativeTranspilationEmit(
           `Native TypeScript mode could not resolve project for ${fileName}.`
         );
       }
+      const program = project.program;
+      const emitResult = program.getJavaScriptEmit([fileName]);
+      const declarationEmitResult = shouldEmitDeclarations(project)
+        ? program.getDeclarationEmit([fileName])
+        : undefined;
 
-      program = project.program;
-      emitResult = program.getJavaScriptEmit([fileName]);
-      declarationEmitResult = program.getDeclarationEmit([fileName]);
-
-      diagnostics = dedupeDiagnostics([
+      const diagnostics = dedupeDiagnostics([
         ...emitResult.diagnostics,
-        ...declarationEmitResult.diagnostics,
+        ...(declarationEmitResult?.diagnostics ?? []),
         ...program.getProgramDiagnostics(),
         ...program.getGlobalDiagnostics(),
         ...program.getConfigFileParsingDiagnostics(),
       ]);
+
+      const output = getOutputAndSourceMapFromNativeEmit(emitResult);
+      outputText = output.outputText;
+      sourceMapText = output.sourceMapText;
+      registerNativeDependencies(loaderContext, fileName, nativeInstance, program);
+      updateDeclarationOutputs(nativeInstance, declarationEmitResult);
+      reportNativeDiagnostics(instance, loaderContext, diagnostics, program);
     }
   );
 
-  if (!emitResult || !program) {
-    return { outputText: undefined, sourceMapText: undefined };
-  }
-
-  registerNativeDependencies(loaderContext, fileName, nativeInstance, program);
-  updateDeclarationOutputs(nativeInstance, declarationEmitResult);
-  reportNativeDiagnostics(instance, loaderContext, diagnostics, program);
-
-  return getOutputAndSourceMapFromNativeEmit(emitResult);
+  return { outputText, sourceMapText };
 }
 
 export function emitNativeDeclarationFiles(
@@ -147,6 +145,7 @@ function requireNativeApi(compilerPackageName: string): NativeApiModule {
   try {
     return require(`${compilerPackageName}/unstable/sync`) as NativeApiModule;
   } catch (_error) {
+    // eslint-disable-next-line preserve-caught-error
     throw new Error(
       `experimentalNativeApi requires a TypeScript 7 native package with "${compilerPackageName}/unstable/sync" available.`
     );
@@ -214,6 +213,18 @@ function updateDeclarationOutputs(
     }
     nativeInstance.declarationOutputs.set(name, { name, text: outputFile.text });
   }
+}
+
+function shouldEmitDeclarations(project: {
+  parsedCommandLine?: { options?: Record<string, unknown> };
+}) {
+  const options = project.parsedCommandLine?.options;
+  return !!(
+    options?.declaration ||
+    options?.composite ||
+    options?.emitDeclarationOnly ||
+    options?.declarationMap
+  );
 }
 
 function reportNativeDiagnostics(

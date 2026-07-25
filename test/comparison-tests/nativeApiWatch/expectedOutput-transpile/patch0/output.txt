@@ -1,0 +1,17 @@
+assets by path *.map 215 bytes
+  asset foo.d.ts.map 122 bytes [emitted]
+  asset app.d.ts.map 93 bytes [emitted]
+assets by path *.ts 113 bytes
+  asset foo.d.ts 69 bytes [emitted]
+  asset app.d.ts 44 bytes [emitted]
+asset bundle.js 987 bytes [emitted] (name: main) 1 related asset
+./app.ts 39 bytes [built] [code generated] [1 error]
+
+ERROR in ./app.ts
+Module build failed (from ../../index.js):
+TypeError: Cannot read properties of undefined (reading 'Changed')
+    at updateFileInCache (dist/index.js:343:71)
+    at successLoader (dist/index.js:80:25)
+    at Object.loader (dist/index.js:67:5)
+
+webpack compiled with 1 error

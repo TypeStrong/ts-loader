@@ -250,6 +250,9 @@ export interface NativeSnapshot {
 
 export interface NativeProject {
   program: NativeProgram;
+  parsedCommandLine?: {
+    options?: Record<string, unknown>;
+  };
 }
 
 export interface NativeProgram {

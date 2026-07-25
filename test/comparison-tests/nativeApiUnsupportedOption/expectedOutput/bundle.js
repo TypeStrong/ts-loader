@@ -15,7 +15,7 @@
   \****************/
 /***/ (() => {
 
-eval("{throw new Error(\"Module build failed (from ../../index.js):/nError: ts-loader was supplied with an unexpected loader option: notRealOption/n/nPlease take a look at the options you are supplying; the following are valid options:/nsilent / logLevel / logInfoToStdOut / instance / compiler / context / configFile / transpileOnly / ignoreDiagnostics / errorFormatter / colors / compilerOptions / appendTsSuffixTo / appendTsxSuffixTo / onlyCompileBundledFiles / happyPackMode / getCustomTransformers / reportFiles / experimentalWatchApi / allowTsInNodeModules / experimentalFileCaching / projectReferences / resolveModuleName / resolveTypeReferenceDirective / useCaseSensitiveFileNames / experimentalNativeApi/n/n    at validateLoaderOptions (/home/runner/work/ts-loader/ts-loader/dist/index.js:214:19)/n    at getLoaderOptions (/home/runner/work/ts-loader/ts-loader/dist/index.js:170:5)/n    at Object.loader (/home/runner/work/ts-loader/ts-loader/dist/index.js:59:21)\");\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{throw new Error(\"Module build failed (from ../../index.js):/nError: Option 'experimentalNativeApi' does not support 'getCustomTransformers'./n    at validateLoaderOptions (/home/runner/work/ts-loader/ts-loader/dist/index.js:230:19)/n    at getLoaderOptions (/home/runner/work/ts-loader/ts-loader/dist/index.js:170:5)/n    at Object.loader (/home/runner/work/ts-loader/ts-loader/dist/index.js:59:21)\");\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ })
 
