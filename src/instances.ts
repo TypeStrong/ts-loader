@@ -45,7 +45,7 @@ const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
  * or returns the existing one. Multiple instances are possible by using the
  * `instance` property.
  */
-export function getTypeScriptInstance(
+export async function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>
 ): Promise<{ instance?: TSInstance; error?: webpack.WebpackError }> {
@@ -64,7 +64,10 @@ export function getTypeScriptInstance(
     loaderOptions.colors && chalk.supportsColor ? chalk.supportsColor.level : 0;
   const colors = new chalk.Instance({ level });
   const log = logger.makeLogger(loaderOptions, colors);
-  const compiler = getCompiler(loaderOptions, log);
+  const compilerLoaderOptions = loaderOptions.experimentalNativeApi
+    ? { ...loaderOptions, compiler: 'typescript' }
+    : loaderOptions;
+  const compiler = getCompiler(compilerLoaderOptions, log);
 
   if (compiler.errorMessage !== undefined) {
     return {
