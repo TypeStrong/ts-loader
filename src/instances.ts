@@ -34,6 +34,7 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 import { isWebpack5 } from './loaderUtils';
+import { createNativeInstance } from './native';
 
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
@@ -47,7 +48,7 @@ const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 export function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>
-): { instance?: TSInstance; error?: webpack.WebpackError } {
+): Promise<{ instance?: TSInstance; error?: webpack.WebpackError }> {
   const existing = getTSInstanceFromCache(
     loader._compiler!,
     loaderOptions.instance
@@ -118,7 +119,7 @@ function createFilePathKeyMapper(
   }
 }
 
-function successfulTypeScriptInstance(
+async function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>,
   log: logger.Logger,
@@ -148,9 +149,8 @@ function successfulTypeScriptInstance(
     };
   }
 
-  const { configFilePath, configFile } = configFileAndPath;
-
   const filePathKeyMapper = createFilePathKeyMapper(compiler, loaderOptions);
+  const { configFilePath, configFile } = configFileAndPath;
   if (configFilePath) {
     if (isWebpack5) {
       loader.addBuildDependency(configFilePath);
@@ -165,6 +165,64 @@ function successfulTypeScriptInstance(
         return { instance: existing };
       }
     }
+  }
+
+  const appendTsTsxSuffixesIfRequired =
+    loaderOptions.appendTsSuffixTo.length > 0 ||
+    loaderOptions.appendTsxSuffixTo.length > 0
+      ? (filePath: string) =>
+          appendSuffixesIfMatch(
+            {
+              '.ts': loaderOptions.appendTsSuffixTo,
+              '.tsx': loaderOptions.appendTsxSuffixTo,
+            },
+            filePath
+          )
+      : (filePath: string) => filePath;
+
+  if (loaderOptions.experimentalNativeApi) {
+    if (!configFilePath) {
+      return {
+        error: makeError(
+          loaderOptions,
+          colors.red(
+            "Option 'experimentalNativeApi' requires a tsconfig.json file."
+          ),
+          loader.resourcePath
+        ),
+      };
+    }
+
+    const instance: TSInstance = {
+      compiler,
+      compilerOptions: {},
+      appendTsTsxSuffixesIfRequired,
+      loaderOptions,
+      rootFileNames: new Set<string>(),
+      files: new Map(),
+      otherFiles: new Map(),
+      version: 0,
+      dependencyGraph: new Map(),
+      transformers: {},
+      colors,
+      initialSetupPending: true,
+      reportTranspileErrors: false,
+      configFilePath,
+      configParseResult: {
+        options: {},
+        fileNames: [],
+        errors: [],
+        wildcardDirectories: {},
+        compileOnSave: false,
+        raw: {},
+      },
+      log,
+      filePathKeyMapper,
+      nativeInstance: await createNativeInstance(loaderOptions, configFilePath),
+    };
+
+    setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
+    return { instance };
   }
 
   const module = loader._module!;
@@ -202,19 +260,6 @@ function successfulTypeScriptInstance(
   const rootFileNames = new Set<string>();
   const files: TSFiles = new Map();
   const otherFiles: TSFiles = new Map();
-
-  const appendTsTsxSuffixesIfRequired =
-    loaderOptions.appendTsSuffixTo.length > 0 ||
-    loaderOptions.appendTsxSuffixTo.length > 0
-      ? (filePath: string) =>
-          appendSuffixesIfMatch(
-            {
-              '.ts': loaderOptions.appendTsSuffixTo,
-              '.tsx': loaderOptions.appendTsxSuffixTo,
-            },
-            filePath
-          )
-      : (filePath: string) => filePath;
 
   if (loaderOptions.transpileOnly) {
     // quick return for transpiling
@@ -365,6 +410,10 @@ export function initializeInstance(
   instance.initialSetupPending = false;
 
   if (instance.loaderOptions.transpileOnly) {
+    if (instance.nativeInstance) {
+      return;
+    }
+
     const program = (instance.program =
       instance.configParseResult.projectReferences !== undefined
         ? instance.compiler.createProgram({

@@ -29,6 +29,7 @@ import {
 import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
 import { addErrorToModule } from './loaderUtils';
+import { getNativeTranspilationEmit } from './native';
 
 /** 
  * we can only use SourceMapConsumer if the version available has a destroy method
@@ -52,16 +53,36 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  const options = getLoaderOptions(this);
-  const instanceOrError = getTypeScriptInstance(options, this);
+  void runLoader(this, contents, inputSourceMap, callback);
+}
 
-  if (instanceOrError.error !== undefined) {
-    callback(new Error(instanceOrError.error.message));
-    return;
+async function runLoader(
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  contents: string,
+  inputSourceMap: Record<string, any> | undefined,
+  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>
+) {
+  try {
+    const options = getLoaderOptions(loaderContext);
+    const instanceOrError = await getTypeScriptInstance(options, loaderContext);
+
+    if (instanceOrError.error !== undefined) {
+      callback(new Error(instanceOrError.error.message));
+      return;
+    }
+
+    const instance = instanceOrError.instance!;
+    buildSolutionReferences(instance, loaderContext);
+    successLoader(
+      loaderContext,
+      contents,
+      callback,
+      instance,
+      inputSourceMap
+    );
+  } catch (error) {
+    callback(error instanceof Error ? error : new Error(String(error)));
   }
-  const instance = instanceOrError.instance!;
-  buildSolutionReferences(instance, this);
-  successLoader(this, contents, callback, instance, inputSourceMap);
 }
 
 function successLoader(
@@ -94,7 +115,9 @@ function successLoader(
     instance
   );
   const { outputText, sourceMapText } = instance.loaderOptions.transpileOnly
-    ? getTranspilationEmit(filePath, contents, instance, loaderContext)
+    ? instance.nativeInstance
+      ? getNativeTranspilationEmit(filePath, contents, instance, loaderContext)
+      : getTranspilationEmit(filePath, contents, instance, loaderContext)
     : getEmit(rawFilePath, filePath, instance, loaderContext);
 
   // the following function is async, which means it will immediately return and run in the "background"
@@ -269,6 +292,7 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'resolveModuleName',
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
+  'experimentalNativeApi',
 ];
 
 /**
@@ -297,6 +321,12 @@ ${validLoaderOptions.join(' / ')}
   ) {
     throw new Error(
       `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`
+    );
+  }
+
+  if (loaderOptions.experimentalNativeApi && !loaderOptions.transpileOnly) {
+    throw new Error(
+      "Option 'experimentalNativeApi' currently requires 'transpileOnly: true'."
     );
   }
 }
@@ -336,6 +366,7 @@ function makeLoaderOptions(
       experimentalWatchApi: false,
       allowTsInNodeModules: false,
       experimentalFileCaching: true,
+      experimentalNativeApi: false,
     } as Partial<LoaderOptions>,
     loaderOptions
   );
