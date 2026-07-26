@@ -14,7 +14,8 @@ module.exports = {
                 loader: 'ts-loader',
                 options: {
                     transpileOnly: true,
-                    experimentalNativeApi: true
+                    experimentalNativeApi: true,
+                    compiler: 'typescript-native-preview'
                 }
             }
         ]

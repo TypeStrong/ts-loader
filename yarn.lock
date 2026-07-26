@@ -4835,7 +4835,7 @@ typescript-eslint@^8.59.4:
     "@typescript-eslint/typescript-estree" "8.61.1"
     "@typescript-eslint/utils" "8.61.1"
 
-typescript@7.1.0-dev.20260725.1:
+"typescript-native-preview@npm:typescript@7.1.0-dev.20260725.1":
   version "7.1.0-dev.20260725.1"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-7.1.0-dev.20260725.1.tgz#9934a9b22499730941e30dc25ce865983d71b632"
   integrity sha512-LH7iJaOnezRGo/ZHDeNubObpZt1wx2HWKXbIrNpdlLavst1T0q+1COsAYRC8sNjGHS3aNDQy23dhwuhakbyhtA==
@@ -4847,6 +4847,11 @@ typescript@7.1.0-dev.20260725.1:
     "@typescript/typescript-linux-x64" "7.1.0-dev.20260725.1"
     "@typescript/typescript-win32-arm64" "7.1.0-dev.20260725.1"
     "@typescript/typescript-win32-x64" "7.1.0-dev.20260725.1"
+
+typescript@^6.0.2:
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-6.0.3.tgz#90251dc007916e972786cb94d74d15b185577d21"
+  integrity sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==
 
 ua-parser-js@^0.7.30:
   version "0.7.31"

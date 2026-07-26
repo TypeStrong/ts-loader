@@ -8,8 +8,6 @@ import type {
   NativeEmitOutput,
   NativeInstance,
   NativeProgram,
-  NativeSnapshot,
-  NativeSourceFile,
   TSInstance,
 } from './interfaces';
 import { addErrorToModule, isWebpack5 } from './loaderUtils';
@@ -19,6 +17,7 @@ type NativeApiModule = {
   API: new () => NativeApi;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-implied-eval -- preserve native dynamic import for the ESM-only API entrypoint
 const dynamicImport = new Function(
   'specifier',
   'return import(specifier)'
