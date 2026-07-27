@@ -62,9 +62,13 @@ export function getNativeEmit(
     fileName,
     contents,
     temporarySnapshot => {
+      // Prefer the project ts-loader explicitly resolved and opened (via its own
+      // configFile resolution) over the API's own nearest-tsconfig auto-discovery,
+      // which can pick up an unrelated tsconfig.json that happens to sit closer to
+      // `fileName` on disk.
       const project =
-        temporarySnapshot.getDefaultProjectForFile(fileName) ??
-        temporarySnapshot.getProject(projectConfigPath);
+        temporarySnapshot.getProject(projectConfigPath) ??
+        temporarySnapshot.getDefaultProjectForFile(fileName);
 
       if (!project) {
         throw new Error(
