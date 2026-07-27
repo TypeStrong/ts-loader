@@ -73,7 +73,15 @@ export function getNativeEmit(
 
       const program = project.program;
       const emitResult = program.getJavaScriptEmit([fileName]);
-      const diagnostics = dedupeDiagnostics(emitResult.diagnostics);
+      const diagnostics = dedupeDiagnostics([
+        ...emitResult.diagnostics,
+        ...program.getSyntacticDiagnostics(fileName),
+        // Type-checking is skipped entirely in transpileOnly mode, matching
+        // classic ts-loader's transpileModule-based behaviour.
+        ...(instance.loaderOptions.transpileOnly
+          ? []
+          : program.getSemanticDiagnostics(fileName)),
+      ]);
 
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromNativeEmit(emitResult));
