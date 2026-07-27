@@ -2,20 +2,32 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import type { Chalk } from 'chalk';
 import type * as webpack from 'webpack';
 import type { APIOptions } from 'typescript/unstable/sync';
 
 import * as constants from './constants';
 import type {
+  ErrorInfo,
+  FileLocation,
   LoaderOptions,
   NativeApi,
   NativeDiagnostic,
   NativeEmitOutput,
   NativeInstance,
   NativeProgram,
+  Severity,
   TSInstance,
 } from './types';
 import { addErrorToModule, isWebpack5, makeError } from './loaderUtils';
+
+/** Indexed by TypeScript's DiagnosticCategory: Warning, Error, Suggestion, Message */
+const diagnosticCategoryNames = [
+  'warning',
+  'error',
+  'suggestion',
+  'message',
+] as const;
 
 type NativeApiModule = {
   API: new (options?: APIOptions) => NativeApi;
@@ -257,10 +269,29 @@ function reportNativeDiagnostics(
         instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1
     )
     .forEach(diagnostic => {
+      const { start, end } = getDiagnosticLocations(diagnostic, program);
+      const errorInfo: ErrorInfo = {
+        code: diagnostic.code,
+        severity: (diagnosticCategoryNames[diagnostic.category] ??
+          'error') as Severity,
+        content: diagnostic.text,
+        file: diagnostic.fileName ? path.normalize(diagnostic.fileName) : '',
+        line: start === undefined ? 0 : start.line,
+        character: start === undefined ? 0 : start.character,
+        context: loaderContext.context,
+      };
+
+      const message =
+        instance.loaderOptions.errorFormatter === undefined
+          ? defaultErrorFormatter(errorInfo, instance.colors)
+          : instance.loaderOptions.errorFormatter(errorInfo, instance.colors);
+
       const error = makeError(
         instance.loaderOptions,
-        formatNativeDiagnostic(diagnostic, program),
-        diagnostic.fileName ?? ''
+        message,
+        errorInfo.file,
+        start,
+        end
       );
 
       if (module) {
@@ -271,25 +302,53 @@ function reportNativeDiagnostics(
     });
 }
 
-function formatNativeDiagnostic(
+function getDiagnosticLocations(
   diagnostic: NativeDiagnostic,
   program: NativeProgram
-) {
-  if (!diagnostic.fileName) {
-    return `TS${diagnostic.code}: ${diagnostic.text}`;
+): { start: FileLocation | undefined; end: FileLocation | undefined } {
+  if (!diagnostic.fileName || diagnostic.pos < 0) {
+    return { start: undefined, end: undefined };
   }
 
   const sourceFile = program.getSourceFile(diagnostic.fileName);
-  const location =
-    sourceFile &&
-    diagnostic.pos >= 0 &&
-    sourceFile.getLineAndCharacterOfPosition(diagnostic.pos);
+  if (!sourceFile) {
+    return { start: undefined, end: undefined };
+  }
 
-  return `${diagnostic.fileName}${
-    location
-      ? `(${location.line + 1},${location.character + 1})`
-      : ''
-  }: TS${diagnostic.code}: ${diagnostic.text}`;
+  const startLC = sourceFile.getLineAndCharacterOfPosition(diagnostic.pos);
+  const start: FileLocation = {
+    line: startLC.line + 1,
+    character: startLC.character + 1,
+  };
+
+  const end: FileLocation | undefined =
+    diagnostic.end > diagnostic.pos
+      ? (() => {
+          const endLC = sourceFile.getLineAndCharacterOfPosition(
+            diagnostic.end
+          );
+          return { line: endLC.line + 1, character: endLC.character + 1 };
+        })()
+      : undefined;
+
+  return { start, end };
+}
+
+/** The default error formatter, matching classic ts-loader's output. */
+function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
+  const messageColor =
+    error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
+
+  return (
+    colors.grey('[tsl] ') +
+    messageColor(error.severity.toUpperCase()) +
+    (error.file === ''
+      ? ''
+      : messageColor(' in ') +
+        colors.bold.cyan(`${error.file}(${error.line},${error.character})`)) +
+    constants.EOL +
+    messageColor(`      TS${error.code}: ${error.content}`)
+  );
 }
 
 function dedupeDiagnostics(diagnostics: readonly NativeDiagnostic[]) {
