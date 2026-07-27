@@ -15,7 +15,6 @@ module.exports = {
                 options: {
                     transpileOnly: true,
                     experimentalNativeApi: true,
-                    compiler: 'typescript-native-preview'
                 }
             }
         ]
