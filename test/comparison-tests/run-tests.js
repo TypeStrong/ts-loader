@@ -2,23 +2,15 @@ const os = require('os');
 const fs = require('fs-extra');
 const path = require('path');
 const rimraf = require('rimraf');
-const typescript = require('typescript');
 const execSync = require('child_process').execSync;
 const getProgram = require('./getProgram');
 
 // Build
 const program = getProgram(path.resolve(__dirname, 'tsconfig.json'));
-const diagnostics = typescript.getPreEmitDiagnostics(program);
+const diagnostics = getProgram.getPreEmitDiagnostics(program);
 if (diagnostics.length) {
-  const formatDiagnosticHost = {
-    getCurrentDirectory: typescript.sys.getCurrentDirectory,
-    getCanonicalFileName: typescript.sys.useCaseSensitiveFileNames
-      ? s => s
-      : s => s.toLowerCase(),
-    getNewLine: () => typescript.sys.newLine
-  };
   for (const d of diagnostics) {
-    typescript.sys.write(typescript.formatDiagnostic(d, formatDiagnosticHost));
+    process.stderr.write(getProgram.formatDiagnostic(program, d));
   }
   throw new Error('Errors in the tests');
 }
