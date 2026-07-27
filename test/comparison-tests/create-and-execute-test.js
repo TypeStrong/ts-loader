@@ -9,7 +9,6 @@ const webpack = require('webpack');
 // @ts-ignore
 const webpackVersion = require('webpack/package.json').version;
 const regexEscape = require('escape-string-regexp');
-const typescript = require('typescript');
 const semver = require('semver');
 const glob = require('glob');
 const pathExists = require('../pathExists');
@@ -107,7 +106,7 @@ function createTest(test, testPath, options) {
             fs.symlinkSync(path.resolve(paths.testStagingPath, "common"), path.resolve(paths.testStagingPath, "node_modules/common"), "junction");
         }
         if (test.indexOf("AlreadyBuilt") !== -1) {
-            const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"), { newLine: typescript.NewLineKind.LineFeed });
+            const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"), { newLine: getProgram.newLineKind.LineFeed });
             program.emit();
         }
         if(test === "sourceMapsShouldConsiderInputSourceMap") {
