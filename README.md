@@ -43,7 +43,6 @@
   * [Options](#options)
   * [Loader Options](#loader-options)
     + [transpileOnly](#transpileonly)
-    + [happyPackMode](#happypackmode)
     + [resolveModuleName and resolveTypeReferenceDirective](#resolvemodulename-and-resolvetypereferencedirective)
     + [getCustomTransformers](#getcustomtransformers)
     + [logInfoToStdOut](#loginfotostdout)
@@ -315,30 +314,6 @@ module.exports = {
 }
 ```
 
-#### happyPackMode
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
-
-If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
-
-It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
-
-```javascript
-        new ForkTsCheckerWebpackPlugin({
-          typescript: {
-            diagnosticOptions: {
-              semantic: true,
-              syntactic: true,
-            },
-          },
-        })
-```
-
-This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`). By default the plugin only checks for semantic errors (as when used with `ts-loader` in `transpileOnly` mode, `ts-loader` will still report syntactic errors).
-
-Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
-
 #### resolveModuleName and resolveTypeReferenceDirective
 
 These options should be functions which will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. It's not intended that these will typically be used by a user of `ts-loader` - they exist to facilitate functionality such as [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).
@@ -349,8 +324,6 @@ These options should be functions which will be used to resolve the import state
 | ` (program: Program, getProgram: () => Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; afterDeclarations?: TransformerFactory<SourceFile>[]; } ` |
 
 Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
-
-You can also pass a path string to locate a js module file which exports the function described above, this useful especially in `happyPackMode`. (Because forked processes cannot serialize functions see more at [related issue](https://github.com/Igorbek/typescript-plugin-styled-components/issues/6#issue-303387183))
 
 #### logInfoToStdOut
 | Type | Default Value |
@@ -507,7 +480,6 @@ of your code.
 | `(RegExp \| string)[]` | `[]`|
 
 A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
-If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) with `ts-loader`, you need use the `string` type for the regular expressions, not `RegExp` object.
 
 ```js
 // change this:

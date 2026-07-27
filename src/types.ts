@@ -47,7 +47,6 @@ export interface LoaderOptions {
   compilerOptions: CompilerOptions;
   appendTsSuffixTo: (RegExp | string)[];
   appendTsxSuffixTo: (RegExp | string)[];
-  happyPackMode: boolean;
   getCustomTransformers?:
     | string
     | ((program: unknown, getProgram: () => unknown) => unknown);
