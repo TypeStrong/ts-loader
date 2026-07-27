@@ -1,9 +1,9 @@
 import type { Chalk } from 'chalk';
 import { Console } from 'console';
-import type { LoaderOptions } from './interfaces';
 
-type InternalLoggerFunc = (whereToLog: any, message: string) => void;
+import type { LoaderOptions } from './types';
 
+type InternalLoggerFunc = (whereToLog: Console, message: string) => void;
 type LoggerFunc = (message: string) => void;
 
 export interface Logger {
@@ -26,8 +26,8 @@ const doNothingLogger = (_message: string) => {};
 
 const makeLoggerFunc = (loaderOptions: LoaderOptions): InternalLoggerFunc =>
   loaderOptions.silent
-    ? (_whereToLog: any, _message: string) => {}
-    : (whereToLog: any, message: string) =>
+    ? (_whereToLog: Console, _message: string) => {}
+    : (whereToLog: Console, message: string) =>
         console.log.call(whereToLog, message);
 
 const makeExternalLogger = (
