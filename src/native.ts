@@ -98,7 +98,7 @@ export function getNativeEmit(
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromNativeEmit(emitResult));
 
-      registerNativeDependencies(loaderContext, program);
+      registerNativeDependencies(loaderContext, program, fileName);
       reportNativeDiagnostics(instance, loaderContext, diagnostics, program);
     }
   );
@@ -226,19 +226,37 @@ function getOutputAndSourceMapFromNativeEmit(emitResult: NativeEmitOutput) {
 
 function registerNativeDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  program: NativeProgram
+  program: NativeProgram,
+  fileName: string
 ) {
   loaderContext.clearDependencies();
+  loaderContext.addDependency(fileName);
 
-  for (const fileName of program.getSourceFileNames()) {
-    const sourceFile = program.getSourceFile(fileName);
+  // Make this file dependent on *all* definition files in the program, since
+  // they aren't necessarily reflected in webpack's own module graph (they're
+  // rarely `require`d at runtime) but can still affect this file's type-check.
+  // Regular .ts/.tsx/.js source files are deliberately excluded here: webpack
+  // already tracks those as dependencies via its own module resolution when
+  // they're actually required/imported, and adding them again here would make
+  // every file's build cache dependent on every other file in the program,
+  // even ones it doesn't really depend on (e.g. a module TypeScript failed to
+  // resolve, and thus never emitted a `require` for).
+  for (const otherFileName of program.getSourceFileNames()) {
+    if (
+      otherFileName === fileName ||
+      !constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName)
+    ) {
+      continue;
+    }
+
+    const sourceFile = program.getSourceFile(otherFileName);
 
     if (
       sourceFile &&
       !program.isSourceFileDefaultLibrary(sourceFile) &&
       !program.isSourceFileFromExternalLibrary(sourceFile)
     ) {
-      loaderContext.addDependency(fileName);
+      loaderContext.addDependency(otherFileName);
     }
   }
 
