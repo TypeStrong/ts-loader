@@ -1,8 +1,0 @@
-{
-	"compilerOptions": {
-		"noEmitOnError": true,
-		"types": [
-			"jasmine"
-		]
-	}
-}

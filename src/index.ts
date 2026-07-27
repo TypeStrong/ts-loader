@@ -68,7 +68,6 @@ function runLoader(
       loaderContext,
       fileVersion,
       callback,
-      instance,
       inputSourceMap
     );
   } catch (error) {
@@ -199,7 +198,6 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'appendTsSuffixTo',
   'appendTsxSuffixTo',
   'onlyCompileBundledFiles',
-  'happyPackMode',
   'getCustomTransformers',
   'reportFiles',
   'experimentalWatchApi',
@@ -290,7 +288,6 @@ function getLoaderOptions(
       compilerOptions: {},
       appendTsSuffixTo: [],
       appendTsxSuffixTo: [],
-      happyPackMode: false,
       colors: true,
       onlyCompileBundledFiles: false,
       reportFiles: [],
@@ -307,7 +304,6 @@ function getLoaderOptions(
   options.logLevel = options.logLevel.toUpperCase() as LogLevel;
   options.instance = instanceName;
   options.configFile = options.configFile || 'tsconfig.json';
-  options.transpileOnly = options.happyPackMode ? true : options.transpileOnly;
 
   cache.set(loaderOptions, options);
 
@@ -378,11 +374,10 @@ function makeSourceMapAndFinish(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance,
   inputSourceMap?: Record<string, unknown>
 ) {
   if (outputText === null || outputText === undefined) {
-    setModuleMeta(loaderContext, instance, fileVersion);
+    setModuleMeta(loaderContext, fileVersion);
     callback(
       new Error(`TypeScript emitted no output for ${filePath}.`),
       outputText,
@@ -399,7 +394,7 @@ function makeSourceMapAndFinish(
     loaderContext
   );
 
-  setModuleMeta(loaderContext, instance, fileVersion);
+  setModuleMeta(loaderContext, fileVersion);
 
   if (sourceMap === undefined || !inputSourceMap || !canUseSourceMapConsumer) {
     callback(null, output, sourceMap);
@@ -421,11 +416,9 @@ function makeSourceMapAndFinish(
 
 function setModuleMeta(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  instance: TSInstance,
   fileVersion: number
 ) {
   if (
-    !instance.loaderOptions.happyPackMode &&
     loaderContext._module?.buildMeta !== undefined
   ) {
     loaderContext._module.buildMeta.tsLoaderFileVersion = fileVersion;
