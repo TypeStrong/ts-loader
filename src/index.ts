@@ -38,10 +38,10 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  void runLoader(this, contents, inputSourceMap, callback);
+  runLoader(this, contents, inputSourceMap, callback);
 }
 
-async function runLoader(
+function runLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   inputSourceMap: Record<string, unknown> | undefined,
@@ -49,7 +49,7 @@ async function runLoader(
 ) {
   try {
     const options = getLoaderOptions(loaderContext);
-    const instance = await getTypeScriptInstance(options, loaderContext);
+    const instance = getTypeScriptInstance(options, loaderContext);
     const rawFilePath = path.normalize(loaderContext.resourcePath);
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
     const fileVersion = updateFileInCache(options, filePath, contents, instance);
@@ -76,7 +76,7 @@ async function runLoader(
   }
 }
 
-async function getTypeScriptInstance(
+function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>
 ) {
@@ -111,7 +111,7 @@ async function getTypeScriptInstance(
     files: new Map(),
     configFilePath,
     filePathKeyMapper: createFilePathKeyMapper(loaderOptions),
-    nativeInstance: await createNativeInstance(loaderOptions, configFilePath),
+    nativeInstance: createNativeInstance(loaderOptions, configFilePath),
   };
 
   if (loaderUtils.isWebpack5) {
