@@ -21,19 +21,11 @@ type NativeApiModule = {
   API: new (options?: APIOptions) => NativeApi;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-implied-eval -- preserve native dynamic import for the ESM-only API entrypoint
-const dynamicImport = new Function(
-  'specifier',
-  'return import(specifier)'
-) as (specifier: string) => Promise<NativeApiModule>;
-
-const nativeApiModulePromises = new Map<string, Promise<NativeApiModule>>();
-
-export async function createNativeInstance(
+export function createNativeInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string
-): Promise<NativeInstance> {
-  const nativeApiModule = await loadNativeApiModule(loaderOptions.compiler);
+): NativeInstance {
+  const nativeApiModule = loadNativeApiModule(loaderOptions.compiler);
 
   return {
     api: new nativeApiModule.API(),
@@ -94,23 +86,19 @@ export function getNativeEmit(
   return { outputText, sourceMapText };
 }
 
-async function loadNativeApiModule(compilerPackage: string) {
+function loadNativeApiModule(compilerPackage: string): NativeApiModule {
   const specifier = `${compilerPackage}/unstable/sync`;
-  let promise = nativeApiModulePromises.get(specifier);
 
-  if (!promise) {
-    promise = dynamicImport(specifier).catch((error: unknown) => {
-      nativeApiModulePromises.delete(specifier);
-      throw new Error(
-        `Could not load TypeScript native API from "${specifier}": ${
-          error instanceof Error ? error.message : String(error)
-        }`
-      );
-    });
-    nativeApiModulePromises.set(specifier, promise);
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- ESM-only entrypoint, loadable via Node's require(esm) support (Node >= 22.12)
+    return require(specifier) as NativeApiModule;
+  } catch (error) {
+    throw new Error(
+      `Could not load TypeScript native API from "${specifier}": ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
   }
-
-  return promise;
 }
 
 function updateSnapshot(
