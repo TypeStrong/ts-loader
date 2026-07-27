@@ -66,9 +66,12 @@ export function getNativeEmit(
       // configFile resolution) over the API's own nearest-tsconfig auto-discovery,
       // which can pick up an unrelated tsconfig.json that happens to sit closer to
       // `fileName` on disk.
+      const configuredProject = temporarySnapshot.getProject(projectConfigPath);
       const project =
-        temporarySnapshot.getProject(projectConfigPath) ??
-        temporarySnapshot.getDefaultProjectForFile(fileName);
+        configuredProject?.program.getSourceFile(fileName)
+          ? configuredProject
+          : temporarySnapshot.getDefaultProjectForFile(fileName) ??
+            configuredProject;
 
       if (!project) {
         throw new Error(
@@ -78,12 +81,7 @@ export function getNativeEmit(
 
       const program = project.program;
       const emitResult = program.getJavaScriptEmit([fileName]);
-      const diagnostics = dedupeDiagnostics([
-        ...emitResult.diagnostics,
-        ...program.getProgramDiagnostics(),
-        ...program.getGlobalDiagnostics(),
-        ...program.getConfigFileParsingDiagnostics(),
-      ]);
+      const diagnostics = dedupeDiagnostics(emitResult.diagnostics);
 
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromNativeEmit(emitResult));
