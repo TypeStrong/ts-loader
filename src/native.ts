@@ -1,4 +1,9 @@
+import * as crypto from 'crypto';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import type * as webpack from 'webpack';
+import type { APIOptions } from 'typescript/unstable/sync';
 
 import * as constants from './constants';
 import type {
@@ -9,12 +14,11 @@ import type {
   NativeInstance,
   NativeProgram,
   TSInstance,
-} from './interfaces';
-import { addErrorToModule, isWebpack5 } from './loaderUtils';
-import { makeError } from './utils';
+} from './types';
+import { addErrorToModule, isWebpack5, makeError } from './loaderUtils';
 
 type NativeApiModule = {
-  API: new () => NativeApi;
+  API: new (options?: APIOptions) => NativeApi;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-implied-eval -- preserve native dynamic import for the ESM-only API entrypoint
@@ -34,18 +38,22 @@ export async function createNativeInstance(
   return {
     api: new nativeApiModule.API(),
     configFilePath,
-    openedProject: false,
+    syntheticConfigFiles: new Map(),
+    openedProjectPaths: new Set(),
   };
 }
 
-export function getNativeTranspilationEmit(
+export function getNativeEmit(
   fileName: string,
   contents: string,
   instance: TSInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
-  const nativeInstance = instance.nativeInstance!;
-  const snapshot = updateSnapshot(nativeInstance);
+  const nativeInstance = instance.nativeInstance;
+  const { snapshot, projectConfigPath } = prepareSnapshotForFile(
+    nativeInstance,
+    fileName
+  );
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
 
@@ -54,7 +62,9 @@ export function getNativeTranspilationEmit(
     fileName,
     contents,
     temporarySnapshot => {
-      const project = temporarySnapshot.getProject(nativeInstance.configFilePath);
+      const project =
+        temporarySnapshot.getDefaultProjectForFile(fileName) ??
+        temporarySnapshot.getProject(projectConfigPath);
 
       if (!project) {
         throw new Error(
@@ -101,19 +111,92 @@ async function loadNativeApiModule(compilerPackage: string) {
   return promise;
 }
 
-function updateSnapshot(nativeInstance: NativeInstance) {
+function updateSnapshot(
+  nativeInstance: NativeInstance,
+  fileName: string,
+  openProjects?: string[]
+) {
   const previousSnapshot = nativeInstance.snapshot;
   const snapshot = nativeInstance.api.updateSnapshot(
-    nativeInstance.openedProject
-      ? undefined
-      : { openProjects: [nativeInstance.configFilePath] }
+    openProjects && openProjects.length > 0
+      ? { openProjects, openFiles: [fileName] }
+      : { openFiles: [fileName] }
   );
 
   nativeInstance.snapshot = snapshot;
-  nativeInstance.openedProject = true;
+  openProjects?.forEach(projectPath =>
+    nativeInstance.openedProjectPaths.add(projectPath)
+  );
   previousSnapshot?.dispose?.();
 
   return snapshot;
+}
+
+function prepareSnapshotForFile(nativeInstance: NativeInstance, fileName: string) {
+  const primaryProjectPath = nativeInstance.configFilePath;
+  const snapshot = updateSnapshot(
+    nativeInstance,
+    fileName,
+    nativeInstance.openedProjectPaths.has(primaryProjectPath)
+      ? undefined
+      : [primaryProjectPath]
+  );
+  const primaryProject = snapshot.getProject(primaryProjectPath);
+
+  if (primaryProject?.program.getSourceFile(fileName)) {
+    return { snapshot, projectConfigPath: primaryProjectPath };
+  }
+
+  const syntheticConfigPath = ensureSyntheticConfigForFile(
+    nativeInstance,
+    primaryProjectPath,
+    primaryProject?.parsedCommandLine.fileNames ?? [],
+    fileName
+  );
+  const syntheticSnapshot = updateSnapshot(
+    nativeInstance,
+    fileName,
+    nativeInstance.openedProjectPaths.has(syntheticConfigPath)
+      ? undefined
+      : [syntheticConfigPath]
+  );
+
+  return { snapshot: syntheticSnapshot, projectConfigPath: syntheticConfigPath };
+}
+
+function ensureSyntheticConfigForFile(
+  nativeInstance: NativeInstance,
+  configFilePath: string,
+  rootFiles: readonly string[],
+  fileName: string
+) {
+  const existing = nativeInstance.syntheticConfigFiles.get(fileName);
+  if (existing) {
+    return existing;
+  }
+
+  const syntheticConfigDir = path.join(os.tmpdir(), 'ts-loader-ts7-configs');
+  fs.mkdirSync(syntheticConfigDir, { recursive: true });
+  const syntheticConfigPath = path.join(
+    syntheticConfigDir,
+    `${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(fileName)}.json`
+  );
+  const files = [...new Set([...rootFiles, fileName])].sort();
+  const configText = JSON.stringify(
+    {
+      extends: configFilePath,
+      files,
+    },
+    null,
+    2
+  );
+  fs.writeFileSync(syntheticConfigPath, configText);
+  nativeInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
+  return syntheticConfigPath;
+}
+
+function hashFileName(fileName: string) {
+  return crypto.createHash('sha1').update(fileName).digest('hex').slice(0, 12);
 }
 
 function getOutputAndSourceMapFromNativeEmit(emitResult: NativeEmitOutput) {
@@ -135,6 +218,8 @@ function registerNativeDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   program: NativeProgram
 ) {
+  loaderContext.clearDependencies();
+
   for (const fileName of program.getSourceFileNames()) {
     const sourceFile = program.getSourceFile(fileName);
 
@@ -168,19 +253,24 @@ function reportNativeDiagnostics(
 
   const module = loaderContext._module;
 
-  diagnostics.forEach(diagnostic => {
-    const error = makeError(
-      instance.loaderOptions,
-      formatNativeDiagnostic(diagnostic, program),
-      diagnostic.fileName ?? ''
-    );
+  diagnostics
+    .filter(
+      diagnostic =>
+        instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1
+    )
+    .forEach(diagnostic => {
+      const error = makeError(
+        instance.loaderOptions,
+        formatNativeDiagnostic(diagnostic, program),
+        diagnostic.fileName ?? ''
+      );
 
-    if (module) {
-      addErrorToModule(module, error);
-    } else {
-      loaderContext.emitError(error);
-    }
-  });
+      if (module) {
+        addErrorToModule(module, error);
+      } else {
+        loaderContext.emitError(error);
+      }
+    });
 }
 
 function formatNativeDiagnostic(
