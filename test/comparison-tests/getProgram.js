@@ -50,12 +50,6 @@ const newLineKind = {
     LineFeed: 2,
 };
 
-module.exports = Object.assign(getProgram, {
-    formatDiagnostic,
-    getPreEmitDiagnostics,
-    newLineKind,
-});
-
 function createExtendedConfigFile(tsconfigPath, compilerOptions) {
     const configDirectory = path.join(os.tmpdir(), 'ts-loader-ts7-configs');
     fs.mkdirSync(configDirectory, { recursive: true });
@@ -84,3 +78,10 @@ function createExtendedConfigFile(tsconfigPath, compilerOptions) {
 
     return configFilePath;
 }
+
+module.exports = {
+    getProgram, 
+    formatDiagnostic,
+    getPreEmitDiagnostics,
+    newLineKind,
+};

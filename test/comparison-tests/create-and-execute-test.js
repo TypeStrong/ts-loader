@@ -106,7 +106,7 @@ function createTest(test, testPath, options) {
             fs.symlinkSync(path.resolve(paths.testStagingPath, "common"), path.resolve(paths.testStagingPath, "node_modules/common"), "junction");
         }
         if (test.indexOf("AlreadyBuilt") !== -1) {
-            const program = getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"), { newLine: getProgram.newLineKind.LineFeed });
+            const program = getProgram.getProgram(path.resolve(paths.testStagingPath, "lib/tsconfig.json"), { newLine: getProgram.newLineKind.LineFeed });
             program.emit();
         }
         if(test === "sourceMapsShouldConsiderInputSourceMap") {

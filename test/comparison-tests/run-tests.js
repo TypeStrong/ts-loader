@@ -6,7 +6,7 @@ const execSync = require('child_process').execSync;
 const getProgram = require('./getProgram');
 
 // Build
-const program = getProgram(path.resolve(__dirname, 'tsconfig.json'));
+const program = getProgram.getProgram(path.resolve(__dirname, 'tsconfig.json'));
 const diagnostics = getProgram.getPreEmitDiagnostics(program);
 if (diagnostics.length) {
   for (const d of diagnostics) {
