@@ -388,14 +388,48 @@ function registerTypeScriptDependencies(
   // ts-loader's `buildMeta.tsLoaderDefinitionFileVersions`.
   if (loaderContext._module?.buildMeta !== undefined) {
     loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions =
-      dependencies.map(
-        dependencyFileName =>
-          `${dependencyFileName}@${
-            instance.files.get(instance.filePathKeyMapper(dependencyFileName))
-              ?.version ?? '?'
-          }`
+      dependencies.map(dependencyFileName =>
+        getDependencyVersionTag(instance, program, dependencyFileName)
       );
   }
+}
+
+/**
+ * A `"<file>@<version>"` tag that changes whenever `dependencyFileName`'s
+ * content genuinely changes, for use in `buildMeta.tsLoaderDefinitionFileVersions`.
+ *
+ * Most dependencies (anything ts-loader's own webpack rule compiles) have a
+ * tracked version in `instance.files`, bumped whenever their content changes
+ * (see `updateFileInCache`). But some project files - e.g. an ambient global
+ * .d.ts that's only listed in tsconfig's `files` and never `require`d/
+ * `import`ed by anything - are never passed through ts-loader's own loader at
+ * all, so they never get a tracked version there. For those, hash the
+ * program's current view of the file's content instead, so a genuine change
+ * is still detected.
+ */
+function getDependencyVersionTag(
+  instance: TSInstance,
+  program: TypeScriptProgram,
+  dependencyFileName: string
+): string {
+  const file = instance.files.get(
+    instance.filePathKeyMapper(dependencyFileName)
+  );
+  if (file) {
+    return `${dependencyFileName}@${file.version}`;
+  }
+
+  const sourceFile = program.getSourceFile(dependencyFileName);
+  const text = sourceFile
+    ? (sourceFile as unknown as { text?: string }).text
+    : undefined;
+
+  const versionTag =
+    text === undefined
+      ? '?'
+      : crypto.createHash('sha1').update(text).digest('hex').slice(0, 12);
+
+  return `${dependencyFileName}@${versionTag}`;
 }
 
 /**
