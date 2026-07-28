@@ -47,8 +47,7 @@ export interface LoaderOptions {
   appendTsSuffixTo: (RegExp | string)[];
   appendTsxSuffixTo: (RegExp | string)[];
   getCustomTransformers?:
-    | string
-    | ((program: unknown, getProgram: () => unknown) => unknown);
+    string | ((program: unknown, getProgram: () => unknown) => unknown);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
   projectReferences?: boolean;
@@ -73,9 +72,10 @@ export type TypeScriptProgram = Program;
 export type TypeScriptEmitOutput = EmitOutput;
 export type TypeScriptDiagnostic = Diagnostic;
 export interface TypeScriptSourceFile {
-  getLineAndCharacterOfPosition(
-    position: number
-  ): { line: number; character: number };
+  getLineAndCharacterOfPosition(position: number): {
+    line: number;
+    character: number;
+  };
 }
 
 export interface TypeScriptInstance {

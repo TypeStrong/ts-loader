@@ -8,7 +8,7 @@ const cache: WeakMap<webpack.Compiler, Map<string, TSInstance>> = new WeakMap();
 
 export function getTSInstanceFromCache(
   key: webpack.Compiler,
-  name: string
+  name: string,
 ): TSInstance | undefined {
   const compiler = key ?? marker;
 
@@ -24,7 +24,7 @@ export function getTSInstanceFromCache(
 export function setTSInstanceInCache(
   key: webpack.Compiler | undefined,
   name: string,
-  instance: TSInstance
+  instance: TSInstance,
 ) {
   const compiler = key ?? marker;
 

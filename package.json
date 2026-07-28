@@ -6,6 +6,7 @@
   "types": "dist",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
+    "format": "prettier --write \"src/**/*.{ts,md}\"",
     "lint": "tsc --project \"./src\" --noEmit && eslint --ext .ts ./src",
     "comparison-tests": "git clean -xfd test/comparison-tests && npm link --legacy-peer-deps ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
@@ -86,7 +87,7 @@
     "markdown-toc": "^1.2.0",
     "mkdirp": "^0.5.1",
     "mocha": "^6.0.0",
-    "prettier": "^2.0.5",
+    "prettier": "^3.9.6",
     "rimraf": "^2.6.2",
     "semver": "^7.8.5",
     "typescript": "next",

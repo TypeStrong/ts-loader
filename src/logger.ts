@@ -30,32 +30,31 @@ const makeLoggerFunc = (loaderOptions: LoaderOptions): InternalLoggerFunc =>
     : (whereToLog: Console, message: string) =>
         console.log.call(whereToLog, message);
 
-const makeExternalLogger = (
-  loaderOptions: LoaderOptions,
-  logger: InternalLoggerFunc
-) => (message: string) =>
-  logger(
-    loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole,
-    message
-  );
+const makeExternalLogger =
+  (loaderOptions: LoaderOptions, logger: InternalLoggerFunc) =>
+  (message: string) =>
+    logger(
+      loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole,
+      message,
+    );
 
 const makeLogInfo = (
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
-  green: Chalk
+  green: Chalk,
 ) =>
   LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
     ? (message: string) =>
         logger(
           loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole,
-          green(message)
+          green(message),
         )
     : doNothingLogger;
 
 const makeLogError = (
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
-  red: Chalk
+  red: Chalk,
 ) =>
   LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
     ? (message: string) => logger(stderrConsole, red(message))
@@ -64,7 +63,7 @@ const makeLogError = (
 const makeLogWarning = (
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
-  yellow: Chalk
+  yellow: Chalk,
 ) =>
   LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
     ? (message: string) => logger(stderrConsole, yellow(message))
@@ -72,7 +71,7 @@ const makeLogWarning = (
 
 export function makeLogger(
   loaderOptions: LoaderOptions,
-  colors: Chalk
+  colors: Chalk,
 ): Logger {
   const logger = makeLoggerFunc(loaderOptions);
   return {
