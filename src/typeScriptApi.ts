@@ -29,15 +29,6 @@ import {
   tsLoaderSource,
 } from './loaderUtils';
 
-// Classic ts-loader reconstructs this specific failure as a fresh `Error`
-// directly inside its top-level `loader` function (discarding whatever
-// deeper stack the original error carried), which is why its stack trace
-// is a single `at Object.loader (...)` frame. This marker class lets
-// `index.ts` recognise the case and replicate that single-frame
-// reconstruction, rather than letting the (much deeper) throw site's own
-// stack trace through as-is.
-export class TsConfigParseError extends Error {}
-
 /** Indexed by TypeScript's DiagnosticCategory: Warning, Error, Suggestion, Message */
 const diagnosticCategoryNames = [
   'warning',
@@ -77,6 +68,14 @@ export function getTypeScriptEmit(
   );
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
+  // Classic ts-loader surfaces this specific failure by returning `{error}`
+  // up to its top-level `loader` function, which reconstructs a fresh
+  // `Error` right there (discarding whatever deeper stack the original
+  // carried) - giving it a stack trace that's just a single
+  // `at Object.loader (...)` frame. This mirrors that: the message is
+  // captured here rather than thrown, so `index.ts` can do the same
+  // reconstruction in `loader`'s own frame.
+  let configParseErrorMessage: string | undefined;
 
   typeScriptInstance.api.runWithTemporaryFileUpdate(
     snapshot,
@@ -135,9 +134,10 @@ export function getTypeScriptEmit(
 
         reportTypeScriptErrors(loaderContext, configErrors);
 
-        throw new TsConfigParseError(
-          instance.colors.red('error while parsing tsconfig.json'),
+        configParseErrorMessage = instance.colors.red(
+          'error while parsing tsconfig.json',
         );
+        return;
       }
 
       const emitResult = program.getJavaScriptEmit([fileName]);
@@ -259,7 +259,7 @@ export function getTypeScriptEmit(
     },
   );
 
-  return { outputText, sourceMapText };
+  return { outputText, sourceMapText, configParseErrorMessage };
 }
 
 function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
