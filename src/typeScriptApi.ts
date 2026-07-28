@@ -262,14 +262,6 @@ export function getTypeScriptEmit(
       // (non-transpileOnly) compile, and their content must be read out here,
       // synchronously, for the same reason as `errors` above. Emitting them as
       // webpack assets is deferred to emitPendingDeclarationFiles.
-      //
-      // `composite` implies `declaration` in real tsc (a composite project's
-      // references can't work without emitted .d.ts files) - classic
-      // ts-loader gets this for free by routing composite projects through
-      // TypeScript's own SolutionBuilder API, which always emits them. The
-      // API used here has no such implicit normalisation: `getCompilerOptions()`
-      // returns `composite: true` as-is, without also setting `declaration`,
-      // so it must be checked for explicitly too.
       if (
         !instance.loaderOptions.transpileOnly &&
         (program.getCompilerOptions().declaration ||
@@ -995,16 +987,26 @@ function buildTypeScriptError(
   module: webpack.Module | undefined,
   fallbackFile = '',
 ) {
-  const { start, end } = getDiagnosticLocations(diagnostic, program);
-  // A diagnostic with no file of its own (e.g. a whole-program/compiler-option
-  // diagnostic) has no meaningful "in <file>(line,char)" location to report,
-  // so the formatted message leaves `file` empty; `fallbackFile` only affects
-  // the *webpack error's own* `.file`/module attribution below, matching
-  // classic ts-loader's split between `ErrorInfo.file` (from the diagnostic)
-  // and the `merge.file` passed to `makeError` (from the caller).
-  const diagnosticFile = diagnostic.fileName
-    ? path.normalize(diagnostic.fileName)
-    : '';
+  // `fallbackFile` is only ever passed for config-file-parsing/whole-program
+  // diagnostics (see call sites below), which classic ts-loader treats as
+  // having no file of their own - `diagnostic.file` is always `undefined`
+  // for these in classic TypeScript, so the formatted message leaves `file`
+  // empty and `fallbackFile` only affects the *webpack error's own*
+  // `.file`/module attribution further down (classic's split between
+  // `ErrorInfo.file`, from the diagnostic, and the `merge.file` passed to
+  // `makeError`, from the caller). TypeScript 7 does attach a `fileName`
+  // and position to these same diagnostics (pointing at the offending
+  // option's spot in tsconfig.json) where classic's compiler doesn't, so
+  // that has to be deliberately ignored here for message purposes to match
+  // classic's output exactly.
+  const hasFallbackFile = fallbackFile !== '';
+  const { start, end } = hasFallbackFile
+    ? { start: undefined, end: undefined }
+    : getDiagnosticLocations(diagnostic, program);
+  const diagnosticFile =
+    !hasFallbackFile && diagnostic.fileName
+      ? path.normalize(diagnostic.fileName)
+      : '';
   const errorInfo: ErrorInfo = {
     code: diagnostic.code,
     severity: (diagnosticCategoryNames[diagnostic.category] ??
