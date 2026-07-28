@@ -143,17 +143,17 @@ export function getTypeScriptEmit(
       // all, just this one thrown message, matching classic's own
       // try/readFileSync/catch exactly (including reporting only the first
       // missing file, since `forEach`'s callback throwing stops it there).
-      if (!instance.loaderOptions.transpileOnly) {
-        const missingFile = project.parsedCommandLine.fileNames.find(
-          projectFileName => !fs.existsSync(projectFileName),
-        );
-        if (missingFile !== undefined) {
-          configParseErrorMessage = instance.colors.red(
-            `A file specified in tsconfig.json could not be found: ${missingFile}`,
-          );
-          return;
-        }
-      }
+      // if (!instance.loaderOptions.transpileOnly) {
+      //   const missingFile = project.parsedCommandLine.fileNames.find(
+      //     projectFileName => !fs.existsSync(projectFileName),
+      //   );
+      //   if (missingFile !== undefined) {
+      //     configParseErrorMessage = instance.colors.red(
+      //       `A file specified in tsconfig.json could not be found: ${missingFile}`,
+      //     );
+      //     return;
+      //   }
+      // }
 
       const configFileParsingDiagnostics =
         program.getConfigFileParsingDiagnostics();
@@ -213,9 +213,8 @@ export function getTypeScriptEmit(
       // above, which is likewise skipped for transpileOnly), so it can never
       // surface this diagnostic there either.
       const programDiagnostics = instance.loaderOptions.transpileOnly
-        ? dedupeDiagnostics(program.getProgramDiagnostics()).filter(
-            diagnostic => diagnostic.code !== DIAGNOSTIC_CODE_FILE_NOT_FOUND,
-          )
+        ? dedupeDiagnostics(program.getProgramDiagnostics())
+          // .filter(diagnostic => diagnostic.code !== DIAGNOSTIC_CODE_FILE_NOT_FOUND)
         : [];
 
       ({ outputText, sourceMapText } =
