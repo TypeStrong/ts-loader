@@ -9,8 +9,6 @@ import type {
 } from 'typescript/unstable/sync';
 import type * as webpack from 'webpack';
 
-import type { Logger } from './logger';
-
 export interface ErrorInfo {
   code: number;
   severity: Severity;
@@ -96,10 +94,8 @@ export interface PendingTypeScriptDiagnostics {
 export interface TSInstance {
   version: number;
   colors: Chalk;
-  log: Logger;
   loaderOptions: LoaderOptions;
   files: Map<FilePathKey, TSFile>;
-  configFilePath: string;
   filePathKeyMapper: (fileName: string) => FilePathKey;
   typeScriptApiInstance: TypeScriptInstance;
   pendingDiagnostics: Map<FilePathKey, PendingTypeScriptDiagnostics>;
