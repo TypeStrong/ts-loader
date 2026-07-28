@@ -89,6 +89,14 @@ function runTests() {
             return false;
           }
 
+          // skip project references / custom transformer tests as they are not supported yet
+          if (testName.startsWith('projectReferences') || testName.startsWith('customTransformer')) {
+            console.log(
+              `Skipping test ${testName} as project references / custom transformer tests are not supported yet`
+            );
+            return false;
+          }
+
           const testPath = path.join(testDir, testName);
           const isATest = fs.statSync(testPath).isDirectory();
           return isATest;

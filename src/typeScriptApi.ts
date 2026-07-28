@@ -177,6 +177,17 @@ export function getTypeScriptEmit(
           fileName,
           errors,
         });
+
+        // A dependant's *diagnostics* can change here even though its own
+        // module isn't rebuilt (e.g. `deeperDep.ts` changing a parameter type
+        // makes one of `app.ts`'s calls to it, transitively via `dep.ts`, now
+        // invalid) - webpack has no reason to re-invoke ts-loader for
+        // `app.ts` itself, since neither its own source nor its *direct*
+        // dependencies changed. Matches classic ts-loader's afterCompile
+        // re-check, which is likewise decoupled from webpack's own
+        // module-rebuild decisions (driven by its persistent
+        // language service/program rather than a fresh loader invocation).
+        recheckTransitiveDependants(instance, program, fileName, loaderContext);
       }
 
       // Declaration files, like errors, are only produced from a full
@@ -477,13 +488,31 @@ function registerResolvedImportDependencies(
   fileName: string,
   addDependency: (dependencyFileName: string) => void,
 ) {
+  for (const dependencyFileName of getDirectResolvedImports(
+    program,
+    fileName,
+  )) {
+    addDependency(dependencyFileName);
+  }
+}
+
+/**
+ * The other project files `fileName` actually imports via a relative
+ * specifier (e.g. `./dep1`) - see registerResolvedImportDependencies, which
+ * this also backs, for why bare/unresolved specifiers are excluded.
+ */
+function getDirectResolvedImports(
+  program: TypeScriptProgram,
+  fileName: string,
+): string[] {
   const sourceFile = program.getSourceFile(fileName);
   if (!sourceFile) {
-    return;
+    return [];
   }
 
   const sourceFileNames = new Set(program.getSourceFileNames());
   const fromDir = path.dirname(fileName);
+  const resolvedImports: string[] = [];
 
   for (const specifierNode of sourceFile.imports) {
     // `imports` is a module specifier expression - a string literal in
@@ -501,9 +530,125 @@ function registerResolvedImportDependencies(
     );
 
     if (resolvedFileName && resolvedFileName !== fileName) {
-      addDependency(resolvedFileName);
+      resolvedImports.push(resolvedFileName);
     }
   }
+
+  return resolvedImports;
+}
+
+/**
+ * Recomputes and stores fresh diagnostics for every project file that
+ * (directly or transitively) imports `changedFileName`, so a type-check
+ * affected by this file's change is reported even for a dependant whose own
+ * module webpack has no reason to rebuild (see the call site).
+ */
+function recheckTransitiveDependants(
+  instance: TSInstance,
+  program: TypeScriptProgram,
+  changedFileName: string,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+) {
+  const projectFileNames = program.getSourceFileNames().filter(otherFileName => {
+    const sourceFile = program.getSourceFile(otherFileName);
+    return (
+      sourceFile &&
+      !program.isSourceFileDefaultLibrary(sourceFile) &&
+      !program.isSourceFileFromExternalLibrary(sourceFile)
+    );
+  });
+
+  const dependants = findTransitiveDependants(
+    program,
+    changedFileName,
+    projectFileNames,
+  );
+
+  if (dependants.size === 0) {
+    return;
+  }
+
+  // The compilation already knows about every module from prior builds, even
+  // ones not being rebuilt this round, so a dependant's module can be looked
+  // up here despite this running from a *different* file's own loader
+  // invocation - tagging the error with it (like the normal, single-file
+  // path does) so webpack's stats can show its "./<file> <loc>" line.
+  const modulesByFile = loaderContext._compilation
+    ? determineModulesByFile(loaderContext._compilation, instance)
+    : undefined;
+
+  for (const dependantFileName of dependants) {
+    const diagnostics = dedupeDiagnostics([
+      ...program.getSyntacticDiagnostics(dependantFileName),
+      ...program.getSemanticDiagnostics(dependantFileName),
+    ]);
+
+    const dependantModule = modulesByFile
+      ?.get(instance.filePathKeyMapper(dependantFileName))
+      ?.[0];
+
+    const errors = filterDiagnosticsForReporting(
+      instance,
+      loaderContext.context,
+      diagnostics,
+    ).map(diagnostic =>
+      buildTypeScriptError(
+        instance,
+        diagnostic,
+        program,
+        loaderContext.context,
+        dependantModule,
+      ),
+    );
+
+    instance.pendingDiagnostics.set(
+      instance.filePathKeyMapper(dependantFileName),
+      { fileName: dependantFileName, errors },
+    );
+  }
+}
+
+/**
+ * Every project file that (directly or transitively) imports `changedFileName`,
+ * found by breadth-first search over each candidate file's own direct
+ * resolved imports (see getDirectResolvedImports).
+ */
+function findTransitiveDependants(
+  program: TypeScriptProgram,
+  changedFileName: string,
+  projectFileNames: readonly string[],
+): Set<string> {
+  const directImportsByFile = new Map(
+    projectFileNames.map(candidateFileName => [
+      candidateFileName,
+      getDirectResolvedImports(program, candidateFileName),
+    ]),
+  );
+
+  const dependants = new Set<string>();
+  let frontier = new Set([changedFileName]);
+
+  while (frontier.size > 0) {
+    const nextFrontier = new Set<string>();
+
+    for (const [candidateFileName, directImports] of directImportsByFile) {
+      if (
+        dependants.has(candidateFileName) ||
+        candidateFileName === changedFileName
+      ) {
+        continue;
+      }
+
+      if (directImports.some(importedFileName => frontier.has(importedFileName))) {
+        dependants.add(candidateFileName);
+        nextFrontier.add(candidateFileName);
+      }
+    }
+
+    frontier = nextFrontier;
+  }
+
+  return dependants;
 }
 
 const relativeSpecifierExtensions = ['', '.ts', '.tsx', '.d.ts', '.js', '.jsx'];
