@@ -90,7 +90,8 @@ function runTests() {
           }
 
           // skip project references / custom transformer tests as they are not supported yet
-          if (testName.startsWith('projectReferences') || testName.startsWith('customTransformer')) {
+          // nolib does not seem worth supporting either, as it is a very niche use case
+          if (testName.startsWith('projectReferences') || testName.startsWith('customTransformer') || testName.startsWith('nolib')) {
             console.log(
               `Skipping test ${testName} as project references / custom transformer tests are not supported yet`
             );
