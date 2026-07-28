@@ -94,6 +94,6 @@ function makeWebpackLocation(
   return { start, end };
 }
 
-function tsLoaderSource(loaderOptions: LoaderOptions) {
+export function tsLoaderSource(loaderOptions: LoaderOptions) {
   return `ts-loader-${loaderOptions.instance}`;
 }
