@@ -9,6 +9,7 @@ import {
   emitPendingDeclarationFiles,
   getTypeScriptEmit,
   reportPendingTypeScriptDiagnostics,
+  TsConfigParseError,
 } from './typeScriptApi';
 import type {
   FilePathKey,
@@ -43,7 +44,20 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  runLoader(this, contents, inputSourceMap, callback);
+  try {
+    runLoader(this, contents, inputSourceMap, callback);
+  } catch (error) {
+    // Classic ts-loader reconstructs this specific failure as a brand new
+    // `Error` right here, in `loader`'s own frame, discarding whatever
+    // deeper stack the original error carried - giving it a stack trace
+    // that's just a single `at Object.loader (...)` frame. Replicate that
+    // so the two remain byte-for-byte comparable.
+    if (error instanceof TsConfigParseError) {
+      callback(new Error(error.message));
+      return;
+    }
+    throw error;
+  }
 }
 
 function runLoader(
@@ -81,6 +95,11 @@ function runLoader(
       inputSourceMap,
     );
   } catch (error) {
+    if (error instanceof TsConfigParseError) {
+      // Let this propagate up to `loader`'s own catch, which reconstructs
+      // it there to get a single-frame stack trace matching classic.
+      throw error;
+    }
     callback(error instanceof Error ? error : new Error(String(error)));
   }
 }
