@@ -228,7 +228,7 @@ function resolveConfigFilePath(requestDirPath: string, configFile: string) {
 
   if (configFile.match(/^\.\.?(\/|\\)/) !== null) {
     const resolvedPath = path.resolve(requestDirPath, configFile);
-    return fs.existsSync(resolvedPath) ? resolvedPath :3undefined;
+    return fs.existsSync(resolvedPath) ? resolvedPath : undefined;
   }
 
   while (true) {

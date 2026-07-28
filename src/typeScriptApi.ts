@@ -92,17 +92,25 @@ export function getTypeScriptEmit(
 
       const program = project.program;
       const emitResult = program.getJavaScriptEmit([fileName]);
-      const diagnostics = dedupeDiagnostics([
+      const perFileDiagnostics = dedupeDiagnostics([
         ...program.getSyntacticDiagnostics(fileName),
-        // Type-checking - and whole-project/emit-level diagnostics like
-        // "rootDir must be explicitly set" - are skipped entirely in
-        // transpileOnly mode, matching classic ts-loader's
-        // transpileModule-based behaviour, which never builds a full
-        // Program and so can't produce these at all.
+        // Type-checking is skipped entirely in transpileOnly mode, matching
+        // classic ts-loader's transpileModule-based behaviour.
         ...(instance.loaderOptions.transpileOnly
           ? []
           : [...emitResult.diagnostics, ...program.getSemanticDiagnostics(fileName)]),
       ]);
+
+      // Classic ts-loader's transpileOnly path (built on `ts.transpileModule`)
+      // surfaces whole-program/compiler-option diagnostics too - e.g. "rootDir
+      // must be explicitly set" - that its full-compile path doesn't (those
+      // are presumably superseded there by more specific per-file
+      // diagnostics). There's no transpileModule equivalent here, so these
+      // are pulled from the program directly, matching that same
+      // transpileOnly-only placement.
+      const programDiagnostics = instance.loaderOptions.transpileOnly
+        ? dedupeDiagnostics(program.getProgramDiagnostics())
+        : [];
 
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromTypeScriptEmit(emitResult));
@@ -112,16 +120,31 @@ export function getTypeScriptEmit(
       // Errors must be built here, synchronously, while `program` is still
       // backed by this call's temporary snapshot - it's invalidated as soon as
       // this callback returns, so it can't be held onto for later use.
-      const errors = filterIgnoredDiagnostics(instance, diagnostics).map(
-        diagnostic =>
-          buildTypeScriptError(
-            instance,
-            diagnostic,
-            program,
-            loaderContext.context,
-            loaderContext._module
-          )
-      );
+      const errors = [
+        ...filterIgnoredDiagnostics(instance, perFileDiagnostics).map(
+          diagnostic =>
+            buildTypeScriptError(
+              instance,
+              diagnostic,
+              program,
+              loaderContext.context,
+              loaderContext._module
+            )
+        ),
+        // Program diagnostics have no associated file of their own (classic
+        // attributes them to the tsconfig instead).
+        ...filterIgnoredDiagnostics(instance, programDiagnostics).map(
+          diagnostic =>
+            buildTypeScriptError(
+              instance,
+              diagnostic,
+              program,
+              loaderContext.context,
+              loaderContext._module,
+              typeScriptInstance.configFilePath
+            )
+        ),
+      ];
 
       if (instance.loaderOptions.transpileOnly) {
         // Type-checking is skipped in transpileOnly mode, so there's no need to
@@ -502,15 +525,25 @@ function buildTypeScriptError(
   diagnostic: TypeScriptDiagnostic,
   program: TypeScriptProgram,
   context: string,
-  module: webpack.Module | undefined
+  module: webpack.Module | undefined,
+  fallbackFile = ''
 ) {
   const { start, end } = getDiagnosticLocations(diagnostic, program);
+  // A diagnostic with no file of its own (e.g. a whole-program/compiler-option
+  // diagnostic) has no meaningful "in <file>(line,char)" location to report,
+  // so the formatted message leaves `file` empty; `fallbackFile` only affects
+  // the *webpack error's own* `.file`/module attribution below, matching
+  // classic ts-loader's split between `ErrorInfo.file` (from the diagnostic)
+  // and the `merge.file` passed to `makeError` (from the caller).
+  const diagnosticFile = diagnostic.fileName
+    ? path.normalize(diagnostic.fileName)
+    : '';
   const errorInfo: ErrorInfo = {
     code: diagnostic.code,
     severity: (diagnosticCategoryNames[diagnostic.category] ??
       'error') as Severity,
     content: diagnostic.text,
-    file: diagnostic.fileName ? path.normalize(diagnostic.fileName) : '',
+    file: diagnosticFile,
     line: start === undefined ? 0 : start.line,
     character: start === undefined ? 0 : start.character,
     context,
@@ -524,7 +557,7 @@ function buildTypeScriptError(
   const error = makeError(
     instance.loaderOptions,
     message,
-    errorInfo.file,
+    diagnosticFile || fallbackFile,
     start,
     end
   );

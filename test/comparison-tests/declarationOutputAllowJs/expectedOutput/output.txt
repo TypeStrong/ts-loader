@@ -1,5 +1,5 @@
 asset bundle.js 2.13 KiB [emitted] (name: main)
-asset .output/sub/dep.d.ts 99 bytes [emitted]
+asset .output/sub/dep.d.ts 107 bytes [emitted]
 asset .output/app.d.ts 59 bytes [emitted]
 ./app.ts 64 bytes [built] [code generated] [1 error]
 
