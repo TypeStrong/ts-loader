@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn build *)",
+      "Bash(yarn lint *)",
+      "Bash(yarn format *)",
+      "Bash(yarn test *)",
+      "Bash(yarn comparison-tests *)",
+      "Bash(yarn execution-tests *)",
+      "Bash(yarn clean *)",
+      "Bash(yarn install *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(git clean *)",
+      "Bash(npm ls *)",
+      "Bash(npm view *)",
+      "Bash(npm root *)",
+      "Bash(npm config *)",
+      "Bash(node *)",
+      "Bash(node_modules/.bin/tsc *)",
+      "Bash(npx tsc *)",
+      "Bash(npx mocha *)",
+      "Bash(grep *)",
+      "Read(//usr/local/lib/node_modules/**)"
+    ]
+  }
+}
