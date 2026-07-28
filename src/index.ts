@@ -109,10 +109,8 @@ function getTypeScriptInstance(
   const instance: TSInstance = {
     version: 0,
     colors,
-    log,
     loaderOptions,
     files: new Map(),
-    configFilePath,
     filePathKeyMapper: createFilePathKeyMapper(loaderOptions),
     typeScriptApiInstance: createTypeScriptApiInstance(loaderOptions, configFilePath),
     pendingDiagnostics: new Map(),
