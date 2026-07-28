@@ -29,6 +29,15 @@ import {
   tsLoaderSource,
 } from './loaderUtils';
 
+// Classic ts-loader reconstructs this specific failure as a fresh `Error`
+// directly inside its top-level `loader` function (discarding whatever
+// deeper stack the original error carried), which is why its stack trace
+// is a single `at Object.loader (...)` frame. This marker class lets
+// `index.ts` recognise the case and replicate that single-frame
+// reconstruction, rather than letting the (much deeper) throw site's own
+// stack trace through as-is.
+export class TsConfigParseError extends Error {}
+
 /** Indexed by TypeScript's DiagnosticCategory: Warning, Error, Suggestion, Message */
 const diagnosticCategoryNames = [
   'warning',
@@ -79,10 +88,19 @@ export function getTypeScriptEmit(
       // which can pick up an unrelated tsconfig.json that happens to sit closer to
       // `fileName` on disk.
       const configuredProject = temporarySnapshot.getProject(projectConfigPath);
-      const project = configuredProject?.program.getSourceFile(fileName)
+      // A configured project that failed to parse at all (e.g. an `include`
+      // pattern matching no files) is a hard failure to surface as-is, not a
+      // reason to fall back to a different project that happens to resolve
+      // `fileName` successfully (silently papering over the broken config).
+      const configuredProjectFailedToParse =
+        configuredProject !== undefined &&
+        configuredProject.program.getConfigFileParsingDiagnostics().length > 0;
+      const project = configuredProjectFailedToParse
         ? configuredProject
-        : (temporarySnapshot.getDefaultProjectForFile(fileName) ??
-          configuredProject);
+        : configuredProject?.program.getSourceFile(fileName)
+          ? configuredProject
+          : (temporarySnapshot.getDefaultProjectForFile(fileName) ??
+            configuredProject);
 
       if (!project) {
         throw new Error(
@@ -91,6 +109,37 @@ export function getTypeScriptEmit(
       }
 
       const program = project.program;
+
+      const configFileParsingDiagnostics =
+        program.getConfigFileParsingDiagnostics();
+      if (configFileParsingDiagnostics.length > 0) {
+        // A broken tsconfig (e.g. an `include` pattern matching no files) is
+        // a hard failure in classic ts-loader too, not just a diagnostic:
+        // there's nothing meaningful left to compile, so it reports the
+        // diagnostic(s) then throws, which webpack surfaces as a "Module
+        // build failed" error on top.
+        const configErrors = filterDiagnosticsForReporting(
+          instance,
+          loaderContext.context,
+          dedupeDiagnostics(configFileParsingDiagnostics),
+        ).map(diagnostic =>
+          buildTypeScriptError(
+            instance,
+            diagnostic,
+            program,
+            loaderContext.context,
+            loaderContext._module,
+            typeScriptInstance.configFilePath,
+          ),
+        );
+
+        reportTypeScriptErrors(loaderContext, configErrors);
+
+        throw new TsConfigParseError(
+          instance.colors.red('error while parsing tsconfig.json'),
+        );
+      }
+
       const emitResult = program.getJavaScriptEmit([fileName]);
       const perFileDiagnostics = dedupeDiagnostics([
         ...program.getSyntacticDiagnostics(fileName),
@@ -274,6 +323,20 @@ function prepareSnapshotForFile(
   const primaryProject = snapshot.getProject(primaryProjectPath);
 
   if (primaryProject?.program.getSourceFile(fileName)) {
+    return { snapshot, projectConfigPath: primaryProjectPath };
+  }
+
+  // A tsconfig that fails to parse at all (e.g. an `include` pattern
+  // matching no files) is a hard failure classic ts-loader surfaces
+  // directly - falling back to a synthetic config below would silently
+  // paper over that by explicitly listing `fileName`, bypassing whatever
+  // broke the primary config's own file resolution. Sticking with the
+  // (broken) primary project here instead lets the caller's config-parsing
+  // diagnostics check see the real error.
+  if (
+    primaryProject &&
+    primaryProject.program.getConfigFileParsingDiagnostics().length > 0
+  ) {
     return { snapshot, projectConfigPath: primaryProjectPath };
   }
 
