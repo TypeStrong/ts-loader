@@ -9,7 +9,6 @@ import {
   emitPendingDeclarationFiles,
   getTypeScriptEmit,
   reportPendingTypeScriptDiagnostics,
-  TsConfigParseError,
 } from './typeScriptApi';
 import type {
   FilePathKey,
@@ -44,19 +43,19 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  try {
-    runLoader(this, contents, inputSourceMap, callback);
-  } catch (error) {
+  const configParseErrorMessage = runLoader(
+    this,
+    contents,
+    inputSourceMap,
+    callback,
+  );
+  if (configParseErrorMessage !== undefined) {
     // Classic ts-loader reconstructs this specific failure as a brand new
     // `Error` right here, in `loader`'s own frame, discarding whatever
     // deeper stack the original error carried - giving it a stack trace
     // that's just a single `at Object.loader (...)` frame. Replicate that
     // so the two remain byte-for-byte comparable.
-    if (error instanceof TsConfigParseError) {
-      callback(new Error(error.message));
-      return;
-    }
-    throw error;
+    callback(new Error(configParseErrorMessage));
   }
 }
 
@@ -65,7 +64,7 @@ function runLoader(
   contents: string,
   inputSourceMap: Record<string, unknown> | undefined,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-) {
+): string | undefined {
   try {
     const options = getLoaderOptions(loaderContext);
     const instance = getTypeScriptInstance(options, loaderContext);
@@ -77,12 +76,12 @@ function runLoader(
       contents,
       instance,
     );
-    const { outputText, sourceMapText } = getTypeScriptEmit(
-      filePath,
-      contents,
-      instance,
-      loaderContext,
-    );
+    const { outputText, sourceMapText, configParseErrorMessage } =
+      getTypeScriptEmit(filePath, contents, instance, loaderContext);
+
+    if (configParseErrorMessage !== undefined) {
+      return configParseErrorMessage;
+    }
 
     makeSourceMapAndFinish(
       sourceMapText,
@@ -95,13 +94,9 @@ function runLoader(
       inputSourceMap,
     );
   } catch (error) {
-    if (error instanceof TsConfigParseError) {
-      // Let this propagate up to `loader`'s own catch, which reconstructs
-      // it there to get a single-frame stack trace matching classic.
-      throw error;
-    }
     callback(error instanceof Error ? error : new Error(String(error)));
   }
+  return undefined;
 }
 
 function getTypeScriptInstance(
