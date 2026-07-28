@@ -53,12 +53,10 @@ export interface LoaderOptions {
     | ((program: unknown, getProgram: () => unknown) => unknown);
   experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
-  experimentalFileCaching: boolean;
   projectReferences?: boolean;
   resolveModuleName?: (...args: unknown[]) => unknown;
   resolveTypeReferenceDirective?: (...args: unknown[]) => unknown;
   useCaseSensitiveFileNames?: boolean;
-  experimentalNativeApi: boolean;
 }
 
 export interface LoaderOptionsCache {
@@ -71,26 +69,26 @@ export interface TSFile {
   version: number;
 }
 
-export type NativeApi = SyncApi;
-export type NativeSnapshot = Snapshot;
-export type NativeProgram = Program;
-export type NativeEmitOutput = EmitOutput;
-export type NativeDiagnostic = Diagnostic;
-export interface NativeSourceFile {
+export type TypeScriptApi = SyncApi;
+export type TypeScriptSnapshot = Snapshot;
+export type TypeScriptProgram = Program;
+export type TypeScriptEmitOutput = EmitOutput;
+export type TypeScriptDiagnostic = Diagnostic;
+export interface TypeScriptSourceFile {
   getLineAndCharacterOfPosition(
     position: number
   ): { line: number; character: number };
 }
 
-export interface NativeInstance {
-  api: NativeApi;
+export interface TypeScriptInstance {
+  api: TypeScriptApi;
   configFilePath: string;
   syntheticConfigFiles: Map<string, string>;
   openedProjectPaths: Set<string>;
-  snapshot?: NativeSnapshot;
+  snapshot?: TypeScriptSnapshot;
 }
 
-export interface PendingNativeDiagnostics {
+export interface PendingTypeScriptDiagnostics {
   fileName: string;
   errors: webpack.WebpackError[];
 }
@@ -103,6 +101,6 @@ export interface TSInstance {
   files: Map<FilePathKey, TSFile>;
   configFilePath: string;
   filePathKeyMapper: (fileName: string) => FilePathKey;
-  nativeInstance: NativeInstance;
-  pendingDiagnostics: Map<FilePathKey, PendingNativeDiagnostics>;
+  typeScriptApiInstance: TypeScriptInstance;
+  pendingDiagnostics: Map<FilePathKey, PendingTypeScriptDiagnostics>;
 }

@@ -12,11 +12,11 @@ import type {
   FileLocation,
   FilePathKey,
   LoaderOptions,
-  NativeApi,
-  NativeDiagnostic,
-  NativeEmitOutput,
-  NativeInstance,
-  NativeProgram,
+  TypeScriptApi,
+  TypeScriptDiagnostic,
+  TypeScriptEmitOutput,
+  TypeScriptInstance as TypeScriptApiInstance,
+  TypeScriptProgram,
   Severity,
   TSInstance,
 } from './types';
@@ -35,39 +35,39 @@ const diagnosticCategoryNames = [
   'message',
 ] as const;
 
-type NativeApiModule = {
-  API: new (options?: APIOptions) => NativeApi;
+type TypeScriptApiModule = {
+  API: new (options?: APIOptions) => TypeScriptApi;
 };
 
-export function createNativeInstance(
+export function createTypeScriptApiInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string
-): NativeInstance {
-  const nativeApiModule = loadNativeApiModule(loaderOptions.compiler);
+): TypeScriptApiInstance {
+  const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
   return {
-    api: new nativeApiModule.API(),
+    api: new typeScriptApiModule.API(),
     configFilePath,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
   };
 }
 
-export function getNativeEmit(
+export function getTypeScriptEmit(
   fileName: string,
   contents: string,
   instance: TSInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>
 ) {
-  const nativeInstance = instance.nativeInstance;
+  const typeScriptInstance = instance.typeScriptApiInstance;
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
-    nativeInstance,
+    typeScriptInstance,
     fileName
   );
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
 
-  nativeInstance.api.runWithTemporaryFileUpdate(
+  typeScriptInstance.api.runWithTemporaryFileUpdate(
     snapshot,
     fileName,
     contents,
@@ -85,7 +85,7 @@ export function getNativeEmit(
 
       if (!project) {
         throw new Error(
-          `Native TypeScript mode could not resolve project for ${fileName}.`
+          `TypeScript TypeScript mode could not resolve project for ${fileName}.`
         );
       }
 
@@ -102,16 +102,16 @@ export function getNativeEmit(
       ]);
 
       ({ outputText, sourceMapText } =
-        getOutputAndSourceMapFromNativeEmit(emitResult));
+        getOutputAndSourceMapFromTypeScriptEmit(emitResult));
 
-      registerNativeDependencies(loaderContext, program, fileName);
+      registerTypeScriptDependencies(loaderContext, program, fileName);
 
       // Errors must be built here, synchronously, while `program` is still
       // backed by this call's temporary snapshot - it's invalidated as soon as
       // this callback returns, so it can't be held onto for later use.
       const errors = filterIgnoredDiagnostics(instance, diagnostics).map(
         diagnostic =>
-          buildNativeError(
+          buildTypeScriptError(
             instance,
             diagnostic,
             program,
@@ -124,10 +124,10 @@ export function getNativeEmit(
         // Type-checking is skipped in transpileOnly mode, so there's no need to
         // wait for the rest of the compilation: report immediately, matching
         // classic ts-loader's transpileModule-based behaviour.
-        reportNativeErrors(loaderContext, errors);
+        reportTypeScriptErrors(loaderContext, errors);
       } else {
         // Defer attaching these errors to a module until the compilation's
-        // processAssets hook (see reportPendingNativeDiagnostics in index.ts),
+        // processAssets hook (see reportPendingTypeScriptDiagnostics in index.ts),
         // matching classic ts-loader: reporting only once webpack has finished
         // parsing every module's output means we can tell whether webpack
         // already recorded its own error for this module (e.g. a "Module parse
@@ -144,15 +144,15 @@ export function getNativeEmit(
   return { outputText, sourceMapText };
 }
 
-function loadNativeApiModule(compilerPackage: string): NativeApiModule {
+function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   const specifier = `${compilerPackage}/unstable/sync`;
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- ESM-only entrypoint, loadable via Node's require(esm) support (Node >= 22.12)
-    return require(specifier) as NativeApiModule;
+    return require(specifier) as TypeScriptApiModule;
   } catch (error) {
     throw new Error(
-      `Could not load TypeScript native API from "${specifier}": ${
+      `Could not load TypeScript typeScript API from "${specifier}": ${
         error instanceof Error ? error.message : String(error)
       }`
     );
@@ -160,32 +160,32 @@ function loadNativeApiModule(compilerPackage: string): NativeApiModule {
 }
 
 function updateSnapshot(
-  nativeInstance: NativeInstance,
+  typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
   openProjects?: string[]
 ) {
-  const previousSnapshot = nativeInstance.snapshot;
-  const snapshot = nativeInstance.api.updateSnapshot(
+  const previousSnapshot = typeScriptInstance.snapshot;
+  const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
       ? { openProjects, openFiles: [fileName] }
       : { openFiles: [fileName] }
   );
 
-  nativeInstance.snapshot = snapshot;
+  typeScriptInstance.snapshot = snapshot;
   openProjects?.forEach(projectPath =>
-    nativeInstance.openedProjectPaths.add(projectPath)
+    typeScriptInstance.openedProjectPaths.add(projectPath)
   );
   previousSnapshot?.dispose?.();
 
   return snapshot;
 }
 
-function prepareSnapshotForFile(nativeInstance: NativeInstance, fileName: string) {
-  const primaryProjectPath = nativeInstance.configFilePath;
+function prepareSnapshotForFile(typeScriptInstance: TypeScriptApiInstance, fileName: string) {
+  const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
-    nativeInstance,
+    typeScriptInstance,
     fileName,
-    nativeInstance.openedProjectPaths.has(primaryProjectPath)
+    typeScriptInstance.openedProjectPaths.has(primaryProjectPath)
       ? undefined
       : [primaryProjectPath]
   );
@@ -196,15 +196,15 @@ function prepareSnapshotForFile(nativeInstance: NativeInstance, fileName: string
   }
 
   const syntheticConfigPath = ensureSyntheticConfigForFile(
-    nativeInstance,
+    typeScriptInstance,
     primaryProjectPath,
     primaryProject?.parsedCommandLine.fileNames ?? [],
     fileName
   );
   const syntheticSnapshot = updateSnapshot(
-    nativeInstance,
+    typeScriptInstance,
     fileName,
-    nativeInstance.openedProjectPaths.has(syntheticConfigPath)
+    typeScriptInstance.openedProjectPaths.has(syntheticConfigPath)
       ? undefined
       : [syntheticConfigPath]
   );
@@ -213,12 +213,12 @@ function prepareSnapshotForFile(nativeInstance: NativeInstance, fileName: string
 }
 
 function ensureSyntheticConfigForFile(
-  nativeInstance: NativeInstance,
+  typeScriptInstance: TypeScriptApiInstance,
   configFilePath: string,
   rootFiles: readonly string[],
   fileName: string
 ) {
-  const existing = nativeInstance.syntheticConfigFiles.get(fileName);
+  const existing = typeScriptInstance.syntheticConfigFiles.get(fileName);
   if (existing) {
     return existing;
   }
@@ -239,7 +239,7 @@ function ensureSyntheticConfigForFile(
     2
   );
   fs.writeFileSync(syntheticConfigPath, configText);
-  nativeInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
+  typeScriptInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
   return syntheticConfigPath;
 }
 
@@ -247,7 +247,7 @@ function hashFileName(fileName: string) {
   return crypto.createHash('sha1').update(fileName).digest('hex').slice(0, 12);
 }
 
-function getOutputAndSourceMapFromNativeEmit(emitResult: NativeEmitOutput) {
+function getOutputAndSourceMapFromTypeScriptEmit(emitResult: TypeScriptEmitOutput) {
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
 
@@ -262,9 +262,9 @@ function getOutputAndSourceMapFromNativeEmit(emitResult: NativeEmitOutput) {
   return { outputText, sourceMapText };
 }
 
-function registerNativeDependencies(
+function registerTypeScriptDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  program: NativeProgram,
+  program: TypeScriptProgram,
   fileName: string
 ) {
   loaderContext.clearDependencies();
@@ -307,7 +307,7 @@ function registerNativeDependencies(
   }
 }
 
-function reportNativeErrors(
+function reportTypeScriptErrors(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   errors: readonly webpack.WebpackError[]
 ) {
@@ -334,14 +334,14 @@ function reportNativeErrors(
  *
  * `instance.pendingDiagnostics` is intentionally *not* cleared after
  * reporting: each entry is only overwritten when its file is recompiled (see
- * getNativeEmit), so a file's errors keep being re-reported on every
+ * getTypeScriptEmit), so a file's errors keep being re-reported on every
  * subsequent compilation even if webpack's cache means that file itself
  * doesn't get rebuilt - matching classic ts-loader's `filesWithErrors`
  * re-check behaviour. Fixing the file (or removing the error) naturally
  * clears it, since recompiling always overwrites the entry with fresh
  * (possibly empty) errors.
  */
-export function reportPendingNativeDiagnostics(
+export function reportPendingTypeScriptDiagnostics(
   instance: TSInstance,
   compilation: webpack.Compilation
 ) {
@@ -381,7 +381,7 @@ export function reportPendingNativeDiagnostics(
 
 function filterIgnoredDiagnostics(
   instance: TSInstance,
-  diagnostics: readonly NativeDiagnostic[]
+  diagnostics: readonly TypeScriptDiagnostic[]
 ) {
   return diagnostics.filter(
     diagnostic =>
@@ -389,10 +389,10 @@ function filterIgnoredDiagnostics(
   );
 }
 
-function buildNativeError(
+function buildTypeScriptError(
   instance: TSInstance,
-  diagnostic: NativeDiagnostic,
-  program: NativeProgram,
+  diagnostic: TypeScriptDiagnostic,
+  program: TypeScriptProgram,
   context: string,
   module: webpack.Module | undefined
 ) {
@@ -424,7 +424,7 @@ function buildNativeError(
   // Matches classic ts-loader: tag the error with its module explicitly so
   // webpack's stats can still group/locate it correctly even when it's only
   // pushed onto `compilation.errors` without being attached via
-  // `module.addError` (see reportPendingNativeDiagnostics).
+  // `module.addError` (see reportPendingTypeScriptDiagnostics).
   if (module) {
     error.module = module;
   }
@@ -514,8 +514,8 @@ function moduleHasWebpackErrors(module: webpack.Module) {
 }
 
 function getDiagnosticLocations(
-  diagnostic: NativeDiagnostic,
-  program: NativeProgram
+  diagnostic: TypeScriptDiagnostic,
+  program: TypeScriptProgram
 ): { start: FileLocation | undefined; end: FileLocation | undefined } {
   if (!diagnostic.fileName || diagnostic.pos < 0) {
     return { start: undefined, end: undefined };
@@ -562,7 +562,7 @@ function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
   );
 }
 
-function dedupeDiagnostics(diagnostics: readonly NativeDiagnostic[]) {
+function dedupeDiagnostics(diagnostics: readonly TypeScriptDiagnostic[]) {
   const seen = new Set<string>();
 
   return diagnostics.filter(diagnostic => {
