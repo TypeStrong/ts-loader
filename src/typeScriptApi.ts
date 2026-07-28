@@ -115,7 +115,7 @@ export function getTypeScriptEmit(
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromTypeScriptEmit(emitResult));
 
-      registerTypeScriptDependencies(loaderContext, program, fileName);
+      registerTypeScriptDependencies(loaderContext, program, fileName, instance);
 
       // Errors must be built here, synchronously, while `program` is still
       // backed by this call's temporary snapshot - it's invalidated as soon as
@@ -209,10 +209,20 @@ function updateSnapshot(
   openProjects?: string[]
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
+  // `openFiles` only tells the API which file has a live, in-memory override
+  // for *this* call (via the temporary-file-update below) - it's not a signal
+  // that any file changed on disk. ts-loader only ever learns about the one
+  // file webpack is currently asking it to compile, not which *other* project
+  // files (e.g. a dependency) may have changed on disk since the last
+  // snapshot - so there's no specific file list to report here. Without
+  // `invalidateAll`, those other files would stay cached with whatever
+  // content the API last saw, even after they've genuinely changed on disk -
+  // exactly what happens on every watch-mode rebuild.
+  const fileChanges = { invalidateAll: true } as const;
   const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
-      ? { openProjects, openFiles: [fileName] }
-      : { openFiles: [fileName] }
+      ? { openProjects, openFiles: [fileName], fileChanges }
+      : { openFiles: [fileName], fileChanges }
   );
 
   typeScriptInstance.snapshot = snapshot;
@@ -309,20 +319,30 @@ function getOutputAndSourceMapFromTypeScriptEmit(emitResult: TypeScriptEmitOutpu
 function registerTypeScriptDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   program: TypeScriptProgram,
-  fileName: string
+  fileName: string,
+  instance: TSInstance
 ) {
   loaderContext.clearDependencies();
   loaderContext.addDependency(fileName);
 
+  // Every *other* file this one is made dependent on below, tracked
+  // separately from `fileName` itself so their versions can be baked into
+  // this module's buildMeta afterwards (see the comment further down).
+  const dependencies: string[] = [];
+  const addDependency = (dependencyFileName: string) => {
+    loaderContext.addDependency(dependencyFileName);
+    dependencies.push(dependencyFileName);
+  };
+
   // Make this file dependent on *all* definition files in the program, since
   // they aren't necessarily reflected in webpack's own module graph (they're
   // rarely `require`d at runtime) but can still affect this file's type-check.
-  // Regular .ts/.tsx/.js source files are deliberately excluded here: webpack
-  // already tracks those as dependencies via its own module resolution when
-  // they're actually required/imported, and adding them again here would make
-  // every file's build cache dependent on every other file in the program,
+  // Regular .ts/.tsx/.js source files are handled separately below, scoped to
+  // this file's own resolved imports: adding every source file in the program
+  // here would make every file's build cache dependent on every other file,
   // even ones it doesn't really depend on (e.g. a module TypeScript failed to
-  // resolve, and thus never emitted a `require` for).
+  // resolve, and thus never emitted a `require` for - see
+  // registerResolvedImportDependencies).
   for (const otherFileName of program.getSourceFileNames()) {
     if (
       otherFileName === fileName ||
@@ -338,8 +358,17 @@ function registerTypeScriptDependencies(
       !program.isSourceFileDefaultLibrary(sourceFile) &&
       !program.isSourceFileFromExternalLibrary(sourceFile)
     ) {
-      loaderContext.addDependency(otherFileName);
+      addDependency(otherFileName);
     }
+  }
+
+  // Cross-file dependency tracking is only meaningful for a full,
+  // type-checked compile: transpileOnly mode never looks at another file's
+  // types (matching classic ts-loader's isolated `transpileModule`
+  // behaviour), so a dependency's content genuinely can't affect this file's
+  // transpiled output, and shouldn't force a rebuild of it.
+  if (!instance.loaderOptions.transpileOnly) {
+    registerResolvedImportDependencies(program, fileName, addDependency);
   }
 
   for (const fileName of program.getConfigFileNames()) {
@@ -349,6 +378,100 @@ function registerTypeScriptDependencies(
       loaderContext.addDependency(fileName);
     }
   }
+
+  // A dependency's content can change this file's *diagnostics* even when its
+  // own emitted JavaScript doesn't (e.g. `dep1.ts`'s exported function
+  // signature changing which of `fileName`'s calls now type-check). Without
+  // this, webpack may see this module's own source and dependency list as
+  // unchanged from a previous build and reuse a cached code-generation
+  // result, silently dropping/keeping stale diagnostics. Matches classic
+  // ts-loader's `buildMeta.tsLoaderDefinitionFileVersions`.
+  if (loaderContext._module?.buildMeta !== undefined) {
+    loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions =
+      dependencies.map(
+        dependencyFileName =>
+          `${dependencyFileName}@${
+            instance.files.get(instance.filePathKeyMapper(dependencyFileName))
+              ?.version ?? '?'
+          }`
+      );
+  }
+}
+
+/**
+ * Makes `fileName` dependent on whichever *other project source files* it
+ * actually imports via a relative specifier (e.g. `./dep1`), so that webpack
+ * knows to rebuild it when one of those genuinely-resolved dependencies
+ * changes - matching classic ts-loader's dependency-graph-based tracking
+ * (`instance.dependencyGraph`, populated from TypeScript's own module
+ * resolution). Without this, a file whose type-check depends on another
+ * file's exports (not just its own .d.ts declarations) would incorrectly stay
+ * cached across rebuilds of that dependency.
+ *
+ * Bare/absolute specifiers (an npm package, or anything TypeScript couldn't
+ * resolve at all, e.g. via a webpack-only alias) are deliberately left alone:
+ * webpack's own module graph already tracks genuinely bundled ones, and it
+ * would be wrong to force a rebuild whenever some unrelated file matching an
+ * *unresolved* specifier happens to change (see the aliasResolution test).
+ */
+function registerResolvedImportDependencies(
+  program: TypeScriptProgram,
+  fileName: string,
+  addDependency: (dependencyFileName: string) => void
+) {
+  const sourceFile = program.getSourceFile(fileName);
+  if (!sourceFile) {
+    return;
+  }
+
+  const sourceFileNames = new Set(program.getSourceFileNames());
+  const fromDir = path.dirname(fileName);
+
+  for (const specifierNode of sourceFile.imports) {
+    // `imports` is a module specifier expression - a string literal in
+    // practice for both `import ... from '...'` and `require('...')` - but
+    // the API types it as a generic `Node`, which has no `.text`.
+    const specifier = (specifierNode as unknown as { text: string }).text;
+    if (typeof specifier !== 'string' || !specifier.startsWith('.')) {
+      continue;
+    }
+
+    const resolvedFileName = resolveRelativeSpecifier(
+      fromDir,
+      specifier,
+      sourceFileNames
+    );
+
+    if (resolvedFileName && resolvedFileName !== fileName) {
+      addDependency(resolvedFileName);
+    }
+  }
+}
+
+const relativeSpecifierExtensions = ['', '.ts', '.tsx', '.d.ts', '.js', '.jsx'];
+
+function resolveRelativeSpecifier(
+  fromDir: string,
+  specifier: string,
+  sourceFileNames: ReadonlySet<string>
+): string | undefined {
+  const resolvedBase = path.resolve(fromDir, specifier);
+
+  for (const extension of relativeSpecifierExtensions) {
+    const candidate = resolvedBase + extension;
+    if (sourceFileNames.has(candidate)) {
+      return candidate;
+    }
+  }
+
+  for (const extension of relativeSpecifierExtensions) {
+    const candidate = path.join(resolvedBase, `index${extension}`);
+    if (sourceFileNames.has(candidate)) {
+      return candidate;
+    }
+  }
+
+  return undefined;
 }
 
 /**
