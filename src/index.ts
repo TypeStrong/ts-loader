@@ -5,10 +5,10 @@ import * as path from 'path';
 import * as webpack from 'webpack';
 
 import {
-  createNativeInstance,
-  getNativeEmit,
-  reportPendingNativeDiagnostics,
-} from './native';
+  createTypeScriptApiInstance,
+  getTypeScriptEmit,
+  reportPendingTypeScriptDiagnostics,
+} from './typeScriptApi';
 import type {
   FilePathKey,
   LoaderOptions,
@@ -57,7 +57,7 @@ function runLoader(
     const rawFilePath = path.normalize(loaderContext.resourcePath);
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
     const fileVersion = updateFileInCache(options, filePath, contents, instance);
-    const { outputText, sourceMapText } = getNativeEmit(
+    const { outputText, sourceMapText } = getTypeScriptEmit(
       filePath,
       contents,
       instance,
@@ -114,7 +114,7 @@ function getTypeScriptInstance(
     files: new Map(),
     configFilePath,
     filePathKeyMapper: createFilePathKeyMapper(loaderOptions),
-    nativeInstance: createNativeInstance(loaderOptions, configFilePath),
+    typeScriptApiInstance: createTypeScriptApiInstance(loaderOptions, configFilePath),
     pendingDiagnostics: new Map(),
   };
 
@@ -130,7 +130,7 @@ function getTypeScriptInstance(
 
   setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
   log.logInfo(
-    `ts-loader: Using ${loaderOptions.compiler} native API with ${configFilePath}`
+    `ts-loader: Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`
   );
   return instance;
 }
@@ -139,7 +139,7 @@ function getTypeScriptInstance(
  * Diagnostics for non-transpileOnly compiles are gathered per-file but not
  * attached to modules until webpack has finished building/parsing every
  * module in the compilation - matching classic ts-loader's afterCompile
- * timing (see reportPendingNativeDiagnostics).
+ * timing (see reportPendingTypeScriptDiagnostics).
  *
  * Webpack 5 deprecated reporting errors from the `afterCompile` hook in
  * favour of the `processAssets` hook on the compilation itself (this mirrors
@@ -159,7 +159,7 @@ function addDiagnosticReportingHooks(
 ) {
   const report = (compilation: webpack.Compilation) => {
     if (!compilation.compiler.isChild()) {
-      reportPendingNativeDiagnostics(instance, compilation);
+      reportPendingTypeScriptDiagnostics(instance, compilation);
     }
   };
 
@@ -263,12 +263,10 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'experimentalWatchApi',
   'allowTsInNodeModules',
-  'experimentalFileCaching',
   'projectReferences',
   'resolveModuleName',
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
-  'experimentalNativeApi',
 ];
 
 function validateLoaderOptions(loaderOptions: LoaderOptions) {
@@ -341,7 +339,7 @@ function getLoaderOptions(
     {},
     {
       silent: false,
-      logLevel: 'WARN',
+      logLevel: 'WARN' as LogLevel,
       logInfoToStdOut: false,
       compiler: 'typescript',
       context: undefined,
@@ -354,10 +352,8 @@ function getLoaderOptions(
       reportFiles: [],
       experimentalWatchApi: false,
       allowTsInNodeModules: false,
-      experimentalFileCaching: true,
-      experimentalNativeApi: true,
-      ignoreDiagnostics: [],
-    } as Partial<LoaderOptions>,
+      ignoreDiagnostics: [] as number[],
+    } satisfies Partial<LoaderOptions>,
     loaderOptions
   );
 

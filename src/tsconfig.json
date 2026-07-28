@@ -15,14 +15,5 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true
-  },
-  "files": [
-    "./constants.ts",
-    "./index.ts",
-    "./instance-cache.ts",
-    "./loaderUtils.ts",
-    "./logger.ts",
-    "./native.ts",
-    "./types.ts"
-  ]
+  }
 }

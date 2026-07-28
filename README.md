@@ -62,7 +62,6 @@
     + [useCaseSensitiveFileNames](#useCaseSensitiveFileNames)
     + [allowTsInNodeModules](#allowtsinnodemodules)
     + [context](#context)
-    + [experimentalFileCaching](#experimentalfilecaching)
     + [projectReferences](#projectreferences)
   * [Usage with webpack watch](#usage-with-webpack-watch)
   * [Hot Module replacement](#hot-module-replacement)
@@ -678,16 +677,6 @@ Extending `tsconfig.json`:
 ```
 
 Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
-
-#### experimentalFileCaching
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `true`|
-
-By default whenever the TypeScript compiler needs to check that a file/directory exists or resolve symlinks it makes syscalls. It does not cache the result of these operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
-In some cases it may produce performance degradation.
-
-This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler. Note that caches are cleared between compilations.
 
 #### projectReferences
 | Type | Default Value |
