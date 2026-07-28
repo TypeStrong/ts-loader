@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { Chalk } from 'chalk';
+import picomatch from 'picomatch';
 import * as webpack from 'webpack';
 import type { APIOptions } from 'typescript/unstable/sync';
 
@@ -128,28 +129,34 @@ export function getTypeScriptEmit(
       // backed by this call's temporary snapshot - it's invalidated as soon as
       // this callback returns, so it can't be held onto for later use.
       const errors = [
-        ...filterIgnoredDiagnostics(instance, perFileDiagnostics).map(
-          diagnostic =>
-            buildTypeScriptError(
-              instance,
-              diagnostic,
-              program,
-              loaderContext.context,
-              loaderContext._module,
-            ),
+        ...filterDiagnosticsForReporting(
+          instance,
+          loaderContext.context,
+          perFileDiagnostics,
+        ).map(diagnostic =>
+          buildTypeScriptError(
+            instance,
+            diagnostic,
+            program,
+            loaderContext.context,
+            loaderContext._module,
+          ),
         ),
         // Program diagnostics have no associated file of their own (classic
         // attributes them to the tsconfig instead).
-        ...filterIgnoredDiagnostics(instance, programDiagnostics).map(
-          diagnostic =>
-            buildTypeScriptError(
-              instance,
-              diagnostic,
-              program,
-              loaderContext.context,
-              loaderContext._module,
-              typeScriptInstance.configFilePath,
-            ),
+        ...filterDiagnosticsForReporting(
+          instance,
+          loaderContext.context,
+          programDiagnostics,
+        ).map(diagnostic =>
+          buildTypeScriptError(
+            instance,
+            diagnostic,
+            program,
+            loaderContext.context,
+            loaderContext._module,
+            typeScriptInstance.configFilePath,
+          ),
         ),
       ];
 
@@ -684,14 +691,64 @@ export function emitPendingDeclarationFiles(
   }
 }
 
-function filterIgnoredDiagnostics(
+function filterDiagnosticsForReporting(
   instance: TSInstance,
+  context: string,
   diagnostics: readonly TypeScriptDiagnostic[],
-) {
-  return diagnostics.filter(
-    diagnostic =>
-      instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1,
+): TypeScriptDiagnostic[] {
+  const matchesReportFiles = makeReportFilesMatcher(
+    instance.loaderOptions.reportFiles,
   );
+
+  return diagnostics.filter(diagnostic => {
+    if (instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) !== -1) {
+      return false;
+    }
+
+    if (
+      matchesReportFiles !== null &&
+      diagnostic.fileName !== undefined &&
+      !matchesReportFiles(path.relative(context, diagnostic.fileName))
+    ) {
+      return false;
+    }
+
+    return true;
+  });
+}
+
+/**
+ * Builds a file-matcher from a `reportFiles` pattern array that replicates
+ * micromatch/picomatch semantics: a file must match a positive pattern AND
+ * not match any negative (`!`-prefixed) pattern. Returns `null` when
+ * `reportFiles` is empty (no filtering).
+ */
+function makeReportFilesMatcher(
+  reportFiles: readonly string[],
+): ((fileName: string) => boolean) | null {
+  if (reportFiles.length === 0) {
+    return null;
+  }
+
+  const positivePatterns: string[] = [];
+  const negativePatterns: string[] = [];
+
+  for (const pattern of reportFiles) {
+    if (pattern.startsWith('!')) {
+      negativePatterns.push(pattern.slice(1));
+    } else {
+      positivePatterns.push(pattern);
+    }
+  }
+
+  const matchPositive = picomatch(
+    positivePatterns.length > 0 ? positivePatterns : ['**'],
+  );
+  const matchNegative =
+    negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
+
+  return (fileName: string) =>
+    matchPositive(fileName) && !(matchNegative && matchNegative(fileName));
 }
 
 function buildTypeScriptError(
