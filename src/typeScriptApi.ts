@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { Chalk } from 'chalk';
-import type * as webpack from 'webpack';
+import * as webpack from 'webpack';
 import type { APIOptions } from 'typescript/unstable/sync';
 
 import * as constants from './constants';
@@ -12,6 +12,7 @@ import type {
   FileLocation,
   FilePathKey,
   LoaderOptions,
+  PendingDeclarationFile,
   TypeScriptApi,
   TypeScriptDiagnostic,
   TypeScriptEmitOutput,
@@ -92,13 +93,15 @@ export function getTypeScriptEmit(
       const program = project.program;
       const emitResult = program.getJavaScriptEmit([fileName]);
       const diagnostics = dedupeDiagnostics([
-        ...emitResult.diagnostics,
         ...program.getSyntacticDiagnostics(fileName),
-        // Type-checking is skipped entirely in transpileOnly mode, matching
-        // classic ts-loader's transpileModule-based behaviour.
+        // Type-checking - and whole-project/emit-level diagnostics like
+        // "rootDir must be explicitly set" - are skipped entirely in
+        // transpileOnly mode, matching classic ts-loader's
+        // transpileModule-based behaviour, which never builds a full
+        // Program and so can't produce these at all.
         ...(instance.loaderOptions.transpileOnly
           ? []
-          : program.getSemanticDiagnostics(fileName)),
+          : [...emitResult.diagnostics, ...program.getSemanticDiagnostics(fileName)]),
       ]);
 
       ({ outputText, sourceMapText } =
@@ -137,6 +140,24 @@ export function getTypeScriptEmit(
           fileName,
           errors,
         });
+      }
+
+      // Declaration files, like errors, are only produced from a full
+      // (non-transpileOnly) compile, and their content must be read out here,
+      // synchronously, for the same reason as `errors` above. Emitting them as
+      // webpack assets is deferred to emitPendingDeclarationFiles.
+      if (
+        !instance.loaderOptions.transpileOnly &&
+        program.getCompilerOptions().declaration
+      ) {
+        // The whole project is scanned here - not just `fileName` - because
+        // some project files (e.g. a plain .js file pulled in via `allowJs`)
+        // are never themselves passed through ts-loader's own webpack rule,
+        // so this is the only opportunity to emit their declarations too.
+        // Matches classic ts-loader's `provideDeclarationFilesToWebpack`,
+        // which likewise emits declarations for every project file matching
+        // this same regex, not just files webpack's rule happens to compile.
+        recordProjectDeclarationFiles(instance, program);
       }
     }
   );
@@ -307,6 +328,54 @@ function registerTypeScriptDependencies(
   }
 }
 
+/**
+ * Emits declarations for every source file in the project matching the given
+ * compiler options' allowJs setting - not just the file currently being
+ * compiled - matching classic ts-loader's `provideDeclarationFilesToWebpack`.
+ */
+function recordProjectDeclarationFiles(
+  instance: TSInstance,
+  program: TypeScriptProgram
+) {
+  const filePathRegex = program.getCompilerOptions().allowJs
+    ? constants.dtsTsTsxJsJsxRegex
+    : constants.dtsTsTsxRegex;
+
+  for (const projectFileName of program.getSourceFileNames()) {
+    if (!filePathRegex.test(projectFileName)) {
+      continue;
+    }
+
+    const sourceFile = program.getSourceFile(projectFileName);
+
+    if (
+      !sourceFile ||
+      program.isSourceFileDefaultLibrary(sourceFile) ||
+      program.isSourceFileFromExternalLibrary(sourceFile)
+    ) {
+      continue;
+    }
+
+    const declarationEmit = program.getDeclarationEmit([projectFileName]);
+    const declarationFiles: PendingDeclarationFile[] = [];
+
+    for (const [
+      declarationFileName,
+      declarationOutputFile,
+    ] of declarationEmit.outputFiles) {
+      declarationFiles.push({
+        fileName: declarationFileName,
+        text: declarationOutputFile.text,
+      });
+    }
+
+    instance.pendingDeclarationFiles.set(
+      instance.filePathKeyMapper(projectFileName),
+      declarationFiles
+    );
+  }
+}
+
 function reportTypeScriptErrors(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   errors: readonly webpack.WebpackError[]
@@ -376,6 +445,45 @@ export function reportPendingTypeScriptDiagnostics(
 
       compilation.errors.push(...errors);
     });
+  }
+}
+
+/**
+ * Emits declaration (.d.ts, and .d.ts.map if `declarationMap` is set) files
+ * gathered from full (non-transpileOnly) compiles as webpack assets, matching
+ * classic ts-loader's `provideDeclarationFilesToWebpack`/
+ * `addDeclarationFilesAsAsset`. Like `reportPendingTypeScriptDiagnostics`,
+ * `instance.pendingDeclarationFiles` is never cleared - each entry persists
+ * and keeps being re-emitted every compilation until its source file is
+ * recompiled, so the assets aren't lost on a rebuild that doesn't touch that
+ * particular file.
+ */
+export function emitPendingDeclarationFiles(
+  instance: TSInstance,
+  compilation: webpack.Compilation
+) {
+  for (const declarationFiles of instance.pendingDeclarationFiles.values()) {
+    for (const { fileName, text } of declarationFiles) {
+      const assetPath = path
+        .relative(compilation.compiler.outputPath, fileName)
+        .replace(/\\/g, '/');
+
+      if (isWebpack5) {
+        compilation.emitAsset(assetPath, new webpack.sources.RawSource(text));
+      } else {
+        (
+          compilation as unknown as {
+            assets: Record<
+              string,
+              { source: () => string; size: () => number }
+            >;
+          }
+        ).assets[assetPath] = {
+          source: () => text,
+          size: () => Buffer.byteLength(text, 'utf8'),
+        };
+      }
+    }
   }
 }
 

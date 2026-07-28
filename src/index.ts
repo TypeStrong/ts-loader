@@ -6,6 +6,7 @@ import * as webpack from 'webpack';
 
 import {
   createTypeScriptApiInstance,
+  emitPendingDeclarationFiles,
   getTypeScriptEmit,
   reportPendingTypeScriptDiagnostics,
 } from './typeScriptApi';
@@ -114,6 +115,7 @@ function getTypeScriptInstance(
     filePathKeyMapper: createFilePathKeyMapper(loaderOptions),
     typeScriptApiInstance: createTypeScriptApiInstance(loaderOptions, configFilePath),
     pendingDiagnostics: new Map(),
+    pendingDeclarationFiles: new Map(),
   };
 
   if (loaderUtils.isWebpack5) {
@@ -123,7 +125,7 @@ function getTypeScriptInstance(
   }
 
   if (!loaderOptions.transpileOnly) {
-    addDiagnosticReportingHooks(loader, instance);
+    addPostCompileHooks(loader, instance);
   }
 
   setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
@@ -134,12 +136,13 @@ function getTypeScriptInstance(
 }
 
 /**
- * Diagnostics for non-transpileOnly compiles are gathered per-file but not
- * attached to modules until webpack has finished building/parsing every
- * module in the compilation - matching classic ts-loader's afterCompile
- * timing (see reportPendingTypeScriptDiagnostics).
+ * Diagnostics and declaration files for non-transpileOnly compiles are
+ * gathered per-file but not attached to the compilation until webpack has
+ * finished building/parsing every module - matching classic ts-loader's
+ * afterCompile timing (see reportPendingTypeScriptDiagnostics and
+ * emitPendingDeclarationFiles).
  *
- * Webpack 5 deprecated reporting errors from the `afterCompile` hook in
+ * Webpack 5 deprecated reporting errors/assets from the `afterCompile` hook in
  * favour of the `processAssets` hook on the compilation itself (this mirrors
  * classic ts-loader's own `addAssetHooks`). `compiler.hooks.compilation` only
  * fires for compilations created *after* this tap is registered, so the
@@ -151,13 +154,14 @@ function getTypeScriptInstance(
  * compilation automatically, so no extra wiring for future compilations is
  * needed there.
  */
-function addDiagnosticReportingHooks(
+function addPostCompileHooks(
   loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance
 ) {
   const report = (compilation: webpack.Compilation) => {
     if (!compilation.compiler.isChild()) {
       reportPendingTypeScriptDiagnostics(instance, compilation);
+      emitPendingDeclarationFiles(instance, compilation);
     }
   };
 
@@ -224,7 +228,7 @@ function resolveConfigFilePath(requestDirPath: string, configFile: string) {
 
   if (configFile.match(/^\.\.?(\/|\\)/) !== null) {
     const resolvedPath = path.resolve(requestDirPath, configFile);
-    return fs.existsSync(resolvedPath) ? resolvedPath : undefined;
+    return fs.existsSync(resolvedPath) ? resolvedPath :3undefined;
   }
 
   while (true) {

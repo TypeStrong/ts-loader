@@ -91,6 +91,11 @@ export interface PendingTypeScriptDiagnostics {
   errors: webpack.WebpackError[];
 }
 
+export interface PendingDeclarationFile {
+  fileName: string;
+  text: string;
+}
+
 export interface TSInstance {
   version: number;
   colors: Chalk;
@@ -99,4 +104,5 @@ export interface TSInstance {
   filePathKeyMapper: (fileName: string) => FilePathKey;
   typeScriptApiInstance: TypeScriptInstance;
   pendingDiagnostics: Map<FilePathKey, PendingTypeScriptDiagnostics>;
+  pendingDeclarationFiles: Map<FilePathKey, PendingDeclarationFile[]>;
 }
