@@ -137,33 +137,54 @@ function getTypeScriptInstance(
 
 /**
  * Diagnostics for non-transpileOnly compiles are gathered per-file but not
- * attached to modules until this compilation's processAssets stage (see
- * reportPendingNativeDiagnostics), by which point webpack has finished
- * building/parsing every module - matching classic ts-loader's afterCompile
- * timing. `compiler.hooks.compilation` only fires for compilations created
- * *after* this tap is registered, so the current (first) compilation, already
- * available as `loader._compilation`, needs to be wired up directly too.
+ * attached to modules until webpack has finished building/parsing every
+ * module in the compilation - matching classic ts-loader's afterCompile
+ * timing (see reportPendingNativeDiagnostics).
+ *
+ * Webpack 5 deprecated reporting errors from the `afterCompile` hook in
+ * favour of the `processAssets` hook on the compilation itself (this mirrors
+ * classic ts-loader's own `addAssetHooks`). `compiler.hooks.compilation` only
+ * fires for compilations created *after* this tap is registered, so the
+ * current (first) compilation, already available as `loader._compilation`,
+ * needs to be wired up directly too.
+ *
+ * Webpack 4 has no `processAssets` hook at all, so it uses
+ * `compiler.hooks.afterCompile` directly - that hook already fires once per
+ * compilation automatically, so no extra wiring for future compilations is
+ * needed there.
  */
 function addDiagnosticReportingHooks(
   loader: webpack.LoaderContext<LoaderOptions>,
   instance: TSInstance
 ) {
-  const attachToCompilation = (compilation: webpack.Compilation) => {
-    compilation.hooks.processAssets.tap(
-      {
-        name: 'ts-loader',
-        stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
-      },
-      () => {
-        if (!compilation.compiler.isChild()) {
-          reportPendingNativeDiagnostics(instance, compilation);
-        }
-      }
-    );
+  const report = (compilation: webpack.Compilation) => {
+    if (!compilation.compiler.isChild()) {
+      reportPendingNativeDiagnostics(instance, compilation);
+    }
   };
 
-  attachToCompilation(loader._compilation!);
-  loader._compiler!.hooks.compilation.tap('ts-loader', attachToCompilation);
+  if (loaderUtils.isWebpack5) {
+    const attachToCompilation = (compilation: webpack.Compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: 'ts-loader',
+          stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        },
+        () => report(compilation)
+      );
+    };
+
+    attachToCompilation(loader._compilation!);
+    loader._compiler!.hooks.compilation.tap('ts-loader', attachToCompilation);
+  } else {
+    loader._compiler!.hooks.afterCompile.tapAsync(
+      'ts-loader',
+      (compilation, callback) => {
+        report(compilation);
+        callback();
+      }
+    );
+  }
 }
 
 function createFilePathKeyMapper(loaderOptions: LoaderOptions) {
