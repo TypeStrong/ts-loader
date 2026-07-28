@@ -38,7 +38,7 @@ const loaderOptionsCache: LoaderOptionsCache = {};
 function loader(
   this: webpack.LoaderContext<LoaderOptions>,
   contents: string,
-  inputSourceMap?: Record<string, unknown>
+  inputSourceMap?: Record<string, unknown>,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
@@ -50,19 +50,24 @@ function runLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   inputSourceMap: Record<string, unknown> | undefined,
-  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>
+  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
 ) {
   try {
     const options = getLoaderOptions(loaderContext);
     const instance = getTypeScriptInstance(options, loaderContext);
     const rawFilePath = path.normalize(loaderContext.resourcePath);
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
-    const fileVersion = updateFileInCache(options, filePath, contents, instance);
+    const fileVersion = updateFileInCache(
+      options,
+      filePath,
+      contents,
+      instance,
+    );
     const { outputText, sourceMapText } = getTypeScriptEmit(
       filePath,
       contents,
       instance,
-      loaderContext
+      loaderContext,
     );
 
     makeSourceMapAndFinish(
@@ -73,7 +78,7 @@ function runLoader(
       loaderContext,
       fileVersion,
       callback,
-      inputSourceMap
+      inputSourceMap,
     );
   } catch (error) {
     callback(error instanceof Error ? error : new Error(String(error)));
@@ -82,11 +87,11 @@ function runLoader(
 
 function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
-  loader: webpack.LoaderContext<LoaderOptions>
+  loader: webpack.LoaderContext<LoaderOptions>,
 ) {
   const existing = getTSInstanceFromCache(
     loader._compiler!,
-    loaderOptions.instance
+    loaderOptions.instance,
   );
   if (existing) {
     return existing;
@@ -98,12 +103,12 @@ function getTypeScriptInstance(
   const log = logger.makeLogger(loaderOptions, colors);
   const configFilePath = resolveConfigFilePath(
     path.dirname(loader.resourcePath),
-    loaderOptions.configFile
+    loaderOptions.configFile,
   );
 
   if (!configFilePath) {
     throw new Error(
-      `Could not find TypeScript config file '${loaderOptions.configFile}' from '${loader.resourcePath}'.`
+      `Could not find TypeScript config file '${loaderOptions.configFile}' from '${loader.resourcePath}'.`,
     );
   }
 
@@ -113,7 +118,10 @@ function getTypeScriptInstance(
     loaderOptions,
     files: new Map(),
     filePathKeyMapper: createFilePathKeyMapper(loaderOptions),
-    typeScriptApiInstance: createTypeScriptApiInstance(loaderOptions, configFilePath),
+    typeScriptApiInstance: createTypeScriptApiInstance(
+      loaderOptions,
+      configFilePath,
+    ),
     pendingDiagnostics: new Map(),
     pendingDeclarationFiles: new Map(),
   };
@@ -130,7 +138,7 @@ function getTypeScriptInstance(
 
   setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
   log.logInfo(
-    `ts-loader: Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`
+    `ts-loader: Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`,
   );
   return instance;
 }
@@ -156,7 +164,7 @@ function getTypeScriptInstance(
  */
 function addPostCompileHooks(
   loader: webpack.LoaderContext<LoaderOptions>,
-  instance: TSInstance
+  instance: TSInstance,
 ) {
   const report = (compilation: webpack.Compilation) => {
     if (!compilation.compiler.isChild()) {
@@ -172,7 +180,7 @@ function addPostCompileHooks(
           name: 'ts-loader',
           stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
         },
-        () => report(compilation)
+        () => report(compilation),
       );
     };
 
@@ -184,7 +192,7 @@ function addPostCompileHooks(
       (compilation, callback) => {
         report(compilation);
         callback();
-      }
+      },
     );
   }
 }
@@ -212,7 +220,7 @@ function createFilePathKeyMapper(loaderOptions: LoaderOptions) {
       const filePathKey = pathResolve(filePath);
       cachedPath = fileNameLowerCaseRegExp.test(filePathKey)
         ? (filePathKey.replace(fileNameLowerCaseRegExp, ch =>
-            ch.toLowerCase()
+            ch.toLowerCase(),
           ) as FilePathKey)
         : filePathKey;
       filePathMapperCache.set(filePath, cachedPath);
@@ -291,7 +299,7 @@ ${validLoaderOptions.join(' / ')}
     !path.isAbsolute(loaderOptions.context)
   ) {
     throw new Error(
-      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`
+      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`,
     );
   }
 }
@@ -309,9 +317,7 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
   return hash.digest('hex').substring(0, 16);
 }
 
-function getLoaderOptions(
-  loaderContext: webpack.LoaderContext<LoaderOptions>
-) {
+function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
   const loaderOptions = loaderUtils.getOptions(loaderContext);
 
   const instanceName =
@@ -334,7 +340,7 @@ function getLoaderOptions(
       plugin =>
         plugin !== null &&
         typeof plugin === 'object' &&
-        plugin.constructor?.name === 'ForkTsCheckerWebpackPlugin'
+        plugin.constructor?.name === 'ForkTsCheckerWebpackPlugin',
     ) ?? false;
 
   const options = Object.assign(
@@ -356,7 +362,7 @@ function getLoaderOptions(
       allowTsInNodeModules: false,
       ignoreDiagnostics: [] as number[],
     } satisfies Partial<LoaderOptions>,
-    loaderOptions
+    loaderOptions,
   );
 
   options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
@@ -373,15 +379,18 @@ function updateFileInCache(
   options: LoaderOptions,
   filePath: string,
   contents: string,
-  instance: TSInstance
+  instance: TSInstance,
 ) {
   const key = instance.filePathKeyMapper(filePath);
   let file: TSFile | undefined = instance.files.get(key);
 
   if (file === undefined) {
-    if (!options.allowTsInNodeModules && filePath.indexOf('node_modules') !== -1) {
+    if (
+      !options.allowTsInNodeModules &&
+      filePath.indexOf('node_modules') !== -1
+    ) {
       throw new Error(
-        `TypeScript source in node_modules is not compiled by default: ${filePath}`
+        `TypeScript source in node_modules is not compiled by default: ${filePath}`,
       );
     }
 
@@ -400,15 +409,17 @@ function updateFileInCache(
 }
 
 function appendSuffixesIfRequired(filePath: string, options: LoaderOptions) {
-  return appendSuffixIfMatch(options.appendTsSuffixTo, filePath, '.ts')
-    || appendSuffixIfMatch(options.appendTsxSuffixTo, filePath, '.tsx')
-    || filePath;
+  return (
+    appendSuffixIfMatch(options.appendTsSuffixTo, filePath, '.ts') ||
+    appendSuffixIfMatch(options.appendTsxSuffixTo, filePath, '.tsx') ||
+    filePath
+  );
 }
 
 function appendSuffixIfMatch(
   patterns: (RegExp | string)[],
   filePath: string,
-  suffix: string
+  suffix: string,
 ) {
   if (patterns.length > 0) {
     for (const regexp of patterns) {
@@ -433,14 +444,14 @@ function makeSourceMapAndFinish(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  inputSourceMap?: Record<string, unknown>
+  inputSourceMap?: Record<string, unknown>,
 ) {
   if (outputText === null || outputText === undefined) {
     setModuleMeta(loaderContext, fileVersion);
     callback(
       new Error(`TypeScript emitted no output for ${filePath}.`),
       outputText,
-      undefined
+      undefined,
     );
     return;
   }
@@ -450,7 +461,7 @@ function makeSourceMapAndFinish(
     outputText,
     filePath,
     contents,
-    loaderContext
+    loaderContext,
   );
 
   setModuleMeta(loaderContext, fileVersion);
@@ -463,7 +474,7 @@ function makeSourceMapAndFinish(
   mapToInputSourceMap(
     sourceMap,
     loaderContext,
-    inputSourceMap as unknown as RawSourceMap
+    inputSourceMap as unknown as RawSourceMap,
   )
     .then(mappedSourceMap => {
       callback(null, output, mappedSourceMap);
@@ -475,11 +486,9 @@ function makeSourceMapAndFinish(
 
 function setModuleMeta(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  fileVersion: number
+  fileVersion: number,
 ) {
-  if (
-    loaderContext._module?.buildMeta !== undefined
-  ) {
+  if (loaderContext._module?.buildMeta !== undefined) {
     loaderContext._module.buildMeta.tsLoaderFileVersion = fileVersion;
   }
 }
@@ -489,7 +498,7 @@ function makeSourceMap(
   outputText: string,
   filePath: string,
   contents: string,
-  loaderContext: webpack.LoaderContext<LoaderOptions>
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
   if (sourceMapText === undefined) {
     return { output: outputText, sourceMap: undefined };
@@ -508,7 +517,7 @@ function makeSourceMap(
 function mapToInputSourceMap(
   sourceMap: RawSourceMap,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  inputSourceMap: RawSourceMap
+  inputSourceMap: RawSourceMap,
 ): Promise<RawSourceMap> {
   return new Promise<RawSourceMap>((resolve, reject) => {
     const inMap: RawSourceMap = {
@@ -520,22 +529,25 @@ function mapToInputSourceMap(
       sourcesContent: inputSourceMap.sourcesContent,
       version: inputSourceMap.version,
     };
-    Promise.all([new SourceMapConsumer(inMap), new SourceMapConsumer(sourceMap)])
+    Promise.all([
+      new SourceMapConsumer(inMap),
+      new SourceMapConsumer(sourceMap),
+    ])
       .then(sourceMapConsumers => {
         try {
           const generator = SourceMapGenerator.fromSourceMap(
-            sourceMapConsumers[1]
+            sourceMapConsumers[1],
           );
           generator.applySourceMap(sourceMapConsumers[0]);
           const mappedSourceMap = generator.toJSON();
 
           sourceMapConsumers.forEach(sourceMapConsumer =>
-            sourceMapConsumer.destroy()
+            sourceMapConsumer.destroy(),
           );
           resolve(mappedSourceMap);
         } catch (e) {
           sourceMapConsumers.forEach(sourceMapConsumer =>
-            sourceMapConsumer.destroy()
+            sourceMapConsumer.destroy(),
           );
           reject(e);
         }

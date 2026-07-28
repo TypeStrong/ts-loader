@@ -42,7 +42,7 @@ type TypeScriptApiModule = {
 
 export function createTypeScriptApiInstance(
   loaderOptions: LoaderOptions,
-  configFilePath: string
+  configFilePath: string,
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
@@ -58,12 +58,12 @@ export function getTypeScriptEmit(
   fileName: string,
   contents: string,
   instance: TSInstance,
-  loaderContext: webpack.LoaderContext<LoaderOptions>
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
   const typeScriptInstance = instance.typeScriptApiInstance;
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
     typeScriptInstance,
-    fileName
+    fileName,
   );
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
@@ -78,15 +78,14 @@ export function getTypeScriptEmit(
       // which can pick up an unrelated tsconfig.json that happens to sit closer to
       // `fileName` on disk.
       const configuredProject = temporarySnapshot.getProject(projectConfigPath);
-      const project =
-        configuredProject?.program.getSourceFile(fileName)
-          ? configuredProject
-          : temporarySnapshot.getDefaultProjectForFile(fileName) ??
-            configuredProject;
+      const project = configuredProject?.program.getSourceFile(fileName)
+        ? configuredProject
+        : (temporarySnapshot.getDefaultProjectForFile(fileName) ??
+          configuredProject);
 
       if (!project) {
         throw new Error(
-          `TypeScript TypeScript mode could not resolve project for ${fileName}.`
+          `TypeScript TypeScript mode could not resolve project for ${fileName}.`,
         );
       }
 
@@ -98,7 +97,10 @@ export function getTypeScriptEmit(
         // classic ts-loader's transpileModule-based behaviour.
         ...(instance.loaderOptions.transpileOnly
           ? []
-          : [...emitResult.diagnostics, ...program.getSemanticDiagnostics(fileName)]),
+          : [
+              ...emitResult.diagnostics,
+              ...program.getSemanticDiagnostics(fileName),
+            ]),
       ]);
 
       // Classic ts-loader's transpileOnly path (built on `ts.transpileModule`)
@@ -115,7 +117,12 @@ export function getTypeScriptEmit(
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromTypeScriptEmit(emitResult));
 
-      registerTypeScriptDependencies(loaderContext, program, fileName, instance);
+      registerTypeScriptDependencies(
+        loaderContext,
+        program,
+        fileName,
+        instance,
+      );
 
       // Errors must be built here, synchronously, while `program` is still
       // backed by this call's temporary snapshot - it's invalidated as soon as
@@ -128,8 +135,8 @@ export function getTypeScriptEmit(
               diagnostic,
               program,
               loaderContext.context,
-              loaderContext._module
-            )
+              loaderContext._module,
+            ),
         ),
         // Program diagnostics have no associated file of their own (classic
         // attributes them to the tsconfig instead).
@@ -141,8 +148,8 @@ export function getTypeScriptEmit(
               program,
               loaderContext.context,
               loaderContext._module,
-              typeScriptInstance.configFilePath
-            )
+              typeScriptInstance.configFilePath,
+            ),
         ),
       ];
 
@@ -182,7 +189,7 @@ export function getTypeScriptEmit(
         // this same regex, not just files webpack's rule happens to compile.
         recordProjectDeclarationFiles(instance, program);
       }
-    }
+    },
   );
 
   return { outputText, sourceMapText };
@@ -198,7 +205,7 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
     throw new Error(
       `Could not load TypeScript typeScript API from "${specifier}": ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
 }
@@ -206,7 +213,7 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
 function updateSnapshot(
   typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
-  openProjects?: string[]
+  openProjects?: string[],
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
   // `openFiles` only tells the API which file has a live, in-memory override
@@ -222,26 +229,29 @@ function updateSnapshot(
   const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
       ? { openProjects, openFiles: [fileName], fileChanges }
-      : { openFiles: [fileName], fileChanges }
+      : { openFiles: [fileName], fileChanges },
   );
 
   typeScriptInstance.snapshot = snapshot;
   openProjects?.forEach(projectPath =>
-    typeScriptInstance.openedProjectPaths.add(projectPath)
+    typeScriptInstance.openedProjectPaths.add(projectPath),
   );
   previousSnapshot?.dispose?.();
 
   return snapshot;
 }
 
-function prepareSnapshotForFile(typeScriptInstance: TypeScriptApiInstance, fileName: string) {
+function prepareSnapshotForFile(
+  typeScriptInstance: TypeScriptApiInstance,
+  fileName: string,
+) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
     typeScriptInstance,
     fileName,
     typeScriptInstance.openedProjectPaths.has(primaryProjectPath)
       ? undefined
-      : [primaryProjectPath]
+      : [primaryProjectPath],
   );
   const primaryProject = snapshot.getProject(primaryProjectPath);
 
@@ -253,24 +263,27 @@ function prepareSnapshotForFile(typeScriptInstance: TypeScriptApiInstance, fileN
     typeScriptInstance,
     primaryProjectPath,
     primaryProject?.parsedCommandLine.fileNames ?? [],
-    fileName
+    fileName,
   );
   const syntheticSnapshot = updateSnapshot(
     typeScriptInstance,
     fileName,
     typeScriptInstance.openedProjectPaths.has(syntheticConfigPath)
       ? undefined
-      : [syntheticConfigPath]
+      : [syntheticConfigPath],
   );
 
-  return { snapshot: syntheticSnapshot, projectConfigPath: syntheticConfigPath };
+  return {
+    snapshot: syntheticSnapshot,
+    projectConfigPath: syntheticConfigPath,
+  };
 }
 
 function ensureSyntheticConfigForFile(
   typeScriptInstance: TypeScriptApiInstance,
   configFilePath: string,
   rootFiles: readonly string[],
-  fileName: string
+  fileName: string,
 ) {
   const existing = typeScriptInstance.syntheticConfigFiles.get(fileName);
   if (existing) {
@@ -281,7 +294,9 @@ function ensureSyntheticConfigForFile(
   fs.mkdirSync(syntheticConfigDir, { recursive: true });
   const syntheticConfigPath = path.join(
     syntheticConfigDir,
-    `${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(fileName)}.json`
+    `${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
+      fileName,
+    )}.json`,
   );
   const files = [...new Set([...rootFiles, fileName])].sort();
   const configText = JSON.stringify(
@@ -290,7 +305,7 @@ function ensureSyntheticConfigForFile(
       files,
     },
     null,
-    2
+    2,
   );
   fs.writeFileSync(syntheticConfigPath, configText);
   typeScriptInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
@@ -301,7 +316,9 @@ function hashFileName(fileName: string) {
   return crypto.createHash('sha1').update(fileName).digest('hex').slice(0, 12);
 }
 
-function getOutputAndSourceMapFromTypeScriptEmit(emitResult: TypeScriptEmitOutput) {
+function getOutputAndSourceMapFromTypeScriptEmit(
+  emitResult: TypeScriptEmitOutput,
+) {
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
 
@@ -320,7 +337,7 @@ function registerTypeScriptDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   program: TypeScriptProgram,
   fileName: string,
-  instance: TSInstance
+  instance: TSInstance,
 ) {
   loaderContext.clearDependencies();
   loaderContext.addDependency(fileName);
@@ -389,7 +406,7 @@ function registerTypeScriptDependencies(
   if (loaderContext._module?.buildMeta !== undefined) {
     loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions =
       dependencies.map(dependencyFileName =>
-        getDependencyVersionTag(instance, program, dependencyFileName)
+        getDependencyVersionTag(instance, program, dependencyFileName),
       );
   }
 }
@@ -410,10 +427,10 @@ function registerTypeScriptDependencies(
 function getDependencyVersionTag(
   instance: TSInstance,
   program: TypeScriptProgram,
-  dependencyFileName: string
+  dependencyFileName: string,
 ): string {
   const file = instance.files.get(
-    instance.filePathKeyMapper(dependencyFileName)
+    instance.filePathKeyMapper(dependencyFileName),
   );
   if (file) {
     return `${dependencyFileName}@${file.version}`;
@@ -451,7 +468,7 @@ function getDependencyVersionTag(
 function registerResolvedImportDependencies(
   program: TypeScriptProgram,
   fileName: string,
-  addDependency: (dependencyFileName: string) => void
+  addDependency: (dependencyFileName: string) => void,
 ) {
   const sourceFile = program.getSourceFile(fileName);
   if (!sourceFile) {
@@ -473,7 +490,7 @@ function registerResolvedImportDependencies(
     const resolvedFileName = resolveRelativeSpecifier(
       fromDir,
       specifier,
-      sourceFileNames
+      sourceFileNames,
     );
 
     if (resolvedFileName && resolvedFileName !== fileName) {
@@ -487,7 +504,7 @@ const relativeSpecifierExtensions = ['', '.ts', '.tsx', '.d.ts', '.js', '.jsx'];
 function resolveRelativeSpecifier(
   fromDir: string,
   specifier: string,
-  sourceFileNames: ReadonlySet<string>
+  sourceFileNames: ReadonlySet<string>,
 ): string | undefined {
   const resolvedBase = path.resolve(fromDir, specifier);
 
@@ -515,7 +532,7 @@ function resolveRelativeSpecifier(
  */
 function recordProjectDeclarationFiles(
   instance: TSInstance,
-  program: TypeScriptProgram
+  program: TypeScriptProgram,
 ) {
   const filePathRegex = program.getCompilerOptions().allowJs
     ? constants.dtsTsTsxJsJsxRegex
@@ -551,14 +568,14 @@ function recordProjectDeclarationFiles(
 
     instance.pendingDeclarationFiles.set(
       instance.filePathKeyMapper(projectFileName),
-      declarationFiles
+      declarationFiles,
     );
   }
 }
 
 function reportTypeScriptErrors(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  errors: readonly webpack.WebpackError[]
+  errors: readonly webpack.WebpackError[],
 ) {
   const module = loaderContext._module;
 
@@ -592,7 +609,7 @@ function reportTypeScriptErrors(
  */
 export function reportPendingTypeScriptDiagnostics(
   instance: TSInstance,
-  compilation: webpack.Compilation
+  compilation: webpack.Compilation,
 ) {
   if (instance.pendingDiagnostics.size === 0) {
     return;
@@ -608,7 +625,7 @@ export function reportPendingTypeScriptDiagnostics(
     }
 
     const associatedModules = modulesByFile.get(
-      instance.filePathKeyMapper(fileName)
+      instance.filePathKeyMapper(fileName),
     );
 
     if (associatedModules === undefined) {
@@ -640,7 +657,7 @@ export function reportPendingTypeScriptDiagnostics(
  */
 export function emitPendingDeclarationFiles(
   instance: TSInstance,
-  compilation: webpack.Compilation
+  compilation: webpack.Compilation,
 ) {
   for (const declarationFiles of instance.pendingDeclarationFiles.values()) {
     for (const { fileName, text } of declarationFiles) {
@@ -669,11 +686,11 @@ export function emitPendingDeclarationFiles(
 
 function filterIgnoredDiagnostics(
   instance: TSInstance,
-  diagnostics: readonly TypeScriptDiagnostic[]
+  diagnostics: readonly TypeScriptDiagnostic[],
 ) {
   return diagnostics.filter(
     diagnostic =>
-      instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1
+      instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1,
   );
 }
 
@@ -683,7 +700,7 @@ function buildTypeScriptError(
   program: TypeScriptProgram,
   context: string,
   module: webpack.Module | undefined,
-  fallbackFile = ''
+  fallbackFile = '',
 ) {
   const { start, end } = getDiagnosticLocations(diagnostic, program);
   // A diagnostic with no file of its own (e.g. a whole-program/compiler-option
@@ -716,7 +733,7 @@ function buildTypeScriptError(
     message,
     diagnosticFile || fallbackFile,
     start,
-    end
+    end,
   );
 
   // Matches classic ts-loader: tag the error with its module explicitly so
@@ -736,7 +753,7 @@ function buildTypeScriptError(
  */
 function determineModulesByFile(
   compilation: webpack.Compilation,
-  instance: TSInstance
+  instance: TSInstance,
 ): Map<FilePathKey, webpack.Module[]> {
   const modulesByFile = new Map<FilePathKey, webpack.Module[]>();
 
@@ -762,16 +779,17 @@ function determineModulesByFile(
 
 function removeCompilationTSLoaderErrors(
   compilation: webpack.Compilation,
-  loaderOptions: LoaderOptions
+  loaderOptions: LoaderOptions,
 ) {
   compilation.errors = compilation.errors.filter(
-    error => !isTSLoaderModuleError(error as webpack.WebpackError, loaderOptions)
+    error =>
+      !isTSLoaderModuleError(error as webpack.WebpackError, loaderOptions),
   );
 }
 
 function removeModuleTSLoaderError(
   module: webpack.Module,
-  loaderOptions: LoaderOptions
+  loaderOptions: LoaderOptions,
 ) {
   if (isWebpack5) {
     const warnings = Array.from(module.getWarnings() ?? []);
@@ -799,7 +817,7 @@ function removeModuleTSLoaderError(
 
 function isTSLoaderModuleError(
   error: webpack.WebpackError,
-  loaderOptions: LoaderOptions
+  loaderOptions: LoaderOptions,
 ) {
   return error?.details === tsLoaderSource(loaderOptions);
 }
@@ -813,7 +831,7 @@ function moduleHasWebpackErrors(module: webpack.Module) {
 
 function getDiagnosticLocations(
   diagnostic: TypeScriptDiagnostic,
-  program: TypeScriptProgram
+  program: TypeScriptProgram,
 ): { start: FileLocation | undefined; end: FileLocation | undefined } {
   if (!diagnostic.fileName || diagnostic.pos < 0) {
     return { start: undefined, end: undefined };
@@ -834,7 +852,7 @@ function getDiagnosticLocations(
     diagnostic.end > diagnostic.pos
       ? (() => {
           const endLC = sourceFile.getLineAndCharacterOfPosition(
-            diagnostic.end
+            diagnostic.end,
           );
           return { line: endLC.line + 1, character: endLC.character + 1 };
         })()

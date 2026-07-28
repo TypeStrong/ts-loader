@@ -10,7 +10,7 @@ interface LoaderUtilsModule {
 let loaderUtils: LoaderUtilsModule | undefined;
 
 export function getOptions(
-  loaderContext: webpack.LoaderContext<LoaderOptions>
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
   if (isWebpack5) {
     return loaderContext.getOptions();
@@ -21,7 +21,7 @@ export function getOptions(
       loaderUtils = module.require('loader-utils') as LoaderUtilsModule;
     } catch {
       throw new Error(
-        'ts-loader requires loader-utils to be installed when used with webpack 4.'
+        'ts-loader requires loader-utils to be installed when used with webpack 4.',
       );
     }
   }
@@ -34,7 +34,7 @@ export function getOptions(
 
 export function addErrorToModule(
   module: webpack.Module,
-  error: webpack.WebpackError
+  error: webpack.WebpackError,
 ) {
   if (isWebpack5) {
     module.addError(error);
@@ -48,7 +48,7 @@ export function makeError(
   message: string,
   file: string,
   location?: FileLocation,
-  endLocation?: FileLocation
+  endLocation?: FileLocation,
 ): webpack.WebpackError {
   if (isWebpack5) {
     const error = new webpack.WebpackError(message);
@@ -81,7 +81,7 @@ interface WebpackSourcePosition {
 
 function makeWebpackLocation(
   location: FileLocation,
-  endLocation?: FileLocation
+  endLocation?: FileLocation,
 ) {
   const start: WebpackSourcePosition = {
     line: location.line,
