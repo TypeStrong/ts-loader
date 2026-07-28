@@ -84,6 +84,14 @@ export interface TypeScriptInstance {
   syntheticConfigFiles: Map<string, string>;
   openedProjectPaths: Set<string>;
   snapshot?: TypeScriptSnapshot;
+  /**
+   * Name of the `toApiFileName` alias currently being compiled (see
+   * getTypeScriptEmit in typeScriptApi.ts), if any - a mutable holder so the
+   * API's virtual filesystem callbacks, which apply globally across every
+   * project in the session, can recognise the alias for only the duration
+   * of that one file's compile rather than permanently.
+   */
+  activeSyntheticAlias: { current?: string };
 }
 
 export interface PendingTypeScriptDiagnostics {

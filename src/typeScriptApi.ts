@@ -41,6 +41,29 @@ type TypeScriptApiModule = {
   API: new (options?: APIOptions) => TypeScriptApi;
 };
 
+// TypeScript 7's native parser hard-panics (crashing its whole native worker
+// process, taking down every in-flight compile with it) if asked to parse a
+// file whose extension it doesn't recognise at all - e.g. a Vue SFC's
+// isolated <script> block, handed to ts-loader directly under its real
+// ".vue" path by a preceding loader like vue-loader. Classic ts-loader never
+// hit this: classic TypeScript silently defaults an unrecognised extension's
+// script kind instead of requiring one. `toApiFileName` gives such files an
+// internal alias ending in a recognised extension so the API never sees the
+// unrecognised one; see its call site in `getTypeScriptEmit` for how the
+// original name is preserved for webpack-facing concerns.
+function hasRecognisedTypeScriptExtension(fileName: string): boolean {
+  return (
+    constants.dtsTsTsxJsJsxRegex.test(fileName) ||
+    constants.jsonRegex.test(fileName)
+  );
+}
+
+function toApiFileName(fileName: string): string {
+  return hasRecognisedTypeScriptExtension(fileName)
+    ? fileName
+    : `${fileName}.ts`;
+}
+
 export function createTypeScriptApiInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
@@ -48,6 +71,18 @@ export function createTypeScriptApiInstance(
   filePathKeyMapper: TSInstance['filePathKeyMapper'],
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
+  // Mutable holder for the name of the `toApiFileName` alias currently being
+  // compiled, if any (set/cleared by getTypeScriptEmit around the
+  // synchronous span of a single file's compile). The API's virtual
+  // filesystem callbacks below apply *globally*, across every project in
+  // the session - not just the synthetic single-file project built for this
+  // one alias - so this must only claim the alias "exists" for the
+  // duration of that one call. Otherwise, e.g., a plain `import ... from
+  // "./App.vue"` elsewhere in an unrelated project could resolve straight
+  // to the (session-wide, permanently "existing") alias file instead of the
+  // ambient `declare module '*.vue'` declaration it should use.
+  const activeSyntheticAlias: TypeScriptApiInstance['activeSyntheticAlias'] =
+    {};
 
   return {
     // Other loaders (e.g. a raw-loader-style pre-processor chained before
@@ -65,17 +100,81 @@ export function createTypeScriptApiInstance(
     // backed entirely by its `instance.files`/`instance.otherFiles` maps.
     api: new typeScriptApiModule.API({
       fs: {
-        readFile: fileName => files.get(filePathKeyMapper(fileName))?.text,
+        readFile: fileName => {
+          if (!hasRecognisedTypeScriptExtension(fileName)) {
+            // A file with an unrecognised extension (e.g. a Vue SFC) can be
+            // the *real* resourcePath for more than one distinct webpack
+            // module - vue-loader hands ts-loader the same "App.vue"
+            // resourcePath for both its <script> and <template> blocks, only
+            // `resourceQuery` differs. `instance.files` has no way to
+            // disambiguate which sub-compile's content is "current" for that
+            // shared path, so serving it here would leak one sub-compile's
+            // extracted text into an unrelated resolution of the same real
+            // path elsewhere (e.g. another file's plain `import` of
+            // `./App.vue`, which should see the real, unmodified file).
+            return undefined;
+          }
+          if (fileName === activeSyntheticAlias.current) {
+            // The synthetic single-file project built for this alias (see
+            // `ensureSyntheticConfigForFile`) parses it once while building
+            // its initial snapshot, *before* `runWithTemporaryFileUpdate`'s
+            // ephemeral override supplies the real content for the current
+            // compile - an empty placeholder here is enough to let that
+            // initial parse succeed.
+            return '';
+          }
+          return files.get(filePathKeyMapper(fileName))?.text;
+        },
+        fileExists: fileName =>
+          fileName === activeSyntheticAlias.current ? true : undefined,
       },
     }),
     configFilePath,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
+    activeSyntheticAlias,
   };
 }
 
 export function getTypeScriptEmit(
+  originalFileName: string,
+  contents: string,
+  instance: TSInstance,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+) {
+  const typeScriptInstance = instance.typeScriptApiInstance;
+  // See `toApiFileName` above: everything from here on talks to the API
+  // exclusively under this (possibly-suffixed) name; `originalFileName` is
+  // only reintroduced where webpack itself needs the real path (dependency
+  // tracking below, and diagnostic file substitution further down).
+  const fileName = toApiFileName(originalFileName);
+  const isSynthesizedAlias = fileName !== originalFileName;
+  // Claim the alias "exists" (see the FS callbacks in
+  // createTypeScriptApiInstance) only for the synchronous span of this call
+  // - cleared in `finally` below, however this call ends.
+  if (isSynthesizedAlias) {
+    typeScriptInstance.activeSyntheticAlias.current = fileName;
+  }
+  try {
+    return getTypeScriptEmitCore(
+      originalFileName,
+      fileName,
+      isSynthesizedAlias,
+      contents,
+      instance,
+      loaderContext,
+    );
+  } finally {
+    if (isSynthesizedAlias) {
+      typeScriptInstance.activeSyntheticAlias.current = undefined;
+    }
+  }
+}
+
+function getTypeScriptEmitCore(
+  originalFileName: string,
   fileName: string,
+  isSynthesizedAlias: boolean,
   contents: string,
   instance: TSInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
@@ -84,6 +183,7 @@ export function getTypeScriptEmit(
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
     typeScriptInstance,
     fileName,
+    isSynthesizedAlias,
   );
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
@@ -127,6 +227,14 @@ export function getTypeScriptEmit(
       }
 
       const program = project.program;
+      // Diagnostics from the API refer to files under their API-facing name
+      // (see `toApiFileName`) - substitute the real name back in wherever a
+      // diagnostic is attributed to *this* file, so reported errors point at
+      // the file webpack (and the user) actually knows about.
+      const fileNameSubstitution =
+        fileName === originalFileName
+          ? undefined
+          : { from: path.normalize(fileName), to: originalFileName };
 
       const configFileParsingDiagnostics =
         program.getConfigFileParsingDiagnostics();
@@ -148,6 +256,7 @@ export function getTypeScriptEmit(
             loaderContext.context,
             loaderContext._module,
             typeScriptInstance.configFilePath,
+            fileNameSubstitution,
           ),
         );
 
@@ -190,6 +299,7 @@ export function getTypeScriptEmit(
         loaderContext,
         program,
         fileName,
+        originalFileName,
         instance,
       );
 
@@ -208,6 +318,8 @@ export function getTypeScriptEmit(
             program,
             loaderContext.context,
             loaderContext._module,
+            undefined,
+            fileNameSubstitution,
           ),
         ),
         // Program diagnostics have no associated file of their own (classic
@@ -224,6 +336,7 @@ export function getTypeScriptEmit(
             loaderContext.context,
             loaderContext._module,
             typeScriptInstance.configFilePath,
+            fileNameSubstitution,
           ),
         ),
       ];
@@ -241,10 +354,13 @@ export function getTypeScriptEmit(
         // already recorded its own error for this module (e.g. a "Module parse
         // failed" caused by malformed emit) and avoid attaching a redundant,
         // double-counted error.
-        instance.pendingDiagnostics.set(instance.filePathKeyMapper(fileName), {
-          fileName,
-          errors,
-        });
+        instance.pendingDiagnostics.set(
+          instance.filePathKeyMapper(originalFileName),
+          {
+            fileName: originalFileName,
+            errors,
+          },
+        );
 
         // A dependant's *diagnostics* can change here even though its own
         // module isn't rebuilt (e.g. `deeperDep.ts` changing a parameter type
@@ -330,6 +446,7 @@ function updateSnapshot(
 function prepareSnapshotForFile(
   typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
+  isSynthesizedAlias: boolean,
 ) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
@@ -362,7 +479,16 @@ function prepareSnapshotForFile(
   const syntheticConfigPath = ensureSyntheticConfigForFile(
     typeScriptInstance,
     primaryProjectPath,
-    primaryProject?.parsedCommandLine.fileNames ?? [],
+    // An alias `toApiFileName` synthesised for a file with no recognised
+    // extension (e.g. `App.vue.ts` for `App.vue`) must stay isolated to
+    // just itself: if it coexisted in the same program as the rest of the
+    // primary project's files, TypeScript's own module resolution could
+    // resolve a plain `import ... from "./App.vue"` elsewhere in that
+    // program straight to this alias (picking up whichever content this
+    // call's `runWithTemporaryFileUpdate` happens to have live) instead of
+    // the unrelated ambient `declare module '*.vue'` declaration it should
+    // use.
+    isSynthesizedAlias ? [] : (primaryProject?.parsedCommandLine.fileNames ?? []),
     fileName,
   );
   const syntheticSnapshot = updateSnapshot(
@@ -400,10 +526,14 @@ function ensureSyntheticConfigForFile(
   );
   const files = [...new Set([...rootFiles, fileName])].sort();
   const configText = JSON.stringify(
-    {
-      extends: configFilePath,
-      files,
-    },
+    rootFiles.length === 0
+      ? // An empty `rootFiles` means the caller wants this project isolated
+        // to just `fileName` - `files` alone doesn't suppress the base
+        // config's implicit `include: ["**/*"]` default when neither config
+        // in the `extends` chain specifies its own `include`, so it must be
+        // overridden explicitly here.
+        { extends: configFilePath, files, include: [] }
+      : { extends: configFilePath, files },
     null,
     2,
   );
@@ -437,10 +567,13 @@ function registerTypeScriptDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   program: TypeScriptProgram,
   fileName: string,
+  originalFileName: string,
   instance: TSInstance,
 ) {
   loaderContext.clearDependencies();
-  loaderContext.addDependency(fileName);
+  // `fileName` may be an API-facing alias (see `toApiFileName`), which
+  // doesn't exist on disk - webpack must watch the real file.
+  loaderContext.addDependency(originalFileName);
 
   // Every *other* file this one is made dependent on below, tracked
   // separately from `fileName` itself so their versions can be baked into
@@ -985,6 +1118,7 @@ function buildTypeScriptError(
   context: string,
   module: webpack.Module | undefined,
   fallbackFile = '',
+  fileNameSubstitution?: { from: string; to: string },
 ) {
   const { start, end } = getDiagnosticLocations(diagnostic, program);
   // A diagnostic with no file of its own (e.g. a whole-program/compiler-option
@@ -993,9 +1127,16 @@ function buildTypeScriptError(
   // the *webpack error's own* `.file`/module attribution below, matching
   // classic ts-loader's split between `ErrorInfo.file` (from the diagnostic)
   // and the `merge.file` passed to `makeError` (from the caller).
-  const diagnosticFile = diagnostic.fileName
+  const normalisedDiagnosticFile = diagnostic.fileName
     ? path.normalize(diagnostic.fileName)
     : '';
+  // Undo the API-facing rename `toApiFileName` applies to files with an
+  // extension TypeScript 7 doesn't otherwise recognise (see
+  // `getTypeScriptEmit`), so reported errors point at the real file.
+  const diagnosticFile =
+    fileNameSubstitution && normalisedDiagnosticFile === fileNameSubstitution.from
+      ? fileNameSubstitution.to
+      : normalisedDiagnosticFile;
   const errorInfo: ErrorInfo = {
     code: diagnostic.code,
     severity: (diagnosticCategoryNames[diagnostic.category] ??
