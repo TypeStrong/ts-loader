@@ -44,11 +44,30 @@ type TypeScriptApiModule = {
 export function createTypeScriptApiInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
+  files: TSInstance['files'],
+  filePathKeyMapper: TSInstance['filePathKeyMapper'],
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
   return {
-    api: new typeScriptApiModule.API(),
+    // Other loaders (e.g. a raw-loader-style pre-processor chained before
+    // ts-loader) transform a file's contents before ts-loader ever sees them,
+    // and `instance.files` is ts-loader's own record of that post-transform
+    // text for every file it has directly compiled. Without this override the
+    // API would read a project file's content straight off disk whenever it
+    // isn't the one file currently being compiled via
+    // `runWithTemporaryFileUpdate` (e.g. rechecking a dependant after one of
+    // its dependencies changes) - missing whatever transformation other
+    // loaders applied, and seeing stale/raw content other loaders were meant
+    // to strip out. Falling through to the real filesystem (`undefined`) for
+    // anything ts-loader hasn't itself compiled (ambient .d.ts files, etc.)
+    // matches classic ts-loader's own LanguageServiceHost, which is likewise
+    // backed entirely by its `instance.files`/`instance.otherFiles` maps.
+    api: new typeScriptApiModule.API({
+      fs: {
+        readFile: fileName => files.get(filePathKeyMapper(fileName))?.text,
+      },
+    }),
     configFilePath,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),

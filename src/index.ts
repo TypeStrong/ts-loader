@@ -126,15 +126,20 @@ function getTypeScriptInstance(
     );
   }
 
+  const files: TSInstance['files'] = new Map();
+  const filePathKeyMapper = createFilePathKeyMapper(loaderOptions);
+
   const instance: TSInstance = {
     version: 0,
     colors,
     loaderOptions,
-    files: new Map(),
-    filePathKeyMapper: createFilePathKeyMapper(loaderOptions),
+    files,
+    filePathKeyMapper,
     typeScriptApiInstance: createTypeScriptApiInstance(
       loaderOptions,
       configFilePath,
+      files,
+      filePathKeyMapper,
     ),
     pendingDiagnostics: new Map(),
     pendingDeclarationFiles: new Map(),
