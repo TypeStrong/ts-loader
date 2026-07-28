@@ -4950,7 +4950,7 @@ typescript-eslint@^8.59.4:
     "@typescript-eslint/typescript-estree" "8.61.1"
     "@typescript-eslint/utils" "8.61.1"
 
-typescript@^7.1.0-dev.20260725.1:
+typescript@next:
   version "7.1.0-dev.20260727.1"
   resolved "https://registry.npmjs.org/typescript/-/typescript-7.1.0-dev.20260727.1.tgz"
   integrity sha512-CkJhNLj/TF500U2sa2ADSYf1dthWSmAHeV0KCMpD0KHe47o6c+rYb7Mt7YQ+pxDccGtQDGwp63cLu8TVighgfA==
