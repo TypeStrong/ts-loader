@@ -27,6 +27,7 @@
       "Read(//usr/local/lib/node_modules/**)",
       "Bash(rm -rf .test)",
       "Bash(FORCE_COLOR=1 node node_modules/mocha/bin/_mocha test/comparison-tests/create-and-execute-test.js --reporter spec --test-to-run * --timeout 25000)",
+      "Bash(node node_modules/mocha/bin/_mocha test/comparison-tests/create-and-execute-test.js --reporter spec --test-to-run * --timeout 25000)",
       "Bash(echo \"PID $!\")"
     ]
   }

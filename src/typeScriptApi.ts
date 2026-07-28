@@ -262,9 +262,18 @@ export function getTypeScriptEmit(
       // (non-transpileOnly) compile, and their content must be read out here,
       // synchronously, for the same reason as `errors` above. Emitting them as
       // webpack assets is deferred to emitPendingDeclarationFiles.
+      //
+      // `composite` implies `declaration` in real tsc (a composite project's
+      // references can't work without emitted .d.ts files) - classic
+      // ts-loader gets this for free by routing composite projects through
+      // TypeScript's own SolutionBuilder API, which always emits them. The
+      // API used here has no such implicit normalisation: `getCompilerOptions()`
+      // returns `composite: true` as-is, without also setting `declaration`,
+      // so it must be checked for explicitly too.
       if (
         !instance.loaderOptions.transpileOnly &&
-        program.getCompilerOptions().declaration
+        (program.getCompilerOptions().declaration ||
+          program.getCompilerOptions().composite)
       ) {
         // The whole project is scanned here - not just `fileName` - because
         // some project files (e.g. a plain .js file pulled in via `allowJs`)
