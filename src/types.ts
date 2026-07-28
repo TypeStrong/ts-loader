@@ -7,6 +7,7 @@ import type {
   Program,
   Snapshot,
 } from 'typescript/unstable/sync';
+import type * as webpack from 'webpack';
 
 import type { Logger } from './logger';
 
@@ -89,6 +90,11 @@ export interface NativeInstance {
   snapshot?: NativeSnapshot;
 }
 
+export interface PendingNativeDiagnostics {
+  fileName: string;
+  errors: webpack.WebpackError[];
+}
+
 export interface TSInstance {
   version: number;
   colors: Chalk;
@@ -98,4 +104,5 @@ export interface TSInstance {
   configFilePath: string;
   filePathKeyMapper: (fileName: string) => FilePathKey;
   nativeInstance: NativeInstance;
+  pendingDiagnostics: Map<FilePathKey, PendingNativeDiagnostics>;
 }

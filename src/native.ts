@@ -10,6 +10,7 @@ import * as constants from './constants';
 import type {
   ErrorInfo,
   FileLocation,
+  FilePathKey,
   LoaderOptions,
   NativeApi,
   NativeDiagnostic,
@@ -19,7 +20,12 @@ import type {
   Severity,
   TSInstance,
 } from './types';
-import { addErrorToModule, isWebpack5, makeError } from './loaderUtils';
+import {
+  addErrorToModule,
+  isWebpack5,
+  makeError,
+  tsLoaderSource,
+} from './loaderUtils';
 
 /** Indexed by TypeScript's DiagnosticCategory: Warning, Error, Suggestion, Message */
 const diagnosticCategoryNames = [
@@ -99,7 +105,39 @@ export function getNativeEmit(
         getOutputAndSourceMapFromNativeEmit(emitResult));
 
       registerNativeDependencies(loaderContext, program, fileName);
-      reportNativeDiagnostics(instance, loaderContext, diagnostics, program);
+
+      // Errors must be built here, synchronously, while `program` is still
+      // backed by this call's temporary snapshot - it's invalidated as soon as
+      // this callback returns, so it can't be held onto for later use.
+      const errors = filterIgnoredDiagnostics(instance, diagnostics).map(
+        diagnostic =>
+          buildNativeError(
+            instance,
+            diagnostic,
+            program,
+            loaderContext.context,
+            loaderContext._module
+          )
+      );
+
+      if (instance.loaderOptions.transpileOnly) {
+        // Type-checking is skipped in transpileOnly mode, so there's no need to
+        // wait for the rest of the compilation: report immediately, matching
+        // classic ts-loader's transpileModule-based behaviour.
+        reportNativeErrors(loaderContext, errors);
+      } else {
+        // Defer attaching these errors to a module until the compilation's
+        // processAssets hook (see reportPendingNativeDiagnostics in index.ts),
+        // matching classic ts-loader: reporting only once webpack has finished
+        // parsing every module's output means we can tell whether webpack
+        // already recorded its own error for this module (e.g. a "Module parse
+        // failed" caused by malformed emit) and avoid attaching a redundant,
+        // double-counted error.
+        instance.pendingDiagnostics.set(instance.filePathKeyMapper(fileName), {
+          fileName,
+          errors,
+        });
+      }
     }
   );
 
@@ -269,55 +307,210 @@ function registerNativeDependencies(
   }
 }
 
-function reportNativeDiagnostics(
-  instance: TSInstance,
+function reportNativeErrors(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  diagnostics: readonly NativeDiagnostic[],
-  program: NativeProgram
+  errors: readonly webpack.WebpackError[]
 ) {
-  if (diagnostics.length === 0) {
+  const module = loaderContext._module;
+
+  errors.forEach(error => {
+    if (module) {
+      addErrorToModule(module, error);
+    } else {
+      loaderContext.emitError(error);
+    }
+  });
+}
+
+/**
+ * Reports diagnostics gathered from non-transpileOnly compiles, deferred until
+ * webpack has finished building every module in this compilation. Mirrors
+ * classic ts-loader's afterCompile-based reporting: a module only gets its own
+ * ts-loader error attached if webpack hasn't already recorded an error for it
+ * (e.g. a "Module parse failed" caused by malformed emit), so a single
+ * underlying failure isn't double-counted in the per-module error tally. The
+ * diagnostic is always pushed onto the compilation as a whole either way, so
+ * it's still surfaced and counted in the overall error total.
+ *
+ * `instance.pendingDiagnostics` is intentionally *not* cleared after
+ * reporting: each entry is only overwritten when its file is recompiled (see
+ * getNativeEmit), so a file's errors keep being re-reported on every
+ * subsequent compilation even if webpack's cache means that file itself
+ * doesn't get rebuilt - matching classic ts-loader's `filesWithErrors`
+ * re-check behaviour. Fixing the file (or removing the error) naturally
+ * clears it, since recompiling always overwrites the entry with fresh
+ * (possibly empty) errors.
+ */
+export function reportPendingNativeDiagnostics(
+  instance: TSInstance,
+  compilation: webpack.Compilation
+) {
+  if (instance.pendingDiagnostics.size === 0) {
     return;
   }
 
-  const module = loaderContext._module;
+  removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
 
-  diagnostics
-    .filter(
-      diagnostic =>
-        instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1
-    )
-    .forEach(diagnostic => {
-      const { start, end } = getDiagnosticLocations(diagnostic, program);
-      const errorInfo: ErrorInfo = {
-        code: diagnostic.code,
-        severity: (diagnosticCategoryNames[diagnostic.category] ??
-          'error') as Severity,
-        content: diagnostic.text,
-        file: diagnostic.fileName ? path.normalize(diagnostic.fileName) : '',
-        line: start === undefined ? 0 : start.line,
-        character: start === undefined ? 0 : start.character,
-        context: loaderContext.context,
-      };
+  const modulesByFile = determineModulesByFile(compilation, instance);
 
-      const message =
-        instance.loaderOptions.errorFormatter === undefined
-          ? defaultErrorFormatter(errorInfo, instance.colors)
-          : instance.loaderOptions.errorFormatter(errorInfo, instance.colors);
+  for (const { fileName, errors } of instance.pendingDiagnostics.values()) {
+    if (errors.length === 0) {
+      continue;
+    }
 
-      const error = makeError(
-        instance.loaderOptions,
-        message,
-        errorInfo.file,
-        start,
-        end
-      );
+    const associatedModules = modulesByFile.get(
+      instance.filePathKeyMapper(fileName)
+    );
 
-      if (module) {
-        addErrorToModule(module, error);
-      } else {
-        loaderContext.emitError(error);
+    if (associatedModules === undefined) {
+      compilation.errors.push(...errors);
+      continue;
+    }
+
+    associatedModules.forEach(module => {
+      removeModuleTSLoaderError(module, instance.loaderOptions);
+
+      if (!moduleHasWebpackErrors(module)) {
+        errors.forEach(error => addErrorToModule(module, error));
       }
+
+      compilation.errors.push(...errors);
     });
+  }
+}
+
+function filterIgnoredDiagnostics(
+  instance: TSInstance,
+  diagnostics: readonly NativeDiagnostic[]
+) {
+  return diagnostics.filter(
+    diagnostic =>
+      instance.loaderOptions.ignoreDiagnostics.indexOf(diagnostic.code) === -1
+  );
+}
+
+function buildNativeError(
+  instance: TSInstance,
+  diagnostic: NativeDiagnostic,
+  program: NativeProgram,
+  context: string,
+  module: webpack.Module | undefined
+) {
+  const { start, end } = getDiagnosticLocations(diagnostic, program);
+  const errorInfo: ErrorInfo = {
+    code: diagnostic.code,
+    severity: (diagnosticCategoryNames[diagnostic.category] ??
+      'error') as Severity,
+    content: diagnostic.text,
+    file: diagnostic.fileName ? path.normalize(diagnostic.fileName) : '',
+    line: start === undefined ? 0 : start.line,
+    character: start === undefined ? 0 : start.character,
+    context,
+  };
+
+  const message =
+    instance.loaderOptions.errorFormatter === undefined
+      ? defaultErrorFormatter(errorInfo, instance.colors)
+      : instance.loaderOptions.errorFormatter(errorInfo, instance.colors);
+
+  const error = makeError(
+    instance.loaderOptions,
+    message,
+    errorInfo.file,
+    start,
+    end
+  );
+
+  // Matches classic ts-loader: tag the error with its module explicitly so
+  // webpack's stats can still group/locate it correctly even when it's only
+  // pushed onto `compilation.errors` without being attached via
+  // `module.addError` (see reportPendingNativeDiagnostics).
+  if (module) {
+    error.module = module;
+  }
+
+  return error;
+}
+
+/**
+ * Builds a map of every module in the compilation, keyed by its resource
+ * file's path key. A file can be associated with more than one module.
+ */
+function determineModulesByFile(
+  compilation: webpack.Compilation,
+  instance: TSInstance
+): Map<FilePathKey, webpack.Module[]> {
+  const modulesByFile = new Map<FilePathKey, webpack.Module[]>();
+
+  compilation.modules.forEach(module => {
+    const resource = (module as webpack.NormalModule).resource;
+    if (!resource) {
+      return;
+    }
+
+    const key = instance.filePathKeyMapper(resource);
+    const existing = modulesByFile.get(key);
+    if (existing) {
+      if (!existing.includes(module)) {
+        existing.push(module);
+      }
+    } else {
+      modulesByFile.set(key, [module]);
+    }
+  });
+
+  return modulesByFile;
+}
+
+function removeCompilationTSLoaderErrors(
+  compilation: webpack.Compilation,
+  loaderOptions: LoaderOptions
+) {
+  compilation.errors = compilation.errors.filter(
+    error => !isTSLoaderModuleError(error as webpack.WebpackError, loaderOptions)
+  );
+}
+
+function removeModuleTSLoaderError(
+  module: webpack.Module,
+  loaderOptions: LoaderOptions
+) {
+  if (isWebpack5) {
+    const warnings = Array.from(module.getWarnings() ?? []);
+    const errors = Array.from(module.getErrors() ?? []);
+    module.clearWarningsAndErrors();
+    warnings.forEach(warning => module.addWarning(warning));
+    errors
+      .filter(error => !isTSLoaderModuleError(error, loaderOptions))
+      .forEach(error => module.addError(error));
+  } else {
+    const webpackModule = module as unknown as {
+      warnings: webpack.WebpackError[];
+      errors: webpack.WebpackError[];
+    };
+    const warnings = (webpackModule.warnings || []).slice();
+    const errors = (webpackModule.errors || []).slice();
+    webpackModule.warnings = [];
+    webpackModule.errors = [];
+    warnings.forEach(warning => webpackModule.warnings.push(warning));
+    errors
+      .filter(error => !isTSLoaderModuleError(error, loaderOptions))
+      .forEach(error => webpackModule.errors.push(error));
+  }
+}
+
+function isTSLoaderModuleError(
+  error: webpack.WebpackError,
+  loaderOptions: LoaderOptions
+) {
+  return error?.details === tsLoaderSource(loaderOptions);
+}
+
+function moduleHasWebpackErrors(module: webpack.Module) {
+  return module.getNumberOfErrors
+    ? module.getNumberOfErrors() > 0
+    : ((module as unknown as { errors?: webpack.WebpackError[] }).errors ?? [])
+        .length > 0;
 }
 
 function getDiagnosticLocations(

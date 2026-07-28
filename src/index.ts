@@ -2,9 +2,13 @@ import * as chalk from 'chalk';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
-import type * as webpack from 'webpack';
+import * as webpack from 'webpack';
 
-import { createNativeInstance, getNativeEmit } from './native';
+import {
+  createNativeInstance,
+  getNativeEmit,
+  reportPendingNativeDiagnostics,
+} from './native';
 import type {
   FilePathKey,
   LoaderOptions,
@@ -111,6 +115,7 @@ function getTypeScriptInstance(
     configFilePath,
     filePathKeyMapper: createFilePathKeyMapper(loaderOptions),
     nativeInstance: createNativeInstance(loaderOptions, configFilePath),
+    pendingDiagnostics: new Map(),
   };
 
   if (loaderUtils.isWebpack5) {
@@ -119,11 +124,46 @@ function getTypeScriptInstance(
     loader.addDependency(configFilePath);
   }
 
+  if (!loaderOptions.transpileOnly) {
+    addDiagnosticReportingHooks(loader, instance);
+  }
+
   setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
   log.logInfo(
     `ts-loader: Using ${loaderOptions.compiler} native API with ${configFilePath}`
   );
   return instance;
+}
+
+/**
+ * Diagnostics for non-transpileOnly compiles are gathered per-file but not
+ * attached to modules until this compilation's processAssets stage (see
+ * reportPendingNativeDiagnostics), by which point webpack has finished
+ * building/parsing every module - matching classic ts-loader's afterCompile
+ * timing. `compiler.hooks.compilation` only fires for compilations created
+ * *after* this tap is registered, so the current (first) compilation, already
+ * available as `loader._compilation`, needs to be wired up directly too.
+ */
+function addDiagnosticReportingHooks(
+  loader: webpack.LoaderContext<LoaderOptions>,
+  instance: TSInstance
+) {
+  const attachToCompilation = (compilation: webpack.Compilation) => {
+    compilation.hooks.processAssets.tap(
+      {
+        name: 'ts-loader',
+        stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+      },
+      () => {
+        if (!compilation.compiler.isChild()) {
+          reportPendingNativeDiagnostics(instance, compilation);
+        }
+      }
+    );
+  };
+
+  attachToCompilation(loader._compilation!);
+  loader._compiler!.hooks.compilation.tap('ts-loader', attachToCompilation);
 }
 
 function createFilePathKeyMapper(loaderOptions: LoaderOptions) {
