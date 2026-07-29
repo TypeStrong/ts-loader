@@ -365,6 +365,12 @@ function cleanHashFromOutput(stats, webpackOutput) {
     }
 }
 
+/**
+ * Normalise the file content to remove any differences that are not relevant to the test, such as timestamps, file paths, and line endings.
+ * @param {string} file - The name of the file to normalise.
+ * @param {string} location - The directory where the file is located.
+ * @returns {string} - The normalised content of the file.
+ */
 function getNormalisedFileContent(file, location) {
     /** @type {string} */
     let fileContent;
