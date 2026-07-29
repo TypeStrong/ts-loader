@@ -112,9 +112,14 @@ export function getTypeScriptEmit(
     (instance.loaderOptions.transpileOnly ||
       instance.loaderOptions.allowTsInNodeModules) &&
     fileName.indexOf('node_modules') !== -1;
+  // See toApiFacingFileName: every call into the TypeScript API below uses
+  // this instead of `fileName` itself, which is reserved for everything
+  // reported back to webpack (dependencies, error locations) or shown to
+  // the user.
+  const apiFileName = toApiFacingFileName(fileName);
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
     typeScriptInstance,
-    fileName,
+    apiFileName,
     forceSyntheticRoot,
   );
   let outputText: string | undefined;
@@ -130,7 +135,7 @@ export function getTypeScriptEmit(
 
   typeScriptInstance.api.runWithTemporaryFileUpdate(
     snapshot,
-    fileName,
+    apiFileName,
     contents,
     temporarySnapshot => {
       // Prefer the project ts-loader explicitly resolved and opened (via its own
@@ -147,9 +152,9 @@ export function getTypeScriptEmit(
         configuredProject.program.getConfigFileParsingDiagnostics().length > 0;
       const project = configuredProjectFailedToParse
         ? configuredProject
-        : configuredProject?.program.getSourceFile(fileName)
+        : configuredProject?.program.getSourceFile(apiFileName)
           ? configuredProject
-          : (temporarySnapshot.getDefaultProjectForFile(fileName) ??
+          : (temporarySnapshot.getDefaultProjectForFile(apiFileName) ??
             configuredProject);
 
       if (!project) {
@@ -191,16 +196,16 @@ export function getTypeScriptEmit(
         return;
       }
 
-      const emitResult = program.getJavaScriptEmit([fileName]);
+      const emitResult = program.getJavaScriptEmit([apiFileName]);
       const perFileDiagnostics = dedupeDiagnostics([
-        ...program.getSyntacticDiagnostics(fileName),
+        ...program.getSyntacticDiagnostics(apiFileName),
         // Type-checking is skipped entirely in transpileOnly mode, matching
         // classic ts-loader's transpileModule-based behaviour.
         ...(instance.loaderOptions.transpileOnly
           ? []
           : [
               ...emitResult.diagnostics,
-              ...program.getSemanticDiagnostics(fileName),
+              ...program.getSemanticDiagnostics(apiFileName),
             ]),
       ]);
 
@@ -222,6 +227,7 @@ export function getTypeScriptEmit(
         loaderContext,
         program,
         fileName,
+        apiFileName,
         instance,
       );
 
@@ -240,6 +246,12 @@ export function getTypeScriptEmit(
             program,
             loaderContext.context,
             loaderContext._module,
+            '',
+            // perFileDiagnostics is always about apiFileName - once
+            // getDiagnosticLocations (inside buildTypeScriptError) has used
+            // that identity to resolve a line/character via `program`, the
+            // real fileName is what should actually reach the user.
+            fileName,
           ),
         ),
         // Program diagnostics have no associated file of their own (classic
@@ -287,7 +299,24 @@ export function getTypeScriptEmit(
         // re-check, which is likewise decoupled from webpack's own
         // module-rebuild decisions (driven by its persistent
         // language service/program rather than a fresh loader invocation).
-        recheckTransitiveDependants(instance, program, fileName, loaderContext);
+        //
+        // Only meaningful against the primary project's own Program: a
+        // synthetic one-off project (see ensureSyntheticConfigForFile) is a
+        // narrow, throwaway compilation context for this one file, not a
+        // stand-in for the real project graph - recomputing some *other*
+        // file's diagnostics against it would use the wrong compiler options
+        // and the wrong resolved-import graph (e.g. another file's relative
+        // import of this one, resolved against the synthetic project's own
+        // slim file set, can coincidentally collide with this file's own
+        // apiFileName and be misidentified as a dependant).
+        if (projectConfigPath === typeScriptInstance.configFilePath) {
+          recheckTransitiveDependants(
+            instance,
+            program,
+            apiFileName,
+            loaderContext,
+          );
+        }
       }
 
       // Declaration files, like errors, are only produced from a full
@@ -460,6 +489,32 @@ function hashFileName(fileName: string) {
   return crypto.createHash('sha1').update(fileName).digest('hex').slice(0, 12);
 }
 
+/**
+ * The identity to use for every TypeScript-API-facing call (opening/parsing
+ * the file, emit, diagnostics) - as opposed to `fileName` itself, which is
+ * what's reported back to webpack (dependencies, error locations).
+ *
+ * A file with an extension TypeScript doesn't recognize - e.g. a Vue SFC's
+ * `<script>` block, extracted and handed to ts-loader by vue-loader before
+ * we ever see it (see the `readFile` override in createTypeScriptApiInstance)
+ * - has no inferrable ScriptKind, and unlike classic ts-loader's
+ * `ts.LanguageService` (which defaults an unrecognized extension to TS) this
+ * API panics outright instead. There's no host-level lever to specify
+ * ScriptKind directly (checked: no such option on `openFiles`/`openProjects`/
+ * the config JSON), so the only way to give it a file it can make sense of is
+ * a virtual, `.ts`-suffixed alias - served via the same in-memory `readFile`
+ * override as the synthetic config itself, real disk untouched. Appending
+ * (rather than replacing the extension) keeps the file in its real directory,
+ * so relative import resolution still works. A no-op for any file whose
+ * extension TypeScript already understands.
+ */
+function toApiFacingFileName(fileName: string) {
+  return constants.tsTsxJsJsxRegex.test(fileName) ||
+    constants.jsonRegex.test(fileName)
+    ? fileName
+    : `${fileName}.ts`;
+}
+
 function getOutputAndSourceMapFromTypeScriptEmit(
   emitResult: TypeScriptEmitOutput,
 ) {
@@ -481,6 +536,7 @@ function registerTypeScriptDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   program: TypeScriptProgram,
   fileName: string,
+  apiFileName: string,
   instance: TSInstance,
 ) {
   loaderContext.clearDependencies();
@@ -506,7 +562,7 @@ function registerTypeScriptDependencies(
   // registerResolvedImportDependencies).
   for (const otherFileName of program.getSourceFileNames()) {
     if (
-      otherFileName === fileName ||
+      otherFileName === apiFileName ||
       !constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName)
     ) {
       continue;
@@ -529,7 +585,7 @@ function registerTypeScriptDependencies(
   // behaviour), so a dependency's content genuinely can't affect this file's
   // transpiled output, and shouldn't force a rebuild of it.
   if (!instance.loaderOptions.transpileOnly) {
-    registerResolvedImportDependencies(program, fileName, addDependency);
+    registerResolvedImportDependencies(program, apiFileName, addDependency);
   }
 
   for (const fileName of program.getConfigFileNames()) {
@@ -1029,6 +1085,14 @@ function buildTypeScriptError(
   context: string,
   module: webpack.Module | undefined,
   fallbackFile = '',
+  // Set only when `diagnostic` was fetched using a synthetic, API-facing
+  // file identity (see toApiFacingFileName) rather than the file's real
+  // path - e.g. a Vue SFC's extracted <script> block. `getDiagnosticLocations`
+  // below still needs the *original* `diagnostic.fileName` to resolve a
+  // location via `program` (that's the only identity `program` recognizes),
+  // but the path shown to the user, and used for the webpack error's own
+  // file/module attribution, should be the real one.
+  displayFileName?: string,
 ) {
   // `fallbackFile` is only ever passed for config-file-parsing/whole-program
   // diagnostics (see call sites below), which classic ts-loader treats as
@@ -1048,7 +1112,7 @@ function buildTypeScriptError(
     : getDiagnosticLocations(diagnostic, program);
   const diagnosticFile =
     !hasFallbackFile && diagnostic.fileName
-      ? path.normalize(diagnostic.fileName)
+      ? path.normalize(displayFileName ?? diagnostic.fileName)
       : '';
   const errorInfo: ErrorInfo = {
     code: diagnostic.code,
