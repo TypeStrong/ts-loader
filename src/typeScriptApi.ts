@@ -130,31 +130,6 @@ export function getTypeScriptEmit(
 
       const program = project.program;
 
-      // Classic ts-loader loads every file the tsconfig lists (via a plain
-      // `fs.readFileSync`) once, up front, when first building its instance -
-      // but only for a full compile; its transpileOnly setup path returns
-      // before ever touching disk for these, which is why a missing file is
-      // silently ignored there (matches the transpileOnly check here). This
-      // API doesn't surface a missing `files` entry as a *config-parsing*
-      // diagnostic the way an unresolvable `include` pattern is (it shows up
-      // as a whole-program diagnostic instead, e.g. TS6053) - it isn't
-      // grouped with the config-file-parsing-diagnostics handling below
-      // because classic reports no formatted diagnostic for this case at
-      // all, just this one thrown message, matching classic's own
-      // try/readFileSync/catch exactly (including reporting only the first
-      // missing file, since `forEach`'s callback throwing stops it there).
-      // if (!instance.loaderOptions.transpileOnly) {
-      //   const missingFile = project.parsedCommandLine.fileNames.find(
-      //     projectFileName => !fs.existsSync(projectFileName),
-      //   );
-      //   if (missingFile !== undefined) {
-      //     configParseErrorMessage = instance.colors.red(
-      //       `A file specified in tsconfig.json could not be found: ${missingFile}`,
-      //     );
-      //     return;
-      //   }
-      // }
-
       const configFileParsingDiagnostics =
         program.getConfigFileParsingDiagnostics();
       if (configFileParsingDiagnostics.length > 0) {
@@ -206,15 +181,8 @@ export function getTypeScriptEmit(
       // diagnostics). There's no transpileModule equivalent here, so these
       // are pulled from the program directly, matching that same
       // transpileOnly-only placement.
-      //
-      // TS6053 ("File ... not found", for a missing `files`/`include` entry)
-      // is excluded here: classic's transpileOnly instance setup never reads
-      // config-listed files from disk at all (see the missing-file check
-      // above, which is likewise skipped for transpileOnly), so it can never
-      // surface this diagnostic there either.
       const programDiagnostics = instance.loaderOptions.transpileOnly
         ? dedupeDiagnostics(program.getProgramDiagnostics())
-          // .filter(diagnostic => diagnostic.code !== DIAGNOSTIC_CODE_FILE_NOT_FOUND)
         : [];
 
       ({ outputText, sourceMapText } =
