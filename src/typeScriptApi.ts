@@ -83,9 +83,29 @@ export function getTypeScriptEmit(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
   const typeScriptInstance = instance.typeScriptApiInstance;
+  // A node_modules file can be *discovered* as part of the primary
+  // project's program via ordinary import resolution (any real,
+  // resolvable .ts file, node_modules or not) without ever being one of
+  // its root files - and this API skips emitting output for a source file
+  // in that position, matching classic ts-loader's own default refusal to
+  // compile .ts files under node_modules (there, by simply never adding
+  // them to its root file set). Classic's transpileOnly mode is built on
+  // `ts.transpileModule` instead, a program-less, single-file transform
+  // with no such root-file concept at all, so this restriction never
+  // applies there (nor, obviously, when a user has explicitly opted in via
+  // `allowTsInNodeModules`) - forcing the synthetic single-file project
+  // fallback below (which *does* list the file as an explicit root)
+  // replicates that "just transpile it, no restriction" behaviour in both
+  // cases, even though the underlying mechanism (program-based emit of an
+  // explicitly-rooted file) differs from classic's.
+  const forceSyntheticRoot =
+    (instance.loaderOptions.transpileOnly ||
+      instance.loaderOptions.allowTsInNodeModules) &&
+    fileName.indexOf('node_modules') !== -1;
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
     typeScriptInstance,
     fileName,
+    forceSyntheticRoot,
   );
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
@@ -333,6 +353,7 @@ function updateSnapshot(
 function prepareSnapshotForFile(
   typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
+  forceSyntheticRoot: boolean,
 ) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
@@ -344,7 +365,10 @@ function prepareSnapshotForFile(
   );
   const primaryProject = snapshot.getProject(primaryProjectPath);
 
-  if (primaryProject?.program.getSourceFile(fileName)) {
+  if (
+    !forceSyntheticRoot &&
+    primaryProject?.program.getSourceFile(fileName)
+  ) {
     return { snapshot, projectConfigPath: primaryProjectPath };
   }
 

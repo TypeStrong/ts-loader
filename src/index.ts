@@ -43,7 +43,7 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  const configParseErrorMessage = runLoader(
+  const configParseErrorMessage = successLoader(
     this,
     contents,
     inputSourceMap,
@@ -59,7 +59,7 @@ function loader(
   }
 }
 
-function runLoader(
+function successLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   inputSourceMap: Record<string, unknown> | undefined,
@@ -70,12 +70,7 @@ function runLoader(
     const instance = getTypeScriptInstance(options, loaderContext);
     const rawFilePath = path.normalize(loaderContext.resourcePath);
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
-    const fileVersion = updateFileInCache(
-      options,
-      filePath,
-      contents,
-      instance,
-    );
+    const fileVersion = updateFileInCache(filePath, contents, instance);
     const { outputText, sourceMapText, configParseErrorMessage } =
       getTypeScriptEmit(filePath, contents, instance, loaderContext);
 
@@ -91,6 +86,7 @@ function runLoader(
       loaderContext,
       fileVersion,
       callback,
+      options.allowTsInNodeModules,
       inputSourceMap,
     );
   } catch (error) {
@@ -395,7 +391,6 @@ function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
 }
 
 function updateFileInCache(
-  options: LoaderOptions,
   filePath: string,
   contents: string,
   instance: TSInstance,
@@ -404,15 +399,15 @@ function updateFileInCache(
   let file: TSFile | undefined = instance.files.get(key);
 
   if (file === undefined) {
-    if (
-      !options.allowTsInNodeModules &&
-      filePath.indexOf('node_modules') !== -1
-    ) {
-      throw new Error(
-        `TypeScript source in node_modules is not compiled by default: ${filePath}`,
-      );
-    }
-
+    // Classic ts-loader doesn't throw for a disallowed node_modules file
+    // here: it just leaves it out of its own root file set, so TypeScript
+    // never emits output for it - surfaced instead as
+    // `makeSourceMapAndFinish`'s "TypeScript emitted no output" error
+    // below, with node_modules-specific guidance in the message. This API
+    // already skips emitting output for a node_modules file on its own
+    // (`program.getJavaScriptEmit` returns no output files for source
+    // files it considers part of an external library), so no equivalent
+    // "don't compile this" step is needed here at all.
     file = { fileName: filePath, version: 0 };
     instance.files.set(key, file);
     instance.version++;
@@ -463,12 +458,27 @@ function makeSourceMapAndFinish(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
+  allowTsInNodeModules: boolean,
   inputSourceMap?: Record<string, unknown>,
 ) {
   if (outputText === null || outputText === undefined) {
     setModuleMeta(loaderContext, fileVersion);
+    // A file under node_modules is the most common cause: the API leaves
+    // its own project's file set to include it (import resolution can pick
+    // up any real, resolvable .ts file, node_modules or not), but skips
+    // emitting output for a source file it considers part of an external
+    // library - matching classic ts-loader's guidance for the same
+    // situation with its own, differently-derived "not a root file" cause.
+    const additionalGuidance =
+      !allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
+        ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
+          'You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n' +
+          'See: https://github.com/Microsoft/TypeScript/issues/12358'
+        : '';
     callback(
-      new Error(`TypeScript emitted no output for ${filePath}.`),
+      new Error(
+        `TypeScript emitted no output for ${filePath}.${additionalGuidance}`,
+      ),
       outputText,
       undefined,
     );
