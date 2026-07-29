@@ -4,6 +4,7 @@
     "allow": [
       "Edit",
       "Write",
+      "Bash(rm -rf .spike-tmp*)",
       "Bash(yarn build *)",
       "Bash(yarn lint *)",
       "Bash(yarn format *)",
