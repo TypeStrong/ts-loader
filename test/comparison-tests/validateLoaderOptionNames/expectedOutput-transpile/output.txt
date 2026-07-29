@@ -1,4 +1,4 @@
-asset bundle.js 2.13 KiB [emitted] (name: main)
+asset bundle.js 2.14 KiB [emitted] (name: main)
 ./app.ts 39 bytes [built] [code generated] [1 error]
 
 ERROR in ./app.ts
@@ -10,7 +10,7 @@ silent / logLevel / logInfoToStdOut / instance / compiler / context / configFile
 
     at validateLoaderOptions (dist/index.js:242:19)
     at getLoaderOptions (dist/index.js:277:5)
-    at runLoader (dist/index.js:69:25)
+    at successLoader (dist/index.js:69:25)
     at Object.loader (dist/index.js:57:37)
 
 webpack compiled with 1 error
