@@ -1,6 +1,4 @@
 import * as crypto from 'crypto';
-import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import type { Chalk } from 'chalk';
 import picomatch from 'picomatch';
@@ -49,20 +47,14 @@ export function createTypeScriptApiInstance(
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
-  // A directory unique to this instance (rather than a single fixed,
-  // machine-wide name) so two projects that need a synthetic root for the
-  // same file - e.g. sibling `client`/`server` tsconfig.json's compiled by
-  // separate instances in the same webpack build - can never collide on the
-  // same synthetic config path and silently clobber one another. `mkdtemp`'s
-  // random suffix is what guarantees the uniqueness; it also gives us a
-  // single directory to remove wholesale on process exit rather than tracking
-  // every synthetic file individually.
-  const syntheticConfigDir = fs.mkdtempSync(
-    path.join(os.tmpdir(), 'ts-loader-ts7-configs-'),
-  );
-  process.on('exit', () => {
-    fs.rmSync(syntheticConfigDir, { recursive: true, force: true });
-  });
+  // Synthetic tsconfig files (see ensureSyntheticConfigForFile) are never
+  // written to real disk - they're served entirely from this in-memory map
+  // via the `readFile` override below, keyed by the exact synthetic path
+  // `ensureSyntheticConfigForFile` generates. That path is always a sibling
+  // of the real config it `extends`, so its directory already exists on
+  // disk and no `fileExists`/`directoryExists` override is needed for the
+  // API to treat it as real.
+  const syntheticConfigContents = new Map<string, string>();
 
   return {
     // Other loaders (e.g. a raw-loader-style pre-processor chained before
@@ -80,11 +72,13 @@ export function createTypeScriptApiInstance(
     // backed entirely by its `instance.files`/`instance.otherFiles` maps.
     api: new typeScriptApiModule.API({
       fs: {
-        readFile: fileName => files.get(filePathKeyMapper(fileName))?.text,
+        readFile: fileName =>
+          syntheticConfigContents.get(fileName) ??
+          files.get(filePathKeyMapper(fileName))?.text,
       },
     }),
     configFilePath,
-    syntheticConfigDir,
+    syntheticConfigContents,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
   };
@@ -433,9 +427,15 @@ function ensureSyntheticConfigForFile(
     return existing;
   }
 
+  // A sibling of the real config, so its directory always already exists on
+  // disk - see the comment on syntheticConfigContents in
+  // createTypeScriptApiInstance for why that means this never needs to
+  // touch real disk. Being colocated with the real config it extends also
+  // means two different projects' synthetic configs can never land in the
+  // same directory, let alone collide on the same path.
   const syntheticConfigPath = path.join(
-    typeScriptInstance.syntheticConfigDir,
-    `${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
+    path.dirname(configFilePath),
+    `.${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
       fileName,
     )}.json`,
   );
@@ -448,7 +448,10 @@ function ensureSyntheticConfigForFile(
     null,
     2,
   );
-  fs.writeFileSync(syntheticConfigPath, configText);
+  typeScriptInstance.syntheticConfigContents.set(
+    syntheticConfigPath,
+    configText,
+  );
   typeScriptInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
   return syntheticConfigPath;
 }

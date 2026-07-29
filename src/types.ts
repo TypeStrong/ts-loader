@@ -81,7 +81,7 @@ export interface TypeScriptSourceFile {
 export interface TypeScriptInstance {
   api: TypeScriptApi;
   configFilePath: string;
-  syntheticConfigDir: string;
+  syntheticConfigContents: Map<string, string>;
   syntheticConfigFiles: Map<string, string>;
   openedProjectPaths: Set<string>;
   snapshot?: TypeScriptSnapshot;
