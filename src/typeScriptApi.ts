@@ -74,7 +74,7 @@ export function createTypeScriptApiInstance(
   };
 }
 
-const DIAGNOSTIC_CODE_FILE_NOT_FOUND = 6053;
+// const DIAGNOSTIC_CODE_FILE_NOT_FOUND = 6053;
 
 export function getTypeScriptEmit(
   fileName: string,
