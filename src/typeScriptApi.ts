@@ -49,6 +49,21 @@ export function createTypeScriptApiInstance(
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
+  // A directory unique to this instance (rather than a single fixed,
+  // machine-wide name) so two projects that need a synthetic root for the
+  // same file - e.g. sibling `client`/`server` tsconfig.json's compiled by
+  // separate instances in the same webpack build - can never collide on the
+  // same synthetic config path and silently clobber one another. `mkdtemp`'s
+  // random suffix is what guarantees the uniqueness; it also gives us a
+  // single directory to remove wholesale on process exit rather than tracking
+  // every synthetic file individually.
+  const syntheticConfigDir = fs.mkdtempSync(
+    path.join(os.tmpdir(), 'ts-loader-ts7-configs-'),
+  );
+  process.on('exit', () => {
+    fs.rmSync(syntheticConfigDir, { recursive: true, force: true });
+  });
+
   return {
     // Other loaders (e.g. a raw-loader-style pre-processor chained before
     // ts-loader) transform a file's contents before ts-loader ever sees them,
@@ -69,6 +84,7 @@ export function createTypeScriptApiInstance(
       },
     }),
     configFilePath,
+    syntheticConfigDir,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
   };
@@ -417,10 +433,8 @@ function ensureSyntheticConfigForFile(
     return existing;
   }
 
-  const syntheticConfigDir = path.join(os.tmpdir(), 'ts-loader-ts7-configs');
-  fs.mkdirSync(syntheticConfigDir, { recursive: true });
   const syntheticConfigPath = path.join(
-    syntheticConfigDir,
+    typeScriptInstance.syntheticConfigDir,
     `${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
       fileName,
     )}.json`,
