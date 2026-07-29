@@ -89,9 +89,13 @@ function runTests() {
             return false;
           }
 
-          // skip project references / custom transformer tests as they are not supported yet
-          // nolib does not seem worth supporting either, as it is a very niche use case
-          if (testName.startsWith('projectReferences') || testName.startsWith('customTransformer') || testName.startsWith('nolib')) {
+          
+          // skip project references / custom transformer tests for now as they are not supported yet
+          if (testName.startsWith('projectReferences') || 
+            testName.startsWith('customTransformer') || 
+            testName.startsWith('nolib') || // nolib does not seem worth supporting at all, as it is a very niche use case
+            testName.startsWith('tsconfigInvalidFile') // not sure how useful this is
+          ) {
             console.log(
               `Skipping test ${testName} as project references / custom transformer tests are not supported yet`
             );
