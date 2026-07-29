@@ -35,7 +35,7 @@ Full docs: [`test/comparison-tests/README.md`](test/comparison-tests/README.md)
 **Flaky tests**: place an empty `_FLAKY_` file in the test directory to allow occasional failures without blocking the build.
 
 ```bash
-yarn comparison-tests                                              # all tests
+yarn comparison-tests                                             # all tests
 yarn comparison-tests -- --single-test <name>                     # one test
 yarn comparison-tests -- --save-output                            # regenerate all snapshots
 yarn comparison-tests -- --save-output --single-test <name>       # regenerate one snapshot

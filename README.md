@@ -130,9 +130,9 @@ If you'd like to see a simple setup take a look at [our example](examples/fork-t
 
 ### Compatibility
 
-* TypeScript: 3.6.3+
+* TypeScript: 7.1+
 * webpack: 4.x+ and 5.x+
-* node: 12.x+
+* node: 22.x+
 
 A full test suite runs each night (and on each pull request). It runs both on Linux and Windows, testing `ts-loader` against major releases of TypeScript and against both webpack 4 and webpack 5. Comparison tests run against webpack 5 only; execution tests run against both webpack 4 and webpack 5. The test suite also runs against TypeScript@next (because we want to use it as much as you do).
 

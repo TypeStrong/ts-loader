@@ -1,0 +1,56 @@
+name: Windows test probe
+
+# A deliberately lean, on-demand counterpart to the `comparison_test_windows`
+# job in push.yml - triggered only via workflow_dispatch (never on push/PR,
+# so it adds no cost/noise to normal CI) and able to target a single test or
+# a name pattern, so a single iteration comes back in a couple of minutes
+# instead of running the full comparison/execution test matrix.
+
+on:
+  workflow_dispatch:
+    inputs:
+      single_test:
+        description: 'Run only this comparison test (matches the test directory name, e.g. "dependencyErrors")'
+        required: false
+        type: string
+      match_test:
+        description: 'Run only comparison tests whose name matches this regex (ignored if single_test is set)'
+        required: false
+        type: string
+
+jobs:
+  probe:
+    name: Windows comparison test probe
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: copy files
+        shell: pwsh
+        run: |
+          New-Item C:\source\ts-loader -ItemType Directory
+          Copy-Item .\* C:\source\ts-loader -Recurse -Force
+
+      - name: install
+        run: yarn install
+        working-directory: C:\source\ts-loader
+
+      - name: build
+        run: yarn build
+        working-directory: C:\source\ts-loader
+
+      - name: test
+        shell: pwsh
+        working-directory: C:\source\ts-loader
+        env:
+          SINGLE_TEST: ${{ inputs.single_test }}
+          MATCH_TEST: ${{ inputs.match_test }}
+        run: |
+          if ($env:SINGLE_TEST -ne "") {
+            yarn comparison-tests --single-test "$env:SINGLE_TEST"
+          } elseif ($env:MATCH_TEST -ne "") {
+            yarn comparison-tests --match-test "$env:MATCH_TEST"
+          } else {
+            yarn comparison-tests
+          }

@@ -72,8 +72,33 @@ export function createTypeScriptApiInstance(
     // backed entirely by its `instance.files`/`instance.otherFiles` maps.
     api: new typeScriptApiModule.API({
       fs: {
+        // A purely synthetic identity - e.g. `component.vue.ts` for a
+        // `component.vue` file compiled via `appendTsSuffixTo` - never
+        // exists under that exact name on real disk, only `readFile` ever
+        // serves it. Without this override, validating a `files` array
+        // entry (or resolving an import) that names such a file falls back
+        // to a real disk check, which correctly finds nothing and reports
+        // "File not found" (TS6053) - regardless of `readFile` being able
+        // to serve its content just fine. `true`/`undefined` (not `false`)
+        // so anything we don't know about still falls through to the real
+        // filesystem, matching `readFile`'s own fallback philosophy.
+        fileExists: fileName =>
+          syntheticConfigContents.has(toComparablePath(fileName)) ||
+          files.has(filePathKeyMapper(fileName))
+            ? true
+            : undefined,
+        // `fileName` here is whatever identifier the API's own internals use
+        // when it asks to read a file - which, per the same
+        // forward-slash-normalization convention as `getSourceFileNames()`
+        // elsewhere (see toComparablePath's other call sites), is not
+        // necessarily the exact OS-native string `ensureSyntheticConfigForFile`
+        // stored this content under on Windows. Comparing via the normalized
+        // form keeps the lookup working regardless of which spelling the API
+        // hands back - `files.get(filePathKeyMapper(...))` doesn't need the
+        // same treatment since `filePathKeyMapper` already normalizes via
+        // `path.resolve`, which tolerates either separator style.
         readFile: fileName =>
-          syntheticConfigContents.get(fileName) ??
+          syntheticConfigContents.get(toComparablePath(fileName)) ??
           files.get(filePathKeyMapper(fileName))?.text,
       },
     }),
@@ -347,7 +372,6 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   const specifier = `${compilerPackage}/unstable/sync`;
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports -- ESM-only entrypoint, loadable via Node's require(esm) support (Node >= 22.12)
     return require(specifier) as TypeScriptApiModule;
   } catch (error) {
     throw new Error(
@@ -468,7 +492,14 @@ function ensureSyntheticConfigForFile(
       fileName,
     )}.json`,
   );
-  const files = [...new Set([...rootFiles, fileName])].sort();
+  // `rootFiles` (from the primary project's own parsedCommandLine) is
+  // already in the API's forward-slash-normalized form, but `fileName` is
+  // OS-native (backslash on Windows) - normalizing both to the same form
+  // before writing this list into the synthetic config's `files` field
+  // keeps every entry the API reads back consistent, rather than handing it
+  // a config with one path style for most entries and a different one for
+  // this single addition.
+  const files = [...new Set([...rootFiles, fileName].map(toComparablePath))].sort();
   const configText = JSON.stringify(
     {
       extends: configFilePath,
@@ -477,8 +508,16 @@ function ensureSyntheticConfigForFile(
     null,
     2,
   );
+  // Stored under the comparable (forward-slash) form so the `readFile`
+  // override in createTypeScriptApiInstance finds it regardless of which
+  // spelling the API's internals hand back for this same path - see that
+  // override's own comment. `syntheticConfigFiles` (this function's own
+  // fileName -> syntheticConfigPath cache) and the returned `syntheticConfigPath`
+  // itself stay OS-native: they're never compared against the API's internal
+  // path spelling, only used as opaque identifiers for later `getProject`/
+  // `openProjects` calls, which already tolerate either separator style.
   typeScriptInstance.syntheticConfigContents.set(
-    syntheticConfigPath,
+    toComparablePath(syntheticConfigPath),
     configText,
   );
   typeScriptInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
@@ -575,7 +614,13 @@ function registerTypeScriptDependencies(
       !program.isSourceFileDefaultLibrary(sourceFile) &&
       !program.isSourceFileFromExternalLibrary(sourceFile)
     ) {
-      addDependency(otherFileName);
+      // `otherFileName` (from program.getSourceFileNames()) is in the API's
+      // forward-slash-normalized form, but webpack's addDependency requires
+      // an OS-native absolute path - on Windows it otherwise rejects the
+      // dependency outright ("All reported dependencies need to be absolute
+      // paths"), the same issue getDirectResolvedImports' own return value
+      // has to avoid (see its comment).
+      addDependency(path.normalize(otherFileName));
     }
   }
 
@@ -589,10 +634,13 @@ function registerTypeScriptDependencies(
   }
 
   for (const fileName of program.getConfigFileNames()) {
+    // Same forward-slash-vs-OS-native concern as the addDependency call
+    // above - program.getConfigFileNames() is API-native too.
+    const normalizedFileName = path.normalize(fileName);
     if (isWebpack5) {
-      loaderContext.addBuildDependency(fileName);
+      loaderContext.addBuildDependency(normalizedFileName);
     } else {
-      loaderContext.addDependency(fileName);
+      loaderContext.addDependency(normalizedFileName);
     }
   }
 
@@ -692,7 +740,20 @@ function getDirectResolvedImports(
     return [];
   }
 
-  const sourceFileNames = new Set(program.getSourceFileNames());
+  // A forward-slash-normalized form of each name (see toComparablePath) -
+  // the API's own source file names are always forward-slash-normalized
+  // internally (the long-standing TypeScript compiler convention, true on
+  // every OS including Windows), but resolveRelativeSpecifier below builds
+  // its candidate via Node's `path` module, which is OS-native and
+  // backslash-separated on Windows. Comparing the two directly would
+  // silently never match there. Used only to test *membership* - the
+  // candidate path actually returned/used below stays in the OS-native form
+  // Node's `path` module produced, matching every other identifier this
+  // file threads through (`fileName`, `changedFileName`, webpack's own
+  // `addDependency`), unlike the API's own internal spelling.
+  const comparableSourceFileNames = new Set(
+    program.getSourceFileNames().map(toComparablePath),
+  );
   const fromDir = path.dirname(fileName);
   const resolvedImports: string[] = [];
 
@@ -708,7 +769,7 @@ function getDirectResolvedImports(
     const resolvedFileName = resolveRelativeSpecifier(
       fromDir,
       specifier,
-      sourceFileNames,
+      comparableSourceFileNames,
     );
 
     if (resolvedFileName && resolvedFileName !== fileName) {
@@ -800,15 +861,29 @@ function findTransitiveDependants(
   changedFileName: string,
   projectFileNames: readonly string[],
 ): Set<string> {
+  // `projectFileNames` entries (from program.getSourceFileNames()) are
+  // already in the API's own forward-slash-normalized form, so they're used
+  // as-is both as the map key and as `dependants`/frontier members below.
+  // `getDirectResolvedImports` returns OS-native paths (see its own comment)
+  // and so does `changedFileName` (ultimately from webpack's resourcePath),
+  // so both need normalizing before they're compared against those
+  // forward-slash frontier members - otherwise a multi-hop dependant (e.g.
+  // `app.ts` importing `dep.ts` importing `deeperDep.ts`) would never match
+  // on the second hop on Windows, even though the first hop happens to line
+  // up (frontier's initial seed and getDirectResolvedImports' return value
+  // are both OS-native there).
   const directImportsByFile = new Map(
     projectFileNames.map(candidateFileName => [
       candidateFileName,
-      getDirectResolvedImports(program, candidateFileName),
+      getDirectResolvedImports(program, candidateFileName).map(
+        toComparablePath,
+      ),
     ]),
   );
 
+  const comparableChangedFileName = toComparablePath(changedFileName);
   const dependants = new Set<string>();
-  let frontier = new Set([changedFileName]);
+  let frontier = new Set([comparableChangedFileName]);
 
   while (frontier.size > 0) {
     const nextFrontier = new Set<string>();
@@ -816,7 +891,7 @@ function findTransitiveDependants(
     for (const [candidateFileName, directImports] of directImportsByFile) {
       if (
         dependants.has(candidateFileName) ||
-        candidateFileName === changedFileName
+        candidateFileName === comparableChangedFileName
       ) {
         continue;
       }
@@ -838,25 +913,35 @@ const relativeSpecifierExtensions = ['', '.ts', '.tsx', '.d.ts', '.js', '.jsx'];
 function resolveRelativeSpecifier(
   fromDir: string,
   specifier: string,
-  sourceFileNames: ReadonlySet<string>,
+  comparableSourceFileNames: ReadonlySet<string>,
 ): string | undefined {
   const resolvedBase = path.resolve(fromDir, specifier);
 
   for (const extension of relativeSpecifierExtensions) {
     const candidate = resolvedBase + extension;
-    if (sourceFileNames.has(candidate)) {
+    if (comparableSourceFileNames.has(toComparablePath(candidate))) {
       return candidate;
     }
   }
 
   for (const extension of relativeSpecifierExtensions) {
     const candidate = path.join(resolvedBase, `index${extension}`);
-    if (sourceFileNames.has(candidate)) {
+    if (comparableSourceFileNames.has(toComparablePath(candidate))) {
       return candidate;
     }
   }
 
   return undefined;
+}
+
+/**
+ * Forward-slash-normalized form of a file name, for comparing against the
+ * TypeScript API's own source file names - see the comment on
+ * comparableSourceFileNames in getDirectResolvedImports for why the
+ * two can otherwise disagree on Windows.
+ */
+function toComparablePath(fileName: string): string {
+  return fileName.replace(/\\/g, '/');
 }
 
 /**

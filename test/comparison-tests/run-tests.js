@@ -115,7 +115,7 @@ function runTests() {
 
     // Allow multiple attempts to pass tests as they're flaky
     let attempt = 0;
-    while (++attempt <= 40 && passingTests.length < availableTests.length) {
+    while (++attempt <= 5 && passingTests.length < availableTests.length) {
       if (attempt > 1) {
         console.log(`Some tests failed; re-running (attempt ${attempt})`);
       }

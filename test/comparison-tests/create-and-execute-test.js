@@ -1,15 +1,11 @@
 const assert = require("assert");
-const os = require('os');
 const fs = require('fs-extra');
 const execSync = require('child_process').execSync;
 const path = require('path');
 const mkdirp = require('mkdirp');
 const rimraf = require('rimraf');
 const webpack = require('webpack');
-// @ts-ignore
-const webpackVersion = require('webpack/package.json').version;
 const regexEscape = require('escape-string-regexp');
-const semver = require('semver');
 const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
@@ -329,6 +325,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
         // Probably due to the reaons in PR 1109: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(function () {
             copySync(patchPath, testStagingPath);
+            bumpMtimes(patchPath, testStagingPath);
         }, 1000);
     }
     else {
@@ -341,6 +338,29 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
             }
         });
     }
+}
+
+/**
+ * Force a distinct, unambiguous mtime onto every file just copied in from a
+ * patch directory. Without this, webpack's watcher (watchpack) can decide a
+ * patched file is unchanged if its new mtime happens to round to the same
+ * value it already recorded for that file - see the FS_ACCURACY handling in
+ * watchpack's DirectoryWatcher.js. That equality is more likely to occur on
+ * filesystems with coarser mtime resolution (seen on some Windows setups),
+ * silently dropping the patch and leaving webpack/ts-loader compiling with
+ * stale file content. Setting mtime far enough into the future guarantees
+ * inequality regardless of the host filesystem's timestamp resolution.
+ * This cater for Windows issues - Mac / Ubuntu seem fine without this, 
+ * but it doesn't hurt to be consistent across platforms.
+ * 
+ * @param {string} patchPath - The path to the patch directory.
+ * @param {string} testStagingPath - The path to the test staging directory.
+ */
+function bumpMtimes(patchPath, testStagingPath) {
+    const future = new Date(Date.now() + 10000);
+    glob.sync('**/*', { cwd: patchPath, nodir: true, dot: true }).forEach(function (file) {
+        fs.utimesSync(path.join(testStagingPath, file), future, future);
+    });
 }
 
 /**
@@ -417,6 +437,13 @@ function getNormalisedFileContent(file, location) {
                 .replace(/(TS6305:[^']+')([^']+?)([^\\\/']+')([^']+')([^']+?)([^\\\/']+'.*)$/gm, function(match, messageStart, outputFileBaseDir, outputFileName, messageMiddle, sourceFileBaseDir, sourceFileName) {
                     return messageStart + outputFileName + messageMiddle + sourceFileName;
                 })
+                // TS18003's "No inputs were found in config file '...'" embeds
+                // whatever config file identifier the compiler was opened
+                // with, which can differ in path depth between platforms;
+                // only the file name itself is meaningful for the test.
+                .replace(/(TS18003: No inputs were found in config file ')([^']*?)([^\\\/']+')/g, function(match, messageStart, baseDir, fileNameAndQuote) {
+                    return messageStart + fileNameAndQuote;
+                })
             : normaliseString(originalContent))
             // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
             .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
@@ -424,6 +451,15 @@ function getNormalisedFileContent(file, location) {
             })
             // strip C:/projects/ts-loader/.test/
             .replace(/([a-zA-Z]\:\/)?[\w|\/]*\/(ts-(loader)?|workspace)\/\.test/ig, '')
+            // Some diagnostics (TS5055, TS6059) embed a path relative to a
+            // different reference point than most output - one that still
+            // has ".test/<test name>/" in front of it - even though the
+            // expected fixture is relative to the test's own directory.
+            // Strip that leftover prefix too, but only right after a quote
+            // (as in `'/.test/name/...`) so this can't accidentally eat the
+            // test name out of an unrelated, intentionally-preserved path
+            // elsewhere in the output.
+            .replace(new RegExp("'\\/\\.test\\/" + regexEscape(testToRun) + "\\/", 'g'), "'")
             .replace(/webpack:\/\/([a-zA-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
             .replace(/WEBPACK FOOTER\/n\/ ([a-zA-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
             .replace(/!\** ([a-zA-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
