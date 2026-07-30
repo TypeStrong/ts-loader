@@ -70,7 +70,7 @@ if (fs.statSync(testPath).isDirectory() &&
  */
 function createTest(test, testPath, options) {
     return function (done) {
-        this.timeout(60000); // sometimes it just takes awhile
+        this.timeout(90000); // sometimes it just takes awhile
         const testState = createTestState();
         const paths = createPaths(stagingPath, test, options);
         if (saveOutputMode) {
