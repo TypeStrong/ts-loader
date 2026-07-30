@@ -13,6 +13,7 @@ npm-debug.log
 !/test/**/expectedOutput-transpile/**
 /**/node_modules
 /dist
+/dist-2018
 /test/execution-tests/**/dist
 /**/.cache-loader
 !build.js
