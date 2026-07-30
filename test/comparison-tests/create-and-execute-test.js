@@ -325,7 +325,6 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
         // Probably due to the reaons in PR 1109: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(function () {
             copySync(patchPath, testStagingPath);
-            bumpMtimes(patchPath, testStagingPath);
         }, 1000);
     }
     else {
@@ -338,29 +337,6 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
             }
         });
     }
-}
-
-/**
- * Force a distinct, unambiguous mtime onto every file just copied in from a
- * patch directory. Without this, webpack's watcher (watchpack) can decide a
- * patched file is unchanged if its new mtime happens to round to the same
- * value it already recorded for that file - see the FS_ACCURACY handling in
- * watchpack's DirectoryWatcher.js. That equality is more likely to occur on
- * filesystems with coarser mtime resolution (seen on some Windows setups),
- * silently dropping the patch and leaving webpack/ts-loader compiling with
- * stale file content. Setting mtime far enough into the future guarantees
- * inequality regardless of the host filesystem's timestamp resolution.
- * This cater for Windows issues - Mac / Ubuntu seem fine without this, 
- * but it doesn't hurt to be consistent across platforms.
- * 
- * @param {string} patchPath - The path to the patch directory.
- * @param {string} testStagingPath - The path to the test staging directory.
- */
-function bumpMtimes(patchPath, testStagingPath) {
-    const future = new Date(Date.now() + 10000);
-    glob.sync('**/*', { cwd: patchPath, nodir: true, dot: true }).forEach(function (file) {
-        fs.utimesSync(path.join(testStagingPath, file), future, future);
-    });
 }
 
 /**
