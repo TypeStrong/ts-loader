@@ -1,4 +1,4 @@
-import type { Chalk } from 'chalk';
+import type { Colors } from './colors';
 import type {
   API as SyncApi,
   CompilerOptions,
@@ -40,7 +40,7 @@ export interface LoaderOptions {
   transpileOnly: boolean;
   ignoreDiagnostics: number[];
   reportFiles: string[];
-  errorFormatter?: (message: ErrorInfo, colors: Chalk) => string;
+  errorFormatter?: (message: ErrorInfo, colors: Colors) => string;
   onlyCompileBundledFiles: boolean;
   colors: boolean;
   compilerOptions: CompilerOptions;
@@ -99,7 +99,7 @@ export interface PendingDeclarationFile {
 
 export interface TSInstance {
   version: number;
-  colors: Chalk;
+  colors: Colors;
   loaderOptions: LoaderOptions;
   files: Map<FilePathKey, TSFile>;
   filePathKeyMapper: (fileName: string) => FilePathKey;

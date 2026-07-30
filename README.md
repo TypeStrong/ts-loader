@@ -417,7 +417,7 @@ By default `ts-loader` formats TypeScript compiler output for an error or a warn
       TS4711: you did something very wrong
 ```
 
-If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter. Please note that the `colors` parameter is an instance of [`chalk`](https://github.com/chalk/chalk) which you can use to color your output. (This instance will respect the `colors` option.)
+If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter. Please note that the `colors` parameter is a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper object which you can use to color your output. (It will respect the `colors` option.)
 
 ```javascript
 function customErrorFormatter(error, colors) {

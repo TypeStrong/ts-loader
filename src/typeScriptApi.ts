@@ -1,11 +1,11 @@
 import * as crypto from 'crypto';
 import * as path from 'path';
-import type { Chalk } from 'chalk';
 import picomatch from 'picomatch';
 import * as webpack from 'webpack';
 import type { APIOptions } from 'typescript/unstable/sync';
 
 import * as constants from './constants';
+import type { Colors } from './colors';
 import type {
   ErrorInfo,
   FileLocation,
@@ -1339,7 +1339,7 @@ function getDiagnosticLocations(
 }
 
 /** The default error formatter, matching classic ts-loader's output. */
-function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
+function defaultErrorFormatter(error: ErrorInfo, colors: Colors) {
   const messageColor =
     error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
 
