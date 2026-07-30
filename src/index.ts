@@ -1,9 +1,9 @@
-import * as chalk from 'chalk';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as webpack from 'webpack';
 
+import { createColors } from './colors';
 import {
   createTypeScriptApiInstance,
   emitPendingDeclarationFiles,
@@ -107,9 +107,7 @@ function getTypeScriptInstance(
     return existing;
   }
 
-  const level =
-    loaderOptions.colors && chalk.supportsColor ? chalk.supportsColor.level : 0;
-  const colors = new chalk.Instance({ level });
+  const colors = createColors(loaderOptions.colors);
   const log = logger.makeLogger(loaderOptions, colors);
   const configFilePath = resolveConfigFilePath(
     path.dirname(loader.resourcePath),
