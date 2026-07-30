@@ -492,14 +492,7 @@ function ensureSyntheticConfigForFile(
       fileName,
     )}.json`,
   );
-  // `rootFiles` (from the primary project's own parsedCommandLine) is
-  // already in the API's forward-slash-normalized form, but `fileName` is
-  // OS-native (backslash on Windows) - normalizing both to the same form
-  // before writing this list into the synthetic config's `files` field
-  // keeps every entry the API reads back consistent, rather than handing it
-  // a config with one path style for most entries and a different one for
-  // this single addition.
-  const files = [...new Set([...rootFiles, fileName].map(toComparablePath))].sort();
+  const files = [...new Set([...rootFiles, fileName])].sort();
   const configText = JSON.stringify(
     {
       extends: configFilePath,
@@ -634,13 +627,10 @@ function registerTypeScriptDependencies(
   }
 
   for (const fileName of program.getConfigFileNames()) {
-    // Same forward-slash-vs-OS-native concern as the addDependency call
-    // above - program.getConfigFileNames() is API-native too.
-    const normalizedFileName = path.normalize(fileName);
     if (isWebpack5) {
-      loaderContext.addBuildDependency(normalizedFileName);
+      loaderContext.addBuildDependency(fileName);
     } else {
-      loaderContext.addDependency(normalizedFileName);
+      loaderContext.addDependency(fileName);
     }
   }
 
