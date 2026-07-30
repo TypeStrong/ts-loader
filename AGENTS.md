@@ -12,7 +12,7 @@ Note: test scripts clean test directories first using `git clean -xfd`.
 
 ```bash
 yarn build              # compile src/ → dist/ (tsc --project "./src")
-yarn lint               # type-check + ESLint (no separate typecheck script)
+yarn lint               # type-check + oxlint (no separate typecheck script)
 yarn test               # full test suite (comparison + execution tests)
 yarn comparison-tests   # fast subset: compare webpack output against snapshots
 yarn execution-tests    # run compiled code via Karma/Jasmine
