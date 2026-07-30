@@ -54,7 +54,6 @@
   },
   "homepage": "https://github.com/TypeStrong/ts-loader",
   "dependencies": {
-    "picocolors": "^1.1.1",
     "picomatch": "^4.0.0",
     "source-map": "^0.7.4"
   },
