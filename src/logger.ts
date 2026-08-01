@@ -13,11 +13,11 @@ export interface Logger {
   logError: LoggerFunc;
 }
 
-export enum LogLevel {
-  INFO = 1,
-  WARN = 2,
-  ERROR = 3,
-}
+const LogLevel = {
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+} as const;
 
 const stderrConsole = new Console(process.stderr);
 const stdoutConsole = new Console(process.stdout);
