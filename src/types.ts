@@ -67,16 +67,10 @@ export interface TSFile {
 }
 
 export type TypeScriptApi = SyncApi;
-export type TypeScriptSnapshot = Snapshot;
+type TypeScriptSnapshot = Snapshot;
 export type TypeScriptProgram = Program;
 export type TypeScriptEmitOutput = EmitOutput;
 export type TypeScriptDiagnostic = Diagnostic;
-export interface TypeScriptSourceFile {
-  getLineAndCharacterOfPosition(position: number): {
-    line: number;
-    character: number;
-  };
-}
 
 export interface TypeScriptInstance {
   api: TypeScriptApi;
@@ -87,7 +81,7 @@ export interface TypeScriptInstance {
   snapshot?: TypeScriptSnapshot;
 }
 
-export interface PendingTypeScriptDiagnostics {
+interface PendingTypeScriptDiagnostics {
   fileName: string;
   errors: webpack.WebpackError[];
 }
