@@ -284,9 +284,13 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'onlyCompileBundledFiles',
   'getCustomTransformers',
   'reportFiles',
-  'experimentalWatchApi',
   'allowTsInNodeModules',
   'projectReferences',
+  // Accepted for backwards compatibility but currently inert: the
+  // `typescript/unstable/sync` (tsgo) API this loader now runs on only
+  // exposes filesystem-level hooks (fileExists/readFile/etc.), not a
+  // resolveModuleName-style (moduleName, containingFile) => result hook to
+  // plug a custom resolver into. See test/execution-tests/3.0.1_resolveModuleName.
   'resolveModuleName',
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
@@ -371,7 +375,6 @@ function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
       colors: true,
       onlyCompileBundledFiles: false,
       reportFiles: [],
-      experimentalWatchApi: false,
       allowTsInNodeModules: false,
       ignoreDiagnostics: [] as number[],
     } satisfies Partial<LoaderOptions>,

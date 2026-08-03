@@ -118,7 +118,7 @@ function createTest(test, testPath, options) {
         setTimeout(() => {
             // execute webpack
             testState.watcher = webpack(
-                createWebpackConfig(paths, options, nonWatchNonCompositePath !== testPath)
+                createWebpackConfig(paths, options)
             ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
         }, 200);
 
@@ -148,7 +148,7 @@ function createPaths(stagingPath, test, options) {
     };
 }
 
-function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
+function createWebpackConfig(paths, optionsOriginal) {
     let config;
     let subFolder = "";
     try {
@@ -170,7 +170,6 @@ function createWebpackConfig(paths, optionsOriginal, useWatchApi) {
         compilerOptions: {
             newLine: 'LF'
         },
-        experimentalWatchApi: !!useWatchApi,
         useCaseSensitiveFileNames: true
     }, optionsOriginal, extraOptionMaybe);
 
