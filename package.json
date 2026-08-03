@@ -14,7 +14,8 @@
     "clean": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests",
     "docker:build": "docker build -t ts-loader .",
     "postdocker:build": "docker run -it ts-loader yarn test",
-    "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\""
+    "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\"",
+    "knip": "knip"
   },
   "husky": {
     "hooks": {
@@ -56,10 +57,10 @@
   "dependencies": {
     "picocolors": "^1.1.1",
     "picomatch": "^4.0.0",
-    "source-map": "^0.7.4"
+    "source-map": "^0.8.0"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.1.2",
     "@types/picomatch": "^4.0.0",
     "babel": "^6.0.0",
     "babel-core": "^6.0.0",
@@ -72,13 +73,14 @@
     "fs-extra": "^11.0.0",
     "glob": "^7.1.1",
     "husky": "^8.0.0",
-    "jasmine-core": "^4.0.0",
+    "jasmine-core": "^6.0.0",
     "karma": "^6.0.0",
     "karma-chrome-launcher": "^3.1.0",
-    "karma-jasmine": "^4.0.0",
+    "karma-jasmine": "^5.0.0",
     "karma-mocha-reporter": "^2.0.0",
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.0",
+    "knip": "^6.30.0",
     "lint-staged": "^8.0.0",
     "loader-utils": "^1.4.2",
     "markdown-toc": "^1.2.0",
@@ -87,7 +89,7 @@
     "oxlint": "^1.76.0",
     "oxlint-tsgolint": "^7.0.2001",
     "prettier": "^3.9.6",
-    "rimraf": "^2.6.2",
+    "rimraf": "^6.0.0",
     "semver": "^7.8.5",
     "typescript": "next",
     "webpack": "^5.74.0",
