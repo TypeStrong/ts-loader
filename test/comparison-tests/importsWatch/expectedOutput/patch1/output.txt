@@ -5,12 +5,12 @@ ERROR in app.ts
 ./app.ts 4:0-3
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(4,1)[39m[22m
 [1m[31m      TS2454: Variable 'foo' is used before being assigned.[39m[22m
-ts-loader-default_609318b4f68865d3
+ts-loader-default_9cd649dc8bfa2f8e
 
 ERROR in app.ts
 ./app.ts 4:0-7
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(4,1)[39m[22m
 [1m[31m      TS2322: Type 'string' is not assignable to type 'boolean'.[39m[22m
-ts-loader-default_609318b4f68865d3
+ts-loader-default_9cd649dc8bfa2f8e
 
 webpack compiled with 2 errors
