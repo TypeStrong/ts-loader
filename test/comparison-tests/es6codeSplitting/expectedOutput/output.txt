@@ -12,6 +12,6 @@ ERROR in app.ts
 ./app.ts 24:26-40
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(24,27)[39m[22m
 [1m[31m      TS2571: Object is of type 'unknown'.[39m[22m
-ts-loader-default_609318b4f68865d3
+ts-loader-default_9cd649dc8bfa2f8e
 
 webpack compiled with 1 error
