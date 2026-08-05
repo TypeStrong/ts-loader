@@ -281,6 +281,15 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'compilerOptions',
   'appendTsSuffixTo',
   'appendTsxSuffixTo',
+  // Accepted but currently inert - unlike resolveModuleName/context below,
+  // this one *is* fixable without a new API hook: tsgo already parses
+  // whatever `files` array a synthetic, `extends`-based config lists (see
+  // ensureSyntheticConfigForFile), so restricting the project's roots to the
+  // .d.ts subset of parsedCommandLine.fileNames plus whichever files
+  // ts-loader is actually asked to compile just needs that mechanism made
+  // persistent for the instance instead of one-off per stray file. Verified
+  // still broken: with `declaration: true`, a project file webpack never
+  // bundles still gets its .d.ts emitted regardless of this option.
   'onlyCompileBundledFiles',
   'getCustomTransformers',
   'reportFiles',
@@ -311,6 +320,16 @@ ${validLoaderOptions.join(' / ')}
     }
   }
 
+  // `context` is validated here but, like `resolveModuleName` above,
+  // currently inert: classic ts-loader used it as an explicit basePath for
+  // `parseJsonConfigFileContent`, letting a tsconfig live outside the project
+  // root while its relative paths (files/include/exclude, etc.) still
+  // resolved against the root. The `typescript/unstable/sync` (tsgo) API
+  // this loader now runs on opens projects purely by config file path and
+  // always resolves relative paths against that config's own directory (and
+  // its `extends` chain) with no basePath override exposed - see
+  // test/execution-tests/2.8.1_option-context, which currently fails to pick
+  // up a `files` entry for exactly this reason.
   if (
     loaderOptions.context !== undefined &&
     !path.isAbsolute(loaderOptions.context)
