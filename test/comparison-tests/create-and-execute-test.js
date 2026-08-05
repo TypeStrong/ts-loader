@@ -81,19 +81,6 @@ function createTest(test, testPath, options) {
 
         // copy all input to a staging area
         mkdirp.sync(paths.testStagingPath);
-        const nonWatchNonCompositePath = testPath.replace(/(_Composite)?_WatchApi$/, "");
-        if (nonWatchNonCompositePath !== testPath) {
-            const nonWatchPath = testPath.replace(/_WatchApi$/, "");
-            // Copy things from non watch path
-            copySync(nonWatchNonCompositePath, paths.testStagingPath);
-            if (nonWatchPath !== nonWatchNonCompositePath) {
-                // Change the tsconfig to be composite
-                const configPath = path.resolve(paths.testStagingPath, "tsconfig.json");
-                const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-                config.compilerOptions = { ...(config.compilerOptions || {}), composite: true };
-                fs.writeFileSync(configPath, JSON.stringify(config, /*replacer*/ undefined, " "));
-            }
-        }
         copySync(testPath, paths.testStagingPath);
         if (test.match("SymLinks")) {
             // Setup symlinks
