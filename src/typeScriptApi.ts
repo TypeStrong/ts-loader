@@ -399,6 +399,15 @@ function getTranspileOnlyEmit(
     };
   }
 
+  // Unlike every other call into the API in this file, `transpileModule`/
+  // `transpileDeclaration` build their own throwaway virtual filesystem from
+  // `fileName` verbatim rather than resolving it through a `Project` (which
+  // normalizes internally) - handed an OS-native, backslash-separated path,
+  // that panics on Windows ("mixed posix and windows paths") once it's
+  // combined with the API's own forward-slash-normalized internal paths. See
+  // toComparablePath.
+  const transpileFileName = toComparablePath(apiFileName);
+
   const compilerOptions = program.getCompilerOptions();
   const { outputText, sourceMapText, diagnostics = [] } =
     typeScriptInstance.api.transpileModule(contents, {
@@ -409,7 +418,7 @@ function getTranspileOnlyEmit(
       // true`. Omitted here rather than fixed upstream; it's still passed
       // to `transpileDeclaration` below, where it's meaningful.
       compilerOptions: omitIsolatedDeclarations(compilerOptions),
-      fileName: apiFileName,
+      fileName: transpileFileName,
       reportDiagnostics: true,
     });
 
@@ -427,9 +436,11 @@ function getTranspileOnlyEmit(
   // `transpileModule` is program-less, so its diagnostics have no `Program`
   // to resolve a line/character from (see getDiagnosticLocations) - since it
   // only ever transpiles the one file it was handed, this resolves that
-  // lookup directly against `contents` instead.
+  // lookup directly against `contents` instead. Diagnostics echo back
+  // whatever spelling of `fileName` was passed in above, so the lookup key
+  // has to match that exactly (`transpileFileName`, not `apiFileName`).
   const singleFileLocationSource = makeSingleFileLocationSource(
-    apiFileName,
+    transpileFileName,
     contents,
   );
 
@@ -496,7 +507,7 @@ function getTranspileOnlyEmit(
       typeScriptInstance,
       loaderContext,
       fileName,
-      apiFileName,
+      transpileFileName,
       contents,
       compilerOptions,
     );
@@ -525,14 +536,17 @@ function recordTranspileOnlyDeclarationFile(
   typeScriptInstance: TypeScriptApiInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileName: string,
-  apiFileName: string,
+  // Forward-slash-normalized (see transpileFileName's own comment at the
+  // call site in getTranspileOnlyEmit) - transpileDeclaration panics on
+  // Windows given an OS-native path here.
+  transpileFileName: string,
   contents: string,
   compilerOptions: CompilerOptions,
 ) {
   const { outputText, sourceMapText, diagnostics = [] } =
     typeScriptInstance.api.transpileDeclaration(contents, {
       compilerOptions,
-      fileName: apiFileName,
+      fileName: transpileFileName,
       reportDiagnostics: true,
     });
 
@@ -544,7 +558,7 @@ function recordTranspileOnlyDeclarationFile(
     buildTypeScriptError(
       instance,
       diagnostic,
-      makeSingleFileLocationSource(apiFileName, contents),
+      makeSingleFileLocationSource(transpileFileName, contents),
       loaderContext.context,
       loaderContext._module,
       '',
