@@ -405,7 +405,11 @@ function getTranspileOnlyEmit(
   // normalizes internally) - handed an OS-native, backslash-separated path,
   // that panics on Windows ("mixed posix and windows paths") once it's
   // combined with the API's own forward-slash-normalized internal paths. See
-  // toComparablePath.
+  // toComparablePath. (A bare basename was tried instead of normalizing -
+  // simpler, and sidesteps the panic entirely - but broke `rootDir`
+  // containment diagnostics like TS6059, which need `fileName`'s real
+  // directory to check against `rootDir`. Its absolute path is still
+  // required.)
   const transpileFileName = toComparablePath(apiFileName);
 
   const compilerOptions = program.getCompilerOptions();
@@ -507,7 +511,9 @@ function getTranspileOnlyEmit(
       typeScriptInstance,
       loaderContext,
       fileName,
-      transpileFileName,
+      // A bare basename, not transpileFileName's full absolute path - see
+      // this parameter's own comment on recordTranspileOnlyDeclarationFile.
+      path.basename(transpileFileName),
       contents,
       compilerOptions,
     );
@@ -536,9 +542,17 @@ function recordTranspileOnlyDeclarationFile(
   typeScriptInstance: TypeScriptApiInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileName: string,
-  // Forward-slash-normalized (see transpileFileName's own comment at the
-  // call site in getTranspileOnlyEmit) - transpileDeclaration panics on
-  // Windows given an OS-native path here.
+  // A bare basename, not a full path - unlike transpileModule (which needs
+  // fileName's real directory for e.g. rootDir-containment diagnostics; see
+  // its own transpileFileName), transpileDeclaration panics on Windows
+  // ("mixed posix and windows paths") given *any* absolute path here,
+  // whether OS-native or forward-slash-normalized - something server-side
+  // still derives a conflicting path style from it either way. A bare
+  // basename sidesteps that: transpileDeclaration's own diagnostics
+  // (isolatedDeclarations violations like TS9011) are purely syntactic and
+  // don't need real directory context, and any real rootDir-containment
+  // diagnostic for this same file is already covered by transpileModule's
+  // call in getTranspileOnlyEmit.
   transpileFileName: string,
   contents: string,
   compilerOptions: CompilerOptions,
