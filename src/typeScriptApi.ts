@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import picomatch from 'picomatch';
 import * as webpack from 'webpack';
-import type { APIOptions } from 'typescript/unstable/sync';
+import type { APIOptions, CompilerOptions } from 'typescript/unstable/sync';
 
 import * as constants from './constants';
 import type { Colors } from './colors';
@@ -117,6 +117,30 @@ export function getTypeScriptEmit(
   instance: TSInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
+  // See toApiFacingFileName: every call into the TypeScript API below uses
+  // this instead of `fileName` itself, which is reserved for everything
+  // reported back to webpack (dependencies, error locations) or shown to
+  // the user.
+  const apiFileName = toApiFacingFileName(fileName);
+
+  // `api.transpileModule`/`transpileDeclaration` are program-less,
+  // single-file transforms - matching classic ts-loader's own
+  // `ts.transpileModule`-based transpileOnly behaviour, `fileName` never
+  // needs to be part of any project's program to use them, so none of the
+  // synthetic-root machinery below (needed only to satisfy
+  // `program.getJavaScriptEmit`'s root-file requirement, and the
+  // node_modules-specific emit restriction it exists to work around)
+  // applies to transpileOnly at all.
+  if (instance.loaderOptions.transpileOnly) {
+    return getTranspileOnlyEmit(
+      fileName,
+      apiFileName,
+      contents,
+      instance,
+      loaderContext,
+    );
+  }
+
   const typeScriptInstance = instance.typeScriptApiInstance;
   // A node_modules file can be *discovered* as part of the primary
   // project's program via ordinary import resolution (any real,
@@ -124,24 +148,13 @@ export function getTypeScriptEmit(
   // its root files - and this API skips emitting output for a source file
   // in that position, matching classic ts-loader's own default refusal to
   // compile .ts files under node_modules (there, by simply never adding
-  // them to its root file set). Classic's transpileOnly mode is built on
-  // `ts.transpileModule` instead, a program-less, single-file transform
-  // with no such root-file concept at all, so this restriction never
-  // applies there (nor, obviously, when a user has explicitly opted in via
-  // `allowTsInNodeModules`) - forcing the synthetic single-file project
+  // them to its root file set), unless the user has explicitly opted in via
+  // `allowTsInNodeModules` - forcing the synthetic single-file project
   // fallback below (which *does* list the file as an explicit root)
-  // replicates that "just transpile it, no restriction" behaviour in both
-  // cases, even though the underlying mechanism (program-based emit of an
-  // explicitly-rooted file) differs from classic's.
+  // replicates classic's "just compile it" opt-in behaviour here too.
   const forceSyntheticRoot =
-    (instance.loaderOptions.transpileOnly ||
-      instance.loaderOptions.allowTsInNodeModules) &&
+    instance.loaderOptions.allowTsInNodeModules &&
     fileName.indexOf('node_modules') !== -1;
-  // See toApiFacingFileName: every call into the TypeScript API below uses
-  // this instead of `fileName` itself, which is reserved for everything
-  // reported back to webpack (dependencies, error locations) or shown to
-  // the user.
-  const apiFileName = toApiFacingFileName(fileName);
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
     typeScriptInstance,
     apiFileName,
@@ -224,26 +237,9 @@ export function getTypeScriptEmit(
       const emitResult = program.getJavaScriptEmit([apiFileName]);
       const perFileDiagnostics = dedupeDiagnostics([
         ...program.getSyntacticDiagnostics(apiFileName),
-        // Type-checking is skipped entirely in transpileOnly mode, matching
-        // classic ts-loader's transpileModule-based behaviour.
-        ...(instance.loaderOptions.transpileOnly
-          ? []
-          : [
-              ...emitResult.diagnostics,
-              ...program.getSemanticDiagnostics(apiFileName),
-            ]),
+        ...emitResult.diagnostics,
+        ...program.getSemanticDiagnostics(apiFileName),
       ]);
-
-      // Classic ts-loader's transpileOnly path (built on `ts.transpileModule`)
-      // surfaces whole-program/compiler-option diagnostics too - e.g. "rootDir
-      // must be explicitly set" - that its full-compile path doesn't (those
-      // are presumably superseded there by more specific per-file
-      // diagnostics). There's no transpileModule equivalent here, so these
-      // are pulled from the program directly, matching that same
-      // transpileOnly-only placement.
-      const programDiagnostics = instance.loaderOptions.transpileOnly
-        ? dedupeDiagnostics(program.getProgramDiagnostics())
-        : [];
 
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromTypeScriptEmit(emitResult));
@@ -259,99 +255,72 @@ export function getTypeScriptEmit(
       // Errors must be built here, synchronously, while `program` is still
       // backed by this call's temporary snapshot - it's invalidated as soon as
       // this callback returns, so it can't be held onto for later use.
-      const errors = [
-        ...filterDiagnosticsForReporting(
+      const errors = filterDiagnosticsForReporting(
+        instance,
+        loaderContext.context,
+        perFileDiagnostics,
+      ).map(diagnostic =>
+        buildTypeScriptError(
           instance,
+          diagnostic,
+          program,
           loaderContext.context,
-          perFileDiagnostics,
-        ).map(diagnostic =>
-          buildTypeScriptError(
-            instance,
-            diagnostic,
-            program,
-            loaderContext.context,
-            loaderContext._module,
-            '',
-            // perFileDiagnostics is always about apiFileName - once
-            // getDiagnosticLocations (inside buildTypeScriptError) has used
-            // that identity to resolve a line/character via `program`, the
-            // real fileName is what should actually reach the user.
-            fileName,
-          ),
-        ),
-        // Program diagnostics have no associated file of their own (classic
-        // attributes them to the tsconfig instead).
-        ...filterDiagnosticsForReporting(
-          instance,
-          loaderContext.context,
-          programDiagnostics,
-        ).map(diagnostic =>
-          buildTypeScriptError(
-            instance,
-            diagnostic,
-            program,
-            loaderContext.context,
-            loaderContext._module,
-            typeScriptInstance.configFilePath,
-          ),
-        ),
-      ];
-
-      if (instance.loaderOptions.transpileOnly) {
-        // Type-checking is skipped in transpileOnly mode, so there's no need to
-        // wait for the rest of the compilation: report immediately, matching
-        // classic ts-loader's transpileModule-based behaviour.
-        reportTypeScriptErrors(loaderContext, errors);
-      } else {
-        // Defer attaching these errors to a module until the compilation's
-        // processAssets hook (see reportPendingTypeScriptDiagnostics in index.ts),
-        // matching classic ts-loader: reporting only once webpack has finished
-        // parsing every module's output means we can tell whether webpack
-        // already recorded its own error for this module (e.g. a "Module parse
-        // failed" caused by malformed emit) and avoid attaching a redundant,
-        // double-counted error.
-        instance.pendingDiagnostics.set(instance.filePathKeyMapper(fileName), {
+          loaderContext._module,
+          '',
+          // perFileDiagnostics is always about apiFileName - once
+          // getDiagnosticLocations (inside buildTypeScriptError) has used
+          // that identity to resolve a line/character via `program`, the
+          // real fileName is what should actually reach the user.
           fileName,
-          errors,
-        });
+        ),
+      );
 
-        // A dependant's *diagnostics* can change here even though its own
-        // module isn't rebuilt (e.g. `deeperDep.ts` changing a parameter type
-        // makes one of `app.ts`'s calls to it, transitively via `dep.ts`, now
-        // invalid) - webpack has no reason to re-invoke ts-loader for
-        // `app.ts` itself, since neither its own source nor its *direct*
-        // dependencies changed. Matches classic ts-loader's afterCompile
-        // re-check, which is likewise decoupled from webpack's own
-        // module-rebuild decisions (driven by its persistent
-        // language service/program rather than a fresh loader invocation).
-        //
-        // Only meaningful against the primary project's own Program: a
-        // synthetic one-off project (see ensureSyntheticConfigForFile) is a
-        // narrow, throwaway compilation context for this one file, not a
-        // stand-in for the real project graph - recomputing some *other*
-        // file's diagnostics against it would use the wrong compiler options
-        // and the wrong resolved-import graph (e.g. another file's relative
-        // import of this one, resolved against the synthetic project's own
-        // slim file set, can coincidentally collide with this file's own
-        // apiFileName and be misidentified as a dependant).
-        if (projectConfigPath === typeScriptInstance.configFilePath) {
-          recheckTransitiveDependants(
-            instance,
-            program,
-            apiFileName,
-            loaderContext,
-          );
-        }
+      // Defer attaching these errors to a module until the compilation's
+      // processAssets hook (see reportPendingTypeScriptDiagnostics in index.ts),
+      // matching classic ts-loader: reporting only once webpack has finished
+      // parsing every module's output means we can tell whether webpack
+      // already recorded its own error for this module (e.g. a "Module parse
+      // failed" caused by malformed emit) and avoid attaching a redundant,
+      // double-counted error.
+      instance.pendingDiagnostics.set(instance.filePathKeyMapper(fileName), {
+        fileName,
+        errors,
+      });
+
+      // A dependant's *diagnostics* can change here even though its own
+      // module isn't rebuilt (e.g. `deeperDep.ts` changing a parameter type
+      // makes one of `app.ts`'s calls to it, transitively via `dep.ts`, now
+      // invalid) - webpack has no reason to re-invoke ts-loader for
+      // `app.ts` itself, since neither its own source nor its *direct*
+      // dependencies changed. Matches classic ts-loader's afterCompile
+      // re-check, which is likewise decoupled from webpack's own
+      // module-rebuild decisions (driven by its persistent
+      // language service/program rather than a fresh loader invocation).
+      //
+      // Only meaningful against the primary project's own Program: a
+      // synthetic one-off project (see ensureSyntheticConfigForFile) is a
+      // narrow, throwaway compilation context for this one file, not a
+      // stand-in for the real project graph - recomputing some *other*
+      // file's diagnostics against it would use the wrong compiler options
+      // and the wrong resolved-import graph (e.g. another file's relative
+      // import of this one, resolved against the synthetic project's own
+      // slim file set, can coincidentally collide with this file's own
+      // apiFileName and be misidentified as a dependant).
+      if (projectConfigPath === typeScriptInstance.configFilePath) {
+        recheckTransitiveDependants(
+          instance,
+          program,
+          apiFileName,
+          loaderContext,
+        );
       }
 
-      // Declaration files, like errors, are only produced from a full
-      // (non-transpileOnly) compile, and their content must be read out here,
-      // synchronously, for the same reason as `errors` above. Emitting them as
-      // webpack assets is deferred to emitPendingDeclarationFiles.
+      // Declaration files, like errors, must be read out here, synchronously,
+      // for the same reason as `errors` above. Emitting them as webpack
+      // assets is deferred to emitPendingDeclarationFiles.
       if (
-        !instance.loaderOptions.transpileOnly &&
-        (program.getCompilerOptions().declaration ||
-          program.getCompilerOptions().composite)
+        program.getCompilerOptions().declaration ||
+        program.getCompilerOptions().composite
       ) {
         // The whole project is scanned here - not just `fileName` - because
         // some project files (e.g. a plain .js file pulled in via `allowJs`)
@@ -366,6 +335,301 @@ export function getTypeScriptEmit(
   );
 
   return { outputText, sourceMapText, configParseErrorMessage };
+}
+
+/**
+ * transpileOnly's own emit path, built directly on `api.transpileModule`
+ * (and, for `isolatedDeclarations` projects, `api.transpileDeclaration`)
+ * instead of `getTypeScriptEmit`'s program-based
+ * `program.getJavaScriptEmit`. Both are program-less, single-file
+ * transforms - matching classic ts-loader's own `ts.transpileModule`-based
+ * transpileOnly behaviour - so `fileName` never needs to be resolved as
+ * part of any project's program: only the project's resolved compiler
+ * options (respecting `extends`, etc.) are needed, not its root files.
+ */
+function getTranspileOnlyEmit(
+  fileName: string,
+  apiFileName: string,
+  contents: string,
+  instance: TSInstance,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+) {
+  const typeScriptInstance = instance.typeScriptApiInstance;
+  const { primaryProjectPath, primaryProject: project } = openPrimaryProject(
+    typeScriptInstance,
+    apiFileName,
+  );
+
+  if (!project) {
+    throw new Error(
+      `TypeScript TypeScript mode could not resolve project for ${fileName}.`,
+    );
+  }
+
+  const program = project.program;
+  const configFileParsingDiagnostics =
+    program.getConfigFileParsingDiagnostics();
+
+  if (configFileParsingDiagnostics.length > 0) {
+    // See the equivalent check in getTypeScriptEmit: a broken tsconfig is a
+    // hard failure to surface as-is.
+    const configErrors = filterDiagnosticsForReporting(
+      instance,
+      loaderContext.context,
+      dedupeDiagnostics(configFileParsingDiagnostics),
+    ).map(diagnostic =>
+      buildTypeScriptError(
+        instance,
+        diagnostic,
+        program,
+        loaderContext.context,
+        loaderContext._module,
+        primaryProjectPath,
+      ),
+    );
+
+    reportTypeScriptErrors(loaderContext, configErrors);
+
+    return {
+      outputText: undefined,
+      sourceMapText: undefined,
+      configParseErrorMessage: instance.colors.red(
+        'error while parsing tsconfig.json',
+      ),
+    };
+  }
+
+  const compilerOptions = program.getCompilerOptions();
+  const { outputText, sourceMapText, diagnostics = [] } =
+    typeScriptInstance.api.transpileModule(contents, {
+      // `isolatedDeclarations` is irrelevant to JS emit - `transpileModule`
+      // never produces declarations - but the API currently raises a
+      // spurious "cannot be specified without declaration or composite"
+      // (TS5069) whenever it's present at all, even alongside `declaration:
+      // true`. Omitted here rather than fixed upstream; it's still passed
+      // to `transpileDeclaration` below, where it's meaningful.
+      compilerOptions: omitIsolatedDeclarations(compilerOptions),
+      fileName: apiFileName,
+      reportDiagnostics: true,
+    });
+
+  // Classic ts-loader's transpileOnly path (built on `ts.transpileModule`)
+  // surfaces whole-program/compiler-option diagnostics too - e.g. "rootDir
+  // must be explicitly set" - that its full-compile path doesn't (those are
+  // presumably superseded there by more specific per-file diagnostics).
+  // `transpileModule` has no project of its own to derive these from, so
+  // they're pulled from the resolved project directly, matching that same
+  // transpileOnly-only placement.
+  const programDiagnostics = dedupeDiagnostics(
+    program.getProgramDiagnostics(),
+  );
+
+  // `transpileModule` is program-less, so its diagnostics have no `Program`
+  // to resolve a line/character from (see getDiagnosticLocations) - since it
+  // only ever transpiles the one file it was handed, this resolves that
+  // lookup directly against `contents` instead.
+  const singleFileLocationSource = makeSingleFileLocationSource(
+    apiFileName,
+    contents,
+  );
+
+  const errors = [
+    ...filterDiagnosticsForReporting(
+      instance,
+      loaderContext.context,
+      dedupeDiagnostics(diagnostics),
+    ).map(diagnostic =>
+      buildTypeScriptError(
+        instance,
+        diagnostic,
+        singleFileLocationSource,
+        loaderContext.context,
+        loaderContext._module,
+        '',
+        fileName,
+      ),
+    ),
+    // Program diagnostics have no associated file of their own (classic
+    // attributes them to the tsconfig instead).
+    ...filterDiagnosticsForReporting(
+      instance,
+      loaderContext.context,
+      programDiagnostics,
+    ).map(diagnostic =>
+      buildTypeScriptError(
+        instance,
+        diagnostic,
+        program,
+        loaderContext.context,
+        loaderContext._module,
+        primaryProjectPath,
+      ),
+    ),
+  ];
+
+  // Type-checking is skipped in transpileOnly mode, so there's no need to
+  // wait for the rest of the compilation: report immediately, matching
+  // classic ts-loader's transpileModule-based behaviour.
+  reportTypeScriptErrors(loaderContext, errors);
+
+  registerTypeScriptDependencies(
+    loaderContext,
+    program,
+    fileName,
+    apiFileName,
+    instance,
+  );
+
+  // `isolatedDeclarations` is what makes single-file declaration emission
+  // sound without a checker (every exported type is explicitly annotated by
+  // construction) - `transpileDeclaration` mirrors classic TypeScript's own
+  // isolatedDeclarations fast path, and is the only way transpileOnly mode
+  // can produce .d.ts output at all: the full, type-checked
+  // `program.getDeclarationEmit` path (recordProjectDeclarationFiles) needs
+  // a checker, which transpileOnly deliberately never runs.
+  if (
+    (compilerOptions.declaration || compilerOptions.composite) &&
+    compilerOptions.isolatedDeclarations
+  ) {
+    recordTranspileOnlyDeclarationFile(
+      instance,
+      typeScriptInstance,
+      loaderContext,
+      fileName,
+      apiFileName,
+      contents,
+      compilerOptions,
+    );
+  }
+
+  return { outputText, sourceMapText, configParseErrorMessage: undefined };
+}
+
+/**
+ * Emits a single file's declaration output via `api.transpileDeclaration`,
+ * for transpileOnly + `isolatedDeclarations` projects - see the call site in
+ * getTranspileOnlyEmit. Unlike `program.getDeclarationEmit` (used by
+ * recordProjectDeclarationFiles for full compiles), this returns raw text
+ * rather than a named output file, so the output path has to be computed
+ * here instead of read off the API's response.
+ *
+ * Emitted directly via `loaderContext.emitFile` rather than
+ * `instance.pendingDeclarationFiles` - unlike the full-compile path, there's
+ * no afterCompile-equivalent hook to flush that map later: addPostCompileHooks
+ * (which wires up emitPendingDeclarationFiles) is only registered for
+ * non-transpileOnly instances, since transpileOnly's diagnostics are already
+ * reported immediately rather than deferred.
+ */
+function recordTranspileOnlyDeclarationFile(
+  instance: TSInstance,
+  typeScriptInstance: TypeScriptApiInstance,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  fileName: string,
+  apiFileName: string,
+  contents: string,
+  compilerOptions: CompilerOptions,
+) {
+  const { outputText, sourceMapText, diagnostics = [] } =
+    typeScriptInstance.api.transpileDeclaration(contents, {
+      compilerOptions,
+      fileName: apiFileName,
+      reportDiagnostics: true,
+    });
+
+  const declarationErrors = filterDiagnosticsForReporting(
+    instance,
+    loaderContext.context,
+    dedupeDiagnostics(diagnostics),
+  ).map(diagnostic =>
+    buildTypeScriptError(
+      instance,
+      diagnostic,
+      makeSingleFileLocationSource(apiFileName, contents),
+      loaderContext.context,
+      loaderContext._module,
+      '',
+      fileName,
+    ),
+  );
+
+  reportTypeScriptErrors(loaderContext, declarationErrors);
+
+  const outputPath = loaderContext._compilation?.compiler.outputPath;
+  if (outputPath === undefined) {
+    return;
+  }
+
+  const declarationFileName = computeDeclarationFilePath(
+    fileName,
+    compilerOptions,
+  );
+  const assetPath = path
+    .relative(outputPath, declarationFileName)
+    .replace(/\\/g, '/');
+
+  loaderContext.emitFile(assetPath, outputText);
+
+  if (sourceMapText !== undefined) {
+    loaderContext.emitFile(`${assetPath}.map`, sourceMapText);
+  }
+}
+
+/** See the comment at its call site in getTranspileOnlyEmit. */
+function omitIsolatedDeclarations(
+  compilerOptions: CompilerOptions,
+): CompilerOptions {
+  const { isolatedDeclarations: _isolatedDeclarations, ...rest } =
+    compilerOptions;
+  return rest;
+}
+
+/**
+ * Mirrors TypeScript's own source-to-declaration extension swap (`.ts` ->
+ * `.d.ts`, `.tsx` -> `.d.ts`, `.mts`/`.cts` -> `.d.mts`/`.d.cts`).
+ */
+function toDeclarationFileName(fileName: string): string {
+  const match = /\.(mts|cts|tsx|ts)$/i.exec(fileName);
+
+  if (!match) {
+    return `${fileName}.d.ts`;
+  }
+
+  const base = fileName.slice(0, -match[0].length);
+  const ext = match[1].toLowerCase();
+  const declarationExt = ext === 'mts' ? 'mts' : ext === 'cts' ? 'cts' : 'ts';
+
+  return `${base}.d.${declarationExt}`;
+}
+
+/**
+ * Computes where a single file's declaration output belongs, remapping it
+ * from `rootDir` to `declarationDir`/`outDir` the same way
+ * `program.getDeclarationEmit` does for a full compile - but only when both
+ * are explicitly set: `rootDir` left unset is normally inferred by
+ * TypeScript from the full set of a project's root files (their lowest
+ * common ancestor directory), which isn't something a single-file,
+ * program-less transform can replicate. Declarations fall back to sitting
+ * beside their source in that case, matching TypeScript's own default
+ * (no `declarationDir`/`outDir`) placement.
+ */
+function computeDeclarationFilePath(
+  fileName: string,
+  compilerOptions: CompilerOptions,
+): string {
+  const declarationFileName = toDeclarationFileName(fileName);
+  const outDirLikeOption =
+    compilerOptions.declarationDir ?? compilerOptions.outDir;
+
+  if (!outDirLikeOption || !compilerOptions.rootDir) {
+    return declarationFileName;
+  }
+
+  const relativeToRoot = path.relative(
+    compilerOptions.rootDir,
+    declarationFileName,
+  );
+
+  return path.join(outDirLikeOption, relativeToRoot);
 }
 
 function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
@@ -413,10 +677,18 @@ function updateSnapshot(
   return snapshot;
 }
 
-function prepareSnapshotForFile(
+/**
+ * Opens (or reuses the already-open) primary project - the one configured
+ * project ts-loader itself resolved via `configFilePath` - and returns its
+ * `Project`, if it parsed successfully. Shared by `prepareSnapshotForFile`
+ * (which may go on to fall back to a per-file synthetic project) and
+ * `getTranspileOnlyEmit` (which never needs to, since a program-less
+ * transform doesn't care whether `fileName` is actually one of this
+ * project's own files).
+ */
+function openPrimaryProject(
   typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
-  forceSyntheticRoot: boolean,
 ) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
@@ -426,7 +698,23 @@ function prepareSnapshotForFile(
       ? undefined
       : [primaryProjectPath],
   );
-  const primaryProject = snapshot.getProject(primaryProjectPath);
+
+  return {
+    snapshot,
+    primaryProjectPath,
+    primaryProject: snapshot.getProject(primaryProjectPath),
+  };
+}
+
+function prepareSnapshotForFile(
+  typeScriptInstance: TypeScriptApiInstance,
+  fileName: string,
+  forceSyntheticRoot: boolean,
+) {
+  const { snapshot, primaryProjectPath, primaryProject } = openPrimaryProject(
+    typeScriptInstance,
+    fileName,
+  );
 
   if (
     !forceSyntheticRoot &&
@@ -1156,7 +1444,7 @@ function makeReportFilesMatcher(
 function buildTypeScriptError(
   instance: TSInstance,
   diagnostic: TypeScriptDiagnostic,
-  program: TypeScriptProgram,
+  program: DiagnosticLocationSource,
   context: string,
   module: webpack.Module | undefined,
   fallbackFile = '',
@@ -1306,9 +1594,65 @@ function moduleHasWebpackErrors(module: webpack.Module) {
         .length > 0;
 }
 
+interface LineAndCharacter {
+  line: number;
+  character: number;
+}
+
+/**
+ * Whatever `getDiagnosticLocations` needs to resolve a diagnostic's
+ * `pos`/`end` offsets into a line/character: either a real `Program` (for
+ * diagnostics from a program-based compile) or `makeSingleFileLocationSource`'s
+ * text-backed stand-in (for `transpileModule`/`transpileDeclaration`
+ * diagnostics, which have no program at all).
+ */
+interface DiagnosticLocationSource {
+  getSourceFile(fileName: string):
+    | {
+        getLineAndCharacterOfPosition(pos: number): LineAndCharacter;
+      }
+    | undefined;
+};
+
+/**
+ * A `DiagnosticLocationSource` for a single file's raw text, computing
+ * line/character directly rather than via a `Program` - see its use in
+ * getTranspileOnlyEmit and recordTranspileOnlyDeclarationFile, whose
+ * diagnostics (from `transpileModule`/`transpileDeclaration`) never have a
+ * program to ask instead.
+ */
+function makeSingleFileLocationSource(
+  fileName: string,
+  text: string,
+): DiagnosticLocationSource {
+  return {
+    getSourceFile: candidateFileName =>
+      candidateFileName === fileName
+        ? {
+            getLineAndCharacterOfPosition: pos =>
+              computeLineAndCharacterFromText(text, pos),
+          }
+        : undefined,
+  };
+}
+
+function computeLineAndCharacterFromText(text: string, pos: number): LineAndCharacter {
+  let line = 0;
+  let lineStart = 0;
+
+  for (let i = 0; i < pos && i < text.length; i++) {
+    if (text.charCodeAt(i) === 10 /* \n */) {
+      line++;
+      lineStart = i + 1;
+    }
+  }
+
+  return { line, character: pos - lineStart };
+}
+
 function getDiagnosticLocations(
   diagnostic: TypeScriptDiagnostic,
-  program: TypeScriptProgram,
+  program: DiagnosticLocationSource,
 ): { start: FileLocation | undefined; end: FileLocation | undefined } {
   if (!diagnostic.fileName || diagnostic.pos < 0) {
     return { start: undefined, end: undefined };
