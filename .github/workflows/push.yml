@@ -49,7 +49,7 @@ jobs:
     strategy:
       matrix:
         node: [26, 24, 22]
-        ts: [7.1.0-dev.20260727.1, next]
+        ts: [7.1.0-dev.20260819.1, next]
         webpack: [4, 5]
     runs-on: ubuntu-latest
     steps:
@@ -81,7 +81,7 @@ jobs:
     strategy:
       matrix:
         node: [26, 24, 22]
-        ts: [7.1.0-dev.20260727.1, next]
+        ts: [7.1.0-dev.20260819.1, next]
         webpack: [4, 5]
     runs-on: windows-latest
     steps:
