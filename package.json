@@ -6,7 +6,7 @@
   "types": "dist",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
-    "format": "prettier --write \"src/**/*.{ts,md}\"",
+    "format": "prettier --write \"src/**/*.*\"",
     "lint": "tsc --project \"./src\" --noEmit && oxlint src",
     "comparison-tests": "git clean -xfd test/comparison-tests && npm link --legacy-peer-deps ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
@@ -17,15 +17,14 @@
     "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\"",
     "knip": "knip"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
-    "src/**/*.{ts,md}": [
+    "src/**/*.*": [
       "prettier --write",
       "yarn lint",
+      "git add"
+    ],
+    "*.md": [
+      "prettier --write",
       "git add"
     ]
   },
@@ -72,7 +71,6 @@
     "escape-string-regexp": "^2.0.0",
     "fs-extra": "^11.0.0",
     "glob": "^7.1.1",
-    "husky": "^8.0.0",
     "jasmine-core": "^6.0.0",
     "karma": "^6.0.0",
     "karma-chrome-launcher": "^3.1.0",
@@ -81,7 +79,7 @@
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.0",
     "knip": "^6.30.0",
-    "lint-staged": "^8.0.0",
+    "lint-staged": "^17.3.0",
     "loader-utils": "^1.4.2",
     "markdown-toc": "^1.2.0",
     "mkdirp": "^0.5.1",
