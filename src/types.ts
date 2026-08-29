@@ -24,11 +24,16 @@ export interface FileLocation {
 export type FilePathKey = string & { __filePathKeyBrand: unknown };
 
 export type Severity = 'error' | 'warning';
-export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
+
+export const LogLevel = {
+  INFO: 1,
+  WARN: 2,
+  ERROR: 3,
+} as const;
 
 export interface LoaderOptions {
   silent: boolean;
-  logLevel: LogLevel;
+  logLevel: keyof typeof LogLevel;
   logInfoToStdOut: boolean;
   instance: string;
   compiler: string;
