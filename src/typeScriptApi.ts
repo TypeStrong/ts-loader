@@ -50,36 +50,28 @@ export function createTypeScriptApiInstance(
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
-  // Synthetic tsconfig files (see ensureSyntheticConfigForFile) live only in
-  // this map, served via the `readFile` override below - never written to
-  // real disk. Their path is always a sibling of the real config they
-  // `extends`, so no `fileExists`/`directoryExists` override is needed for
-  // the API to treat their directory as real.
+  // Served entirely via the `readFile` override below - never written to
+  // real disk (see ensureSyntheticConfigForFile).
   const syntheticConfigContents = new Map<string, string>();
 
   return {
-    // `instance.files` holds ts-loader's own post-transform text for every
-    // file it has compiled (other loaders, e.g. a pre-processor chained
-    // before ts-loader, may have altered it before we saw it). These
-    // overrides serve that instead of hitting real disk, falling through to
-    // disk (`undefined`) for anything not in `files` (ambient .d.ts, etc.) -
-    // matching classic ts-loader's own LanguageServiceHost.
+    // Serves ts-loader's own post-transform file content (other loaders may
+    // have altered it) instead of hitting real disk; falls through
+    // (`undefined`) for anything not in `files`, matching classic
+    // ts-loader's LanguageServiceHost.
     api: new typeScriptApiModule.API({
       fs: {
-        // A purely synthetic identity (e.g. `component.vue.ts` for a
-        // `component.vue` compiled via `appendTsSuffixTo`) has no real disk
-        // entry, so without this override resolving/validating it reports
-        // "File not found" (TS6053) even though `readFile` can serve its
-        // content. `true`/`undefined` (not `false`) preserves fallback to
-        // real disk for anything we don't know about.
+        // Without this, a purely synthetic identity (e.g. `component.vue.ts`)
+        // reports "File not found" (TS6053) even though readFile can serve
+        // it. `true`/`undefined`, not `false`, so anything else still falls
+        // through to real disk.
         fileExists: fileName =>
           syntheticConfigContents.has(toComparablePath(fileName)) ||
           files.has(filePathKeyMapper(fileName))
             ? true
             : undefined,
-        // Compared via toComparablePath since the API may hand back a
-        // different path spelling (e.g. backslashes on Windows) than what
-        // ensureSyntheticConfigForFile stored the content under.
+        // toComparablePath since the API may hand back a different path
+        // spelling than what this was stored under.
         readFile: fileName =>
           syntheticConfigContents.get(toComparablePath(fileName)) ??
           files.get(filePathKeyMapper(fileName))?.text,
@@ -118,12 +110,10 @@ export function getTypeScriptEmit(
   }
 
   const typeScriptInstance = instance.typeScriptApiInstance;
-  // A node_modules file can be discovered via ordinary import resolution
-  // without ever being a root file, and the API skips emit for a source
-  // file in that position - matching classic ts-loader's default refusal to
-  // compile .ts under node_modules. `allowTsInNodeModules` opts in by
-  // forcing the synthetic single-file project fallback below, which does
-  // list the file as an explicit root.
+  // The API skips emit for a node_modules file unless it's an explicit root
+  // (matching classic ts-loader's default refusal to compile .ts there);
+  // `allowTsInNodeModules` opts in via the synthetic single-file project
+  // fallback below, which does list it as a root.
   const forceSyntheticRoot =
     instance.loaderOptions.allowTsInNodeModules &&
     fileName.indexOf('node_modules') !== -1;
@@ -226,29 +216,23 @@ export function getTypeScriptEmit(
           loaderContext.context,
           loaderContext._module,
           '',
-          // perFileDiagnostics is about apiFileName; the real fileName is
-          // what should reach the user.
           fileName,
         ),
       );
 
-      // Deferred to the compilation's processAssets hook (see
-      // reportPendingTypeScriptDiagnostics in index.ts) so we can tell
-      // whether webpack already recorded its own error for this module
-      // (e.g. a "Module parse failed") and avoid double-counting.
+      // Deferred to processAssets (see reportPendingTypeScriptDiagnostics in
+      // index.ts) so we can tell whether webpack already recorded its own
+      // error for this module and avoid double-counting.
       instance.pendingDiagnostics.set(instance.filePathKeyMapper(fileName), {
         fileName,
         errors,
       });
 
       // A dependant's diagnostics can change without its own module
-      // rebuilding (e.g. a transitive dependency's signature change) -
-      // webpack has no reason to re-invoke ts-loader for it, so recheck
-      // explicitly, matching classic ts-loader's afterCompile re-check.
-      // Only meaningful against the primary project: a synthetic one-off
-      // project (see ensureSyntheticConfigForFile) uses the wrong compiler
-      // options and import graph for any file other than the one it exists
-      // for.
+      // rebuilding, and webpack has no reason to re-invoke ts-loader for it -
+      // recheck explicitly, matching classic's afterCompile re-check. Only
+      // meaningful against the primary project: a synthetic one-off project
+      // uses the wrong compiler options/import graph for any other file.
       if (projectConfigPath === typeScriptInstance.configFilePath) {
         recheckTransitiveDependants(
           instance,
@@ -264,10 +248,9 @@ export function getTypeScriptEmit(
         program.getCompilerOptions().declaration ||
         program.getCompilerOptions().composite
       ) {
-        // Scans the whole project, not just `fileName`, since some files
-        // (e.g. a plain .js file pulled in via `allowJs`) never pass
-        // through ts-loader's own webpack rule - matching classic
-        // ts-loader's provideDeclarationFilesToWebpack.
+        // Scans the whole project (e.g. an allowJs .js file never passes
+        // through ts-loader's own webpack rule), matching classic's
+        // provideDeclarationFilesToWebpack.
         recordProjectDeclarationFiles(instance, program);
       }
     },
@@ -401,10 +384,8 @@ function getTranspileOnlyEmit(
     instance,
   );
 
-  // isolatedDeclarations makes single-file declaration emission sound
-  // without a checker; transpileDeclaration is the only way transpileOnly
-  // can produce .d.ts output at all, since the full, type-checked
-  // program.getDeclarationEmit path (recordProjectDeclarationFiles) needs a
+  // transpileDeclaration is the only way transpileOnly can produce .d.ts
+  // output: the full, type-checked program.getDeclarationEmit path needs a
   // checker transpileOnly never runs.
   if (
     (compilerOptions.declaration || compilerOptions.composite) &&
@@ -425,16 +406,12 @@ function getTranspileOnlyEmit(
 }
 
 /**
- * Emits a single file's declaration output via `api.transpileDeclaration`,
- * for transpileOnly + `isolatedDeclarations` projects - see the call site in
- * getTranspileOnlyEmit. Unlike `program.getDeclarationEmit`, this returns
- * raw text rather than a named output file, so the output path is computed
- * here.
- *
- * Emitted directly via `loaderContext.emitFile` rather than
- * `instance.pendingDeclarationFiles`, since transpileOnly instances never
- * register addPostCompileHooks (which flushes that map) - their
- * diagnostics are already reported immediately rather than deferred.
+ * Emits a single file's declaration output via `api.transpileDeclaration`.
+ * Unlike `program.getDeclarationEmit`, this returns raw text rather than a
+ * named output file, so the output path is computed here. Emitted directly
+ * via `loaderContext.emitFile` rather than `instance.pendingDeclarationFiles`,
+ * since transpileOnly instances never register addPostCompileHooks (their
+ * diagnostics are reported immediately, not deferred).
  */
 function recordTranspileOnlyDeclarationFile(
   instance: TSInstance,
@@ -510,12 +487,10 @@ function toDeclarationFileName(fileName: string): string {
 }
 
 /**
- * Computes where a single file's declaration output belongs, remapping it
- * from `rootDir` to `declarationDir`/`outDir` the same way
- * `program.getDeclarationEmit` does - but only when both are explicitly
- * set, since an unset `rootDir` is normally inferred by TypeScript from the
- * full set of a project's root files, which a single-file transform can't
- * replicate. Falls back to sitting beside the source otherwise.
+ * Remaps a declaration file from `rootDir` to `declarationDir`/`outDir`,
+ * like `program.getDeclarationEmit` does - only when both are set, since an
+ * unset `rootDir` is normally inferred from a project's full root file set,
+ * which a single-file transform can't replicate.
  */
 function computeDeclarationFilePath(
   fileName: string,
@@ -557,10 +532,9 @@ function updateSnapshot(
   openProjects?: string[],
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
-  // `invalidateAll` forces a full rescan: ts-loader only learns about the
-  // one file webpack is currently asking it to compile, not whether other
-  // project files (e.g. a dependency) changed on disk since the last
-  // snapshot - which happens on every watch-mode rebuild.
+  // `invalidateAll` forces a full rescan: ts-loader only knows about the one
+  // file webpack asked it to compile, not whether other project files
+  // changed on disk since the last snapshot.
   const fileChanges = { invalidateAll: true } as const;
   const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
@@ -578,11 +552,9 @@ function updateSnapshot(
 }
 
 /**
- * Opens (or reuses the already-open) primary project - the one configured
- * project ts-loader itself resolved via `configFilePath` - and returns its
- * `Project`, if it parsed successfully. Shared by `prepareSnapshotForFile`
- * (which may fall back to a per-file synthetic project) and
- * `getTranspileOnlyEmit`.
+ * Opens (or reuses) the primary project - the one configured project
+ * ts-loader resolved via `configFilePath`. Shared by `prepareSnapshotForFile`
+ * (which may fall back to a synthetic project) and `getTranspileOnlyEmit`.
  */
 function openPrimaryProject(
   typeScriptInstance: TypeScriptApiInstance,
@@ -621,11 +593,9 @@ function prepareSnapshotForFile(
     return { snapshot, projectConfigPath: primaryProjectPath };
   }
 
-  // A tsconfig that fails to parse at all is a hard failure classic
-  // ts-loader surfaces directly - falling back to a synthetic config below
-  // would silently paper over it by explicitly listing `fileName`. Sticking
-  // with the (broken) primary project here lets the caller's config-parsing
-  // diagnostics check see the real error.
+  // A tsconfig that fails to parse is a hard failure classic ts-loader
+  // surfaces directly - falling back to a synthetic config would silently
+  // paper over it by explicitly listing `fileName`.
   if (
     primaryProject &&
     primaryProject.program.getConfigFileParsingDiagnostics().length > 0
@@ -681,11 +651,10 @@ function ensureSyntheticConfigForFile(
     null,
     2,
   );
-  // Stored under the comparable (forward-slash) form so the `readFile`
-  // override in createTypeScriptApiInstance finds it regardless of path
-  // spelling. `syntheticConfigFiles`/`syntheticConfigPath` themselves stay
-  // OS-native - used only as opaque identifiers for later `getProject`/
-  // `openProjects` calls, which tolerate either separator style.
+  // Stored under the comparable (forward-slash) form so `readFile` above
+  // finds it regardless of path spelling; `syntheticConfigFiles`/
+  // `syntheticConfigPath` stay OS-native, used only as opaque ids for later
+  // `getProject`/`openProjects` calls.
   typeScriptInstance.syntheticConfigContents.set(
     toComparablePath(syntheticConfigPath),
     configText,
@@ -699,19 +668,15 @@ function hashFileName(fileName: string) {
 }
 
 /**
- * The identity to use for every TypeScript-API-facing call (opening/parsing
- * the file, emit, diagnostics) - as opposed to `fileName` itself, which is
- * what's reported back to webpack and shown to the user.
- *
- * A file with an extension TypeScript doesn't recognize (e.g. a Vue SFC's
- * `<script>` block, extracted by vue-loader before we see it) has no
- * inferrable ScriptKind, and unlike classic ts-loader's `ts.LanguageService`
- * (which defaults to TS) this API panics outright. There's no host-level way
- * to specify ScriptKind directly, so alias to a virtual `.ts`-suffixed name
- * instead, served via the same `readFile` override as the synthetic config.
- * Appending (not replacing) the extension keeps the file in its real
- * directory so relative imports still resolve. A no-op for any recognized
- * extension.
+ * The identity used for every TypeScript-API-facing call, as opposed to
+ * `fileName` itself, which is what's reported to webpack/the user. A file
+ * with an unrecognized extension (e.g. a Vue SFC's extracted `<script>`
+ * block) has no inferrable ScriptKind and this API rejects it outright,
+ * unlike classic ts-loader's `ts.LanguageService` (which defaults to TS).
+ * With no host-level way to set ScriptKind, alias to a virtual
+ * `.ts`-suffixed name instead (served via the same `readFile` override as
+ * the synthetic config) - appended, not replacing, so relative imports still
+ * resolve from the real directory. A no-op for any recognized extension.
  */
 function toApiFacingFileName(fileName: string) {
   return constants.tsTsxJsJsxRegex.test(fileName) ||
@@ -810,12 +775,11 @@ function registerTypeScriptDependencies(
 }
 
 /**
- * A `"<file>@<version>"` tag that changes whenever `dependencyFileName`'s
- * content genuinely changes, for use in `buildMeta.tsLoaderDefinitionFileVersions`.
+ * A `"<file>@<version>"` tag for `buildMeta.tsLoaderDefinitionFileVersions`
+ * that changes whenever `dependencyFileName`'s content genuinely changes.
  * Falls back to hashing the program's view of the file when it has no
  * tracked version in `instance.files` (e.g. an ambient .d.ts never
- * `require`d/`import`ed by anything, so never passed through ts-loader's
- * own loader).
+ * imported by anything, so never passed through ts-loader's own loader).
  */
 function getDependencyVersionTag(
   instance: TSInstance,
@@ -877,12 +841,10 @@ function getDirectResolvedImports(
     return [];
   }
 
-  // Source file names are always forward-slash-normalized internally, but
-  // resolveRelativeSpecifier below builds its candidate via Node's `path`
-  // module, which is OS-native (backslash-separated on Windows). Compared
-  // via toComparablePath for membership only - the candidate path actually
-  // returned stays OS-native, matching every other identifier this file
-  // threads through.
+  // Source file names are always forward-slash-normalized, but
+  // resolveRelativeSpecifier builds its candidate via Node's OS-native
+  // `path` module - compared via toComparablePath for membership only, the
+  // returned candidate itself stays OS-native.
   const comparableSourceFileNames = new Set(
     program.getSourceFileNames().map(toComparablePath),
   );
@@ -990,10 +952,9 @@ function findTransitiveDependants(
   changedFileName: string,
   projectFileNames: readonly string[],
 ): Set<string> {
-  // `projectFileNames` is already forward-slash-normalized; getDirectResolvedImports
-  // returns OS-native paths, so both sides need normalizing before comparison
-  // - otherwise a multi-hop dependant (e.g. `app.ts` -> `dep.ts` ->
-  // `deeperDep.ts`) would never match on the second hop on Windows.
+  // `projectFileNames` is forward-slash-normalized; getDirectResolvedImports
+  // is OS-native, so both need normalizing before comparison - otherwise a
+  // multi-hop dependant would never match on Windows past the first hop.
   const directImportsByFile = new Map(
     projectFileNames.map(candidateFileName => [
       candidateFileName,
@@ -1129,16 +1090,14 @@ function reportTypeScriptErrors(
 
 /**
  * Reports diagnostics gathered from non-transpileOnly compiles, deferred
- * until webpack has finished building every module in this compilation -
- * mirroring classic ts-loader's afterCompile-based reporting. A module only
- * gets its own error attached if webpack hasn't already recorded one for it
- * (avoiding double-counting), but the diagnostic is always pushed onto
- * `compilation.errors` either way.
+ * until webpack finishes building every module - mirroring classic's
+ * afterCompile reporting. A module only gets its own error attached if
+ * webpack hasn't already recorded one (avoiding double-counting), but it's
+ * always pushed onto `compilation.errors` either way.
  *
- * `instance.pendingDiagnostics` is never cleared after reporting: each
- * entry is only overwritten when its file is recompiled (see
- * getTypeScriptEmit), so errors keep being re-reported until the file is
- * actually fixed - matching classic ts-loader's `filesWithErrors` re-check.
+ * `instance.pendingDiagnostics` is never cleared: each entry is only
+ * overwritten when its file recompiles, so errors keep being re-reported
+ * until fixed - matching classic's `filesWithErrors` re-check.
  */
 export function reportPendingTypeScriptDiagnostics(
   instance: TSInstance,
@@ -1180,11 +1139,9 @@ export function reportPendingTypeScriptDiagnostics(
 
 /**
  * Emits declaration (.d.ts, and .d.ts.map if `declarationMap` is set) files
- * gathered from full compiles as webpack assets, matching classic
- * ts-loader's `addDeclarationFilesAsAsset`. Like
- * `reportPendingTypeScriptDiagnostics`, `instance.pendingDeclarationFiles`
- * is never cleared - each entry persists until its source file recompiles,
- * so assets aren't lost on a rebuild that doesn't touch that file.
+ * as webpack assets, matching classic's `addDeclarationFilesAsAsset`. Like
+ * `pendingDiagnostics`, `pendingDeclarationFiles` is never cleared, so
+ * assets aren't lost on a rebuild that doesn't touch that file.
  */
 export function emitPendingDeclarationFiles(
   instance: TSInstance,
@@ -1287,14 +1244,11 @@ function buildTypeScriptError(
 ) {
   // `fallbackFile` is only passed for config-file-parsing/whole-program
   // diagnostics, which classic ts-loader treats as having no file of their
-  // own. TypeScript 7 does attach a `startPosition`/`endPosition` to these
-  // (pointing into tsconfig.json) where classic's compiler doesn't -
-  // deliberately ignored here to match classic's output exactly.
+  // own - even though TypeScript 7 does attach a position (into tsconfig.json)
+  // where classic doesn't, so it's deliberately ignored here to match.
   const hasFallbackFile = fallbackFile !== '';
-  // `startPosition`/`endPosition` (zero-based) are precomputed by the API
-  // itself on every diagnostic - present exactly when there's a real
-  // position, absent for e.g. config-file-parsing diagnostics with no file
-  // of their own - so no separate lookup by fileName is needed here.
+  // `startPosition`/`endPosition` (zero-based) are precomputed by the API on
+  // every diagnostic, present exactly when there's a real position.
   const start: FileLocation | undefined =
     !hasFallbackFile && diagnostic.startPosition
       ? {
