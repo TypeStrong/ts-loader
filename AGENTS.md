@@ -10,6 +10,8 @@ Use `yarn` (not npm).
 
 Prefer function declarations for named functions, especially reusable helpers. Use `function name(...) {}` instead of `const name = (...) => {}` when the function needs a name, as this is generally preferred for readability and consistency.
 
+Prefer `interface` over `type` for object shapes when possible, as interfaces have better performance and tooling support in TypeScript.
+
 ## Key commands
 
 Note: test scripts clean test directories first using `git clean -xfd`.

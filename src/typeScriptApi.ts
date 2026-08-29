@@ -2,7 +2,14 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import picomatch from 'picomatch';
 import * as webpack from 'webpack';
-import type { APIOptions, CompilerOptions } from 'typescript/unstable/sync';
+import type {
+  API as SyncApi,
+  APIOptions,
+  CompilerOptions,
+  Diagnostic,
+  EmitOutput,
+  Program,
+} from 'typescript/unstable/sync';
 
 import * as constants from './constants';
 import type { Colors } from './colors';
@@ -12,11 +19,7 @@ import type {
   FilePathKey,
   LoaderOptions,
   PendingDeclarationFile,
-  TypeScriptApi,
-  TypeScriptDiagnostic,
-  TypeScriptEmitOutput,
   TypeScriptInstance as TypeScriptApiInstance,
-  TypeScriptProgram,
   Severity,
   TSInstance,
 } from './types';
@@ -36,7 +39,7 @@ const diagnosticCategoryNames = [
 ] as const;
 
 type TypeScriptApiModule = {
-  API: new (options?: APIOptions) => TypeScriptApi;
+  API: new (options?: APIOptions) => SyncApi;
 };
 
 export function createTypeScriptApiInstance(
@@ -718,7 +721,7 @@ function toApiFacingFileName(fileName: string) {
 }
 
 function getOutputAndSourceMapFromTypeScriptEmit(
-  emitResult: TypeScriptEmitOutput,
+  emitResult: EmitOutput,
 ) {
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
@@ -736,7 +739,7 @@ function getOutputAndSourceMapFromTypeScriptEmit(
 
 function registerTypeScriptDependencies(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  program: TypeScriptProgram,
+  program: Program,
   fileName: string,
   apiFileName: string,
   instance: TSInstance,
@@ -816,7 +819,7 @@ function registerTypeScriptDependencies(
  */
 function getDependencyVersionTag(
   instance: TSInstance,
-  program: TypeScriptProgram,
+  program: Program,
   dependencyFileName: string,
 ): string {
   const file = instance.files.get(
@@ -848,7 +851,7 @@ function getDependencyVersionTag(
  * file's change (see the aliasResolution test).
  */
 function registerResolvedImportDependencies(
-  program: TypeScriptProgram,
+  program: Program,
   fileName: string,
   addDependency: (dependencyFileName: string) => void,
 ) {
@@ -866,7 +869,7 @@ function registerResolvedImportDependencies(
  * why bare/unresolved specifiers are excluded.
  */
 function getDirectResolvedImports(
-  program: TypeScriptProgram,
+  program: Program,
   fileName: string,
 ): string[] {
   const sourceFile = program.getSourceFile(fileName);
@@ -917,7 +920,7 @@ function getDirectResolvedImports(
  */
 function recheckTransitiveDependants(
   instance: TSInstance,
-  program: TypeScriptProgram,
+  program: Program,
   changedFileName: string,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
@@ -983,7 +986,7 @@ function recheckTransitiveDependants(
  * getDirectResolvedImports).
  */
 function findTransitiveDependants(
-  program: TypeScriptProgram,
+  program: Program,
   changedFileName: string,
   projectFileNames: readonly string[],
 ): Set<string> {
@@ -1068,7 +1071,7 @@ function toComparablePath(fileName: string): string {
  */
 function recordProjectDeclarationFiles(
   instance: TSInstance,
-  program: TypeScriptProgram,
+  program: Program,
 ) {
   const filePathRegex = program.getCompilerOptions().allowJs
     ? constants.dtsTsTsxJsJsxRegex
@@ -1215,8 +1218,8 @@ export function emitPendingDeclarationFiles(
 function filterDiagnosticsForReporting(
   instance: TSInstance,
   context: string,
-  diagnostics: readonly TypeScriptDiagnostic[],
-): TypeScriptDiagnostic[] {
+  diagnostics: readonly Diagnostic[],
+): Diagnostic[] {
   const matchesReportFiles = makeReportFilesMatcher(
     instance.loaderOptions.reportFiles,
   );
@@ -1273,7 +1276,7 @@ function makeReportFilesMatcher(
 
 function buildTypeScriptError(
   instance: TSInstance,
-  diagnostic: TypeScriptDiagnostic,
+  diagnostic: Diagnostic,
   context: string,
   module: webpack.Module | undefined,
   fallbackFile = '',
@@ -1443,7 +1446,7 @@ function defaultErrorFormatter(error: ErrorInfo, colors: Colors) {
   );
 }
 
-function dedupeDiagnostics(diagnostics: readonly TypeScriptDiagnostic[]) {
+function dedupeDiagnostics(diagnostics: readonly Diagnostic[]) {
   const seen = new Set<string>();
 
   return diagnostics.filter(diagnostic => {

@@ -49,14 +49,14 @@ jobs:
     strategy:
       matrix:
         node: [26, 24, 22]
-        ts: [7.1.0-dev.20260819.1, next]
+        ts: [7.1.0-dev.20260829.1, next]
         webpack: [4, 5]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
 
       - name: install node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
 
@@ -81,14 +81,14 @@ jobs:
     strategy:
       matrix:
         node: [26, 24, 22]
-        ts: [7.1.0-dev.20260819.1, next]
+        ts: [7.1.0-dev.20260829.1, next]
         webpack: [4, 5]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v7
 
       - name: install node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
 
