@@ -105,7 +105,12 @@ function getTypeScriptInstance(
   }
 
   const colors = createColors(loaderOptions.colors);
-  const log = logger.makeLogger(loaderOptions, colors);
+  const log = logger.makeLogger({
+    logLevel: loaderOptions.logLevel,
+    logInfoToStdOut: loaderOptions.logInfoToStdOut,
+    silent: loaderOptions.silent,
+    colors,
+  });
   const configFilePath = resolveConfigFilePath(
     path.dirname(loader.resourcePath),
     loaderOptions.configFile,
@@ -363,7 +368,7 @@ function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
     {},
     {
       silent: false,
-      logLevel: 'WARN' as LogLevel,
+      logLevel: 'WARN' as keyof typeof LogLevel,
       logInfoToStdOut: false,
       compiler: 'typescript',
       context: undefined,
@@ -381,7 +386,7 @@ function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
   );
 
   options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
-  options.logLevel = options.logLevel.toUpperCase() as LogLevel;
+  options.logLevel = options.logLevel.toUpperCase() as keyof typeof LogLevel;
   options.instance = instanceName;
   options.configFile = options.configFile || 'tsconfig.json';
 
