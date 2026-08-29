@@ -341,19 +341,13 @@ function getTranspileOnlyEmit(
   // verbatim rather than resolving it through a `Project` - an OS-native
   // path panics on Windows ("mixed posix and windows paths") once combined
   // with the API's forward-slash-normalized internal paths. See
-  // toComparablePath. (A bare basename sidesteps the panic too, but breaks
-  // `rootDir`-containment diagnostics like TS6059, which need the real
-  // directory.)
+  // toComparablePath.
   const transpileFileName = toComparablePath(apiFileName);
 
   const compilerOptions = program.getCompilerOptions();
   const { outputText, sourceMapText, diagnostics = [] } =
     typeScriptInstance.api.transpileModule(contents, {
-      // isolatedDeclarations is irrelevant to JS emit, but the API
-      // currently raises a spurious TS5069 ("cannot be specified without
-      // declaration or composite") whenever it's present at all. Omitted
-      // here; still passed to transpileDeclaration below, where it matters.
-      compilerOptions: omitIsolatedDeclarations(compilerOptions),
+      compilerOptions,
       fileName: transpileFileName,
       reportDiagnostics: true,
     });
@@ -436,9 +430,7 @@ function getTranspileOnlyEmit(
       typeScriptInstance,
       loaderContext,
       fileName,
-      // A bare basename, not the full path - see transpileFileName's own
-      // comment on recordTranspileOnlyDeclarationFile below.
-      path.basename(transpileFileName),
+      transpileFileName,
       contents,
       compilerOptions,
     );
@@ -464,13 +456,8 @@ function recordTranspileOnlyDeclarationFile(
   typeScriptInstance: TypeScriptApiInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileName: string,
-  // A bare basename, not a full path: unlike transpileModule (which needs
-  // the real directory for rootDir-containment diagnostics), transpileDeclaration
-  // panics on Windows given any absolute path here. Its own diagnostics
-  // (isolatedDeclarations violations like TS9011) are purely syntactic and
-  // don't need directory context, and any real rootDir-containment
-  // diagnostic is already covered by transpileModule's call in
-  // getTranspileOnlyEmit.
+  // Forward-slash-normalized (see transpileFileName's own comment at the
+  // call site in getTranspileOnlyEmit).
   transpileFileName: string,
   contents: string,
   compilerOptions: CompilerOptions,
@@ -518,15 +505,6 @@ function recordTranspileOnlyDeclarationFile(
   if (sourceMapText !== undefined) {
     loaderContext.emitFile(`${assetPath}.map`, sourceMapText);
   }
-}
-
-/** See the comment at its call site in getTranspileOnlyEmit. */
-function omitIsolatedDeclarations(
-  compilerOptions: CompilerOptions,
-): CompilerOptions {
-  const { isolatedDeclarations: _isolatedDeclarations, ...rest } =
-    compilerOptions;
-  return rest;
 }
 
 /**
