@@ -6,6 +6,10 @@ ts-loader is a TypeScript loader for webpack, enabling webpack to compile `.ts` 
 
 Use `yarn` (not npm).
 
+## Style
+
+Prefer function declarations for named functions, especially reusable helpers. Use `function name(...) {}` instead of `const name = (...) => {}` when the function needs a name, as this is generally preferred for readability and consistency.
+
 ## Key commands
 
 Note: test scripts clean test directories first using `git clean -xfd`.

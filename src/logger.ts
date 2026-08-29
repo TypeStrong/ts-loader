@@ -22,52 +22,74 @@ const LogLevel = {
 const stderrConsole = new Console(process.stderr);
 const stdoutConsole = new Console(process.stdout);
 
-const doNothingLogger = (_message: string) => {};
+function doNothingLogger(_message: string): void {}
 
-const makeLoggerFunc = (loaderOptions: LoaderOptions): InternalLoggerFunc =>
-  loaderOptions.silent
-    ? (_whereToLog: Console, _message: string) => {}
-    : (whereToLog: Console, message: string) =>
-        console.log.call(whereToLog, message);
+function makeLoggerFunc(loaderOptions: LoaderOptions): InternalLoggerFunc {
+  if (loaderOptions.silent) {
+    return function (_whereToLog: Console, _message: string): void {};
+  }
 
-const makeExternalLogger =
-  (loaderOptions: LoaderOptions, logger: InternalLoggerFunc) =>
-  (message: string) =>
+  return function (whereToLog: Console, message: string): void {
+    console.log.call(whereToLog, message);
+  };
+}
+
+function makeExternalLogger(
+  loaderOptions: LoaderOptions,
+  logger: InternalLoggerFunc,
+): LoggerFunc {
+  return function (message: string): void {
     logger(
       loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole,
       message,
     );
+  };
+}
 
-const makeLogInfo = (
+function makeLogInfo(
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
   green: ColorFn,
-) =>
-  LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
-    ? (message: string) =>
-        logger(
-          loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole,
-          green(message),
-        )
-    : doNothingLogger;
+): LoggerFunc {
+  if (LogLevel[loaderOptions.logLevel] <= LogLevel.INFO) {
+    return function (message: string): void {
+      logger(
+        loaderOptions.logInfoToStdOut ? stdoutConsole : stderrConsole,
+        green(message),
+      );
+    };
+  }
 
-const makeLogError = (
+  return doNothingLogger;
+}
+
+function makeLogError(
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
   red: ColorFn,
-) =>
-  LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
-    ? (message: string) => logger(stderrConsole, red(message))
-    : doNothingLogger;
+): LoggerFunc {
+  if (LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR) {
+    return function (message: string): void {
+      logger(stderrConsole, red(message));
+    };
+  }
 
-const makeLogWarning = (
+  return doNothingLogger;
+}
+
+function makeLogWarning(
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
   yellow: ColorFn,
-) =>
-  LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
-    ? (message: string) => logger(stderrConsole, yellow(message))
-    : doNothingLogger;
+): LoggerFunc {
+  if (LogLevel[loaderOptions.logLevel] <= LogLevel.WARN) {
+    return function (message: string): void {
+      logger(stderrConsole, yellow(message));
+    };
+  }
+
+  return doNothingLogger;
+}
 
 export function makeLogger(
   loaderOptions: LoaderOptions,
