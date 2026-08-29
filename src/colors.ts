@@ -1,7 +1,7 @@
 import * as pc from 'picocolors';
 
 interface ColorFn {
-  (input: string) => string;
+  (input: string): string;
 }
 
 export interface Colors {
