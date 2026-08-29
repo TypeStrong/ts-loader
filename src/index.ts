@@ -50,11 +50,8 @@ function loader(
     callback,
   );
   if (configParseErrorMessage !== undefined) {
-    // Classic ts-loader reconstructs this specific failure as a brand new
-    // `Error` right here, in `loader`'s own frame, discarding whatever
-    // deeper stack the original error carried - giving it a stack trace
-    // that's just a single `at Object.loader (...)` frame. Replicate that
-    // so the two remain byte-for-byte comparable.
+    // Reconstructed here, in `loader`'s own frame, so the stack trace
+    // matches classic ts-loader's single `at Object.loader (...)` frame.
     callback(new Error(configParseErrorMessage));
   }
 }
@@ -163,17 +160,12 @@ function getTypeScriptInstance(
  * afterCompile timing (see reportPendingTypeScriptDiagnostics and
  * emitPendingDeclarationFiles).
  *
- * Webpack 5 deprecated reporting errors/assets from the `afterCompile` hook in
- * favour of the `processAssets` hook on the compilation itself (this mirrors
- * classic ts-loader's own `addAssetHooks`). `compiler.hooks.compilation` only
- * fires for compilations created *after* this tap is registered, so the
- * current (first) compilation, already available as `loader._compilation`,
- * needs to be wired up directly too.
- *
- * Webpack 4 has no `processAssets` hook at all, so it uses
- * `compiler.hooks.afterCompile` directly - that hook already fires once per
- * compilation automatically, so no extra wiring for future compilations is
- * needed there.
+ * Webpack 5 deprecated reporting from `afterCompile` in favour of
+ * `processAssets`; since `compiler.hooks.compilation` only fires for
+ * compilations created *after* this tap is registered, the current (first)
+ * compilation (`loader._compilation`) has to be wired up directly too.
+ * Webpack 4 has no `processAssets` hook, so it uses `afterCompile` directly,
+ * which already fires once per compilation with no extra wiring needed.
  */
 function addPostCompileHooks(
   loader: webpack.LoaderContext<LoaderOptions>,
@@ -281,15 +273,10 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'compilerOptions',
   'appendTsSuffixTo',
   'appendTsxSuffixTo',
-  // Accepted but currently inert - unlike resolveModuleName/context below,
-  // this one *is* fixable without a new API hook: tsgo already parses
-  // whatever `files` array a synthetic, `extends`-based config lists (see
-  // ensureSyntheticConfigForFile), so restricting the project's roots to the
-  // .d.ts subset of parsedCommandLine.fileNames plus whichever files
-  // ts-loader is actually asked to compile just needs that mechanism made
-  // persistent for the instance instead of one-off per stray file. Verified
-  // still broken: with `declaration: true`, a project file webpack never
-  // bundles still gets its .d.ts emitted regardless of this option.
+  // Accepted but currently inert: with `declaration: true`, a project file
+  // webpack never bundles still gets its .d.ts emitted regardless of this
+  // option. Fixable without a new API hook - see ensureSyntheticConfigForFile
+  // for the synthetic-config mechanism this would need made persistent.
   'onlyCompileBundledFiles',
   'getCustomTransformers',
   'reportFiles',
@@ -297,9 +284,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'projectReferences',
   // Accepted for backwards compatibility but currently inert: the
   // `typescript/unstable/sync` (tsgo) API this loader now runs on only
-  // exposes filesystem-level hooks (fileExists/readFile/etc.), not a
-  // resolveModuleName-style (moduleName, containingFile) => result hook to
-  // plug a custom resolver into. See test/execution-tests/3.0.1_resolveModuleName.
+  // exposes filesystem-level hooks, not a resolveModuleName-style custom
+  // resolver hook. See test/execution-tests/3.0.1_resolveModuleName.
   'resolveModuleName',
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
@@ -321,15 +307,11 @@ ${validLoaderOptions.join(' / ')}
   }
 
   // `context` is validated here but, like `resolveModuleName` above,
-  // currently inert: classic ts-loader used it as an explicit basePath for
-  // `parseJsonConfigFileContent`, letting a tsconfig live outside the project
-  // root while its relative paths (files/include/exclude, etc.) still
-  // resolved against the root. The `typescript/unstable/sync` (tsgo) API
-  // this loader now runs on opens projects purely by config file path and
-  // always resolves relative paths against that config's own directory (and
-  // its `extends` chain) with no basePath override exposed - see
-  // test/execution-tests/2.8.1_option-context, which currently fails to pick
-  // up a `files` entry for exactly this reason.
+  // currently inert: classic ts-loader used it as an explicit basePath
+  // letting a tsconfig live outside the project root, but the tsgo API this
+  // loader runs on always resolves relative paths against the config's own
+  // directory with no basePath override exposed - see
+  // test/execution-tests/2.8.1_option-context.
   if (
     loaderOptions.context !== undefined &&
     !path.isAbsolute(loaderOptions.context)
@@ -419,15 +401,10 @@ function updateFileInCache(
   let file: TSFile | undefined = instance.files.get(key);
 
   if (file === undefined) {
-    // Classic ts-loader doesn't throw for a disallowed node_modules file
-    // here: it just leaves it out of its own root file set, so TypeScript
-    // never emits output for it - surfaced instead as
-    // `makeSourceMapAndFinish`'s "TypeScript emitted no output" error
-    // below, with node_modules-specific guidance in the message. This API
-    // already skips emitting output for a node_modules file on its own
-    // (`program.getJavaScriptEmit` returns no output files for source
-    // files it considers part of an external library), so no equivalent
-    // "don't compile this" step is needed here at all.
+    // No "don't compile this" step needed for a disallowed node_modules
+    // file here: the API already skips emit for files it considers part of
+    // an external library, surfaced instead as makeSourceMapAndFinish's
+    // "TypeScript emitted no output" error below.
     file = { fileName: filePath, version: 0 };
     instance.files.set(key, file);
     instance.version++;
@@ -483,12 +460,9 @@ function makeSourceMapAndFinish(
 ) {
   if (outputText === null || outputText === undefined) {
     setModuleMeta(loaderContext, fileVersion);
-    // A file under node_modules is the most common cause: the API leaves
-    // its own project's file set to include it (import resolution can pick
-    // up any real, resolvable .ts file, node_modules or not), but skips
-    // emitting output for a source file it considers part of an external
-    // library - matching classic ts-loader's guidance for the same
-    // situation with its own, differently-derived "not a root file" cause.
+    // A file under node_modules is the most common cause: the API skips
+    // emit for a source file it considers part of an external library,
+    // matching classic ts-loader's guidance for the same situation.
     const additionalGuidance =
       !allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
         ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
