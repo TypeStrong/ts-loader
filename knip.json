@@ -4,7 +4,27 @@
     "-lintignore"
   ],
   "project": [
-    "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.ts"
+  ],
+  "ignoreDependencies": [
+    "babel",
+    "babel-core",
+    "babel-loader",
+    "babel-polyfill",
+    "babel-preset-es2015",
+    "babel-preset-react",
+    "glob",
+    "jasmine-core",
+    "karma",
+    "karma-chrome-launcher",
+    "karma-jasmine",
+    "karma-mocha-reporter",
+    "karma-sourcemap-loader",
+    "karma-webpack",
+    "lint-staged",
+    "loader-utils",
+    "mkdirp",
+    "mocha",
+    "webpack-cli"
   ]
 }
