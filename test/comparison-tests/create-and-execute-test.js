@@ -5,7 +5,6 @@ const path = require('path');
 const mkdirp = require('mkdirp');
 const rimraf = require('rimraf');
 const webpack = require('webpack');
-const regexEscape = require('escape-string-regexp');
 const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
@@ -104,6 +103,7 @@ function createTest(test, testPath, options) {
         // See PR 1109 for details: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(() => {
             // execute webpack
+            // @ts-ignore - webpack will not be null at runtime
             testState.watcher = webpack(
                 createWebpackConfig(paths, options)
             ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
@@ -117,6 +117,7 @@ function createTestState() {
         doneHasBeenCalled: false,
         iteration: 0,
         lastHash: undefined,
+        /** @type {any} */
         watcher: undefined
     };
 }
@@ -210,9 +211,9 @@ function handleErrors(err, paths) {
         const errFileName = 'err.txt';
 
         const errString = err.toString()
-            .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
-            .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
-            .replace(new RegExp(regexEscape(rootPath), 'g'), '')
+            .replaceAll(paths.testStagingPath + path.sep, '')
+            .replaceAll(rootPath + path.sep, '')
+            .replaceAll(rootPath, '')
             .replace(/\.transpile/g, '');
 
         fs.writeFileSync(path.join(paths.actualOutput, errFileName), errString);
@@ -252,10 +253,10 @@ function storeStats(stats, testState, paths) {
 
         const statsString = stats.toString({ timings: false, version: false, hash: false, builtAt: false })
             .replace(/^Built at: .+$/gm, '')
-            .replace(new RegExp(regexEscape(paths.testStagingPath + path.sep), 'g'), '')
-            .replace(new RegExp(regexEscape(rootPath + path.sep), 'g'), '')
-            .replace(new RegExp(regexEscape(rootPath), 'g'), '')
-            .replace(new RegExp(regexEscape(rootPathWithIncorrectWindowsSeparator), 'g'), '')
+            .replaceAll(paths.testStagingPath + path.sep, '')
+            .replaceAll(rootPath + path.sep, '')
+            .replaceAll(rootPath, '')
+            .replaceAll(rootPathWithIncorrectWindowsSeparator, '')
             .replace(/\.transpile/g, '');
 
         fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
@@ -266,7 +267,7 @@ function compareFiles(paths, test, patch) {
     if (saveOutputMode) {
         const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true });
         const expectedFiles = glob.sync('**/*', { cwd: paths.originalExpectedOutput, nodir: true, dot: true })
-                .filter(function (file) { return !/^patch/.test(file); });
+                .filter(function (file) { return !file.startsWith('patch'); });
         const allFiles = {};
 
         actualFiles.forEach(function (file) { allFiles[file] = true });
@@ -276,8 +277,8 @@ function compareFiles(paths, test, patch) {
             }
          });
         Object.keys(allFiles).forEach(function (file) {
-            const actual = getNormalisedFileContent(file, paths.actualOutput);
-            const expected = getNormalisedFileContent(file, paths.expectedOutput);
+            // const actual = getNormalisedFileContent(file, paths.actualOutput);
+            // const expected = getNormalisedFileContent(file, paths.expectedOutput);
 
             // I believe we always want to copy this
             // if (actual !== expected) {
@@ -289,7 +290,7 @@ function compareFiles(paths, test, patch) {
         // compare actual to expected
         const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true }),
             expectedFiles = glob.sync('**/*', { cwd: paths.expectedOutput, nodir: true, dot: true })
-                .filter(function (file) { return !/^patch/.test(file); }),
+                .filter(function (file) { return !file.startsWith('patch'); }),
             allFiles = {};
 
         actualFiles.forEach(function (file) { allFiles[file] = true });
@@ -331,16 +332,16 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
  * independent as possible
  **/
 function cleanHashFromOutput(stats, webpackOutput) {
-    const escapedStagingPath = stagingPath.replace(new RegExp(regexEscape('\\'), 'g'), '\\\\');
+    const escapedStagingPath = stagingPath.replaceAll('\\', '\\\\');
     if (stats) {
         glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
             const content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
                 .split(stats.hash).join('[hash]')
                 .replace(/\r\n/g, '\n')
                 // Ignore complete paths
-                .replace(new RegExp(regexEscape(escapedStagingPath), 'g'), '')
+                .replaceAll(escapedStagingPath, '')
                 // turn \\ to /
-                .replace(new RegExp(regexEscape('\\\\'), 'g'), '/');
+                .replaceAll('\\\\', '/');
 
             fs.writeFileSync(path.join(webpackOutput, file), content);
         });
@@ -392,27 +393,27 @@ function getNormalisedFileContent(file, location) {
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
                 .replace(/ test\/comparison-tests\//,' /test/comparison-tests/')
                 // Ignore 'at Object.loader (dist\index.js:32:15)' style row number / column number differences
-                .replace(/(\(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(match, openingBracketPathAndColon, lineNumber, colon, columnNumber, closingBracket){
+                .replace(/(\(dist[/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(_match, openingBracketPathAndColon, _lineNumber, colon, _columnNumber, closingBracket){
                     return openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
                 })
                 // Ignore path differences in TS error output
-                .replace(/(TS6305:[^']+')([^']+?)([^\\\/']+')([^']+')([^']+?)([^\\\/']+'.*)$/gm, function(match, messageStart, outputFileBaseDir, outputFileName, messageMiddle, sourceFileBaseDir, sourceFileName) {
+                .replace(/(TS6305:[^']+')([^']+?)([^\\/']+')([^']+')([^']+?)([^\\/']+'.*)$/gm, function(_match, messageStart, _outputFileBaseDir, outputFileName, messageMiddle, _sourceFileBaseDir, sourceFileName) {
                     return messageStart + outputFileName + messageMiddle + sourceFileName;
                 })
                 // TS18003's "No inputs were found in config file '...'" embeds
                 // whatever config file identifier the compiler was opened
                 // with, which can differ in path depth between platforms;
                 // only the file name itself is meaningful for the test.
-                .replace(/(TS18003: No inputs were found in config file ')([^']*?)([^\\\/']+')/g, function(match, messageStart, baseDir, fileNameAndQuote) {
+                .replace(/(TS18003: No inputs were found in config file ')([^']*?)([^\\/']+')/g, function(_match, messageStart, _baseDir, fileNameAndQuote) {
                     return messageStart + fileNameAndQuote;
                 })
             : normaliseString(originalContent))
             // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
-            .replace(/at (.*)(dist[\/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(match, spaceAndStartOfPath, remainingPathAndColon, lineNumber, colon, columnNumber){
+            .replace(/at (.*)(dist[/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(_match, _spaceAndStartOfPath, remainingPathAndColon, _lineNumber, colon, _columnNumber){
                 return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
             })
             // strip C:/projects/ts-loader/.test/
-            .replace(/([a-zA-Z]\:\/)?[\w|\/]*\/(ts-(loader)?|workspace)\/\.test/ig, '')
+            .replace(/([a-zA-Z]:\/)?[\w|/]*\/(ts-(loader)?|workspace)\/\.test/ig, '')
             // Some diagnostics (TS5055, TS6059) embed a path relative to a
             // different reference point than most output - one that still
             // has ".test/<test name>/" in front of it - even though the
@@ -421,14 +422,14 @@ function getNormalisedFileContent(file, location) {
             // (as in `'/.test/name/...`) so this can't accidentally eat the
             // test name out of an unrelated, intentionally-preserved path
             // elsewhere in the output.
-            .replace(new RegExp("'\\/\\.test\\/" + regexEscape(testToRun) + "\\/", 'g'), "'")
-            .replace(/webpack:\/\/([a-zA-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
-            .replace(/WEBPACK FOOTER\/n\/ ([a-zA-Z]:\/)?[\w|\/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
-            .replace(/!\** ([a-zA-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
-            .replace(/\/ ([a-zA-Z]\:\/)?[\w|\/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
+            .replaceAll("'/.test/" + testToRun + "/", "'")
+            .replace(/webpack:\/\/([a-zA-Z]:\/)?[\w|/|-]*\/comparison-tests\//ig, 'webpack://comparison-tests/')
+            .replace(/WEBPACK FOOTER\/n\/ ([a-zA-Z]:\/)?[\w|/|-]*\/comparison-tests\//ig, 'WEBPACK FOOTER/n/ /ts-loader/test/comparison-tests/')
+            .replace(/!\** ([a-zA-Z]:\/)?[\w|/|-]*\/comparison-tests\//ig, '!*** /ts-loader/test/comparison-tests/')
+            .replace(/\/ ([a-zA-Z]:\/)?[\w|/|-]*\/comparison-tests\//ig, '/ /ts-loader/test/comparison-tests/')
             // with webpack 4 there are different numbers of *s on Windows and on Linux
             .replace(/\*{10}\**/g, '**********');
-    } catch (e) {
+    } catch (_e) {
         fileContent = '!!!' + filePath + ' doesn\'t exist!!!';
     }
     return fileContent;
@@ -441,20 +442,20 @@ function normaliseString(platformSpecificContent) {
         .replace(/\\r\\n/g, '\\n') // bundle.js output needs this; tsConfigNotReadable for instance
         // Convert '/' to '\' and back to '/' so slashes are treated the same
         // whether running / generated on windows or *nix
-        .replace(new RegExp(regexEscape('/'), 'g'), '\\')
-        .replace(new RegExp(regexEscape('\\'), 'g'), '/')
-        .replace(new RegExp(regexEscape('//'), 'g'), '/')
+        .replaceAll('/', '\\')
+        .replaceAll('\\', '/')
+        .replaceAll('//', '/')
         // replace C:/source/ts-loader/index.js or /home/travis/build/TypeStrong/ts-loader/index.js with ts-loader
-        .replace(/ \S+[\/|\\](ts-(loader)?|workspace)[\/|\\]index.js/g, 'ts-loader')
+        .replace(/ \S+[/|\\](ts-(loader)?|workspace)[/|\\]index.js/g, 'ts-loader')
         // replace (C:/source/ts-loader/dist/index.js with (ts-loader)
-        .replace(/\(\S+[\/|\\](ts-(loader)?|workspace)[\/|\\]dist[\/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
+        .replace(/\(\S+[/|\\](ts-(loader)?|workspace)[/|\\]dist[/|\\]index.js:\d*:\d*\)/g, '(ts-loader)');
 }
 
 /**
  * If a test is marked as flaky then don't fail the build if it doesn't pass
  * Instead, report the differences and carry on
  */
-function compareActualAndExpected(test, actual, expected, patch, file) {
+function compareActualAndExpected(_test, actual, expected, patch, file) {
     const actualString = actual.toString();
     const expectedString = expected.toString();
     if (testIsFlaky) {

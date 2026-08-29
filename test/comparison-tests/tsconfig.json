@@ -1,11 +1,12 @@
 {
     "compilerOptions": {
+        "strictNullChecks": true,
         "allowJs": true,
         "checkJs": true,
         "module": "commonjs",
         "noEmit": true,
         "skipLibCheck": true,
-        "lib": ["es2016"],
+        "lib": ["es2021"],
         "types": ["node"],
         "strict": false
     },
