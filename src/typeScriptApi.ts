@@ -180,7 +180,6 @@ export function getTypeScriptEmit(
           buildTypeScriptError(
             instance,
             diagnostic,
-            program,
             loaderContext.context,
             loaderContext._module,
             typeScriptInstance.configFilePath,
@@ -213,9 +212,6 @@ export function getTypeScriptEmit(
         instance,
       );
 
-      // Built synchronously here since `program` is only backed by this
-      // call's temporary snapshot and is invalidated once this callback
-      // returns.
       const errors = filterDiagnosticsForReporting(
         instance,
         loaderContext.context,
@@ -224,7 +220,6 @@ export function getTypeScriptEmit(
         buildTypeScriptError(
           instance,
           diagnostic,
-          program,
           loaderContext.context,
           loaderContext._module,
           '',
@@ -318,7 +313,6 @@ function getTranspileOnlyEmit(
       buildTypeScriptError(
         instance,
         diagnostic,
-        program,
         loaderContext.context,
         loaderContext._module,
         primaryProjectPath,
@@ -360,16 +354,6 @@ function getTranspileOnlyEmit(
     program.getProgramDiagnostics(),
   );
 
-  // transpileModule is program-less, so its diagnostics need a text-based
-  // location lookup (see getDiagnosticLocations) rather than a Program.
-  // Diagnostics echo back whatever spelling of `fileName` was passed in
-  // above, so the key must match exactly (`transpileFileName`, not
-  // `apiFileName`).
-  const singleFileLocationSource = makeSingleFileLocationSource(
-    transpileFileName,
-    contents,
-  );
-
   const errors = [
     ...filterDiagnosticsForReporting(
       instance,
@@ -379,7 +363,6 @@ function getTranspileOnlyEmit(
       buildTypeScriptError(
         instance,
         diagnostic,
-        singleFileLocationSource,
         loaderContext.context,
         loaderContext._module,
         '',
@@ -396,7 +379,6 @@ function getTranspileOnlyEmit(
       buildTypeScriptError(
         instance,
         diagnostic,
-        program,
         loaderContext.context,
         loaderContext._module,
         primaryProjectPath,
@@ -477,7 +459,6 @@ function recordTranspileOnlyDeclarationFile(
     buildTypeScriptError(
       instance,
       diagnostic,
-      makeSingleFileLocationSource(transpileFileName, contents),
       loaderContext.context,
       loaderContext._module,
       '',
@@ -984,7 +965,6 @@ function recheckTransitiveDependants(
       buildTypeScriptError(
         instance,
         diagnostic,
-        program,
         loaderContext.context,
         dependantModule,
       ),
@@ -1294,26 +1274,38 @@ function makeReportFilesMatcher(
 function buildTypeScriptError(
   instance: TSInstance,
   diagnostic: TypeScriptDiagnostic,
-  program: DiagnosticLocationSource,
   context: string,
   module: webpack.Module | undefined,
   fallbackFile = '',
   // Set only when `diagnostic` was fetched using a synthetic, API-facing
   // file identity (see toApiFacingFileName) rather than the file's real
-  // path. `getDiagnosticLocations` below still needs the original
-  // `diagnostic.fileName` to resolve a location via `program`, but the path
-  // shown to the user should be the real one.
+  // path - the path shown to the user should be the real one.
   displayFileName?: string,
 ) {
   // `fallbackFile` is only passed for config-file-parsing/whole-program
   // diagnostics, which classic ts-loader treats as having no file of their
-  // own. TypeScript 7 does attach a `fileName`/position to these (pointing
-  // into tsconfig.json) where classic's compiler doesn't - deliberately
-  // ignored here to match classic's output exactly.
+  // own. TypeScript 7 does attach a `startPosition`/`endPosition` to these
+  // (pointing into tsconfig.json) where classic's compiler doesn't -
+  // deliberately ignored here to match classic's output exactly.
   const hasFallbackFile = fallbackFile !== '';
-  const { start, end } = hasFallbackFile
-    ? { start: undefined, end: undefined }
-    : getDiagnosticLocations(diagnostic, program);
+  // `startPosition`/`endPosition` (zero-based) are precomputed by the API
+  // itself on every diagnostic - present exactly when there's a real
+  // position, absent for e.g. config-file-parsing diagnostics with no file
+  // of their own - so no separate lookup by fileName is needed here.
+  const start: FileLocation | undefined =
+    !hasFallbackFile && diagnostic.startPosition
+      ? {
+          line: diagnostic.startPosition.line + 1,
+          character: diagnostic.startPosition.character + 1,
+        }
+      : undefined;
+  const end: FileLocation | undefined =
+    !hasFallbackFile && diagnostic.endPosition && diagnostic.end > diagnostic.pos
+      ? {
+          line: diagnostic.endPosition.line + 1,
+          character: diagnostic.endPosition.character + 1,
+        }
+      : undefined;
   const diagnosticFile =
     !hasFallbackFile && diagnostic.fileName
       ? path.normalize(displayFileName ?? diagnostic.fileName)
@@ -1432,93 +1424,6 @@ function moduleHasWebpackErrors(module: webpack.Module) {
     ? module.getNumberOfErrors() > 0
     : ((module as unknown as { errors?: webpack.WebpackError[] }).errors ?? [])
         .length > 0;
-}
-
-interface LineAndCharacter {
-  line: number;
-  character: number;
-}
-
-/**
- * Whatever `getDiagnosticLocations` needs to resolve a diagnostic's
- * `pos`/`end` offsets into a line/character: either a real `Program`, or
- * `makeSingleFileLocationSource`'s text-backed stand-in for
- * `transpileModule`/`transpileDeclaration` diagnostics, which have no
- * program at all.
- */
-interface DiagnosticLocationSource {
-  getSourceFile(fileName: string):
-    | {
-        getLineAndCharacterOfPosition(pos: number): LineAndCharacter;
-      }
-    | undefined;
-};
-
-/**
- * A `DiagnosticLocationSource` for a single file's raw text, computing
- * line/character directly rather than via a `Program` - used by
- * `transpileModule`/`transpileDeclaration` diagnostics, which never have a
- * program to ask instead.
- */
-function makeSingleFileLocationSource(
-  fileName: string,
-  text: string,
-): DiagnosticLocationSource {
-  return {
-    getSourceFile: candidateFileName =>
-      candidateFileName === fileName
-        ? {
-            getLineAndCharacterOfPosition: pos =>
-              computeLineAndCharacterFromText(text, pos),
-          }
-        : undefined,
-  };
-}
-
-function computeLineAndCharacterFromText(text: string, pos: number): LineAndCharacter {
-  let line = 0;
-  let lineStart = 0;
-
-  for (let i = 0; i < pos && i < text.length; i++) {
-    if (text.charCodeAt(i) === 10 /* \n */) {
-      line++;
-      lineStart = i + 1;
-    }
-  }
-
-  return { line, character: pos - lineStart };
-}
-
-function getDiagnosticLocations(
-  diagnostic: TypeScriptDiagnostic,
-  program: DiagnosticLocationSource,
-): { start: FileLocation | undefined; end: FileLocation | undefined } {
-  if (!diagnostic.fileName || diagnostic.pos < 0) {
-    return { start: undefined, end: undefined };
-  }
-
-  const sourceFile = program.getSourceFile(diagnostic.fileName);
-  if (!sourceFile) {
-    return { start: undefined, end: undefined };
-  }
-
-  const startLC = sourceFile.getLineAndCharacterOfPosition(diagnostic.pos);
-  const start: FileLocation = {
-    line: startLC.line + 1,
-    character: startLC.character + 1,
-  };
-
-  const end: FileLocation | undefined =
-    diagnostic.end > diagnostic.pos
-      ? (() => {
-          const endLC = sourceFile.getLineAndCharacterOfPosition(
-            diagnostic.end,
-          );
-          return { line: endLC.line + 1, character: endLC.character + 1 };
-        })()
-      : undefined;
-
-  return { start, end };
 }
 
 /** The default error formatter, matching classic ts-loader's output. */
