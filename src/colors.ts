@@ -1,6 +1,8 @@
 import * as pc from 'picocolors';
 
-export type ColorFn = (input: string) => string;
+interface ColorFn {
+  (input: string) => string;
+}
 
 export interface Colors {
   green: ColorFn;
