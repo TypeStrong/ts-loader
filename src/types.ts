@@ -2,9 +2,6 @@ import type { Colors } from './colors';
 import type {
   API as SyncApi,
   CompilerOptions,
-  Diagnostic,
-  EmitOutput,
-  Program,
   Snapshot,
 } from 'typescript/unstable/sync';
 import type * as webpack from 'webpack';
@@ -19,10 +16,10 @@ export interface ErrorInfo {
   context: string;
 }
 
-export type FileLocation = {
+export interface FileLocation {
   line: number;
   character: number;
-};
+}
 
 export type FilePathKey = string & { __filePathKeyBrand: unknown };
 
@@ -66,19 +63,13 @@ export interface TSFile {
   version: number;
 }
 
-export type TypeScriptApi = SyncApi;
-type TypeScriptSnapshot = Snapshot;
-export type TypeScriptProgram = Program;
-export type TypeScriptEmitOutput = EmitOutput;
-export type TypeScriptDiagnostic = Diagnostic;
-
 export interface TypeScriptInstance {
-  api: TypeScriptApi;
+  api: SyncApi;
   configFilePath: string;
   syntheticConfigContents: Map<string, string>;
   syntheticConfigFiles: Map<string, string>;
   openedProjectPaths: Set<string>;
-  snapshot?: TypeScriptSnapshot;
+  snapshot?: Snapshot;
 }
 
 interface PendingTypeScriptDiagnostics {
