@@ -154,18 +154,16 @@ function getTypeScriptInstance(
 }
 
 /**
- * Diagnostics and declaration files for non-transpileOnly compiles are
- * gathered per-file but not attached to the compilation until webpack has
- * finished building/parsing every module - matching classic ts-loader's
- * afterCompile timing (see reportPendingTypeScriptDiagnostics and
- * emitPendingDeclarationFiles).
+ * Diagnostics/declaration files for non-transpileOnly compiles are gathered
+ * per-file but attached only once webpack finishes building every module
+ * (see reportPendingTypeScriptDiagnostics/emitPendingDeclarationFiles),
+ * matching classic ts-loader's afterCompile timing.
  *
- * Webpack 5 deprecated reporting from `afterCompile` in favour of
- * `processAssets`; since `compiler.hooks.compilation` only fires for
- * compilations created *after* this tap is registered, the current (first)
- * compilation (`loader._compilation`) has to be wired up directly too.
- * Webpack 4 has no `processAssets` hook, so it uses `afterCompile` directly,
- * which already fires once per compilation with no extra wiring needed.
+ * Webpack 5 deprecated `afterCompile` reporting for `processAssets`; since
+ * `compiler.hooks.compilation` only fires for compilations created *after*
+ * this tap is registered, the current one (`loader._compilation`) needs
+ * wiring up directly too. Webpack 4 has no `processAssets`, so it uses
+ * `afterCompile` directly, which already fires once per compilation.
  */
 function addPostCompileHooks(
   loader: webpack.LoaderContext<LoaderOptions>,

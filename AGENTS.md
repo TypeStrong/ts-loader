@@ -12,6 +12,10 @@ Prefer function declarations for named functions, especially reusable helpers. U
 
 Prefer `interface` over `type` for object shapes when possible, as interfaces have better performance and tooling support in TypeScript.
 
+## Comments
+
+Keep comments in `src/` sparse: only the non-obvious *why* (a Windows-only path quirk, an undocumented API behavior, a deliberate divergence from classic ts-loader's output) earns one, and it should be as short as it can be while still saying that. Don't add a comment that restates what a well-named identifier or the code's own shape already makes clear. Before trimming or removing an existing comment, weigh what it would cost to rediscover - some encode a hard-won finding (a repro script, a real Windows CI failure) that isn't obvious from the code alone; when in doubt, shorten rather than delete. `src/typeScriptApi.ts` is the densest file by necessity (most of ts-loader's TypeScript-API-specific behavior lives there); see "Testing on Windows CI" below for its most common recurring gotcha.
+
 ## Key commands
 
 Note: test scripts clean test directories first using `git clean -xfd`.
