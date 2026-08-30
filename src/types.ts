@@ -75,6 +75,15 @@ export interface TypeScriptInstance {
    * same build reuses the now-fresh snapshot instead of rescanning again.
    */
   pendingInvalidation: boolean;
+  /**
+   * Memoizes each project file's direct resolved relative imports (see
+   * getDirectResolvedImports) across every file compiled in the same build -
+   * findTransitiveDependants's dependant search otherwise recomputes this
+   * from scratch for every project file on every single compile. Cleared
+   * whenever `pendingInvalidation` forces a real rescan (see updateSnapshot),
+   * since only then could another file's content have changed on disk.
+   */
+  directImportsCache: Map<string, readonly string[]>;
 }
 
 interface PendingTypeScriptDiagnostics {
