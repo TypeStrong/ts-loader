@@ -5,7 +5,7 @@ ERROR in app.ts
 ./app.ts 1:6-8
 [tsl] ERROR in app.ts(1,7)
       TS1005: ',' expected.
-ts-loader-default_036d5d64f502cd68
+ts-loader-default_5ee83341bcef32be
 
 ERROR in ./app.ts 3:1
 Module parse failed: Unexpected token (3:1)

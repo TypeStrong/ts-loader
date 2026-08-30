@@ -15,6 +15,6 @@ ERROR in app.ts
 ./app.ts 1:6-8
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,7)[39m[22m
 [1m[31m      TS1005: ',' expected.[39m[22m
-ts-loader-default_9cd649dc8bfa2f8e
+ts-loader-default_2183229ae5870025
 
 webpack compiled with 2 errors
