@@ -82,8 +82,13 @@ export interface TypeScriptInstance {
    * from scratch for every project file on every single compile. Cleared
    * whenever `pendingInvalidation` forces a real rescan (see updateSnapshot),
    * since only then could another file's content have changed on disk.
+   *
+   * Keyed by `FilePathKey` (via `ResolvedPathCache`), not a raw file name -
+   * the API returns forward-slash-normalized names while webpack/loader
+   * paths are OS-native, so two spellings of the same file would otherwise
+   * never share a cache entry.
    */
-  directImportsCache: Map<string, readonly string[]>;
+  directImportsCache: Map<FilePathKey, readonly string[]>;
 }
 
 interface PendingTypeScriptDiagnostics {
