@@ -2,7 +2,6 @@ const assert = require("assert");
 const fs = require('fs');
 const execSync = require('child_process').execSync;
 const path = require('path');
-const mkdirp = require('mkdirp');
 const webpack = require('webpack');
 const glob = require('glob');
 const pathExists = require('../pathExists');
@@ -72,17 +71,17 @@ function createTest(test, testPath, options) {
         const testState = createTestState();
         const paths = createPaths(stagingPath, test, options);
         if (saveOutputMode) {
-            mkdirp.sync(paths.originalExpectedOutput);
+            fs.mkdirSync(paths.originalExpectedOutput, { recursive: true });
         } else {
             assert.ok(pathExists(paths.originalExpectedOutput), 'The expected output does not exist; there is nothing to compare against! Has the expected output been created?\nCould not find: ' + paths.originalExpectedOutput)
         }
 
         // copy all input to a staging area
-        mkdirp.sync(paths.testStagingPath);
+        fs.mkdirSync(paths.testStagingPath, { recursive: true });
         copySync(testPath, paths.testStagingPath);
         if (test.match("SymLinks")) {
             // Setup symlinks
-            mkdirp.sync(path.resolve(paths.testStagingPath, "node_modules"));
+            fs.mkdirSync(path.resolve(paths.testStagingPath, "node_modules"), { recursive: true });
             fs.symlinkSync(path.resolve(paths.testStagingPath, "lib"), path.resolve(paths.testStagingPath, "node_modules/lib"), "junction");
             fs.symlinkSync(path.resolve(paths.testStagingPath, "common"), path.resolve(paths.testStagingPath, "node_modules/common"), "junction");
         }
@@ -95,7 +94,7 @@ function createTest(test, testPath, options) {
         }
 
         // ensure output directories
-        mkdirp.sync(paths.actualOutput);
+        fs.mkdirSync(paths.actualOutput, { recursive: true });
 
 
         // Need to wait > FS_ACCURACY as defined in watchpack.
@@ -198,9 +197,9 @@ function setPathsAndGetPatch(paths, testState, options) {
         paths.actualOutput = path.join(paths.testStagingPath, 'actualOutput', patch);
         paths.expectedOutput = path.join(paths.testStagingPath, transpilePath, patch);
         paths.originalExpectedOutput = path.join(testPath, transpilePath, patch);
-        mkdirp.sync(paths.actualOutput);
-        mkdirp.sync(paths.expectedOutput);
-        if (saveOutputMode) mkdirp.sync(paths.originalExpectedOutput);
+        fs.mkdirSync(paths.actualOutput, { recursive: true });
+        fs.mkdirSync(paths.expectedOutput, { recursive: true });
+        if (saveOutputMode) fs.mkdirSync(paths.originalExpectedOutput, { recursive: true });
     }
     return patch;
 }
