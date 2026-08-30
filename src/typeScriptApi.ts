@@ -82,6 +82,7 @@ export function createTypeScriptApiInstance(
     syntheticConfigContents,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
+    pendingInvalidation: true,
   };
 }
 
@@ -535,8 +536,14 @@ function updateSnapshot(
   const previousSnapshot = typeScriptInstance.snapshot;
   // `invalidateAll` forces a full rescan: ts-loader only knows about the one
   // file webpack asked it to compile, not whether other project files
-  // changed on disk since the last snapshot.
-  const fileChanges = { invalidateAll: true } as const;
+  // changed on disk since the last snapshot. Only needed once per build/watch
+  // rebuild (see `pendingInvalidation` and its `compile`-hook wiring in
+  // index.ts) - every other file compiled within the same build reuses the
+  // snapshot that call already refreshed.
+  const fileChanges = typeScriptInstance.pendingInvalidation
+    ? ({ invalidateAll: true } as const)
+    : undefined;
+  typeScriptInstance.pendingInvalidation = false;
   const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
       ? { openProjects, openFiles: [fileName], fileChanges }

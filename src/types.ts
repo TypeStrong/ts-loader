@@ -67,6 +67,14 @@ export interface TypeScriptInstance {
   syntheticConfigFiles: Map<string, string>;
   openedProjectPaths: Set<string>;
   snapshot?: Snapshot;
+  /**
+   * Set on creation and by webpack's `compile` hook (once per build/watch
+   * rebuild) - see `updateSnapshot`. Consumed (and cleared) by the first
+   * `updateSnapshot` call of that build, so only that call forces the API to
+   * discard its caches and rescan disk; every other file compiled within the
+   * same build reuses the now-fresh snapshot instead of rescanning again.
+   */
+  pendingInvalidation: boolean;
 }
 
 interface PendingTypeScriptDiagnostics {
