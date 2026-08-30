@@ -24,7 +24,6 @@
     "karma-webpack",
     "lint-staged",
     "loader-utils",
-    "mkdirp",
     "mocha",
     "webpack-cli"
   ]
