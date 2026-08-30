@@ -15,6 +15,7 @@ import type {
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
+  ResolvedPathCache,
   TSFile,
   TSInstance,
 } from './types';
@@ -123,19 +124,19 @@ function getTypeScriptInstance(
   }
 
   const files: TSInstance['files'] = new Map();
-  const filePathKeyMapper = createFilePathKeyMapper(loaderOptions);
+  const resolvedPathCache = createResolvedPathCache(loaderOptions);
 
   const instance: TSInstance = {
     version: 0,
     colors,
     loaderOptions,
     files,
-    filePathKeyMapper,
+    resolvedPathCache,
     typeScriptApiInstance: createTypeScriptApiInstance(
       loaderOptions,
       configFilePath,
       files,
-      filePathKeyMapper,
+      resolvedPathCache,
     ),
     pendingDiagnostics: new Map(),
     pendingDeclarationFiles: new Map(),
@@ -205,33 +206,35 @@ function addPostCompileHooks(
   }
 }
 
-function createFilePathKeyMapper(loaderOptions: LoaderOptions) {
-  const filePathMapperCache = new Map<string, FilePathKey>();
+function createResolvedPathCache(loaderOptions: LoaderOptions): ResolvedPathCache {
+  const resolvedPathCache = new Map<string, FilePathKey>();
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
   const useCaseSensitiveFileNames =
     loaderOptions.useCaseSensitiveFileNames ?? process.platform !== 'win32';
 
   return useCaseSensitiveFileNames ? pathResolve : toFileNameLowerCase;
 
-  function pathResolve(filePath: string) {
-    let cachedPath = filePathMapperCache.get(filePath);
-    if (!cachedPath) {
+  function pathResolve(filePath: string): FilePathKey {
+    let cachedPath = resolvedPathCache.get(filePath);
+    if (cachedPath === undefined) {
       cachedPath = path.resolve(filePath) as FilePathKey;
-      filePathMapperCache.set(filePath, cachedPath);
+      resolvedPathCache.set(filePath, cachedPath);
     }
     return cachedPath;
   }
 
-  function toFileNameLowerCase(filePath: string) {
-    let cachedPath = filePathMapperCache.get(filePath);
-    if (!cachedPath) {
-      const filePathKey = pathResolve(filePath);
-      cachedPath = fileNameLowerCaseRegExp.test(filePathKey)
-        ? (filePathKey.replace(fileNameLowerCaseRegExp, ch =>
-            ch.toLowerCase(),
-          ) as FilePathKey)
-        : filePathKey;
-      filePathMapperCache.set(filePath, cachedPath);
+  function toFileNameLowerCase(filePath: string): FilePathKey {
+    let cachedPath = resolvedPathCache.get(filePath);
+    if (cachedPath === undefined) {
+      const resolvedPath = path.resolve(filePath);
+      cachedPath = (
+        fileNameLowerCaseRegExp.test(resolvedPath)
+          ? resolvedPath.replace(fileNameLowerCaseRegExp, ch =>
+              ch.toLowerCase(),
+            )
+          : resolvedPath
+      ) as FilePathKey;
+      resolvedPathCache.set(filePath, cachedPath);
     }
     return cachedPath;
   }
@@ -377,8 +380,8 @@ function updateFileInCache(
   contents: string,
   instance: TSInstance,
 ) {
-  const key = instance.filePathKeyMapper(filePath);
-  let file: TSFile | undefined = instance.files.get(key);
+  const resolvedPath = instance.resolvedPathCache(filePath);
+  let file: TSFile | undefined = instance.files.get(resolvedPath);
 
   if (file === undefined) {
     // No "don't compile this" step needed for a disallowed node_modules
@@ -386,7 +389,7 @@ function updateFileInCache(
     // an external library, surfaced instead as makeSourceMapAndFinish's
     // "TypeScript emitted no output" error below.
     file = { fileName: filePath, version: 0 };
-    instance.files.set(key, file);
+    instance.files.set(resolvedPath, file);
     instance.version++;
   }
 

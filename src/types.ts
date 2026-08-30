@@ -84,12 +84,16 @@ export interface PendingDeclarationFile {
   text: string;
 }
 
+export interface ResolvedPathCache {
+  (fileName: string): FilePathKey;
+}
+
 export interface TSInstance {
   version: number;
   colors: Colors;
   loaderOptions: LoaderOptions;
   files: Map<FilePathKey, TSFile>;
-  filePathKeyMapper: (fileName: string) => FilePathKey;
+  resolvedPathCache: ResolvedPathCache;
   typeScriptApiInstance: TypeScriptInstance;
   pendingDiagnostics: Map<FilePathKey, PendingTypeScriptDiagnostics>;
   pendingDeclarationFiles: Map<FilePathKey, PendingDeclarationFile[]>;
