@@ -536,6 +536,7 @@ function updateSnapshot(
   typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
   openProjects?: string[],
+  closeProjects?: string[],
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
   // `invalidateAll` forces a full rescan: ts-loader only knows about the one
@@ -558,13 +559,16 @@ function updateSnapshot(
   typeScriptInstance.pendingInvalidation = false;
   const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
-      ? { openProjects, openFiles: [fileName], fileChanges }
-      : { openFiles: [fileName], fileChanges },
+      ? { openProjects, openFiles: [fileName], fileChanges, closeProjects }
+      : { openFiles: [fileName], fileChanges, closeProjects },
   );
 
   typeScriptInstance.snapshot = snapshot;
   openProjects?.forEach(projectPath =>
     typeScriptInstance.openedProjectPaths.add(projectPath),
+  );
+  closeProjects?.forEach(projectPath =>
+    typeScriptInstance.openedProjectPaths.delete(projectPath),
   );
   previousSnapshot?.dispose?.();
 
@@ -623,18 +627,20 @@ function prepareSnapshotForFile(
     return { snapshot, projectConfigPath: primaryProjectPath };
   }
 
-  const syntheticConfigPath = ensureSyntheticConfigForFile(
-    typeScriptInstance,
-    primaryProjectPath,
-    primaryProject?.parsedCommandLine.fileNames ?? [],
-    fileName,
-  );
+  const { syntheticConfigPath, evictedProjectPath } =
+    ensureSyntheticConfigForFile(
+      typeScriptInstance,
+      primaryProjectPath,
+      primaryProject?.parsedCommandLine.fileNames ?? [],
+      fileName,
+    );
   const syntheticSnapshot = updateSnapshot(
     typeScriptInstance,
     fileName,
     typeScriptInstance.openedProjectPaths.has(syntheticConfigPath)
       ? undefined
       : [syntheticConfigPath],
+    evictedProjectPath ? [evictedProjectPath] : undefined,
   );
 
   return {
@@ -643,15 +649,45 @@ function prepareSnapshotForFile(
   };
 }
 
+/**
+ * Cap on distinct orphan-file synthetic projects (see below) tracked at
+ * once. Each one holds its own ref-counted project open on the API side, so
+ * leaving this unbounded would leak memory/state proportional to every
+ * distinct orphan file (e.g. under `allowTsInNodeModules`) ever compiled
+ * across a long watch session. Evicting the least-recently-used one past the
+ * cap still lets a handful of actively-edited orphan files - the common
+ * case - reuse their project across rebuilds.
+ */
+const maxOrphanFileProjects = 20;
+
 function ensureSyntheticConfigForFile(
   typeScriptInstance: TypeScriptApiInstance,
   configFilePath: string,
   rootFiles: readonly string[],
   fileName: string,
-) {
+): { syntheticConfigPath: string; evictedProjectPath?: string } {
   const existing = typeScriptInstance.syntheticConfigFiles.get(fileName);
   if (existing) {
-    return existing;
+    // Bump to most-recently-used - a Map's iteration order is insertion
+    // order, so deleting and re-setting moves this to the end.
+    typeScriptInstance.syntheticConfigFiles.delete(fileName);
+    typeScriptInstance.syntheticConfigFiles.set(fileName, existing);
+    return { syntheticConfigPath: existing };
+  }
+
+  let evictedProjectPath: string | undefined;
+  if (typeScriptInstance.syntheticConfigFiles.size >= maxOrphanFileProjects) {
+    const oldestEntry = typeScriptInstance.syntheticConfigFiles
+      .entries()
+      .next().value;
+    if (oldestEntry) {
+      const [evictedFileName, evictedSyntheticConfigPath] = oldestEntry;
+      typeScriptInstance.syntheticConfigFiles.delete(evictedFileName);
+      typeScriptInstance.syntheticConfigContents.delete(
+        toComparablePath(evictedSyntheticConfigPath),
+      );
+      evictedProjectPath = evictedSyntheticConfigPath;
+    }
   }
 
   // A sibling of the real config, so its directory always already exists on
@@ -680,7 +716,7 @@ function ensureSyntheticConfigForFile(
     configText,
   );
   typeScriptInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
-  return syntheticConfigPath;
+  return { syntheticConfigPath, evictedProjectPath };
 }
 
 function hashFileName(fileName: string) {
