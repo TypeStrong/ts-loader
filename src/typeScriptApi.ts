@@ -22,6 +22,7 @@ import type {
   TypeScriptInstance as TypeScriptApiInstance,
   Severity,
   TSInstance,
+  ResolvedPathCache,
 } from './types';
 import {
   addErrorToModule,
@@ -46,7 +47,7 @@ export function createTypeScriptApiInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
   files: TSInstance['files'],
-  filePathKeyMapper: TSInstance['filePathKeyMapper'],
+  resolvedPathCache: ResolvedPathCache,
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
@@ -67,14 +68,14 @@ export function createTypeScriptApiInstance(
         // through to real disk.
         fileExists: fileName =>
           syntheticConfigContents.has(toComparablePath(fileName)) ||
-          files.has(filePathKeyMapper(fileName))
+          files.has(resolvedPathCache(fileName))
             ? true
             : undefined,
         // toComparablePath since the API may hand back a different path
         // spelling than what this was stored under.
         readFile: fileName =>
           syntheticConfigContents.get(toComparablePath(fileName)) ??
-          files.get(filePathKeyMapper(fileName))?.text,
+          files.get(resolvedPathCache(fileName))?.text,
       },
     }),
     configFilePath,
@@ -223,7 +224,7 @@ export function getTypeScriptEmit(
       // Deferred to processAssets (see reportPendingTypeScriptDiagnostics in
       // index.ts) so we can tell whether webpack already recorded its own
       // error for this module and avoid double-counting.
-      instance.pendingDiagnostics.set(instance.filePathKeyMapper(fileName), {
+      instance.pendingDiagnostics.set(instance.resolvedPathCache(fileName), {
         fileName,
         errors,
       });
@@ -787,7 +788,7 @@ function getDependencyVersionTag(
   dependencyFileName: string,
 ): string {
   const file = instance.files.get(
-    instance.filePathKeyMapper(dependencyFileName),
+    instance.resolvedPathCache(dependencyFileName),
   );
   if (file) {
     return `${dependencyFileName}@${file.version}`;
@@ -919,7 +920,7 @@ function recheckTransitiveDependants(
     ]);
 
     const dependantModule = modulesByFile
-      ?.get(instance.filePathKeyMapper(dependantFileName))
+      ?.get(instance.resolvedPathCache(dependantFileName))
       ?.[0];
 
     const errors = filterDiagnosticsForReporting(
@@ -936,7 +937,7 @@ function recheckTransitiveDependants(
     );
 
     instance.pendingDiagnostics.set(
-      instance.filePathKeyMapper(dependantFileName),
+      instance.resolvedPathCache(dependantFileName),
       { fileName: dependantFileName, errors },
     );
   }
@@ -1067,7 +1068,7 @@ function recordProjectDeclarationFiles(
     }
 
     instance.pendingDeclarationFiles.set(
-      instance.filePathKeyMapper(projectFileName),
+      instance.resolvedPathCache(projectFileName),
       declarationFiles,
     );
   }
@@ -1117,7 +1118,7 @@ export function reportPendingTypeScriptDiagnostics(
     }
 
     const associatedModules = modulesByFile.get(
-      instance.filePathKeyMapper(fileName),
+      instance.resolvedPathCache(fileName),
     );
 
     if (associatedModules === undefined) {
@@ -1317,14 +1318,14 @@ function determineModulesByFile(
       return;
     }
 
-    const key = instance.filePathKeyMapper(resource);
-    const existing = modulesByFile.get(key);
+    const resolvedPath = instance.resolvedPathCache(resource);
+    const existing = modulesByFile.get(resolvedPath);
     if (existing) {
       if (!existing.includes(module)) {
         existing.push(module);
       }
     } else {
-      modulesByFile.set(key, [module]);
+      modulesByFile.set(resolvedPath, [module]);
     }
   });
 
