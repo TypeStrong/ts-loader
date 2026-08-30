@@ -16,7 +16,7 @@ import type { Colors } from './colors';
 import type {
   ErrorInfo,
   FileLocation,
-  FilePathKey,
+  FilePath,
   LoaderOptions,
   PendingDeclarationFile,
   TypeScriptInstance as TypeScriptApiInstance,
@@ -816,13 +816,13 @@ function getProjectDtsFileNames(
   projectConfigPath: string,
   program: Program,
 ): readonly string[] {
-  const cacheKey = resolvedPathCache(projectConfigPath);
-  const cached = typeScriptInstance.projectDtsFileNamesCache.get(cacheKey);
-  if (cached) {
-    return cached;
+  const cachedPath = resolvedPathCache(projectConfigPath);
+  const cachedProjectDtsFileNames = typeScriptInstance.projectDtsFileNamesCache.get(cachedPath);
+  if (cachedProjectDtsFileNames) {
+    return cachedProjectDtsFileNames;
   }
 
-  const dtsFileNames: string[] = [];
+  const projectDtsFileNames: string[] = [];
   for (const otherFileName of program.getSourceFileNames()) {
     if (!constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName)) {
       continue;
@@ -835,12 +835,12 @@ function getProjectDtsFileNames(
       !program.isSourceFileDefaultLibrary(sourceFile) &&
       !program.isSourceFileFromExternalLibrary(sourceFile)
     ) {
-      dtsFileNames.push(otherFileName);
+      projectDtsFileNames.push(otherFileName);
     }
   }
 
-  typeScriptInstance.projectDtsFileNamesCache.set(cacheKey, dtsFileNames);
-  return dtsFileNames;
+  typeScriptInstance.projectDtsFileNamesCache.set(cachedPath, projectDtsFileNames);
+  return projectDtsFileNames;
 }
 
 /**
@@ -1454,8 +1454,8 @@ function buildTypeScriptError(
 function determineModulesByFile(
   compilation: webpack.Compilation,
   instance: TSInstance,
-): Map<FilePathKey, webpack.Module[]> {
-  const modulesByFile = new Map<FilePathKey, webpack.Module[]>();
+): Map<FilePath, webpack.Module[]> {
+  const modulesByFile = new Map<FilePath, webpack.Module[]>();
 
   compilation.modules.forEach(module => {
     const resource = (module as webpack.NormalModule).resource;

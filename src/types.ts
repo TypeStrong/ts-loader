@@ -17,7 +17,13 @@ export interface FileLocation {
   character: number;
 }
 
-export type FilePathKey = string & { __filePathKeyBrand: unknown };
+/**
+ * FilePathKey is a branded type for file paths, ensuring that they are treated 
+ * as unique keys in maps and caches. This helps prevent accidental mixing of 
+ * different types of strings and provides better type safety when working with 
+ * file paths in the TypeScript loader context.
+ */
+export type FilePath = string & { __filePathBrandedType: unknown };
 
 export type Severity = 'error' | 'warning';
 
@@ -88,7 +94,7 @@ export interface TypeScriptInstance {
    * paths are OS-native, so two spellings of the same file would otherwise
    * never share a cache entry.
    */
-  directImportsCache: Map<FilePathKey, readonly string[]>;
+  directImportsCache: Map<FilePath, readonly string[]>;
   /**
    * Memoizes each project's qualifying `.d.ts` file names (see
    * registerTypeScriptDependencies) across every file compiled in the same
@@ -102,7 +108,7 @@ export interface TypeScriptInstance {
    * `FilePathKey` (like `directImportsCache`) for consistency, though project
    * config paths are already stable, single-sourced strings in practice.
    */
-  projectDtsFileNamesCache: Map<FilePathKey, readonly string[]>;
+  projectDtsFileNamesCache: Map<FilePath, readonly string[]>;
 }
 
 interface PendingTypeScriptDiagnostics {
@@ -116,16 +122,16 @@ export interface PendingDeclarationFile {
 }
 
 export interface ResolvedPathCache {
-  (fileName: string): FilePathKey;
+  (fileName: string): FilePath;
 }
 
 export interface TSInstance {
   version: number;
   colors: Colors;
   loaderOptions: LoaderOptions;
-  files: Map<FilePathKey, TSFile>;
+  files: Map<FilePath, TSFile>;
   resolvedPathCache: ResolvedPathCache;
   typeScriptApiInstance: TypeScriptInstance;
-  pendingDiagnostics: Map<FilePathKey, PendingTypeScriptDiagnostics>;
-  pendingDeclarationFiles: Map<FilePathKey, PendingDeclarationFile[]>;
+  pendingDiagnostics: Map<FilePath, PendingTypeScriptDiagnostics>;
+  pendingDeclarationFiles: Map<FilePath, PendingDeclarationFile[]>;
 }

@@ -11,7 +11,7 @@ import {
   reportPendingTypeScriptDiagnostics,
 } from './typeScriptApi';
 import type {
-  FilePathKey,
+  FilePath,
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
@@ -215,23 +215,23 @@ function addPostCompileHooks(
 }
 
 function createResolvedPathCache(loaderOptions: LoaderOptions): ResolvedPathCache {
-  const resolvedPathCache = new Map<string, FilePathKey>();
+  const resolvedPathCache = new Map<string, FilePath>();
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
   const useCaseSensitiveFileNames =
     loaderOptions.useCaseSensitiveFileNames ?? process.platform !== 'win32';
 
   return useCaseSensitiveFileNames ? pathResolve : toFileNameLowerCase;
 
-  function pathResolve(filePath: string): FilePathKey {
+  function pathResolve(filePath: string): FilePath {
     let cachedPath = resolvedPathCache.get(filePath);
     if (cachedPath === undefined) {
-      cachedPath = path.resolve(filePath) as FilePathKey;
+      cachedPath = path.resolve(filePath) as FilePath;
       resolvedPathCache.set(filePath, cachedPath);
     }
     return cachedPath;
   }
 
-  function toFileNameLowerCase(filePath: string): FilePathKey {
+  function toFileNameLowerCase(filePath: string): FilePath {
     let cachedPath = resolvedPathCache.get(filePath);
     if (cachedPath === undefined) {
       const resolvedPath = path.resolve(filePath);
@@ -241,7 +241,7 @@ function createResolvedPathCache(loaderOptions: LoaderOptions): ResolvedPathCach
               ch.toLowerCase(),
             )
           : resolvedPath
-      ) as FilePathKey;
+      ) as FilePath;
       resolvedPathCache.set(filePath, cachedPath);
     }
     return cachedPath;
