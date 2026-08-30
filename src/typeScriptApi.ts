@@ -892,19 +892,19 @@ function getCachedDirectResolvedImports(
   fileName: string,
   comparableSourceFileNames: ReadonlySet<string>,
 ): readonly string[] {
-  const cacheKey = resolvedPathCache(fileName);
-  const cached = typeScriptInstance.directImportsCache.get(cacheKey);
-  if (cached) {
-    return cached;
+  const cachedPath = resolvedPathCache(fileName);
+  const cachedDirectResolvedImports = typeScriptInstance.directImportsCache.get(cachedPath);
+  if (cachedDirectResolvedImports) {
+    return cachedDirectResolvedImports;
   }
 
-  const resolved = getDirectResolvedImports(
+  const directResolvedImports = getDirectResolvedImports(
     program,
     fileName,
     comparableSourceFileNames,
   );
-  typeScriptInstance.directImportsCache.set(cacheKey, resolved);
-  return resolved;
+  typeScriptInstance.directImportsCache.set(cachedPath, directResolvedImports);
+  return directResolvedImports;
 }
 
 /**
