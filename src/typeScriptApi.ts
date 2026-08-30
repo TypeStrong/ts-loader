@@ -124,7 +124,7 @@ export function getTypeScriptEmit(
     fileName.indexOf('node_modules') !== -1;
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
     typeScriptInstance,
-    instance.resolvedPathCache,
+    instance.resolvedFilePathCache,
     apiFileName,
     forceSyntheticRoot,
   );
@@ -217,7 +217,7 @@ export function getTypeScriptEmit(
       // Deferred to processAssets (see reportPendingTypeScriptDiagnostics in
       // index.ts) so we can tell whether webpack already recorded its own
       // error for this module and avoid double-counting.
-      instance.pendingDiagnostics.set(instance.resolvedPathCache(fileName), {
+      instance.pendingDiagnostics.set(instance.resolvedFilePathCache(fileName), {
         fileName,
         errors,
       });
@@ -805,7 +805,7 @@ function registerTypeScriptDependencies(
   // every source file here would make every file depend on every other one.
   for (const otherFileName of getProjectDtsFileNames(
     instance.typeScriptApiInstance,
-    instance.resolvedPathCache,
+    instance.resolvedFilePathCache,
     projectConfigPath,
     program,
   )) {
@@ -827,7 +827,7 @@ function registerTypeScriptDependencies(
     );
     registerResolvedImportDependencies(
       instance.typeScriptApiInstance,
-      instance.resolvedPathCache,
+      instance.resolvedFilePathCache,
       program,
       apiFileName,
       comparableSourceFileNames,
@@ -912,7 +912,7 @@ function getDependencyVersionTag(
   dependencyFileName: string,
 ): string {
   const file = instance.files.get(
-    instance.resolvedPathCache(dependencyFileName),
+    instance.resolvedFilePathCache(dependencyFileName),
   );
   if (file) {
     return `${dependencyFileName}@${file.version}`;
@@ -1078,7 +1078,7 @@ function recheckTransitiveDependants(
 
   const dependants = findTransitiveDependants(
     instance.typeScriptApiInstance,
-    instance.resolvedPathCache,
+    instance.resolvedFilePathCache,
     program,
     changedFileName,
     projectFileNames,
@@ -1103,7 +1103,7 @@ function recheckTransitiveDependants(
     ]);
 
     const dependantModule = modulesByFile
-      ?.get(instance.resolvedPathCache(dependantFileName))
+      ?.get(instance.resolvedFilePathCache(dependantFileName))
       ?.[0];
 
     const errors = filterDiagnosticsForReporting(
@@ -1120,7 +1120,7 @@ function recheckTransitiveDependants(
     );
 
     instance.pendingDiagnostics.set(
-      instance.resolvedPathCache(dependantFileName),
+      instance.resolvedFilePathCache(dependantFileName),
       { fileName: dependantFileName, errors },
     );
   }
@@ -1269,7 +1269,7 @@ function recordProjectDeclarationFiles(
     }
 
     instance.pendingDeclarationFiles.set(
-      instance.resolvedPathCache(projectFileName),
+      instance.resolvedFilePathCache(projectFileName),
       declarationFiles,
     );
   }
@@ -1319,7 +1319,7 @@ export function reportPendingTypeScriptDiagnostics(
     }
 
     const associatedModules = modulesByFile.get(
-      instance.resolvedPathCache(fileName),
+      instance.resolvedFilePathCache(fileName),
     );
 
     if (associatedModules === undefined) {
@@ -1519,7 +1519,7 @@ function determineModulesByFile(
       return;
     }
 
-    const resolvedPath = instance.resolvedPathCache(resource);
+    const resolvedPath = instance.resolvedFilePathCache(resource);
     const existing = modulesByFile.get(resolvedPath);
     if (existing) {
       if (!existing.includes(module)) {

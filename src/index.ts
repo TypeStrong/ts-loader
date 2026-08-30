@@ -124,19 +124,19 @@ function getTypeScriptInstance(
   }
 
   const files: TSInstance['files'] = new Map();
-  const resolvedPathCache = createResolvedPathCache(loaderOptions);
+  const resolvedFilePathCache = createResolvedFilePathCache(loaderOptions);
 
   const instance: TSInstance = {
     version: 0,
     colors,
     loaderOptions,
     files,
-    resolvedPathCache,
+    resolvedFilePathCache,
     typeScriptApiInstance: createTypeScriptApiInstance(
       loaderOptions,
       configFilePath,
       files,
-      resolvedPathCache,
+      resolvedFilePathCache,
     ),
     pendingDiagnostics: new Map(),
     pendingDeclarationFiles: new Map(),
@@ -214,7 +214,7 @@ function addPostCompileHooks(
   }
 }
 
-function createResolvedPathCache(loaderOptions: LoaderOptions): ResolvedFilePathCache {
+function createResolvedFilePathCache(loaderOptions: LoaderOptions): ResolvedFilePathCache {
   const resolvedPathCache = new Map<string, FilePath>();
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
   const useCaseSensitiveFileNames =
@@ -386,7 +386,7 @@ function updateFileInCache(
   contents: string,
   instance: TSInstance,
 ) {
-  const resolvedPath = instance.resolvedPathCache(filePath);
+  const resolvedPath = instance.resolvedFilePathCache(filePath);
   let file: TSFile | undefined = instance.files.get(resolvedPath);
 
   if (file === undefined) {
