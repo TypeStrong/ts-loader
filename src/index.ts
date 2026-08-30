@@ -148,6 +148,14 @@ function getTypeScriptInstance(
     loader.addDependency(configFilePath);
   }
 
+  // Only the first file compiled in a given build needs to force the API to
+  // discard its caches and rescan disk (see `pendingInvalidation` in
+  // typeScriptApi.ts); `compile` fires once per build/watch rebuild in both
+  // webpack 4 and 5, so tap it to re-arm that ahead of every rebuild.
+  loader._compiler!.hooks.compile.tap('ts-loader', () => {
+    instance.typeScriptApiInstance.pendingInvalidation = true;
+  });
+
   if (!loaderOptions.transpileOnly) {
     addPostCompileHooks(loader, instance);
   }
