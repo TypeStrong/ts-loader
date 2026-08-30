@@ -20,11 +20,14 @@ export interface Colors {
 type PicocolorsInstance = ReturnType<typeof pc.createColors>;
 
 function buildColors(base: PicocolorsInstance): Colors {
-  const bold: Colors['bold'] = Object.assign((input: string) => base.bold(input), {
-    yellow: (input: string) => base.bold(base.yellow(input)),
-    red: (input: string) => base.bold(base.red(input)),
-    cyan: (input: string) => base.bold(base.cyan(input)),
-  });
+  const bold: Colors['bold'] = Object.assign(
+    (input: string) => base.bold(input),
+    {
+      yellow: (input: string) => base.bold(base.yellow(input)),
+      red: (input: string) => base.bold(base.red(input)),
+      cyan: (input: string) => base.bold(base.cyan(input)),
+    },
+  );
 
   return {
     green: base.green,

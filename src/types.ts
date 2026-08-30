@@ -18,9 +18,9 @@ export interface FileLocation {
 }
 
 /**
- * FilePathKey is a branded type for file paths, ensuring that they are treated 
- * as unique keys in maps and caches. This helps prevent accidental mixing of 
- * different types of strings and provides better type safety when working with 
+ * FilePathKey is a branded type for file paths, ensuring that they are treated
+ * as unique keys in maps and caches. This helps prevent accidental mixing of
+ * different types of strings and provides better type safety when working with
  * file paths in the TypeScript loader context.
  */
 export type FilePath = string & { __filePathBrandedType: unknown };
