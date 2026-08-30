@@ -84,6 +84,7 @@ export function createTypeScriptApiInstance(
     openedProjectPaths: new Set(),
     pendingInvalidation: true,
     directImportsCache: new Map(),
+    projectDtsFileNamesCache: new Map(),
   };
 }
 
@@ -205,6 +206,7 @@ export function getTypeScriptEmit(
         program,
         fileName,
         apiFileName,
+        projectConfigPath,
         instance,
       );
 
@@ -384,6 +386,7 @@ function getTranspileOnlyEmit(
     program,
     fileName,
     apiFileName,
+    primaryProjectPath,
     instance,
   );
 
@@ -545,10 +548,12 @@ function updateSnapshot(
     ? ({ invalidateAll: true } as const)
     : undefined;
   if (typeScriptInstance.pendingInvalidation) {
-    // A real rescan can change any file's content, so import lists cached
-    // from the previous build can no longer be trusted - see
-    // findTransitiveDependants/directImportsCache.
+    // A real rescan can change any file's content or a project's file set,
+    // so caches derived from the previous build can no longer be trusted -
+    // see findTransitiveDependants/directImportsCache and
+    // registerTypeScriptDependencies/projectDtsFileNamesCache.
     typeScriptInstance.directImportsCache.clear();
+    typeScriptInstance.projectDtsFileNamesCache.clear();
   }
   typeScriptInstance.pendingInvalidation = false;
   const snapshot = typeScriptInstance.api.updateSnapshot(
@@ -722,6 +727,7 @@ function registerTypeScriptDependencies(
   program: Program,
   fileName: string,
   apiFileName: string,
+  projectConfigPath: string,
   instance: TSInstance,
 ) {
   loaderContext.clearDependencies();
@@ -741,26 +747,20 @@ function registerTypeScriptDependencies(
   // graph. Regular source files are scoped to this file's own resolved
   // imports instead (see registerResolvedImportDependencies below) - adding
   // every source file here would make every file depend on every other one.
-  for (const otherFileName of program.getSourceFileNames()) {
-    if (
-      otherFileName === apiFileName ||
-      !constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName)
-    ) {
+  for (const otherFileName of getProjectDtsFileNames(
+    instance.typeScriptApiInstance,
+    instance.resolvedPathCache,
+    projectConfigPath,
+    program,
+  )) {
+    if (otherFileName === apiFileName) {
       continue;
     }
 
-    const sourceFile = program.getSourceFile(otherFileName);
-
-    if (
-      sourceFile &&
-      !program.isSourceFileDefaultLibrary(sourceFile) &&
-      !program.isSourceFileFromExternalLibrary(sourceFile)
-    ) {
-      // `otherFileName` is forward-slash-normalized; webpack's
-      // addDependency requires an OS-native absolute path or it rejects the
-      // dependency outright on Windows.
-      addDependency(path.normalize(otherFileName));
-    }
+    // `otherFileName` is forward-slash-normalized; webpack's addDependency
+    // requires an OS-native absolute path or it rejects the dependency
+    // outright on Windows.
+    addDependency(path.normalize(otherFileName));
   }
 
   // transpileOnly never looks at another file's types, so a dependency's
@@ -800,6 +800,47 @@ function registerTypeScriptDependencies(
         getDependencyVersionTag(instance, program, dependencyFileName),
       );
   }
+}
+
+/**
+ * Memoized list of a project's qualifying `.d.ts` file names - every
+ * non-default-lib, non-external-library `.d.ts` in the program, matching
+ * registerTypeScriptDependencies's own filter - reused across every file
+ * compiled against the same project in the same build instead of rescanning
+ * every file in the program on every single compile (see
+ * `TypeScriptInstance.projectDtsFileNamesCache`).
+ */
+function getProjectDtsFileNames(
+  typeScriptInstance: TypeScriptApiInstance,
+  resolvedPathCache: ResolvedPathCache,
+  projectConfigPath: string,
+  program: Program,
+): readonly string[] {
+  const cacheKey = resolvedPathCache(projectConfigPath);
+  const cached = typeScriptInstance.projectDtsFileNamesCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
+  const dtsFileNames: string[] = [];
+  for (const otherFileName of program.getSourceFileNames()) {
+    if (!constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName)) {
+      continue;
+    }
+
+    const sourceFile = program.getSourceFile(otherFileName);
+
+    if (
+      sourceFile &&
+      !program.isSourceFileDefaultLibrary(sourceFile) &&
+      !program.isSourceFileFromExternalLibrary(sourceFile)
+    ) {
+      dtsFileNames.push(otherFileName);
+    }
+  }
+
+  typeScriptInstance.projectDtsFileNamesCache.set(cacheKey, dtsFileNames);
+  return dtsFileNames;
 }
 
 /**
