@@ -83,6 +83,7 @@ export function createTypeScriptApiInstance(
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
     pendingInvalidation: true,
+    directImportsCache: new Map(),
   };
 }
 
@@ -543,6 +544,12 @@ function updateSnapshot(
   const fileChanges = typeScriptInstance.pendingInvalidation
     ? ({ invalidateAll: true } as const)
     : undefined;
+  if (typeScriptInstance.pendingInvalidation) {
+    // A real rescan can change any file's content, so import lists cached
+    // from the previous build can no longer be trusted - see
+    // findTransitiveDependants/directImportsCache.
+    typeScriptInstance.directImportsCache.clear();
+  }
   typeScriptInstance.pendingInvalidation = false;
   const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
@@ -759,7 +766,16 @@ function registerTypeScriptDependencies(
   // transpileOnly never looks at another file's types, so a dependency's
   // content can't affect this file's transpiled output.
   if (!instance.loaderOptions.transpileOnly) {
-    registerResolvedImportDependencies(program, apiFileName, addDependency);
+    const comparableSourceFileNames = new Set(
+      program.getSourceFileNames().map(toComparablePath),
+    );
+    registerResolvedImportDependencies(
+      instance.typeScriptApiInstance,
+      program,
+      apiFileName,
+      comparableSourceFileNames,
+      addDependency,
+    );
   }
 
   // `getConfigFileNames` is forward-slash-normalized like
@@ -824,41 +840,81 @@ function getDependencyVersionTag(
  * alone: webpack's own module graph already tracks genuinely bundled ones,
  * and an unresolved specifier shouldn't force a rebuild on some unrelated
  * file's change (see the aliasResolution test).
+ *
+ * Always recomputed fresh rather than read from `directImportsCache` -
+ * `fileName` may have just been live-edited, so a cached entry (populated by
+ * findTransitiveDependants for some other file's dependant search) could be
+ * stale. Written back so any other file's search this build sees the
+ * up-to-date result too.
  */
 function registerResolvedImportDependencies(
+  typeScriptInstance: TypeScriptApiInstance,
   program: Program,
   fileName: string,
+  comparableSourceFileNames: ReadonlySet<string>,
   addDependency: (dependencyFileName: string) => void,
 ) {
-  for (const dependencyFileName of getDirectResolvedImports(
+  const resolvedImports = getDirectResolvedImports(
     program,
     fileName,
-  )) {
+    comparableSourceFileNames,
+  );
+  typeScriptInstance.directImportsCache.set(fileName, resolvedImports);
+
+  for (const dependencyFileName of resolvedImports) {
     addDependency(dependencyFileName);
   }
 }
 
 /**
+ * Memoized wrapper around `getDirectResolvedImports`, reused across every
+ * file compiled in the same build (see `TypeScriptInstance.directImportsCache`)
+ * instead of recomputing every project file's imports from scratch on every
+ * single compile. Only safe for files *other* than the one currently being
+ * compiled - see `registerResolvedImportDependencies`, which always computes
+ * fresh for that one and writes the result back here.
+ */
+function getCachedDirectResolvedImports(
+  typeScriptInstance: TypeScriptApiInstance,
+  program: Program,
+  fileName: string,
+  comparableSourceFileNames: ReadonlySet<string>,
+): readonly string[] {
+  const cached = typeScriptInstance.directImportsCache.get(fileName);
+  if (cached) {
+    return cached;
+  }
+
+  const resolved = getDirectResolvedImports(
+    program,
+    fileName,
+    comparableSourceFileNames,
+  );
+  typeScriptInstance.directImportsCache.set(fileName, resolved);
+  return resolved;
+}
+
+/**
  * The other project files `fileName` actually imports via a relative
  * specifier (e.g. `./dep1`) - see registerResolvedImportDependencies for
- * why bare/unresolved specifiers are excluded.
+ * why bare/unresolved specifiers are excluded. `comparableSourceFileNames`
+ * (the project's source file names, forward-slash-normalized) is a caller
+ * concern - see its call sites - since it's the same for every file checked
+ * in a given pass and rebuilding it per file is itself an O(n) cost.
  */
 function getDirectResolvedImports(
   program: Program,
   fileName: string,
+  comparableSourceFileNames: ReadonlySet<string>,
 ): string[] {
   const sourceFile = program.getSourceFile(fileName);
   if (!sourceFile) {
     return [];
   }
 
-  // Source file names are always forward-slash-normalized, but
   // resolveRelativeSpecifier builds its candidate via Node's OS-native
   // `path` module - compared via toComparablePath for membership only, the
   // returned candidate itself stays OS-native.
-  const comparableSourceFileNames = new Set(
-    program.getSourceFileNames().map(toComparablePath),
-  );
   const fromDir = path.dirname(fileName);
   const resolvedImports: string[] = [];
 
@@ -906,10 +962,16 @@ function recheckTransitiveDependants(
     );
   });
 
+  const comparableSourceFileNames = new Set(
+    program.getSourceFileNames().map(toComparablePath),
+  );
+
   const dependants = findTransitiveDependants(
+    instance.typeScriptApiInstance,
     program,
     changedFileName,
     projectFileNames,
+    comparableSourceFileNames,
   );
 
   if (dependants.size === 0) {
@@ -956,22 +1018,27 @@ function recheckTransitiveDependants(
 /**
  * Every project file that (directly or transitively) imports `changedFileName`,
  * via breadth-first search over each file's direct resolved imports (see
- * getDirectResolvedImports).
+ * getDirectResolvedImports/getCachedDirectResolvedImports).
  */
 function findTransitiveDependants(
+  typeScriptInstance: TypeScriptApiInstance,
   program: Program,
   changedFileName: string,
   projectFileNames: readonly string[],
+  comparableSourceFileNames: ReadonlySet<string>,
 ): Set<string> {
-  // `projectFileNames` is forward-slash-normalized; getDirectResolvedImports
+  // `projectFileNames` is forward-slash-normalized; getCachedDirectResolvedImports
   // is OS-native, so both need normalizing before comparison - otherwise a
   // multi-hop dependant would never match on Windows past the first hop.
   const directImportsByFile = new Map(
     projectFileNames.map(candidateFileName => [
       candidateFileName,
-      getDirectResolvedImports(program, candidateFileName).map(
-        toComparablePath,
-      ),
+      getCachedDirectResolvedImports(
+        typeScriptInstance,
+        program,
+        candidateFileName,
+        comparableSourceFileNames,
+      ).map(toComparablePath),
     ]),
   );
 
