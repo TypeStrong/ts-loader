@@ -22,7 +22,7 @@ import type {
   TypeScriptInstance as TypeScriptApiInstance,
   Severity,
   TSInstance,
-  ResolvedPathCache,
+  ResolvedFilePathCache,
 } from './types';
 import {
   addErrorToModule,
@@ -47,7 +47,7 @@ export function createTypeScriptApiInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
   files: TSInstance['files'],
-  resolvedPathCache: ResolvedPathCache,
+  resolvedFilePathCache: ResolvedFilePathCache,
 ): TypeScriptApiInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
@@ -67,20 +67,20 @@ export function createTypeScriptApiInstance(
         // it. `true`/`undefined`, not `false`, so anything else still falls
         // through to real disk.
         fileExists: fileName =>
-          syntheticConfigContents.has(resolvedPathCache(fileName)) ||
-          files.has(resolvedPathCache(fileName))
+          syntheticConfigContents.has(resolvedFilePathCache(fileName)) ||
+          files.has(resolvedFilePathCache(fileName))
             ? true
             : undefined,
         // resolvedPathCache since the API may hand back a different path
         // spelling (or case, on a case-insensitive filesystem) than what
         // this was stored under.
         readFile: fileName =>
-          syntheticConfigContents.get(resolvedPathCache(fileName)) ??
-          files.get(resolvedPathCache(fileName))?.text,
+          syntheticConfigContents.get(resolvedFilePathCache(fileName)) ??
+          files.get(resolvedFilePathCache(fileName))?.text,
       },
     }),
-    resolvedPathCache,
-    configFilePath: resolvedPathCache(configFilePath),
+    resolvedFilePathCache,
+    configFilePath: resolvedFilePathCache(configFilePath),
     syntheticConfigContents,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
@@ -672,7 +672,7 @@ function ensureSyntheticConfigForFile(
   // spelling/casing the same orphan file differently would otherwise be
   // treated as distinct files, each getting (and holding open) its own
   // redundant synthetic project.
-  const canonicalFileName = typeScriptInstance.resolvedPathCache(fileName);
+  const canonicalFileName = typeScriptInstance.resolvedFilePathCache(fileName);
   const existing = typeScriptInstance.syntheticConfigFiles.get(canonicalFileName);
   if (existing) {
     // Bump to most-recently-used - a Map's iteration order is insertion
@@ -699,7 +699,7 @@ function ensureSyntheticConfigForFile(
 
   // A sibling of the real config, so its directory always already exists on
   // disk - see syntheticConfigContents in createTypeScriptApiInstance.
-  const syntheticConfigPath = typeScriptInstance.resolvedPathCache(
+  const syntheticConfigPath = typeScriptInstance.resolvedFilePathCache(
     path.join(
       path.dirname(configFilePath),
       `.${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
@@ -860,12 +860,12 @@ function registerTypeScriptDependencies(
  */
 function getProjectDtsFileNames(
   typeScriptInstance: TypeScriptApiInstance,
-  resolvedPathCache: ResolvedPathCache,
+  resolvedFilePathCache: ResolvedFilePathCache,
   projectConfigPath: string,
   program: Program,
 ): readonly string[] {
-  const cachedPath = resolvedPathCache(projectConfigPath);
-  const cachedProjectDtsFileNames = typeScriptInstance.projectDtsFileNamesCache.get(cachedPath);
+  const cachedFilePath = resolvedFilePathCache(projectConfigPath);
+  const cachedProjectDtsFileNames = typeScriptInstance.projectDtsFileNamesCache.get(cachedFilePath);
   if (cachedProjectDtsFileNames) {
     return cachedProjectDtsFileNames;
   }
@@ -887,7 +887,7 @@ function getProjectDtsFileNames(
     }
   }
 
-  typeScriptInstance.projectDtsFileNamesCache.set(cachedPath, projectDtsFileNames);
+  typeScriptInstance.projectDtsFileNamesCache.set(cachedFilePath, projectDtsFileNames);
   return projectDtsFileNames;
 }
 
@@ -939,7 +939,7 @@ function getDependencyVersionTag(
  */
 function registerResolvedImportDependencies(
   typeScriptInstance: TypeScriptApiInstance,
-  resolvedPathCache: ResolvedPathCache,
+  resolvedFilePathCache: ResolvedFilePathCache,
   program: Program,
   fileName: string,
   comparableSourceFileNames: ReadonlySet<string>,
@@ -951,7 +951,7 @@ function registerResolvedImportDependencies(
     comparableSourceFileNames,
   );
   typeScriptInstance.directImportsCache.set(
-    resolvedPathCache(fileName),
+    resolvedFilePathCache(fileName),
     resolvedImports,
   );
 
@@ -976,13 +976,13 @@ function registerResolvedImportDependencies(
  */
 function getCachedDirectResolvedImports(
   typeScriptInstance: TypeScriptApiInstance,
-  resolvedPathCache: ResolvedPathCache,
+  resolvedFilePathCache: ResolvedFilePathCache,
   program: Program,
   fileName: string,
   comparableSourceFileNames: ReadonlySet<string>,
 ): readonly string[] {
-  const cachedPath = resolvedPathCache(fileName);
-  const cachedDirectResolvedImports = typeScriptInstance.directImportsCache.get(cachedPath);
+  const cachedFilePath = resolvedFilePathCache(fileName);
+  const cachedDirectResolvedImports = typeScriptInstance.directImportsCache.get(cachedFilePath);
   if (cachedDirectResolvedImports) {
     return cachedDirectResolvedImports;
   }
@@ -992,7 +992,7 @@ function getCachedDirectResolvedImports(
     fileName,
     comparableSourceFileNames,
   );
-  typeScriptInstance.directImportsCache.set(cachedPath, directResolvedImports);
+  typeScriptInstance.directImportsCache.set(cachedFilePath, directResolvedImports);
   return directResolvedImports;
 }
 
@@ -1125,7 +1125,7 @@ function recheckTransitiveDependants(
  */
 function findTransitiveDependants(
   typeScriptInstance: TypeScriptApiInstance,
-  resolvedPathCache: ResolvedPathCache,
+  resolvedPathCache: ResolvedFilePathCache,
   program: Program,
   changedFileName: string,
   projectFileNames: readonly string[],

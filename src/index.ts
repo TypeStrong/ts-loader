@@ -15,7 +15,7 @@ import type {
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
-  ResolvedPathCache,
+  ResolvedFilePathCache,
   TSFile,
   TSInstance,
 } from './types';
@@ -214,7 +214,7 @@ function addPostCompileHooks(
   }
 }
 
-function createResolvedPathCache(loaderOptions: LoaderOptions): ResolvedPathCache {
+function createResolvedPathCache(loaderOptions: LoaderOptions): ResolvedFilePathCache {
   const resolvedPathCache = new Map<string, FilePath>();
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
   const useCaseSensitiveFileNames =
