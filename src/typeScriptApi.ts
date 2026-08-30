@@ -53,7 +53,7 @@ export function createTypeScriptApiInstance(
 
   // Served entirely via the `readFile` override below - never written to
   // real disk (see ensureSyntheticConfigForFile).
-  const syntheticConfigContents = new Map<string, string>();
+  const syntheticConfigContents = new Map<FilePath, string>();
 
   return {
     // Serves ts-loader's own post-transform file content (other loaders may
@@ -67,18 +67,20 @@ export function createTypeScriptApiInstance(
         // it. `true`/`undefined`, not `false`, so anything else still falls
         // through to real disk.
         fileExists: fileName =>
-          syntheticConfigContents.has(toComparablePath(fileName)) ||
+          syntheticConfigContents.has(resolvedPathCache(fileName)) ||
           files.has(resolvedPathCache(fileName))
             ? true
             : undefined,
-        // toComparablePath since the API may hand back a different path
-        // spelling than what this was stored under.
+        // resolvedPathCache since the API may hand back a different path
+        // spelling (or case, on a case-insensitive filesystem) than what
+        // this was stored under.
         readFile: fileName =>
-          syntheticConfigContents.get(toComparablePath(fileName)) ??
+          syntheticConfigContents.get(resolvedPathCache(fileName)) ??
           files.get(resolvedPathCache(fileName))?.text,
       },
     }),
-    configFilePath,
+    resolvedPathCache,
+    configFilePath: resolvedPathCache(configFilePath),
     syntheticConfigContents,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
@@ -535,8 +537,8 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
 function updateSnapshot(
   typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
-  openProjects?: string[],
-  closeProjects?: string[],
+  openProjects?: FilePath[],
+  closeProjects?: FilePath[],
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
   // `invalidateAll` forces a full rescan: ts-loader only knows about the one
@@ -662,20 +664,25 @@ const maxOrphanFileProjects = 20;
 
 function ensureSyntheticConfigForFile(
   typeScriptInstance: TypeScriptApiInstance,
-  configFilePath: string,
+  configFilePath: FilePath,
   rootFiles: readonly string[],
   fileName: string,
-): { syntheticConfigPath: string; evictedProjectPath?: string } {
-  const existing = typeScriptInstance.syntheticConfigFiles.get(fileName);
+): { syntheticConfigPath: FilePath; evictedProjectPath?: FilePath } {
+  // Canonicalized before use as a cache key or hash input - two importers
+  // spelling/casing the same orphan file differently would otherwise be
+  // treated as distinct files, each getting (and holding open) its own
+  // redundant synthetic project.
+  const canonicalFileName = typeScriptInstance.resolvedPathCache(fileName);
+  const existing = typeScriptInstance.syntheticConfigFiles.get(canonicalFileName);
   if (existing) {
     // Bump to most-recently-used - a Map's iteration order is insertion
     // order, so deleting and re-setting moves this to the end.
-    typeScriptInstance.syntheticConfigFiles.delete(fileName);
-    typeScriptInstance.syntheticConfigFiles.set(fileName, existing);
+    typeScriptInstance.syntheticConfigFiles.delete(canonicalFileName);
+    typeScriptInstance.syntheticConfigFiles.set(canonicalFileName, existing);
     return { syntheticConfigPath: existing };
   }
 
-  let evictedProjectPath: string | undefined;
+  let evictedProjectPath: FilePath | undefined;
   if (typeScriptInstance.syntheticConfigFiles.size >= maxOrphanFileProjects) {
     const oldestEntry = typeScriptInstance.syntheticConfigFiles
       .entries()
@@ -684,7 +691,7 @@ function ensureSyntheticConfigForFile(
       const [evictedFileName, evictedSyntheticConfigPath] = oldestEntry;
       typeScriptInstance.syntheticConfigFiles.delete(evictedFileName);
       typeScriptInstance.syntheticConfigContents.delete(
-        toComparablePath(evictedSyntheticConfigPath),
+        evictedSyntheticConfigPath,
       );
       evictedProjectPath = evictedSyntheticConfigPath;
     }
@@ -692,11 +699,13 @@ function ensureSyntheticConfigForFile(
 
   // A sibling of the real config, so its directory always already exists on
   // disk - see syntheticConfigContents in createTypeScriptApiInstance.
-  const syntheticConfigPath = path.join(
-    path.dirname(configFilePath),
-    `.${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
-      fileName,
-    )}.json`,
+  const syntheticConfigPath = typeScriptInstance.resolvedPathCache(
+    path.join(
+      path.dirname(configFilePath),
+      `.${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
+        canonicalFileName,
+      )}.json`,
+    ),
   );
   const files = [...new Set([...rootFiles, fileName])].sort();
   const configText = JSON.stringify(
@@ -707,15 +716,18 @@ function ensureSyntheticConfigForFile(
     null,
     2,
   );
-  // Stored under the comparable (forward-slash) form so `readFile` above
-  // finds it regardless of path spelling; `syntheticConfigFiles`/
-  // `syntheticConfigPath` stay OS-native, used only as opaque ids for later
-  // `getProject`/`openProjects` calls.
+  // `syntheticConfigFiles`/`syntheticConfigPath` are canonicalized (via
+  // `resolvedPathCache`) opaque ids, used only for later `getProject`/
+  // `openProjects` calls and as this same `readFile`/`fileExists`-serving
+  // map's own key - not real on-disk paths.
   typeScriptInstance.syntheticConfigContents.set(
-    toComparablePath(syntheticConfigPath),
+    syntheticConfigPath,
     configText,
   );
-  typeScriptInstance.syntheticConfigFiles.set(fileName, syntheticConfigPath);
+  typeScriptInstance.syntheticConfigFiles.set(
+    canonicalFileName,
+    syntheticConfigPath,
+  );
   return { syntheticConfigPath, evictedProjectPath };
 }
 

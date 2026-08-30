@@ -68,10 +68,19 @@ export interface TSFile {
 
 export interface TypeScriptInstance {
   api: SyncApi;
-  configFilePath: string;
-  syntheticConfigContents: Map<string, string>;
-  syntheticConfigFiles: Map<string, string>;
-  openedProjectPaths: Set<string>;
+  /**
+   * Stored so functions that only receive a `TypeScriptInstance` (not the
+   * outer `TSInstance` - openPrimaryProject, prepareSnapshotForFile,
+   * ensureSyntheticConfigForFile, updateSnapshot) can still canonicalize a
+   * path into a `FilePath` without threading it through as a separate
+   * parameter everywhere.
+   */
+  resolvedPathCache: ResolvedPathCache;
+  configFilePath: FilePath;
+  syntheticConfigContents: Map<FilePath, string>;
+  /** Orphan file (see ensureSyntheticConfigForFile) -> its synthetic project's config path. */
+  syntheticConfigFiles: Map<FilePath, FilePath>;
+  openedProjectPaths: Set<FilePath>;
   snapshot?: Snapshot;
   /**
    * Set on creation and by webpack's `compile` hook (once per build/watch
