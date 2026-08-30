@@ -771,6 +771,7 @@ function registerTypeScriptDependencies(
     );
     registerResolvedImportDependencies(
       instance.typeScriptApiInstance,
+      instance.resolvedPathCache,
       program,
       apiFileName,
       comparableSourceFileNames,
@@ -849,6 +850,7 @@ function getDependencyVersionTag(
  */
 function registerResolvedImportDependencies(
   typeScriptInstance: TypeScriptApiInstance,
+  resolvedPathCache: ResolvedPathCache,
   program: Program,
   fileName: string,
   comparableSourceFileNames: ReadonlySet<string>,
@@ -859,7 +861,10 @@ function registerResolvedImportDependencies(
     fileName,
     comparableSourceFileNames,
   );
-  typeScriptInstance.directImportsCache.set(fileName, resolvedImports);
+  typeScriptInstance.directImportsCache.set(
+    resolvedPathCache(fileName),
+    resolvedImports,
+  );
 
   for (const dependencyFileName of resolvedImports) {
     addDependency(dependencyFileName);
@@ -873,14 +878,22 @@ function registerResolvedImportDependencies(
  * single compile. Only safe for files *other* than the one currently being
  * compiled - see `registerResolvedImportDependencies`, which always computes
  * fresh for that one and writes the result back here.
+ *
+ * Keyed via `resolvedPathCache` rather than `fileName` itself, since
+ * `fileName` here is forward-slash-normalized (from `program.getSourceFileNames()`
+ * - see findTransitiveDependants) while registerResolvedImportDependencies's
+ * `fileName` is OS-native (from webpack) - without canonicalizing both to the
+ * same key, a cache entry it writes could never be found here on Windows.
  */
 function getCachedDirectResolvedImports(
   typeScriptInstance: TypeScriptApiInstance,
+  resolvedPathCache: ResolvedPathCache,
   program: Program,
   fileName: string,
   comparableSourceFileNames: ReadonlySet<string>,
 ): readonly string[] {
-  const cached = typeScriptInstance.directImportsCache.get(fileName);
+  const cacheKey = resolvedPathCache(fileName);
+  const cached = typeScriptInstance.directImportsCache.get(cacheKey);
   if (cached) {
     return cached;
   }
@@ -890,7 +903,7 @@ function getCachedDirectResolvedImports(
     fileName,
     comparableSourceFileNames,
   );
-  typeScriptInstance.directImportsCache.set(fileName, resolved);
+  typeScriptInstance.directImportsCache.set(cacheKey, resolved);
   return resolved;
 }
 
@@ -968,6 +981,7 @@ function recheckTransitiveDependants(
 
   const dependants = findTransitiveDependants(
     instance.typeScriptApiInstance,
+    instance.resolvedPathCache,
     program,
     changedFileName,
     projectFileNames,
@@ -1022,6 +1036,7 @@ function recheckTransitiveDependants(
  */
 function findTransitiveDependants(
   typeScriptInstance: TypeScriptApiInstance,
+  resolvedPathCache: ResolvedPathCache,
   program: Program,
   changedFileName: string,
   projectFileNames: readonly string[],
@@ -1035,6 +1050,7 @@ function findTransitiveDependants(
       candidateFileName,
       getCachedDirectResolvedImports(
         typeScriptInstance,
+        resolvedPathCache,
         program,
         candidateFileName,
         comparableSourceFileNames,
