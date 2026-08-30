@@ -14,6 +14,7 @@ Breaking changes:
 * Removed the `experimentalWatchApi` loader option, now that the native API supersedes TypeScript's classic watch API.
 * Removed the `onlyCompileBundledFiles` loader option; the native API always resolves a project's own root files and offers no hook to restrict them to what webpack actually bundles.
 * Removed the `context` loader option; the native API always resolves relative paths against the config file's own directory, with no basePath override exposed to let a tsconfig live outside the project root.
+* Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
 * `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert - the native API doesn't expose equivalent extension points, so custom transformers and custom module/type-reference resolution are no longer applied. These options, along with `compiler`, have been dropped from the README: the former two because they no longer do anything, and `compiler` because in practice only `typescript` itself exposes the required `/unstable/sync` entry point.
 * `errorFormatter`'s `colors` argument is now a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper object instead of a `chalk` instance; `chalk` has been dropped as a runtime dependency in favour of `picocolors`.
 

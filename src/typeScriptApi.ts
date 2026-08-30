@@ -755,11 +755,14 @@ function registerTypeScriptDependencies(
     registerResolvedImportDependencies(program, apiFileName, addDependency);
   }
 
-  for (const fileName of program.getConfigFileNames()) {
+  // `getConfigFileNames` is forward-slash-normalized like
+  // `getSourceFileNames` above - same Windows requirement applies.
+  for (const configFileName of program.getConfigFileNames()) {
+    const normalizedConfigFileName = path.normalize(configFileName);
     if (isWebpack5) {
-      loaderContext.addBuildDependency(fileName);
+      loaderContext.addBuildDependency(normalizedConfigFileName);
     } else {
-      loaderContext.addDependency(fileName);
+      loaderContext.addDependency(normalizedConfigFileName);
     }
   }
 

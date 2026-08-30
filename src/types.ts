@@ -1,9 +1,5 @@
 import type { Colors } from './colors';
-import type {
-  API as SyncApi,
-  CompilerOptions,
-  Snapshot,
-} from 'typescript/unstable/sync';
+import type { API as SyncApi, Snapshot } from 'typescript/unstable/sync';
 import type * as webpack from 'webpack';
 
 export interface ErrorInfo {
@@ -43,7 +39,6 @@ export interface LoaderOptions {
   reportFiles: string[];
   errorFormatter?: (message: ErrorInfo, colors: Colors) => string;
   colors: boolean;
-  compilerOptions: CompilerOptions;
   appendTsSuffixTo: (RegExp | string)[];
   appendTsxSuffixTo: (RegExp | string)[];
   getCustomTransformers?:
