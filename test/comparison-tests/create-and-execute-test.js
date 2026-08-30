@@ -3,7 +3,6 @@ const fs = require('fs');
 const execSync = require('child_process').execSync;
 const path = require('path');
 const mkdirp = require('mkdirp');
-const rimraf = require('rimraf');
 const webpack = require('webpack');
 const glob = require('glob');
 const pathExists = require('../pathExists');
@@ -124,7 +123,7 @@ function createTestState() {
 
 function createPaths(stagingPath, test, options) {
     const testStagingPath = path.join(stagingPath, test + (options.transpileOnly ? '.transpile' : ''));
-    rimraf.sync(testStagingPath); // Make sure it's clean
+    fs.rmSync(testStagingPath, { recursive: true, force: true, maxRetries: 5 }); // Make sure it's clean
 
     const transpilePath = options.transpileOnly ? 'expectedOutput-transpile' : 'expectedOutput';
     return {

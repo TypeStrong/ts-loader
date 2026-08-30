@@ -1,7 +1,6 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const rimraf = require('rimraf');
 const execSync = require('child_process').execSync;
 const getProgram = require('./getProgram');
 
@@ -43,19 +42,7 @@ removeStagingPath(stagingPath);
 runTests();
 
 function removeStagingPath(folderPath) {
-  const maxAttempts = 5;
-  let attempt = 0;
-  while (++attempt <= maxAttempts) {
-    try {
-      rimraf.sync(folderPath);
-      return;
-    } catch (error) {
-      if (error && error.code === 'ENOTEMPTY' && attempt < maxAttempts) {
-        continue;
-      }
-      throw error;
-    }
-  }
+  fs.rmSync(folderPath, { recursive: true, force: true, maxRetries: 5 });
 }
 
 // --------------------------------------------------------------
