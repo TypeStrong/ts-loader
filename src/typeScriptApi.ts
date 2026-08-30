@@ -39,9 +39,9 @@ const diagnosticCategoryNames = [
   'message',
 ] as const;
 
-type TypeScriptApiModule = {
+interface TypeScriptApiModule {
   API: new (options?: APIOptions) => SyncApi;
-};
+}
 
 export function createTypeScriptApiInstance(
   loaderOptions: LoaderOptions,
@@ -171,24 +171,11 @@ export function getTypeScriptEmit(
         // A broken tsconfig is a hard failure in classic ts-loader too:
         // there's nothing left to compile, so report the diagnostic(s) then
         // throw, which webpack surfaces as a "Module build failed" error.
-        const configErrors = filterDiagnosticsForReporting(
+        configParseErrorMessage = reportConfigFileParsingErrors(
           instance,
-          loaderContext.context,
-          dedupeDiagnostics(configFileParsingDiagnostics),
-        ).map(diagnostic =>
-          buildTypeScriptError(
-            instance,
-            diagnostic,
-            loaderContext.context,
-            loaderContext._module,
-            typeScriptInstance.configFilePath,
-          ),
-        );
-
-        reportTypeScriptErrors(loaderContext, configErrors);
-
-        configParseErrorMessage = instance.colors.red(
-          'error while parsing tsconfig.json',
+          loaderContext,
+          configFileParsingDiagnostics,
+          typeScriptInstance.configFilePath,
         );
         return;
       }
@@ -298,27 +285,14 @@ function getTranspileOnlyEmit(
 
   if (configFileParsingDiagnostics.length > 0) {
     // See the equivalent check in getTypeScriptEmit.
-    const configErrors = filterDiagnosticsForReporting(
-      instance,
-      loaderContext.context,
-      dedupeDiagnostics(configFileParsingDiagnostics),
-    ).map(diagnostic =>
-      buildTypeScriptError(
-        instance,
-        diagnostic,
-        loaderContext.context,
-        loaderContext._module,
-        primaryProjectPath,
-      ),
-    );
-
-    reportTypeScriptErrors(loaderContext, configErrors);
-
     return {
       outputText: undefined,
       sourceMapText: undefined,
-      configParseErrorMessage: instance.colors.red(
-        'error while parsing tsconfig.json',
+      configParseErrorMessage: reportConfigFileParsingErrors(
+        instance,
+        loaderContext,
+        configFileParsingDiagnostics,
+        primaryProjectPath,
       ),
     };
   }
@@ -411,6 +385,37 @@ function getTranspileOnlyEmit(
   }
 
   return { outputText, sourceMapText, configParseErrorMessage: undefined };
+}
+
+/**
+ * Reports a broken tsconfig's diagnostics - a hard failure in classic
+ * ts-loader too: there's nothing left to compile, so report the
+ * diagnostic(s) then throw, which webpack surfaces as a "Module build
+ * failed" error. Shared by getTypeScriptEmit and getTranspileOnlyEmit.
+ */
+function reportConfigFileParsingErrors(
+  instance: TSInstance,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  configFileParsingDiagnostics: readonly Diagnostic[],
+  projectPath: string,
+): string {
+  const configErrors = filterDiagnosticsForReporting(
+    instance,
+    loaderContext.context,
+    dedupeDiagnostics(configFileParsingDiagnostics),
+  ).map(diagnostic =>
+    buildTypeScriptError(
+      instance,
+      diagnostic,
+      loaderContext.context,
+      loaderContext._module,
+      projectPath,
+    ),
+  );
+
+  reportTypeScriptErrors(loaderContext, configErrors);
+
+  return instance.colors.red('error while parsing tsconfig.json');
 }
 
 /**
