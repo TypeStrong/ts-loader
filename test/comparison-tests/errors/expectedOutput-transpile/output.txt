@@ -5,7 +5,7 @@ ERROR in app.ts
 ./app.ts 1:6-8
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,7)[39m[22m
 [1m[31m      TS1005: ',' expected.[39m[22m
-ts-loader-default_cdd3b36df4c2c9cd
+ts-loader-default_c3bec28759a9e1fc
 
 ERROR in ./app.ts 3:1
 Module parse failed: Unexpected token (3:1)
