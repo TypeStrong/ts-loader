@@ -38,19 +38,16 @@ export interface LoaderOptions {
   instance: string;
   compiler: string;
   configFile: string;
-  context?: string;
   transpileOnly: boolean;
   ignoreDiagnostics: number[];
   reportFiles: string[];
   errorFormatter?: (message: ErrorInfo, colors: Colors) => string;
-  onlyCompileBundledFiles: boolean;
   colors: boolean;
   compilerOptions: CompilerOptions;
   appendTsSuffixTo: (RegExp | string)[];
   appendTsxSuffixTo: (RegExp | string)[];
   getCustomTransformers?:
     string | ((program: unknown, getProgram: () => unknown) => unknown);
-  experimentalWatchApi: boolean;
   allowTsInNodeModules: boolean;
   projectReferences?: boolean;
   resolveModuleName?: (...args: unknown[]) => unknown;

@@ -50,7 +50,6 @@
     + [silent](#silent)
     + [ignoreDiagnostics](#ignorediagnostics)
     + [reportFiles](#reportfiles)
-    + [compiler](#compiler)
     + [configFile](#configfile)
     + [colors](#colors)
     + [errorFormatter](#errorformatter)
@@ -58,10 +57,8 @@
     + [instance](#instance)
     + [appendTsSuffixTo](#appendtssuffixto)
     + [appendTsxSuffixTo](#appendtsxsuffixto)
-    + [onlyCompileBundledFiles](#onlycompilebundledfiles)
     + [useCaseSensitiveFileNames](#useCaseSensitiveFileNames)
     + [allowTsInNodeModules](#allowtsinnodemodules)
-    + [context](#context)
     + [projectReferences](#projectreferences)
   * [Usage with webpack watch](#usage-with-webpack-watch)
   * [Hot Module replacement](#hot-module-replacement)
@@ -374,14 +371,6 @@ Only report errors on files matching these glob patterns.
 
 This can be useful when certain types definitions have errors that are not fatal to your application.
 
-#### compiler
-| Type | Default Value |
-|------|--------------|
-| `string` | `'typescript'`|
-
-Allows use of TypeScript compilers other than the official one. Should be
-set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basarat/ntypescript).
-
 #### configFile
 | Type | Default Value |
 |------|--------------|
@@ -394,9 +383,6 @@ You may provide
 * just a file name. The loader then will search for the config file of each entry point in the respective entry point's containing folder. If a config file cannot be found there, it will travel up the parent directory chain and look for the config file in those folders.
 * a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
 * an absolute path to the configuration file.
-
-Please note, that if the configuration file is outside of your project directory, you might need to set the `context` option to avoid TypeScript issues (like TS18003).
-In this case the `configFile` should point to the `tsconfig.json` and `context` to the project root.
 
 #### colors
 | Type | Default Value |
@@ -587,18 +573,6 @@ Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
             { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/\.vue$/] } }
 ```
 
-#### onlyCompileBundledFiles
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
-
-The default behavior of `ts-loader` is to act as a drop-in replacement for the `tsc` command,
-so it respects the `include`, `files`, and `exclude` options in your `tsconfig.json`, loading
-any files specified by those options. The `onlyCompileBundledFiles` option modifies this behavior,
-loading only those files that are actually bundled by webpack, as well as any `.d.ts` files included
-by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
-compilation without being explicitly imported, and therefore not picked up by webpack.
-
 #### useCaseSensitiveFileNames
 | Type | Default Value |
 |------|--------------|
@@ -641,42 +615,6 @@ And in your `tsconfig.json`:
     ]
   }
 ```
-
-#### context
-| Type | Default Value |
-|------|--------------|
-| `string` | `undefined`|
-
-If set, will parse the TypeScript configuration file with given **absolute path** as base path.
-Per default the directory of the configuration file is used as base path. Relative paths in the configuration
-file are resolved with respect to the base path when parsed. Option `context` allows to set option
-`configFile` to a path other than the project root (e.g. a NPM package), while the base path for `ts-loader`
-can remain the project root.
-
-Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `ts-loader` and `tsc`.
-When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file
-referenced in option `configFile`. For more information please [read the PR](https://github.com/TypeStrong/ts-loader/pull/681) that
-is the base and [read the PR](https://github.com/TypeStrong/ts-loader/pull/688) that contributed this option.
-
-webpack:
-
-```javascript
-{
-  loader: require.resolve('ts-loader'),
-  options: {
-    context: __dirname,
-    configFile: require.resolve('ts-config-react-app')
-  }
-}
-```
-
-Extending `tsconfig.json`:
-
-```json
-{ "extends": "./node_modules/ts-config-react-app/index" }
-```
-
-Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
 
 #### projectReferences
 | Type | Default Value |
