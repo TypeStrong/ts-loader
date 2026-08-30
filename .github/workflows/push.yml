@@ -131,6 +131,18 @@ jobs:
       - name: lint
         run: yarn lint
 
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: install
+        run: yarn install
+
+      - name: format:check
+        run: yarn format:check
+
   knip:
     name: Knip
     runs-on: ubuntu-latest
