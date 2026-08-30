@@ -267,7 +267,6 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'logInfoToStdOut',
   'instance',
   'compiler',
-  'context',
   'configFile',
   'transpileOnly',
   'ignoreDiagnostics',
@@ -276,11 +275,6 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'compilerOptions',
   'appendTsSuffixTo',
   'appendTsxSuffixTo',
-  // Accepted but currently inert: with `declaration: true`, a project file
-  // webpack never bundles still gets its .d.ts emitted regardless of this
-  // option. Fixable without a new API hook - see ensureSyntheticConfigForFile
-  // for the synthetic-config mechanism this would need made persistent.
-  'onlyCompileBundledFiles',
   'getCustomTransformers',
   'reportFiles',
   'allowTsInNodeModules',
@@ -307,21 +301,6 @@ Please take a look at the options you are supplying; the following are valid opt
 ${validLoaderOptions.join(' / ')}
 `);
     }
-  }
-
-  // `context` is validated here but, like `resolveModuleName` above,
-  // currently inert: classic ts-loader used it as an explicit basePath
-  // letting a tsconfig live outside the project root, but the tsgo API this
-  // loader runs on always resolves relative paths against the config's own
-  // directory with no basePath override exposed - see
-  // test/execution-tests/2.8.1_option-context.
-  if (
-    loaderOptions.context !== undefined &&
-    !path.isAbsolute(loaderOptions.context)
-  ) {
-    throw new Error(
-      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`,
-    );
   }
 }
 
@@ -371,13 +350,11 @@ function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
       logLevel: 'WARN' as keyof typeof LogLevel,
       logInfoToStdOut: false,
       compiler: 'typescript',
-      context: undefined,
       transpileOnly: hasForkTsCheckerWebpackPlugin,
       compilerOptions: {},
       appendTsSuffixTo: [],
       appendTsxSuffixTo: [],
       colors: true,
-      onlyCompileBundledFiles: false,
       reportFiles: [],
       allowTsInNodeModules: false,
       ignoreDiagnostics: [] as number[],
