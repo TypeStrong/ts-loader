@@ -1,5 +1,5 @@
 const assert = require("assert");
-const fs = require('fs-extra');
+const fs = require('fs');
 const execSync = require('child_process').execSync;
 const path = require('path');
 const mkdirp = require('mkdirp');
@@ -233,7 +233,7 @@ function storeStats(stats, testState, paths) {
                 const diskAssetPath = path.join(paths.outputPath, asset);
                 const newPath = path.join(paths.actualOutput, path.relative(paths.testStagingPath, diskAssetPath));
                 if (diskAssetPath !== newPath) {
-                    fs.copySync(diskAssetPath, newPath);
+                    fs.cpSync(diskAssetPath, newPath, { recursive: true });
                 }
             }
             newAssets[asset.replace(/\\/g, "/")] = stats.compilation.assets[asset];
@@ -273,7 +273,7 @@ function compareFiles(paths, test, patch) {
         actualFiles.forEach(function (file) { allFiles[file] = true });
         expectedFiles.forEach(function (file) {
             if (!allFiles.hasOwnProperty(file)) {
-                fs.removeSync(path.join(paths.originalExpectedOutput, file));
+                fs.rmSync(path.join(paths.originalExpectedOutput, file), { recursive: true, force: true });
             }
          });
         Object.keys(allFiles).forEach(function (file) {
@@ -282,7 +282,7 @@ function compareFiles(paths, test, patch) {
 
             // I believe we always want to copy this
             // if (actual !== expected) {
-                fs.copySync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file));
+                fs.cpSync(path.join(paths.actualOutput, file), path.join(paths.originalExpectedOutput, file), { recursive: true });
             // }
         });
     }

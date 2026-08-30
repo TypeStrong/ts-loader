@@ -142,10 +142,10 @@
   dependencies:
     "@types/node" "*"
 
-"@typescript/typescript-darwin-arm64@7.1.0-dev.20260829.1":
-  version "7.1.0-dev.20260829.1"
-  resolved "https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.1.0-dev.20260829.1.tgz"
-  integrity sha512-SF8OltYnwnaU4dIi0cvnN+FgBAnnk7D5AMJ8JWF50GASttmgKHIokWCEyIJgECPwEI313zYpHCqe34P8JBnM1Q==
+"@typescript/typescript-darwin-arm64@7.1.0-dev.20260830.1":
+  version "7.1.0-dev.20260830.1"
+  resolved "https://registry.npmjs.org/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.1.0-dev.20260830.1.tgz"
+  integrity sha512-qhUW/7KAg/zaCTmtKg+gyP3r68Buld8PIHLgK45+rxCQsQzKq0AL5RIe8nRmgH8GrMp3rX5uYFEz8hJM2r4Tew==
 
 "@webassemblyjs/ast@^1.14.1", "@webassemblyjs/ast@1.14.1":
   version "1.14.1"
@@ -1767,15 +1767,6 @@ formatly@^0.3.0:
   dependencies:
     fd-package-json "^2.0.0"
 
-fs-extra@^11.0.0:
-  version "11.4.0"
-  resolved "https://registry.npmjs.org/fs-extra/-/fs-extra-11.4.0.tgz"
-  integrity sha512-EQsFzMUJkCKGr1ePqlYADkIUmHW1s3ZXr5Yqy6wbGrfUCphpl2maM/kyOIRA2HpP3AaFQTZXD4ldjek+nccddA==
-  dependencies:
-    graceful-fs "^4.2.0"
-    jsonfile "^6.0.1"
-    universalify "^2.0.0"
-
 fs-extra@^8.1.0:
   version "8.1.0"
   resolved "https://registry.npmjs.org/fs-extra/-/fs-extra-8.1.0.tgz"
@@ -2297,15 +2288,6 @@ jsonfile@^4.0.0:
   version "4.0.0"
   resolved "https://registry.npmjs.org/jsonfile/-/jsonfile-4.0.0.tgz"
   integrity sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==
-  optionalDependencies:
-    graceful-fs "^4.1.6"
-
-jsonfile@^6.0.1:
-  version "6.2.1"
-  resolved "https://registry.npmjs.org/jsonfile/-/jsonfile-6.2.1.tgz"
-  integrity sha512-zwOTdL3rFQ/lRdBnntKVOX6k5cKJwEc1HdilT71BWEu7J41gXIB2MRp+vxduPSwZJPWBxEzv4yH1wYLJGUHX4Q==
-  dependencies:
-    universalify "^2.0.0"
   optionalDependencies:
     graceful-fs "^4.1.6"
 
@@ -3869,17 +3851,17 @@ typedarray@^0.0.6:
   integrity sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==
 
 typescript@next:
-  version "7.1.0-dev.20260829.1"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-7.1.0-dev.20260829.1.tgz"
-  integrity sha512-NV0efhFiU8fhA93n8jHK90ezbOz4uxdw/Tg8efsqvZiTqR9V8fNN6mypu28wkVE4Tv4wgneT9ZjGW80Zx5YYLg==
+  version "7.1.0-dev.20260830.1"
+  resolved "https://registry.npmjs.org/typescript/-/typescript-7.1.0-dev.20260830.1.tgz"
+  integrity sha512-eJVnD3qImawDkJhjlH5y+X1jY+ybdFzYnWcBnOZGS4tveuR5sA/+4wKngInLlIASm/Q/trSEM14fMh3d6hyufQ==
   optionalDependencies:
-    "@typescript/typescript-darwin-arm64" "7.1.0-dev.20260829.1"
-    "@typescript/typescript-darwin-x64" "7.1.0-dev.20260829.1"
-    "@typescript/typescript-linux-arm" "7.1.0-dev.20260829.1"
-    "@typescript/typescript-linux-arm64" "7.1.0-dev.20260829.1"
-    "@typescript/typescript-linux-x64" "7.1.0-dev.20260829.1"
-    "@typescript/typescript-win32-arm64" "7.1.0-dev.20260829.1"
-    "@typescript/typescript-win32-x64" "7.1.0-dev.20260829.1"
+    "@typescript/typescript-darwin-arm64" "7.1.0-dev.20260830.1"
+    "@typescript/typescript-darwin-x64" "7.1.0-dev.20260830.1"
+    "@typescript/typescript-linux-arm" "7.1.0-dev.20260830.1"
+    "@typescript/typescript-linux-arm64" "7.1.0-dev.20260830.1"
+    "@typescript/typescript-linux-x64" "7.1.0-dev.20260830.1"
+    "@typescript/typescript-win32-arm64" "7.1.0-dev.20260830.1"
+    "@typescript/typescript-win32-x64" "7.1.0-dev.20260830.1"
 
 ua-parser-js@^0.7.30:
   version "0.7.41"
@@ -3905,11 +3887,6 @@ universalify@^0.1.0:
   version "0.1.2"
   resolved "https://registry.npmjs.org/universalify/-/universalify-0.1.2.tgz"
   integrity sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==
-
-universalify@^2.0.0:
-  version "2.0.1"
-  resolved "https://registry.npmjs.org/universalify/-/universalify-2.0.1.tgz"
-  integrity sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==
 
 unpipe@~1.0.0:
   version "1.0.0"

@@ -1,7 +1,7 @@
 'use strict';
 
 // var Server = require('karma').Server;
-var fs = require('fs-extra');
+var fs = require('fs');
 var path = require('path');
 var execSync = require('child_process').execSync;
 var typescript = require('typescript');
