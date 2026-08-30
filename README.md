@@ -53,7 +53,6 @@
     + [configFile](#configfile)
     + [colors](#colors)
     + [errorFormatter](#errorformatter)
-    + [compilerOptions](#compileroptions)
     + [instance](#instance)
     + [appendTsSuffixTo](#appendtssuffixto)
     + [appendTsxSuffixTo](#appendtsxsuffixto)
@@ -436,14 +435,6 @@ Does not compute.... code: 2307,severity: error,content: Cannot find module 'com
 ```
 
 And the bit after "Does not compute.... " would be red.
-
-#### compilerOptions
-| Type | Default Value |
-|------|--------------|
-| `object` | `{}`|
-
-Allows overriding TypeScript options. Should be specified in the same format
-as you would do for the `compilerOptions` property in tsconfig.json.
 
 #### instance
 | Type | Default Value |

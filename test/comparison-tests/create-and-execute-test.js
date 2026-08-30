@@ -153,9 +153,6 @@ function createWebpackConfig(paths, optionsOriginal) {
     const options = Object.assign({
         // colors: false,
         silent: true,
-        compilerOptions: {
-            newLine: 'LF'
-        },
         useCaseSensitiveFileNames: true
     }, optionsOriginal, extraOptionMaybe);
 
