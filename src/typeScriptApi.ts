@@ -995,7 +995,18 @@ function findTransitiveDependants(
   return dependants;
 }
 
-const relativeSpecifierExtensions = ['', '.ts', '.tsx', '.d.ts', '.js', '.jsx'];
+const relativeSpecifierExtensions = [
+  '',
+  '.ts',
+  '.tsx',
+  '.d.ts',
+  '.mts',
+  '.d.mts',
+  '.cts',
+  '.d.cts',
+  '.js',
+  '.jsx',
+];
 
 function resolveRelativeSpecifier(
   fromDir: string,
