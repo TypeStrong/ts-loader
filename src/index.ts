@@ -5,10 +5,12 @@ import * as webpack from 'webpack';
 
 import { createColors } from './colors';
 import {
-  createTypeScriptApiInstance,
   emitPendingDeclarationFiles,
-  getTypeScriptEmit,
   reportPendingTypeScriptDiagnostics,
+} from './diagnostics';
+import {
+  createTypeScriptApiInstance,
+  getTypeScriptEmit,
 } from './typeScriptApi';
 import type {
   FilePath,
@@ -214,7 +216,9 @@ function addPostCompileHooks(
   }
 }
 
-function createResolvedFilePathCache(loaderOptions: LoaderOptions): ResolvedFilePathCache {
+function createResolvedFilePathCache(
+  loaderOptions: LoaderOptions,
+): ResolvedFilePathCache {
   const resolvedPathCache = new Map<string, FilePath>();
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
   const useCaseSensitiveFileNames =
