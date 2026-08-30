@@ -5,17 +5,20 @@
 
 This is a ground-up rewrite of ts-loader's compilation engine. Instead of driving TypeScript's classic `LanguageService` / `Program` / watch APIs, ts-loader now compiles exclusively through TypeScript's new native `typescript/unstable/sync` API (the [tsgo](https://github.com/microsoft/typescript-go)-powered engine) - the legacy compiler API integration has been removed entirely.
 
-Breaking changes:
+### Not supported yet
+* `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert - the native API doesn't expose equivalent extension points, so custom transformers and custom module/type-reference resolution are no longer applied. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+* Project references are not yet supported under the native API. If / when support is added, ts-loader will need to be updated to support it.
+
+### Breaking changes:
 * Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). ts-loader currently depends on a TypeScript `next` prerelease that exposes this native API ahead of a stable 7.1 release.
 * Minimum supported Node.js version is now 22.x+ (up from 12.x+).
 * The `compiler` option must now resolve to a package exposing a `<compiler>/unstable/sync` entry point (the TypeScript native API). Drop-in classic-API compilers (e.g. `ttypescript`) are no longer supported.
+* Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
+* Removed the `context` loader option; the native API always resolves relative paths against the config file's own directory, with no basePath override exposed to let a tsconfig live outside the project root.
 * Removed the `happyPackMode` loader option - HappyPack / thread-loader based parallelisation is no longer supported this way.
 * Removed the `experimentalFileCaching` loader option; there's no equivalent under the native API's own caching model.
 * Removed the `experimentalWatchApi` loader option, now that the native API supersedes TypeScript's classic watch API.
 * Removed the `onlyCompileBundledFiles` loader option; the native API always resolves a project's own root files and offers no hook to restrict them to what webpack actually bundles.
-* Removed the `context` loader option; the native API always resolves relative paths against the config file's own directory, with no basePath override exposed to let a tsconfig live outside the project root.
-* Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
-* `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert - the native API doesn't expose equivalent extension points, so custom transformers and custom module/type-reference resolution are no longer applied. These options, along with `compiler`, have been dropped from the README: the former two because they no longer do anything, and `compiler` because in practice only `typescript` itself exposes the required `/unstable/sync` entry point.
 * `errorFormatter`'s `colors` argument is now a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper object instead of a `chalk` instance; `chalk` has been dropped as a runtime dependency in favour of `picocolors`.
 
 ## 9.6.2
