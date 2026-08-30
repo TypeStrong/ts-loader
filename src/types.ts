@@ -68,14 +68,6 @@ export interface TSFile {
 
 export interface TypeScriptInstance {
   api: SyncApi;
-  /**
-   * Stored so functions that only receive a `TypeScriptInstance` (not the
-   * outer `TSInstance` - openPrimaryProject, prepareSnapshotForFile,
-   * ensureSyntheticConfigForFile, updateSnapshot) can still canonicalize a
-   * path into a `FilePath` without threading it through as a separate
-   * parameter everywhere.
-   */
-  resolvedFilePathCache: ResolvedFilePathCache;
   configFilePath: FilePath;
   syntheticConfigContents: Map<FilePath, string>;
   /** Orphan file (see ensureSyntheticConfigForFile) -> its synthetic project's config path. */
