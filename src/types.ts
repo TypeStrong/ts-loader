@@ -89,6 +89,20 @@ export interface TypeScriptInstance {
    * never share a cache entry.
    */
   directImportsCache: Map<FilePathKey, readonly string[]>;
+  /**
+   * Memoizes each project's qualifying `.d.ts` file names (see
+   * registerTypeScriptDependencies) across every file compiled in the same
+   * build, keyed by project config path - registerTypeScriptDependencies
+   * otherwise rescans every file in the program on every single compile just
+   * to find these. Cleared whenever `pendingInvalidation` forces a real
+   * rescan (see updateSnapshot), since only then could the project's file set
+   * have changed. Keyed by project (primary vs a synthetic one-off project
+   * for an orphan file - see ensureSyntheticConfigForFile) rather than a
+   * single shared list, since their file sets are unrelated. Keyed via
+   * `FilePathKey` (like `directImportsCache`) for consistency, though project
+   * config paths are already stable, single-sourced strings in practice.
+   */
+  projectDtsFileNamesCache: Map<FilePathKey, readonly string[]>;
 }
 
 interface PendingTypeScriptDiagnostics {
