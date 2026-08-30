@@ -79,7 +79,6 @@ export function createTypeScriptApiInstance(
           files.get(resolvedFilePathCache(fileName))?.text,
       },
     }),
-    resolvedFilePathCache,
     configFilePath: resolvedFilePathCache(configFilePath),
     syntheticConfigContents,
     syntheticConfigFiles: new Map(),
@@ -125,6 +124,7 @@ export function getTypeScriptEmit(
     fileName.indexOf('node_modules') !== -1;
   const { snapshot, projectConfigPath } = prepareSnapshotForFile(
     typeScriptInstance,
+    instance.resolvedPathCache,
     apiFileName,
     forceSyntheticRoot,
   );
@@ -609,6 +609,7 @@ function openPrimaryProject(
 
 function prepareSnapshotForFile(
   typeScriptInstance: TypeScriptApiInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   forceSyntheticRoot: boolean,
 ) {
@@ -637,6 +638,7 @@ function prepareSnapshotForFile(
   const { syntheticConfigPath, evictedProjectPath } =
     ensureSyntheticConfigForFile(
       typeScriptInstance,
+      resolvedFilePathCache,
       primaryProjectPath,
       primaryProject?.parsedCommandLine.fileNames ?? [],
       fileName,
@@ -669,6 +671,7 @@ const maxOrphanFileProjects = 20;
 
 function ensureSyntheticConfigForFile(
   typeScriptInstance: TypeScriptApiInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
   configFilePath: FilePath,
   rootFiles: readonly string[],
   fileName: string,
@@ -677,7 +680,7 @@ function ensureSyntheticConfigForFile(
   // spelling/casing the same orphan file differently would otherwise be
   // treated as distinct files, each getting (and holding open) its own
   // redundant synthetic project.
-  const canonicalFileName = typeScriptInstance.resolvedFilePathCache(fileName);
+  const canonicalFileName = resolvedFilePathCache(fileName);
   const existing = typeScriptInstance.syntheticConfigFiles.get(canonicalFileName);
   if (existing) {
     // Bump to most-recently-used - a Map's iteration order is insertion
@@ -704,7 +707,7 @@ function ensureSyntheticConfigForFile(
 
   // A sibling of the real config, so its directory always already exists on
   // disk - see syntheticConfigContents in createTypeScriptApiInstance.
-  const syntheticConfigPath = typeScriptInstance.resolvedFilePathCache(
+  const syntheticConfigPath = resolvedFilePathCache(
     path.join(
       path.dirname(configFilePath),
       `.${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
