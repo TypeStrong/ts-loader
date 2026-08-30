@@ -14,7 +14,7 @@ Prefer `interface` over `type` for object shapes when possible, as interfaces ha
 
 ## Comments
 
-Keep comments in `src/` sparse: only the non-obvious *why* (a Windows-only path quirk, an undocumented API behavior, a deliberate divergence from classic ts-loader's output) earns one, and it should be as short as it can be while still saying that. Don't add a comment that restates what a well-named identifier or the code's own shape already makes clear. Before trimming or removing an existing comment, weigh what it would cost to rediscover - some encode a hard-won finding (a repro script, a real Windows CI failure) that isn't obvious from the code alone; when in doubt, shorten rather than delete. `src/typeScriptApi.ts` is the densest file by necessity (most of ts-loader's TypeScript-API-specific behavior lives there); see "Testing on Windows CI" below for its most common recurring gotcha.
+Keep comments in `src/` sparse: only the non-obvious _why_ (a Windows-only path quirk, an undocumented API behavior, a deliberate divergence from classic ts-loader's output) earns one, and it should be as short as it can be while still saying that. Don't add a comment that restates what a well-named identifier or the code's own shape already makes clear. Before trimming or removing an existing comment, weigh what it would cost to rediscover - some encode a hard-won finding (a repro script, a real Windows CI failure) that isn't obvious from the code alone; when in doubt, shorten rather than delete. `src/typeScriptApi.ts` is the densest file by necessity (most of ts-loader's TypeScript-API-specific behavior lives there); see "Testing on Windows CI" below for its most common recurring gotcha.
 
 ## Key commands
 
@@ -29,6 +29,7 @@ yarn execution-tests    # run compiled code via Karma/Jasmine
 ```
 
 To run a single test:
+
 ```bash
 yarn comparison-tests -- --single-test <testName>
 yarn execution-tests  -- --single-test <testName> --watch
@@ -62,9 +63,12 @@ Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 Tests prefixed with a TypeScript version (e.g. `2.0.3_es2016`) are skipped when the installed TypeScript is older than that prefix.
 
 Every `webpack.config.js` in this pack must include this alias so the local ts-loader is resolved:
+
 ```js
 // for test harness purposes only
-module.exports.resolveLoader = { alias: { 'ts-loader': path.join(__dirname, "../../../index.js") } }
+module.exports.resolveLoader = {
+  alias: { 'ts-loader': path.join(__dirname, '../../../index.js') },
+};
 ```
 
 ```bash

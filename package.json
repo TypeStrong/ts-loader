@@ -6,7 +6,8 @@
   "types": "dist",
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
-    "format": "prettier --write \"src/**/*.*\"",
+    "format": "prettier --write \"src/**/*.*\" \"*.md\"",
+    "format:check": "prettier --check \"src/**/*.*\" \"*.md\"",
     "lint": "tsc --project \"./src\" --noEmit && oxlint src",
     "comparison-tests": "git clean -xfd test/comparison-tests && npm link --legacy-peer-deps ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
@@ -19,12 +20,12 @@
   },
   "lint-staged": {
     "src/**/*.*": [
-      "prettier --write",
+      "yarn format",
       "yarn lint",
       "git add"
     ],
     "*.md": [
-      "prettier --write",
+      "yarn format",
       "git add"
     ]
   },
