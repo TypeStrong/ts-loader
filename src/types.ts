@@ -131,7 +131,7 @@ export interface TSInstance {
   colors: Colors;
   loaderOptions: LoaderOptions;
   files: Map<FilePath, TSFile>;
-  resolvedPathCache: ResolvedFilePathCache;
+  resolvedFilePathCache: ResolvedFilePathCache;
   typeScriptApiInstance: TypeScriptInstance;
   pendingDiagnostics: Map<FilePath, PendingTypeScriptDiagnostics>;
   pendingDeclarationFiles: Map<FilePath, PendingDeclarationFile[]>;
