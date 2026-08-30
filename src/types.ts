@@ -75,7 +75,7 @@ export interface TypeScriptInstance {
    * path into a `FilePath` without threading it through as a separate
    * parameter everywhere.
    */
-  resolvedPathCache: ResolvedPathCache;
+  resolvedFilePathCache: ResolvedFilePathCache;
   configFilePath: FilePath;
   syntheticConfigContents: Map<FilePath, string>;
   /** Orphan file (see ensureSyntheticConfigForFile) -> its synthetic project's config path. */
@@ -130,7 +130,7 @@ export interface PendingDeclarationFile {
   text: string;
 }
 
-export interface ResolvedPathCache {
+export interface ResolvedFilePathCache {
   (fileName: string): FilePath;
 }
 
@@ -139,7 +139,7 @@ export interface TSInstance {
   colors: Colors;
   loaderOptions: LoaderOptions;
   files: Map<FilePath, TSFile>;
-  resolvedPathCache: ResolvedPathCache;
+  resolvedPathCache: ResolvedFilePathCache;
   typeScriptApiInstance: TypeScriptInstance;
   pendingDiagnostics: Map<FilePath, PendingTypeScriptDiagnostics>;
   pendingDeclarationFiles: Map<FilePath, PendingDeclarationFile[]>;
