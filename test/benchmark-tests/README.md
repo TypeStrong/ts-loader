@@ -33,7 +33,7 @@ yarn benchmark -- --root-a . --root-b ../ts-loader-main
 
 `--root-a`/`--root-b` each point at a ts-loader checkout root (must contain a built `index.js`/`dist/`) - matching the `resolveLoader.alias` pattern used in `test/execution-tests/*/webpack.config.js`.
 
-Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup <n>` (default 2), `--iterations <n>` (default 6), `--benchmark-dir <path>` (default `.benchmark`, gitignored).
+Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup <n>` (default 2), `--iterations <n>` (default 6), `--benchmark-dir <path>` (default `.benchmark`, gitignored), `--label-a`/`--label-b <name>` (default `A`/`B` - override for more readable table headers, e.g. `--label-a "PR branch" --label-b "base branch"` as `.github/workflows/benchmark.yml` does).
 
 Results are written to `.benchmark/benchmark-results.json` (raw samples) and `.benchmark/benchmark-results.md` (summary table), and also printed to stdout.
 

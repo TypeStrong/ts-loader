@@ -27,6 +27,8 @@ function parseArgs(argv) {
   return {
     rootA,
     rootB,
+    labelA: get('--label-a', 'A'),
+    labelB: get('--label-b', 'B'),
     fileCount: Number(get('--files', 300)),
     warmup: Number(get('--warmup', WARMUP_ITERATIONS)),
     iterations: Number(get('--iterations', MEASURED_ITERATIONS)),
@@ -146,7 +148,7 @@ async function runIncrementalScenario({
 
 function toMarkdown(results, args) {
   const lines = [
-    '| Scenario | transpileOnly | A median (ms) | B median (ms) | Δ vs B |',
+    `| Scenario | transpileOnly | ${args.labelA} median (ms) | ${args.labelB} median (ms) | Δ vs ${args.labelB} |`,
     '| --- | --- | --- | --- | --- |',
   ];
   for (const r of results) {
@@ -157,7 +159,7 @@ function toMarkdown(results, args) {
   }
   lines.push('');
   lines.push(
-    `_A = \`${args.rootA}\`, B = \`${args.rootB}\`. ${args.warmup} warmup + ${args.iterations} measured iterations per scenario, median reported. Report-only - no threshold fails this check._`
+    `_${args.labelA} = \`${args.rootA}\`, ${args.labelB} = \`${args.rootB}\`. ${args.warmup} warmup + ${args.iterations} measured iterations per scenario, median reported. Report-only - no threshold fails this check._`
   );
   return lines.join('\n');
 }
@@ -227,6 +229,8 @@ async function main() {
     generatedAt: new Date().toISOString(),
     rootA: args.rootA,
     rootB: args.rootB,
+    labelA: args.labelA,
+    labelB: args.labelB,
     fileCount: args.fileCount,
     warmup: args.warmup,
     iterations: args.iterations,
