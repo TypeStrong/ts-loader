@@ -69,7 +69,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const postComment = require('${{ github.workspace }}/.github/scripts/post-benchmark-comment.js');
+            const path = require('path');
+            const postComment = require(path.join(process.env.GITHUB_WORKSPACE, '.github/scripts/post-benchmark-comment.js'));
             await postComment({
               github,
               context,
@@ -151,7 +152,8 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const postComment = require('${{ github.workspace }}/.github/scripts/post-benchmark-comment.js');
+            const path = require('path');
+            const postComment = require(path.join(process.env.GITHUB_WORKSPACE, '.github/scripts/post-benchmark-comment.js'));
             await postComment({
               github,
               context,
