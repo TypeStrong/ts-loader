@@ -7,13 +7,17 @@ import type { FixtureMeta } from './generate-fixture.mts';
 
 const WARMUP_ITERATIONS = 2;
 const MEASURED_ITERATIONS = 10;
-// Incremental rebuilds take ~10-300ms each vs. cold builds' ~200-900ms, so a
-// fixed amount of per-iteration noise (e.g. fs-watch event-detection
-// latency, since watch sessions use aggregateTimeout: 0) is a much larger
-// fraction of each measurement. Incremental iterations are cheap, so running
-// several times more of them costs little wall-clock time while
-// substantially narrowing the median's sampling error.
-const INCREMENTAL_ITERATION_MULTIPLIER = 4;
+// A cold *typeCheck* build (creating a full TypeScript Program from scratch)
+// is the one scenario that's reliably large (100s-1000ms+), so fixed
+// per-iteration overhead - subprocess/V8 startup, loading webpack + ts-loader
+// + typescript from disk, fs-watch event-detection latency for incremental
+// rebuilds - is a small fraction of it. Every other scenario (cold
+// transpileOnly, and both incremental touch types) is far smaller in
+// absolute duration, so that same fixed overhead is a much larger fraction
+// of the measurement. Those iterations are cheap, so running several times
+// more of them costs little wall-clock time while substantially narrowing
+// the median's sampling error.
+const BOOSTED_ITERATION_MULTIPLIER = 4;
 const REGRESSION_FLAG_PCT = 10;
 // A delta must also clear this many multiples of the combined sample
 // stddev (as a % of the base median) before it's flagged - otherwise a
@@ -195,7 +199,8 @@ function runScenario({
 }: ScenarioOptions): ScenarioResult {
   const sides: Side[] = scenarioIndex % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
   const collected: { a: number[]; b: number[] } = { a: [], b: [] };
-  const iterations = scenarioType === 'cold' ? args.iterations : args.iterations * INCREMENTAL_ITERATION_MULTIPLIER;
+  const isColdTypeCheck = scenarioType === 'cold' && !transpileOnly;
+  const iterations = isColdTypeCheck ? args.iterations : args.iterations * BOOSTED_ITERATION_MULTIPLIER;
 
   for (const side of sides) {
     const root = side === 'a' ? args.rootA : args.rootB;

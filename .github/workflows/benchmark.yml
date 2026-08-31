@@ -93,6 +93,17 @@ jobs:
           node-version: 24
           cache: yarn
 
+      # Windows Defender's real-time scanning adds unpredictable latency to
+      # file I/O, and this benchmark does a lot of it (a 300-file fixture,
+      # webpack output per build, a touched file on every incremental
+      # iteration) - excluding the working directories keeps that noise out
+      # of the measurements.
+      - name: exclude working directories from Windows Defender
+        shell: pwsh
+        run: |
+          Add-MpPreference -ExclusionPath "C:\source"
+          Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
+
       - name: copy files
         shell: pwsh
         run: |
