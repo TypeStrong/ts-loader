@@ -39,6 +39,6 @@ Results are written to `.benchmark/benchmark-results.json` (raw samples) and `.b
 
 ## Interpreting deltas
 
-The percentage is **A relative to B** (`(a.median - b.median) / b.median`), so a positive number means side A is slower. Rows past ±10% get a ⚠️ in the table - a nudge to look closer, not a failure signal.
+The percentage is **A relative to B** (`(a.median - b.median) / b.median`), so a positive number means side A is slower. A row gets a ⚠️ only when its delta both passes ±10% *and* clears 2x the combined sample stddev (as a % of B's median) - a flat percentage threshold alone flags noisy scenarios (e.g. cold builds on a busy CI host) on jitter rather than a real difference. It's a nudge to look closer, not a failure signal.
 
 Under `transpileOnly: true`, hub-touch and leaf-touch should cost about the same, since `makeAfterCompile` in `src/after-compile.ts` returns immediately for transpileOnly instances, before `determineFilesToCheckForErrors`/dependant-recheck ever runs. If those two ever diverge under transpileOnly, something has leaked into that path that shouldn't be there.

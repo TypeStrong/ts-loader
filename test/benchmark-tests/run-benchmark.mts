@@ -9,6 +9,10 @@ const MEASURED_ITERATIONS = 6;
 const INITIAL_BUILD_TIMEOUT_MS = 120000;
 const REBUILD_TIMEOUT_MS = 30000;
 const REGRESSION_FLAG_PCT = 10;
+// A delta must also clear this many multiples of the combined sample
+// stddev (as a % of the base median) before it's flagged - otherwise a
+// noisy scenario can cross REGRESSION_FLAG_PCT on pure host jitter alone.
+const REGRESSION_FLAG_NOISE_MULTIPLIER = 2;
 
 interface Args {
   rootA: string;
@@ -198,13 +202,25 @@ async function runIncrementalScenario({
   }
 }
 
+/**
+ * A row is flagged only when its delta both exceeds the flat threshold and
+ * clears a multiple of its own measurement noise, so a scenario with wide
+ * sample variance (e.g. cold builds on a noisy CI host) doesn't trip the
+ * flag on jitter alone while a tight, reproducible delta still does.
+ */
+function isRegressionFlagged(r: ScenarioResult): boolean {
+  if (Math.abs(r.deltaPct) < REGRESSION_FLAG_PCT) return false;
+  const combinedStddevPct = (Math.sqrt(r.a.stddev ** 2 + r.b.stddev ** 2) / r.b.median) * 100;
+  return Math.abs(r.deltaPct) >= REGRESSION_FLAG_NOISE_MULTIPLIER * combinedStddevPct;
+}
+
 function toMarkdown(results: ScenarioResult[], args: Args): string {
   const lines = [
     `| Scenario | transpileOnly | ${args.labelA} median (ms) | ${args.labelB} median (ms) | Δ vs ${args.labelB} |`,
     '| --- | --- | --- | --- | --- |',
   ];
   for (const r of results) {
-    const flag = Math.abs(r.deltaPct) >= REGRESSION_FLAG_PCT ? ' ⚠️' : '';
+    const flag = isRegressionFlagged(r) ? ' ⚠️' : '';
     lines.push(
       `| ${r.label} | ${r.transpileOnly} | ${r.a.median.toFixed(1)} | ${r.b.median.toFixed(1)} | ${r.deltaPct >= 0 ? '+' : ''}${r.deltaPct.toFixed(1)}%${flag} |`
     );
