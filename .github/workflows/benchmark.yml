@@ -1,0 +1,191 @@
+name: benchmark
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  benchmark_ubuntu:
+    name: Benchmark Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: install & build (this ref)
+        run: |
+          yarn install
+          yarn build
+
+      - name: checkout base ref into a worktree
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+        run: git worktree add ../ts-loader-main "$BASE_SHA"
+
+      - name: install & build (base ref)
+        working-directory: ../ts-loader-main
+        run: |
+          yarn install
+          yarn build
+
+      - name: run benchmark
+        run: yarn benchmark -- --root-a "$GITHUB_WORKSPACE" --root-b "$GITHUB_WORKSPACE/../ts-loader-main"
+
+      - name: write job summary
+        if: always()
+        run: cat .benchmark/benchmark-results.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+
+      - name: upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-ubuntu
+          path: .benchmark/benchmark-results.*
+          if-no-files-found: ignore
+
+      # Only runs with a writable token - GitHub automatically issues a
+      # read-only GITHUB_TOKEN for fork PRs, so this step is a silent no-op
+      # there. The step summary above still carries the numbers for everyone.
+      - name: comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body;
+            try {
+              body = fs.readFileSync('.benchmark/benchmark-results.md', 'utf8');
+            } catch {
+              return; // benchmark run failed before producing results - nothing to post
+            }
+            const marker = '<!-- ts-loader-benchmark:ubuntu -->';
+            body = `${marker}\n### Benchmark (Ubuntu)\n\n${body}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((c) => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  benchmark_windows:
+    name: Benchmark Windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: copy files
+        shell: pwsh
+        run: |
+          New-Item C:\source\ts-loader -ItemType Directory
+          Copy-Item .\* C:\source\ts-loader -Recurse -Force
+
+      - name: install & build (this ref)
+        run: |
+          yarn install
+          yarn build
+        working-directory: C:\source\ts-loader
+
+      - name: checkout base ref into a worktree
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+        run: git worktree add C:\source\ts-loader-main $env:BASE_SHA
+        working-directory: C:\source\ts-loader
+
+      - name: install & build (base ref)
+        run: |
+          yarn install
+          yarn build
+        working-directory: C:\source\ts-loader-main
+
+      - name: run benchmark
+        shell: pwsh
+        run: yarn benchmark -- --root-a C:\source\ts-loader --root-b C:\source\ts-loader-main
+        working-directory: C:\source\ts-loader
+
+      - name: write job summary
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path .benchmark\benchmark-results.md) {
+            Get-Content .benchmark\benchmark-results.md | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          }
+        working-directory: C:\source\ts-loader
+
+      - name: upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-windows
+          path: C:\source\ts-loader\.benchmark\benchmark-results.*
+          if-no-files-found: ignore
+
+      - name: comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body;
+            try {
+              body = fs.readFileSync('C:\\source\\ts-loader\\.benchmark\\benchmark-results.md', 'utf8');
+            } catch {
+              return; // benchmark run failed before producing results - nothing to post
+            }
+            const marker = '<!-- ts-loader-benchmark:windows -->';
+            body = `${marker}\n### Benchmark (Windows)\n\n${body}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find((c) => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
