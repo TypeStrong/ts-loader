@@ -98,7 +98,7 @@ export function createWatchSession(config: Configuration): Promise<WatchSession>
     // webpack() only returns null when called with a callback (async form);
     // called with just a config, it always returns a Compiler synchronously.
     const compiler = webpack(config)!;
-    const watching = compiler.watch({ aggregateTimeout: 100 }, (err, stats) => {
+    const watching = compiler.watch({ aggregateTimeout: 0 }, (err, stats) => {
       const error = err || (stats && stats.hasErrors() ? statsError(stats) : null);
       if (!ready) {
         ready = true;

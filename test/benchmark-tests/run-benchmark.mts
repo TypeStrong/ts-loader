@@ -1,13 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { generateFixture } from './generate-fixture.mts';
 import type { FixtureMeta } from './generate-fixture.mts';
-import { buildWebpackConfig, runColdBuild, createWatchSession, withTimeout, touchFile } from './scenarios.mts';
 
 const WARMUP_ITERATIONS = 2;
-const MEASURED_ITERATIONS = 6;
-const INITIAL_BUILD_TIMEOUT_MS = 120000;
-const REBUILD_TIMEOUT_MS = 30000;
+const MEASURED_ITERATIONS = 10;
 const REGRESSION_FLAG_PCT = 10;
 // A delta must also clear this many multiples of the combined sample
 // stddev (as a % of the base median) before it's flagged - otherwise a
@@ -97,118 +96,114 @@ function summarize({ id, label, transpileOnly, durations, warmup }: SummarizeInp
   };
 }
 
-interface ColdScenarioOptions {
+const RUN_SIDE_SCRIPT = fileURLToPath(new URL('./run-side.mts', import.meta.url));
+
+interface RunSideOptions {
+  root: string;
+  meta: FixtureMeta;
+  outputPath: string;
+  transpileOnly: boolean;
+  scenarioType: 'cold' | 'leaf' | 'hub';
+  warmup: number;
+  iterations: number;
+}
+
+/**
+ * Runs all iterations for one side in a fresh subprocess so each side gets
+ * its own OS process with exactly one TypeScript + webpack instance on the
+ * heap. This eliminates the shared-heap GC pressure that biased in-process
+ * interleaved measurements when both TypeScript language service instances
+ * co-existed in the same V8 heap.
+ */
+function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, warmup, iterations }: RunSideOptions): number[] {
+  // Write the touch-original content to a temp file so the subprocess can
+  // read it without us serialising potentially-large strings through argv.
+  const touchKey = scenarioType as 'leaf' | 'hub';
+  let touchOriginalPath = '';
+  if (scenarioType !== 'cold') {
+    touchOriginalPath = path.join(outputPath, 'touch-original.ts');
+    fs.mkdirSync(outputPath, { recursive: true });
+    fs.writeFileSync(touchOriginalPath, meta[`${touchKey}TouchOriginal`]);
+  }
+
+  const args = [
+    RUN_SIDE_SCRIPT,
+    '--fixture-dir', meta.fixtureDir,
+    '--tsconfig', meta.tsconfigPath,
+    '--entry', meta.entryFile,
+    '--ts-loader-root', root,
+    '--output-path', outputPath,
+    '--transpile-only', String(transpileOnly),
+    '--scenario-type', scenarioType,
+    '--iterations', String(warmup + iterations),
+    ...(scenarioType !== 'cold' ? [
+      '--touch-file', meta[`${touchKey}TouchFile`],
+      '--touch-original', touchOriginalPath,
+    ] : []),
+  ];
+
+  const result = spawnSync(process.execPath, args, {
+    stdio: ['ignore', 'pipe', 'inherit'],
+    env: process.env,
+  });
+
+  if (result.status !== 0) {
+    const exitInfo = result.status !== null ? `exit code ${result.status}` : `signal ${result.signal}`;
+    throw new Error(`run-side.mts subprocess failed (${exitInfo})`);
+  }
+
+  const output = result.stdout.toString().trim();
+  const parsed = JSON.parse(output) as { durations: number[] };
+  return parsed.durations;
+}
+
+interface ScenarioOptions {
   id: string;
   label: string;
   transpileOnly: boolean;
+  scenarioType: 'cold' | 'leaf' | 'hub';
   fixtureMetaA: FixtureMeta;
   fixtureMetaB: FixtureMeta;
   args: Args;
   outRoot: string;
+  scenarioIndex: number;
 }
 
-async function runColdScenario({
+/**
+ * Runs both sides of a scenario in separate subprocesses. `scenarioIndex`
+ * alternates which side runs first so that time-varying host effects (CPU
+ * frequency scaling, thermal throttling) are balanced across sides rather
+ * than consistently favouring whichever side runs first.
+ */
+function runScenario({
   id,
   label,
   transpileOnly,
+  scenarioType,
   fixtureMetaA,
   fixtureMetaB,
   args,
   outRoot,
-}: ColdScenarioOptions): Promise<ScenarioResult> {
-  const configFor = (root: string, meta: FixtureMeta, rootLabel: Side) =>
-    buildWebpackConfig({
-      fixtureDir: meta.fixtureDir,
-      tsconfigPath: meta.tsconfigPath,
-      entryFile: meta.entryFile,
-      tsLoaderRoot: root,
+  scenarioIndex,
+}: ScenarioOptions): ScenarioResult {
+  const sides: Side[] = scenarioIndex % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
+  const collected: { a: number[]; b: number[] } = { a: [], b: [] };
+
+  for (const side of sides) {
+    const root = side === 'a' ? args.rootA : args.rootB;
+    const meta = side === 'a' ? fixtureMetaA : fixtureMetaB;
+    collected[side] = runSideProcess({
+      root,
+      meta,
+      outputPath: path.join(outRoot, side, id),
       transpileOnly,
-      outputPath: path.join(outRoot, rootLabel, id),
+      scenarioType,
+      warmup: args.warmup,
+      iterations: args.iterations,
     });
-  const configA = configFor(args.rootA, fixtureMetaA, 'a');
-  const configB = configFor(args.rootB, fixtureMetaB, 'b');
-
-  const total = args.warmup + args.iterations;
-  const durations: { a: number[]; b: number[] } = { a: [], b: [] };
-  for (let i = 0; i < total; i++) {
-    const order: Side[] = i % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
-    for (const side of order) {
-      const config = side === 'a' ? configA : configB;
-      const ms = await withTimeout(runColdBuild(config), INITIAL_BUILD_TIMEOUT_MS, `${id} cold build (${side})`);
-      durations[side].push(ms);
-    }
   }
-  return summarize({ id, label, transpileOnly, durations, warmup: args.warmup });
-}
 
-interface IncrementalScenarioOptions {
-  id: string;
-  label: string;
-  transpileOnly: boolean;
-  touchKey: 'leaf' | 'hub';
-  fixtureMetaA: FixtureMeta;
-  fixtureMetaB: FixtureMeta;
-  args: Args;
-  outRoot: string;
-}
-
-async function runIncrementalScenario({
-  id,
-  label,
-  transpileOnly,
-  touchKey,
-  fixtureMetaA,
-  fixtureMetaB,
-  args,
-  outRoot,
-}: IncrementalScenarioOptions): Promise<ScenarioResult> {
-  const configFor = (root: string, meta: FixtureMeta, rootLabel: Side) =>
-    buildWebpackConfig({
-      fixtureDir: meta.fixtureDir,
-      tsconfigPath: meta.tsconfigPath,
-      entryFile: meta.entryFile,
-      tsLoaderRoot: root,
-      transpileOnly,
-      outputPath: path.join(outRoot, rootLabel, id),
-    });
-
-  // Independent fixture copies per side (fixtureMetaA/B point at separate
-  // directories) so touching the file for side A's watcher never triggers
-  // side B's - otherwise two live watchers sharing one fixture dir would
-  // cross-contaminate each other's rebuild timings.
-  let sessionA: Awaited<ReturnType<typeof createWatchSession>> | undefined;
-  let sessionB: Awaited<ReturnType<typeof createWatchSession>> | undefined;
-  try {
-    sessionA = await withTimeout(
-      createWatchSession(configFor(args.rootA, fixtureMetaA, 'a')),
-      INITIAL_BUILD_TIMEOUT_MS,
-      `${id} initial build (a)`
-    );
-    sessionB = await withTimeout(
-      createWatchSession(configFor(args.rootB, fixtureMetaB, 'b')),
-      INITIAL_BUILD_TIMEOUT_MS,
-      `${id} initial build (b)`
-    );
-
-    const total = args.warmup + args.iterations;
-    const durations: { a: number[]; b: number[] } = { a: [], b: [] };
-    for (let i = 0; i < total; i++) {
-      const order: Side[] = i % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
-      for (const side of order) {
-        const session = side === 'a' ? sessionA : sessionB;
-        const meta = side === 'a' ? fixtureMetaA : fixtureMetaB;
-        const filePath = meta[`${touchKey}TouchFile`];
-        const original = meta[`${touchKey}TouchOriginal`];
-        const pending = withTimeout(session.nextCompile(), REBUILD_TIMEOUT_MS, `${id} rebuild (${side})`);
-        touchFile(filePath, original, i);
-        durations[side].push(await pending);
-      }
-    }
-    return summarize({ id, label, transpileOnly, durations, warmup: args.warmup });
-  } finally {
-    await sessionA?.close();
-    await sessionB?.close();
-  }
+  return summarize({ id, label, transpileOnly, durations: collected, warmup: args.warmup });
 }
 
 /**
@@ -256,26 +251,27 @@ async function main(): Promise<void> {
     fileCount: args.fileCount,
   });
 
-  // Interleaved as cold(typeCheck), cold(transpileOnly), leaf(typeCheck),
-  // leaf(transpileOnly), ... rather than grouped into a typeCheck block
-  // followed by a transpileOnly block - a transient host-noise burst during
-  // one contiguous block would otherwise bias that mode's rows without
-  // touching the other's. Sorted back into typeCheck-then-transpileOnly
-  // order below for a stable, readable report.
+  // scenarioIndex alternates which side runs first so that time-varying host
+  // effects are balanced across sides rather than consistently favouring one.
+  // Sorted back into typeCheck-then-transpileOnly order below for a stable,
+  // readable report.
   const results: ScenarioResult[] = [];
+  let scenarioIndex = 0;
 
   for (const transpileOnly of [false, true]) {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running cold build (${mode})...`);
     results.push(
-      await runColdScenario({
+      runScenario({
         id: `cold-${mode}`,
         label: 'Cold build',
         transpileOnly,
+        scenarioType: 'cold',
         fixtureMetaA,
         fixtureMetaB,
         args,
         outRoot,
+        scenarioIndex: scenarioIndex++,
       })
     );
   }
@@ -284,15 +280,16 @@ async function main(): Promise<void> {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running incremental rebuild, leaf touch (${mode})...`);
     results.push(
-      await runIncrementalScenario({
+      runScenario({
         id: `incremental-leaf-${mode}`,
         label: 'Incremental rebuild (leaf touch)',
         transpileOnly,
-        touchKey: 'leaf',
+        scenarioType: 'leaf',
         fixtureMetaA,
         fixtureMetaB,
         args,
         outRoot,
+        scenarioIndex: scenarioIndex++,
       })
     );
   }
@@ -301,15 +298,16 @@ async function main(): Promise<void> {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running incremental rebuild, hub touch (${mode})...`);
     results.push(
-      await runIncrementalScenario({
+      runScenario({
         id: `incremental-hub-${mode}`,
         label: 'Incremental rebuild (hub touch)',
         transpileOnly,
-        touchKey: 'hub',
+        scenarioType: 'hub',
         fixtureMetaA,
         fixtureMetaB,
         args,
         outRoot,
+        scenarioIndex: scenarioIndex++,
       })
     );
   }
