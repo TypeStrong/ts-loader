@@ -247,10 +247,16 @@ async function main(): Promise<void> {
     fileCount: args.fileCount,
   });
 
+  // Interleaved as cold(typeCheck), cold(transpileOnly), leaf(typeCheck),
+  // leaf(transpileOnly), ... rather than grouped into a typeCheck block
+  // followed by a transpileOnly block - a transient host-noise burst during
+  // one contiguous block would otherwise bias that mode's rows without
+  // touching the other's. Sorted back into typeCheck-then-transpileOnly
+  // order below for a stable, readable report.
   const results: ScenarioResult[] = [];
+
   for (const transpileOnly of [false, true]) {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
-
     console.log(`Running cold build (${mode})...`);
     results.push(
       await runColdScenario({
@@ -263,7 +269,10 @@ async function main(): Promise<void> {
         outRoot,
       })
     );
+  }
 
+  for (const transpileOnly of [false, true]) {
+    const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running incremental rebuild, leaf touch (${mode})...`);
     results.push(
       await runIncrementalScenario({
@@ -277,7 +286,10 @@ async function main(): Promise<void> {
         outRoot,
       })
     );
+  }
 
+  for (const transpileOnly of [false, true]) {
+    const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running incremental rebuild, hub touch (${mode})...`);
     results.push(
       await runIncrementalScenario({
@@ -292,6 +304,11 @@ async function main(): Promise<void> {
       })
     );
   }
+
+  // Array.prototype.sort is stable (guaranteed since ES2019), so this
+  // regroups by mode for the report without disturbing the cold/leaf/hub
+  // order within each group.
+  results.sort((a, b) => Number(a.transpileOnly) - Number(b.transpileOnly));
 
   const json = {
     generatedAt: new Date().toISOString(),
