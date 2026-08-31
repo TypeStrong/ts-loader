@@ -1,20 +1,25 @@
-'use strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import webpack from 'webpack';
+import type { Configuration, Stats } from 'webpack';
 
-const fs = require('fs');
-const path = require('path');
-const webpack = require('webpack');
+interface BuildWebpackConfigOptions {
+  fixtureDir: string;
+  tsconfigPath: string;
+  entryFile: string;
+  tsLoaderRoot: string;
+  transpileOnly: boolean;
+  outputPath: string;
+}
 
-/**
- * @param {{ fixtureDir: string, tsconfigPath: string, entryFile: string, tsLoaderRoot: string, transpileOnly: boolean, outputPath: string }} options
- */
-function buildWebpackConfig({
+export function buildWebpackConfig({
   fixtureDir,
   tsconfigPath,
   entryFile,
   tsLoaderRoot,
   transpileOnly,
   outputPath,
-}) {
+}: BuildWebpackConfigOptions): Configuration {
   return {
     mode: 'development',
     context: fixtureDir,
@@ -42,7 +47,7 @@ function buildWebpackConfig({
   };
 }
 
-function statsError(stats) {
+function statsError(stats: Stats): Error {
   return new Error(stats.toString({ preset: 'errors-only' }));
 }
 
@@ -52,19 +57,32 @@ function statsError(stats) {
  * ts-loader's instance cache is keyed on the compiler (see
  * src/instance-cache.ts), so this is a genuinely cold build each time.
  */
-function runColdBuild(config) {
+export function runColdBuild(config: Configuration): Promise<number> {
   return new Promise((resolve, reject) => {
-    const compiler = webpack(config);
+    // webpack() only returns null when called with a callback (async form);
+    // called with just a config, it always returns a Compiler synchronously.
+    const compiler = webpack(config)!;
     const start = process.hrtime.bigint();
     compiler.run((err, stats) => {
       const end = process.hrtime.bigint();
       compiler.close(() => {
         if (err) return reject(err);
-        if (stats.hasErrors()) return reject(statsError(stats));
+        if (stats?.hasErrors()) return reject(statsError(stats));
         resolve(Number(end - start) / 1e6);
       });
     });
   });
+}
+
+export interface WatchSession {
+  nextCompile(): Promise<number>;
+  close(): Promise<void>;
+}
+
+interface Waiter {
+  resolve: (ms: number) => void;
+  reject: (err: Error) => void;
+  start: bigint;
 }
 
 /**
@@ -73,11 +91,13 @@ function runColdBuild(config) {
  * incremental rebuilds against the same long-lived compiler - matching how
  * ts-loader actually behaves across a real watch session.
  */
-function createWatchSession(config) {
+export function createWatchSession(config: Configuration): Promise<WatchSession> {
   return new Promise((resolveReady, rejectReady) => {
     let ready = false;
-    let waiter = null;
-    const compiler = webpack(config);
+    let waiter: Waiter | null = null;
+    // webpack() only returns null when called with a callback (async form);
+    // called with just a config, it always returns a Compiler synchronously.
+    const compiler = webpack(config)!;
     const watching = compiler.watch({ aggregateTimeout: 100 }, (err, stats) => {
       const error = err || (stats && stats.hasErrors() ? statsError(stats) : null);
       if (!ready) {
@@ -90,7 +110,7 @@ function createWatchSession(config) {
             });
           },
           close() {
-            return new Promise((resolve) => watching.close(resolve));
+            return new Promise<void>((resolve) => watching.close(() => resolve()));
           },
         });
       }
@@ -103,23 +123,15 @@ function createWatchSession(config) {
   });
 }
 
-function withTimeout(promise, ms, label) {
-  let timer;
-  const timeout = new Promise((_, reject) => {
+export function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
     timer = setTimeout(() => reject(new Error(`Timed out after ${ms}ms waiting for ${label}`)), ms);
   });
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 /** Overwrites a fixture file with its original content plus a marker line, so re-touching never leaves stale duplicate declarations behind. */
-function touchFile(filePath, originalContent, iteration) {
+export function touchFile(filePath: string, originalContent: string, iteration: number): void {
   fs.writeFileSync(filePath, `${originalContent}\nexport const __benchmarkTouch = ${iteration};\n`);
 }
-
-module.exports = {
-  buildWebpackConfig,
-  runColdBuild,
-  createWatchSession,
-  withTimeout,
-  touchFile,
-};

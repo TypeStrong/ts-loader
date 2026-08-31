@@ -10,9 +10,9 @@ Their fixtures are tiny (a handful of files, 1-2 watch patches) and built for ou
 
 ## How it works
 
-1. `generate-fixture.js` writes a synthetic TypeScript project: a `hub` module imported by most other files, many independent `leaf` modules (imported by only a couple of files each), `mid` modules that combine a few leaves, and an entry point that imports every `mid`. Two identical copies are generated (`.benchmark/fixture-a`, `.benchmark/fixture-b`) so two concurrent watch sessions never see each other's file changes.
-2. `scenarios.js` provides the primitives: a cold (non-watch) build, and a watch session with a `nextCompile()` you can await after touching a file.
-3. `run-benchmark.js` is the CLI entry point. For both `transpileOnly: true` and `transpileOnly: false`, it runs:
+1. `generate-fixture.mts` writes a synthetic TypeScript project: a `hub` module imported by most other files, many independent `leaf` modules (imported by only a couple of files each), `mid` modules that combine a few leaves, and an entry point that imports every `mid`. Two identical copies are generated (`.benchmark/fixture-a`, `.benchmark/fixture-b`) so two concurrent watch sessions never see each other's file changes.
+2. `scenarios.mts` provides the primitives: a cold (non-watch) build, and a watch session with a `nextCompile()` you can await after touching a file.
+3. `run-benchmark.mts` is the CLI entry point, run directly by Node's native TypeScript support (Node 24+, no build step). The `.mts` extension marks these as ES modules regardless of the package's own CommonJS `type`, matching how `import`/`export` is authored elsewhere in this repo. For both `transpileOnly: true` and `transpileOnly: false`, it runs:
    - **Cold build** - a fresh `webpack()` compile.
    - **Incremental rebuild, leaf touch** - touch a file with ~1-2 dependants.
    - **Incremental rebuild, hub touch** - touch the file most things depend on, to specifically exercise dependant-recheck codepaths (see `src/after-compile.ts`'s `populateReverseDependencyGraph`/`collectAllDependants`, used by `determineFilesToCheckForErrors` to decide which files need rechecking after a change).

@@ -1,10 +1,8 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 // Deterministic PRNG (mulberry32) so the generated fixture is stable across runs.
-function createRng(seed) {
+function createRng(seed: number): () => number {
   let state = seed >>> 0;
   return function rng() {
     state = (state + 0x6d2b79f5) >>> 0;
@@ -15,7 +13,7 @@ function createRng(seed) {
   };
 }
 
-function hubSource() {
+function hubSource(): string {
   return `export interface HubValue {
   id: number;
   label: string;
@@ -34,7 +32,7 @@ export function combineHub(values: HubValue[]): HubValue {
 `;
 }
 
-function leafSource(index) {
+function leafSource(index: number): string {
   const name = `leaf${index}`;
   const resultType = `Leaf${index}Result`;
   return `import { HubValue, describeHub } from './hub';
@@ -54,7 +52,7 @@ export function ${name}(seed: number): ${resultType} {
 `;
 }
 
-function midSource(index, leafIndexes) {
+function midSource(index: number, leafIndexes: number[]): string {
   const name = `mid${index}`;
   const resultType = `Mid${index}Result`;
   const imports = leafIndexes
@@ -79,9 +77,9 @@ export function ${name}(seed: number): ${resultType} {
 `;
 }
 
-function entrySource(midCount) {
-  const imports = [];
-  const calls = [];
+function entrySource(midCount: number): string {
+  const imports: string[] = [];
+  const calls: string[] = [];
   for (let i = 0; i < midCount; i++) {
     imports.push(`import { mid${i} } from './mid${i}';`);
     calls.push(`mid${i}(${i})`);
@@ -95,6 +93,22 @@ console.log(all.length);
 `;
 }
 
+interface GenerateFixtureOptions {
+  fixtureDir: string;
+  fileCount?: number;
+  seed?: number;
+}
+
+export interface FixtureMeta {
+  fixtureDir: string;
+  tsconfigPath: string;
+  entryFile: string;
+  leafTouchFile: string;
+  leafTouchOriginal: string;
+  hubTouchFile: string;
+  hubTouchOriginal: string;
+}
+
 /**
  * Generates a synthetic ts-loader benchmark fixture on disk.
  *
@@ -102,18 +116,8 @@ console.log(all.length);
  * dependant recheck across most of the project), many independent `leaf`
  * modules (each imported by only a handful of `mid` modules), `mid` modules
  * that combine a few leaves, and a single entry point importing every mid.
- *
- * @returns {{
- *   fixtureDir: string,
- *   tsconfigPath: string,
- *   entryFile: string,
- *   leafTouchFile: string,
- *   leafTouchOriginal: string,
- *   hubTouchFile: string,
- *   hubTouchOriginal: string,
- * }}
  */
-function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }) {
+export function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }: GenerateFixtureOptions): FixtureMeta {
   fs.rmSync(fixtureDir, { recursive: true, force: true });
   const srcDir = path.join(fixtureDir, 'src');
   fs.mkdirSync(srcDir, { recursive: true });
@@ -131,7 +135,7 @@ function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }) {
   }
 
   for (let i = 0; i < midCount; i++) {
-    const leavesForThisMid = new Set();
+    const leavesForThisMid = new Set<number>();
     const importCount = 2 + Math.floor(rng() * 3); // 2-4 leaves per mid
     while (leavesForThisMid.size < Math.min(importCount, leafCount)) {
       leavesForThisMid.add(Math.floor(rng() * leafCount));
@@ -179,5 +183,3 @@ function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }) {
     hubTouchOriginal: fs.readFileSync(hubTouchFile, 'utf8'),
   };
 }
-
-module.exports = { generateFixture };

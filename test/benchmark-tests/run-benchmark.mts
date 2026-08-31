@@ -1,15 +1,8 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const { generateFixture } = require('./generate-fixture');
-const {
-  buildWebpackConfig,
-  runColdBuild,
-  createWatchSession,
-  withTimeout,
-  touchFile,
-} = require('./scenarios');
+import fs from 'node:fs';
+import path from 'node:path';
+import { generateFixture } from './generate-fixture.mts';
+import type { FixtureMeta } from './generate-fixture.mts';
+import { buildWebpackConfig, runColdBuild, createWatchSession, withTimeout, touchFile } from './scenarios.mts';
 
 const WARMUP_ITERATIONS = 2;
 const MEASURED_ITERATIONS = 6;
@@ -17,8 +10,30 @@ const INITIAL_BUILD_TIMEOUT_MS = 120000;
 const REBUILD_TIMEOUT_MS = 30000;
 const REGRESSION_FLAG_PCT = 10;
 
-function parseArgs(argv) {
-  const get = (flag, fallback) => {
+interface Args {
+  rootA: string;
+  rootB: string;
+  labelA: string;
+  labelB: string;
+  fileCount: number;
+  warmup: number;
+  iterations: number;
+  benchmarkDir: string;
+}
+
+type Side = 'a' | 'b';
+
+interface ScenarioResult {
+  id: string;
+  label: string;
+  transpileOnly: boolean;
+  a: { samples: number[]; median: number; stddev: number };
+  b: { samples: number[]; median: number; stddev: number };
+  deltaPct: number;
+}
+
+function parseArgs(argv: string[]): Args {
+  const get = (flag: string, fallback: string): string => {
     const i = argv.indexOf(flag);
     return i === -1 ? fallback : argv[i + 1];
   };
@@ -29,26 +44,34 @@ function parseArgs(argv) {
     rootB,
     labelA: get('--label-a', 'A'),
     labelB: get('--label-b', 'B'),
-    fileCount: Number(get('--files', 300)),
-    warmup: Number(get('--warmup', WARMUP_ITERATIONS)),
-    iterations: Number(get('--iterations', MEASURED_ITERATIONS)),
+    fileCount: Number(get('--files', '300')),
+    warmup: Number(get('--warmup', String(WARMUP_ITERATIONS))),
+    iterations: Number(get('--iterations', String(MEASURED_ITERATIONS))),
     benchmarkDir: path.resolve(get('--benchmark-dir', path.join(process.cwd(), '.benchmark'))),
   };
 }
 
-function median(values) {
+function median(values: number[]): number {
   const sorted = [...values].sort((x, y) => x - y);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
-function stddev(values) {
+function stddev(values: number[]): number {
   const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
   const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
   return Math.sqrt(variance);
 }
 
-function summarize({ id, label, transpileOnly, durations, warmup }) {
+interface SummarizeInput {
+  id: string;
+  label: string;
+  transpileOnly: boolean;
+  durations: { a: number[]; b: number[] };
+  warmup: number;
+}
+
+function summarize({ id, label, transpileOnly, durations, warmup }: SummarizeInput): ScenarioResult {
   const a = durations.a.slice(warmup);
   const b = durations.b.slice(warmup);
   const medianA = median(a);
@@ -63,8 +86,26 @@ function summarize({ id, label, transpileOnly, durations, warmup }) {
   };
 }
 
-async function runColdScenario({ id, label, transpileOnly, fixtureMetaA, fixtureMetaB, args, outRoot }) {
-  const configFor = (root, meta, rootLabel) =>
+interface ColdScenarioOptions {
+  id: string;
+  label: string;
+  transpileOnly: boolean;
+  fixtureMetaA: FixtureMeta;
+  fixtureMetaB: FixtureMeta;
+  args: Args;
+  outRoot: string;
+}
+
+async function runColdScenario({
+  id,
+  label,
+  transpileOnly,
+  fixtureMetaA,
+  fixtureMetaB,
+  args,
+  outRoot,
+}: ColdScenarioOptions): Promise<ScenarioResult> {
+  const configFor = (root: string, meta: FixtureMeta, rootLabel: Side) =>
     buildWebpackConfig({
       fixtureDir: meta.fixtureDir,
       tsconfigPath: meta.tsconfigPath,
@@ -77,9 +118,9 @@ async function runColdScenario({ id, label, transpileOnly, fixtureMetaA, fixture
   const configB = configFor(args.rootB, fixtureMetaB, 'b');
 
   const total = args.warmup + args.iterations;
-  const durations = { a: [], b: [] };
+  const durations: { a: number[]; b: number[] } = { a: [], b: [] };
   for (let i = 0; i < total; i++) {
-    const order = i % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
+    const order: Side[] = i % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
     for (const side of order) {
       const config = side === 'a' ? configA : configB;
       const ms = await withTimeout(runColdBuild(config), INITIAL_BUILD_TIMEOUT_MS, `${id} cold build (${side})`);
@@ -87,6 +128,17 @@ async function runColdScenario({ id, label, transpileOnly, fixtureMetaA, fixture
     }
   }
   return summarize({ id, label, transpileOnly, durations, warmup: args.warmup });
+}
+
+interface IncrementalScenarioOptions {
+  id: string;
+  label: string;
+  transpileOnly: boolean;
+  touchKey: 'leaf' | 'hub';
+  fixtureMetaA: FixtureMeta;
+  fixtureMetaB: FixtureMeta;
+  args: Args;
+  outRoot: string;
 }
 
 async function runIncrementalScenario({
@@ -98,8 +150,8 @@ async function runIncrementalScenario({
   fixtureMetaB,
   args,
   outRoot,
-}) {
-  const configFor = (root, meta, rootLabel) =>
+}: IncrementalScenarioOptions): Promise<ScenarioResult> {
+  const configFor = (root: string, meta: FixtureMeta, rootLabel: Side) =>
     buildWebpackConfig({
       fixtureDir: meta.fixtureDir,
       tsconfigPath: meta.tsconfigPath,
@@ -126,9 +178,9 @@ async function runIncrementalScenario({
 
   try {
     const total = args.warmup + args.iterations;
-    const durations = { a: [], b: [] };
+    const durations: { a: number[]; b: number[] } = { a: [], b: [] };
     for (let i = 0; i < total; i++) {
-      const order = i % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
+      const order: Side[] = i % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
       for (const side of order) {
         const session = side === 'a' ? sessionA : sessionB;
         const meta = side === 'a' ? fixtureMetaA : fixtureMetaB;
@@ -146,7 +198,7 @@ async function runIncrementalScenario({
   }
 }
 
-function toMarkdown(results, args) {
+function toMarkdown(results: ScenarioResult[], args: Args): string {
   const lines = [
     `| Scenario | transpileOnly | ${args.labelA} median (ms) | ${args.labelB} median (ms) | Δ vs ${args.labelB} |`,
     '| --- | --- | --- | --- | --- |',
@@ -164,7 +216,7 @@ function toMarkdown(results, args) {
   return lines.join('\n');
 }
 
-async function main() {
+async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const outRoot = path.join(args.benchmarkDir, 'build');
   fs.mkdirSync(args.benchmarkDir, { recursive: true });
@@ -179,7 +231,7 @@ async function main() {
     fileCount: args.fileCount,
   });
 
-  const results = [];
+  const results: ScenarioResult[] = [];
   for (const transpileOnly of [false, true]) {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
 
