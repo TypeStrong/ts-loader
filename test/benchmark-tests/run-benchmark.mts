@@ -1,23 +1,19 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { generateFixture } from './generate-fixture.mts';
 import type { FixtureMeta } from './generate-fixture.mts';
 
 const WARMUP_ITERATIONS = 2;
 const MEASURED_ITERATIONS = 10;
-// A cold *typeCheck* build (creating a full TypeScript Program from scratch)
-// is the one scenario that's reliably large (100s-1000ms+), so fixed
-// per-iteration overhead - subprocess/V8 startup, loading webpack + ts-loader
-// + typescript from disk, fs-watch event-detection latency for incremental
-// rebuilds - is a small fraction of it. Every other scenario (cold
-// transpileOnly, and both incremental touch types) is far smaller in
-// absolute duration, so that same fixed overhead is a much larger fraction
-// of the measurement. Those iterations are cheap, so running several times
-// more of them costs little wall-clock time while substantially narrowing
-// the median's sampling error.
-const BOOSTED_ITERATION_MULTIPLIER = 4;
+// CI runners (especially Windows) are noisy enough that even the largest
+// scenario (cold typeCheck) occasionally lands outside the expected +-3%
+// band on a self-comparison. Every scenario runs both sides concurrently
+// (see runScenario below) and gets several times its base iteration count -
+// even the slowest scenario has ample time budget within the job timeout -
+// to narrow the median's sampling error against that noise.
+const ITERATION_MULTIPLIER = 6;
 const REGRESSION_FLAG_PCT = 10;
 // A delta must also clear this many multiples of the combined sample
 // stddev (as a % of the base median) before it's flagged - otherwise a
@@ -119,6 +115,33 @@ interface RunSideOptions {
   iterations: number;
 }
 
+function spawnSide(processArgs: string[]): Promise<number[]> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, processArgs, {
+      stdio: ['ignore', 'pipe', 'inherit'],
+      env: process.env,
+    });
+    let stdout = '';
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout += chunk.toString();
+    });
+    child.on('error', reject);
+    child.on('close', (code, signal) => {
+      if (code !== 0) {
+        const exitInfo = code !== null ? `exit code ${code}` : `signal ${signal}`;
+        reject(new Error(`run-side.mts subprocess failed (${exitInfo})`));
+        return;
+      }
+      try {
+        const parsed = JSON.parse(stdout.trim()) as { durations: number[] };
+        resolve(parsed.durations);
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
+    });
+  });
+}
+
 /**
  * Runs all iterations for one side in a fresh subprocess so each side gets
  * its own OS process with exactly one TypeScript + webpack instance on the
@@ -126,7 +149,7 @@ interface RunSideOptions {
  * interleaved measurements when both TypeScript language service instances
  * co-existed in the same V8 heap.
  */
-function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, warmup, iterations }: RunSideOptions): number[] {
+function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, warmup, iterations }: RunSideOptions): Promise<number[]> {
   // Write the touch-original content to a temp file so the subprocess can
   // read it without us serialising potentially-large strings through argv.
   const touchKey = scenarioType as 'leaf' | 'hub';
@@ -137,7 +160,7 @@ function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, w
     fs.writeFileSync(touchOriginalPath, meta[`${touchKey}TouchOriginal`]);
   }
 
-  const args = [
+  const processArgs = [
     RUN_SIDE_SCRIPT,
     '--fixture-dir', meta.fixtureDir,
     '--tsconfig', meta.tsconfigPath,
@@ -153,19 +176,7 @@ function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, w
     ] : []),
   ];
 
-  const result = spawnSync(process.execPath, args, {
-    stdio: ['ignore', 'pipe', 'inherit'],
-    env: process.env,
-  });
-
-  if (result.status !== 0) {
-    const exitInfo = result.status !== null ? `exit code ${result.status}` : `signal ${result.signal}`;
-    throw new Error(`run-side.mts subprocess failed (${exitInfo})`);
-  }
-
-  const output = result.stdout.toString().trim();
-  const parsed = JSON.parse(output) as { durations: number[] };
-  return parsed.durations;
+  return spawnSide(processArgs);
 }
 
 interface ScenarioOptions {
@@ -177,16 +188,17 @@ interface ScenarioOptions {
   fixtureMetaB: FixtureMeta;
   args: Args;
   outRoot: string;
-  scenarioIndex: number;
 }
 
 /**
- * Runs both sides of a scenario in separate subprocesses. `scenarioIndex`
- * alternates which side runs first so that time-varying host effects (CPU
- * frequency scaling, thermal throttling) are balanced across sides rather
- * than consistently favouring whichever side runs first.
+ * Runs both sides of a scenario concurrently, each in its own subprocess.
+ * Running them at the same time (rather than one fully finishing before the
+ * other starts) means both experience the same wall-clock host conditions -
+ * CPU contention, scheduling, disk cache warmth - so that noise is
+ * correlated across sides and cancels out of the delta instead of biasing
+ * whichever side happens to run during a noisier window.
  */
-function runScenario({
+async function runScenario({
   id,
   label,
   transpileOnly,
@@ -195,28 +207,21 @@ function runScenario({
   fixtureMetaB,
   args,
   outRoot,
-  scenarioIndex,
-}: ScenarioOptions): ScenarioResult {
-  const sides: Side[] = scenarioIndex % 2 === 0 ? ['a', 'b'] : ['b', 'a'];
-  const collected: { a: number[]; b: number[] } = { a: [], b: [] };
-  const isColdTypeCheck = scenarioType === 'cold' && !transpileOnly;
-  const iterations = isColdTypeCheck ? args.iterations : args.iterations * BOOSTED_ITERATION_MULTIPLIER;
+}: ScenarioOptions): Promise<ScenarioResult> {
+  const iterations = args.iterations * ITERATION_MULTIPLIER;
+  const sideOptions = (side: Side): RunSideOptions => ({
+    root: side === 'a' ? args.rootA : args.rootB,
+    meta: side === 'a' ? fixtureMetaA : fixtureMetaB,
+    outputPath: path.join(outRoot, side, id),
+    transpileOnly,
+    scenarioType,
+    warmup: args.warmup,
+    iterations,
+  });
 
-  for (const side of sides) {
-    const root = side === 'a' ? args.rootA : args.rootB;
-    const meta = side === 'a' ? fixtureMetaA : fixtureMetaB;
-    collected[side] = runSideProcess({
-      root,
-      meta,
-      outputPath: path.join(outRoot, side, id),
-      transpileOnly,
-      scenarioType,
-      warmup: args.warmup,
-      iterations,
-    });
-  }
+  const [a, b] = await Promise.all([runSideProcess(sideOptions('a')), runSideProcess(sideOptions('b'))]);
 
-  return summarize({ id, label, transpileOnly, durations: collected, warmup: args.warmup });
+  return summarize({ id, label, transpileOnly, durations: { a, b }, warmup: args.warmup });
 }
 
 /**
@@ -264,18 +269,15 @@ async function main(): Promise<void> {
     fileCount: args.fileCount,
   });
 
-  // scenarioIndex alternates which side runs first so that time-varying host
-  // effects are balanced across sides rather than consistently favouring one.
   // Sorted back into typeCheck-then-transpileOnly order below for a stable,
   // readable report.
   const results: ScenarioResult[] = [];
-  let scenarioIndex = 0;
 
   for (const transpileOnly of [false, true]) {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running cold build (${mode})...`);
     results.push(
-      runScenario({
+      await runScenario({
         id: `cold-${mode}`,
         label: 'Cold build',
         transpileOnly,
@@ -284,7 +286,6 @@ async function main(): Promise<void> {
         fixtureMetaB,
         args,
         outRoot,
-        scenarioIndex: scenarioIndex++,
       })
     );
   }
@@ -293,7 +294,7 @@ async function main(): Promise<void> {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running incremental rebuild, leaf touch (${mode})...`);
     results.push(
-      runScenario({
+      await runScenario({
         id: `incremental-leaf-${mode}`,
         label: 'Incremental rebuild (leaf touch)',
         transpileOnly,
@@ -302,7 +303,6 @@ async function main(): Promise<void> {
         fixtureMetaB,
         args,
         outRoot,
-        scenarioIndex: scenarioIndex++,
       })
     );
   }
@@ -311,7 +311,7 @@ async function main(): Promise<void> {
     const mode = transpileOnly ? 'transpileOnly' : 'typeCheck';
     console.log(`Running incremental rebuild, hub touch (${mode})...`);
     results.push(
-      runScenario({
+      await runScenario({
         id: `incremental-hub-${mode}`,
         label: 'Incremental rebuild (hub touch)',
         transpileOnly,
@@ -320,7 +320,6 @@ async function main(): Promise<void> {
         fixtureMetaB,
         args,
         outRoot,
-        scenarioIndex: scenarioIndex++,
       })
     );
   }
