@@ -1,6 +1,22 @@
 const fs = require('fs');
 
-// Shared by the "comment on PR" steps in benchmark.yml (Ubuntu + Windows jobs).
+/**
+ * Creates or updates the benchmark result comment identified by `marker`.
+ * Shared by the "comment on PR" steps in benchmark.yml (Ubuntu + Windows jobs).
+ *
+ * @param {{
+ *   github: { rest: { issues: {
+ *     listComments: (options: { owner: string, repo: string, issue_number: number }) => Promise<{ data: Array<{ id: number, body: string }> }>,
+ *     updateComment: (options: { owner: string, repo: string, comment_id: number, body: string }) => Promise<unknown>,
+ *     createComment: (options: { owner: string, repo: string, issue_number: number, body: string }) => Promise<unknown>
+ *   } } },
+ *   context: { repo: { owner: string, repo: string }, issue: { number: number } },
+ *   resultsPath: string,
+ *   marker: string,
+ *   title: string
+ * }} options GitHub Actions `github-script` inputs.
+ * @returns {Promise<void>}
+ */
 module.exports = async ({ github, context, resultsPath, marker, title }) => {
   let body;
   try {
