@@ -43,25 +43,32 @@ function parseArgs(argv: string[]): Args {
   };
   const rootA = path.resolve(get('--root-a', process.cwd()));
   const rootB = path.resolve(get('--root-b', rootA));
+  const warmup = Number(get('--warmup', String(WARMUP_ITERATIONS)));
+  const iterations = Number(get('--iterations', String(MEASURED_ITERATIONS)));
+  if (!Number.isInteger(warmup) || warmup < 0) throw new Error(`--warmup must be a non-negative integer (got ${warmup})`);
+  if (!Number.isInteger(iterations) || iterations <= 0) throw new Error(`--iterations must be a positive integer (got ${iterations})`);
+  if (warmup >= iterations) throw new Error(`--warmup (${warmup}) must be less than --iterations (${iterations})`);
   return {
     rootA,
     rootB,
     labelA: get('--label-a', 'A'),
     labelB: get('--label-b', 'B'),
     fileCount: Number(get('--files', '300')),
-    warmup: Number(get('--warmup', String(WARMUP_ITERATIONS))),
-    iterations: Number(get('--iterations', String(MEASURED_ITERATIONS))),
+    warmup,
+    iterations,
     benchmarkDir: path.resolve(get('--benchmark-dir', path.join(process.cwd(), '.benchmark'))),
   };
 }
 
 function median(values: number[]): number {
+  if (values.length === 0) throw new Error('median() called with empty array');
   const sorted = [...values].sort((x, y) => x - y);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
 
 function stddev(values: number[]): number {
+  if (values.length === 0) throw new Error('stddev() called with empty array');
   const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
   const variance = values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length;
   return Math.sqrt(variance);
