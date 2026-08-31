@@ -14,6 +14,14 @@ const MEASURED_ITERATIONS = 10;
 // even the slowest scenario has ample time budget within the job timeout -
 // to narrow the median's sampling error against that noise.
 const ITERATION_MULTIPLIER = 6;
+// Incremental rebuilds got the same 6x boost as cold builds but stayed
+// noisy on Windows specifically (concurrency + 6x fixed cold builds there
+// completely), pointing to Windows fs-watch imprecision (NTFS/
+// ReadDirectoryChangesW is known to be less precise than Linux inotify)
+// rather than the fixed per-iteration overhead cold builds were sensitive
+// to. Each rebuild is only tens of ms, so a much larger multiplier here is
+// still cheap.
+const INCREMENTAL_ITERATION_MULTIPLIER = 20;
 const REGRESSION_FLAG_PCT = 10;
 // A delta must also clear this many multiples of the combined sample
 // stddev (as a % of the base median) before it's flagged - otherwise a
@@ -208,7 +216,8 @@ async function runScenario({
   args,
   outRoot,
 }: ScenarioOptions): Promise<ScenarioResult> {
-  const iterations = args.iterations * ITERATION_MULTIPLIER;
+  const multiplier = scenarioType === 'cold' ? ITERATION_MULTIPLIER : INCREMENTAL_ITERATION_MULTIPLIER;
+  const iterations = args.iterations * multiplier;
   const sideOptions = (side: Side): RunSideOptions => ({
     root: side === 'a' ? args.rootA : args.rootB,
     meta: side === 'a' ? fixtureMetaA : fixtureMetaB,
