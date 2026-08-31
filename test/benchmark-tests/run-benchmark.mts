@@ -176,18 +176,20 @@ async function runIncrementalScenario({
   // directories) so touching the file for side A's watcher never triggers
   // side B's - otherwise two live watchers sharing one fixture dir would
   // cross-contaminate each other's rebuild timings.
-  const sessionA = await withTimeout(
-    createWatchSession(configFor(args.rootA, fixtureMetaA, 'a')),
-    INITIAL_BUILD_TIMEOUT_MS,
-    `${id} initial build (a)`
-  );
-  const sessionB = await withTimeout(
-    createWatchSession(configFor(args.rootB, fixtureMetaB, 'b')),
-    INITIAL_BUILD_TIMEOUT_MS,
-    `${id} initial build (b)`
-  );
-
+  let sessionA: Awaited<ReturnType<typeof createWatchSession>> | undefined;
+  let sessionB: Awaited<ReturnType<typeof createWatchSession>> | undefined;
   try {
+    sessionA = await withTimeout(
+      createWatchSession(configFor(args.rootA, fixtureMetaA, 'a')),
+      INITIAL_BUILD_TIMEOUT_MS,
+      `${id} initial build (a)`
+    );
+    sessionB = await withTimeout(
+      createWatchSession(configFor(args.rootB, fixtureMetaB, 'b')),
+      INITIAL_BUILD_TIMEOUT_MS,
+      `${id} initial build (b)`
+    );
+
     const total = args.warmup + args.iterations;
     const durations: { a: number[]; b: number[] } = { a: [], b: [] };
     for (let i = 0; i < total; i++) {
@@ -204,8 +206,8 @@ async function runIncrementalScenario({
     }
     return summarize({ id, label, transpileOnly, durations, warmup: args.warmup });
   } finally {
-    await sessionA.close();
-    await sessionB.close();
+    await sessionA?.close();
+    await sessionB?.close();
   }
 }
 
