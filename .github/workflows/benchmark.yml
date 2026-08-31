@@ -55,7 +55,7 @@ jobs:
 
       - name: upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-results-ubuntu
           path: .benchmark/benchmark-results.*
@@ -141,7 +141,7 @@ jobs:
 
       - name: upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmark-results-windows
           path: C:\source\ts-loader\.benchmark\benchmark-results.*
