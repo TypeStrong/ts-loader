@@ -26,25 +26,34 @@ module.exports = async ({ github, context, resultsPath, marker, title }) => {
   }
   body = `${marker}\n### ${title}\n\n${body}`;
 
-  const { data: comments } = await github.rest.issues.listComments({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    issue_number: context.issue.number,
-  });
-  const existing = comments.find((c) => c.body.includes(marker));
-  if (existing) {
-    await github.rest.issues.updateComment({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      comment_id: existing.id,
-      body,
-    });
-  } else {
-    await github.rest.issues.createComment({
+  try {
+    const { data: comments } = await github.rest.issues.listComments({
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: context.issue.number,
-      body,
     });
+    const existing = comments.find((c) => c.body.includes(marker));
+    if (existing) {
+      await github.rest.issues.updateComment({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        comment_id: existing.id,
+        body,
+      });
+    } else {
+      await github.rest.issues.createComment({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        issue_number: context.issue.number,
+        body,
+      });
+    }
+  } catch (err) {
+    if (err.status === 403) {
+      // Fork PRs may not have permission to write comments; results are
+      // still available in the job summary / artifacts.
+      return;
+    }
+    throw err;
   }
 };
