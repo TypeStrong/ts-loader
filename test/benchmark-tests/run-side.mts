@@ -1,7 +1,7 @@
 /**
  * Subprocess entry-point for one side of a benchmark scenario.
  *
- * Invoked by run-benchmark.mts via spawnSync. Runs all (warmup + measured)
+ * Invoked by run-benchmark.mts via spawn. Runs all (warmup + measured)
  * iterations for a single side and writes `{ durations: number[] }` JSON to
  * stdout. Running each side in its own fresh OS process ensures the two
  * TypeScript + webpack instances never share a heap, so GC pressure from one
@@ -20,6 +20,7 @@
  *   --iterations    <n>      total number of iterations (warmup + measured)
  */
 
+import fs from 'node:fs';
 import { buildWebpackConfig, runColdBuild, createWatchSession, withTimeout, touchFile } from './scenarios.mts';
 
 const INITIAL_BUILD_TIMEOUT_MS = 120_000;
@@ -64,8 +65,7 @@ async function main(): Promise<void> {
     const touchFilePath = get('--touch-file');
     const touchOriginalPath = get('--touch-original');
 
-    const { readFileSync } = await import('node:fs');
-    const touchOriginal = readFileSync(touchOriginalPath, 'utf8');
+    const touchOriginal = fs.readFileSync(touchOriginalPath, 'utf8');
 
     const touchKey = scenarioType; // 'leaf' | 'hub'
     const label = `${touchKey} rebuild`;
