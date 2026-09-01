@@ -184,6 +184,7 @@ function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, w
     '--transpile-only', String(transpileOnly),
     '--scenario-type', scenarioType,
     '--iterations', String(warmup + iterations),
+    '--warmup', String(warmup),
     ...(scenarioType !== 'cold' ? [
       '--touch-file', meta.touch[scenarioType].file,
       '--touch-original', touchOriginalPath,

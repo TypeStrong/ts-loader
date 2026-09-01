@@ -18,6 +18,7 @@
  *   --touch-file    <path>   file to touch (incremental scenarios only)
  *   --touch-original <path>  file containing original content (incremental scenarios only)
  *   --iterations    <n>      total number of iterations (warmup + measured)
+ *   --warmup        <n>      warmup iterations already included in --iterations
  */
 
 import fs from 'node:fs';
@@ -25,6 +26,17 @@ import { buildWebpackConfig, runColdBuild, createWatchSession, withTimeout, touc
 
 const INITIAL_BUILD_TIMEOUT_MS = 120_000;
 const REBUILD_TIMEOUT_MS = 30_000;
+// Per-scenario wall-clock cap, applied only after --warmup + MIN_MEASURED_ITERATIONS
+// samples are in hand. --iterations Ă— multiplier (see run-benchmark.mts) assumes a
+// cheap-to-instantiate compiler; a sync-API compiler that spawns a native child
+// process per instance (e.g. tsgo) or does per-dependant round trips for a
+// wide-fanout touch (e.g. a hub file imported by most of the fixture) can be
+// 10-100x more expensive per iteration, which would otherwise blow the CI job's
+// timeout long before every scenario finishes. Capping wall-clock instead of
+// guessing a smaller fixed iteration count keeps full statistical power for
+// scenarios that stay cheap while still bounding the expensive ones.
+const SCENARIO_TIME_BUDGET_MS = 60_000;
+const MIN_MEASURED_ITERATIONS = 2;
 
 function get(flag: string): string {
   const argv = process.argv;
@@ -44,6 +56,7 @@ async function main(): Promise<void> {
   const transpileOnly = get('--transpile-only') === 'true';
   const scenarioType = get('--scenario-type') as 'cold' | 'leaf' | 'hub';
   const iterations = Number(get('--iterations'));
+  const warmup = Number(get('--warmup'));
 
   const config = buildWebpackConfig({
     fixtureDir,
@@ -55,11 +68,32 @@ async function main(): Promise<void> {
   });
 
   const durations: number[] = [];
+  const minIterationsBeforeBudgetCutoff = warmup + MIN_MEASURED_ITERATIONS;
+
+  /**
+   * True once enough samples exist to slice off `warmup` and still leave
+   * MIN_MEASURED_ITERATIONS measured ones, AND the scenario has run past its
+   * wall-clock budget - i.e. safe to stop early. `loopStart` excludes the
+   * (untimed) initial/watch-session build above.
+   */
+  function pastBudget(count: number, loopStart: number): boolean {
+    return (
+      count >= minIterationsBeforeBudgetCutoff &&
+      Date.now() - loopStart >= SCENARIO_TIME_BUDGET_MS
+    );
+  }
 
   if (scenarioType === 'cold') {
+    const loopStart = Date.now();
     for (let i = 0; i < iterations; i++) {
       const ms = await withTimeout(runColdBuild(config), INITIAL_BUILD_TIMEOUT_MS, `cold build iteration ${i}`);
       durations.push(ms);
+      if (pastBudget(durations.length, loopStart)) {
+        console.error(
+          `run-side: cold ${transpileOnly ? 'transpileOnly' : 'typeCheck'} stopped early after ${durations.length}/${iterations} iterations (${SCENARIO_TIME_BUDGET_MS}ms budget)`,
+        );
+        break;
+      }
     }
   } else {
     const touchFilePath = get('--touch-file');
@@ -76,10 +110,17 @@ async function main(): Promise<void> {
       `initial build for ${label}`
     );
     try {
+      const loopStart = Date.now();
       for (let i = 0; i < iterations; i++) {
         const pending = withTimeout(session.nextCompile(), REBUILD_TIMEOUT_MS, `${label} iteration ${i}`);
         touchFile(touchFilePath, touchOriginal, i);
         durations.push(await pending);
+        if (pastBudget(durations.length, loopStart)) {
+          console.error(
+            `run-side: ${label} (${transpileOnly ? 'transpileOnly' : 'typeCheck'}) stopped early after ${durations.length}/${iterations} iterations (${SCENARIO_TIME_BUDGET_MS}ms budget)`,
+          );
+          break;
+        }
       }
     } finally {
       await session.close();
