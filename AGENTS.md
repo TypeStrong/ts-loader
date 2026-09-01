@@ -26,6 +26,7 @@ yarn lint               # type-check + oxlint (no separate typecheck script)
 yarn test               # full test suite (comparison + execution tests)
 yarn comparison-tests   # fast subset: compare webpack output against snapshots
 yarn execution-tests    # run compiled code via Karma/Jasmine
+yarn benchmark          # compare this build's compile speed against another ts-loader checkout
 ```
 
 To run a single test:
@@ -87,7 +88,7 @@ macOS/Linux passing locally does **not** mean Windows passes — this codebase h
 
 Requires `gh` CLI authenticated with the `workflow` scope (`gh auth login`, then `gh auth refresh -s workflow` if `gh auth status` doesn't already list `workflow` — both scopes need a human to complete the browser device-flow prompt, they can't be scripted).
 
-```bash
+````bash
 # trigger — omit both inputs to run the full comparison-test suite
 gh workflow run windows-test-probe.yml --repo TypeStrong/ts-loader \
   --ref <branch> -f single_test=<name>            # one test
@@ -102,6 +103,17 @@ gh run watch <run-id> --repo TypeStrong/ts-loader --exit-status   # blocks until
 gh run view <run-id> --repo TypeStrong/ts-loader --json status,conclusion
 
 gh run view <run-id> --repo TypeStrong/ts-loader --log-failed    # full failure log text
-```
+## Benchmark tests (`test/benchmark-tests/`)
+
+Answers "did this get faster or slower?", not "is the output correct?" - the comparison/execution packs never record timing, so this is a separate harness. It generates a synthetic project on the fly and times ts-loader compiling it (cold build, and incremental rebuild after touching a low-fan-out vs. high-fan-out file, under both `transpileOnly: true`/`false`), comparing two ts-loader checkouts (this build vs. another, e.g. `main`) back-to-back in one process so the relative numbers are meaningful despite noisy CI hosts.
+
+Full docs: [`test/benchmark-tests/README.md`](test/benchmark-tests/README.md)
+
+**Report-only**: `.github/workflows/benchmark.yml` posts results as a PR comment/job summary on every PR; it does not fail the build.
+
+```bash
+yarn benchmark -- --root-a . --root-b .                # sanity check against itself, expect ~0% deltas
+yarn benchmark -- --root-a . --root-b ../ts-loader-main # compare against another built checkout
+````
 
 Always add or update tests when fixing bugs or adding features — see [CONTRIBUTING.md](CONTRIBUTING.md).
