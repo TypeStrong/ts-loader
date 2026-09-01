@@ -22,6 +22,14 @@ const ITERATION_MULTIPLIER = 6;
 // to. Each rebuild is only tens of ms, so a much larger multiplier here is
 // still cheap.
 const INCREMENTAL_ITERATION_MULTIPLIER = 20;
+// Hub-touch typeCheck triggers a full dependant recheck (~180 files), so
+// it's both far more expensive per iteration than the other incremental
+// scenarios (400-600ms vs 30-100ms) and, being that much larger, was
+// already reliable at 20x - doubling its iteration count would meaningfully
+// add to CI time for little benefit. The other three incremental scenarios
+// (leaf touch either mode, hub touch transpileOnly) stayed noisy at 20x
+// despite being this cheap, so give them more room specifically.
+const CHEAP_INCREMENTAL_ITERATION_MULTIPLIER = 40;
 const REGRESSION_FLAG_PCT = 10;
 // A delta must also clear this many multiples of the combined sample
 // stddev (as a % of the base median) before it's flagged - otherwise a
@@ -216,7 +224,13 @@ async function runScenario({
   args,
   outRoot,
 }: ScenarioOptions): Promise<ScenarioResult> {
-  const multiplier = scenarioType === 'cold' ? ITERATION_MULTIPLIER : INCREMENTAL_ITERATION_MULTIPLIER;
+  const isExpensiveHubTypeCheck = scenarioType === 'hub' && !transpileOnly;
+  const multiplier =
+    scenarioType === 'cold'
+      ? ITERATION_MULTIPLIER
+      : isExpensiveHubTypeCheck
+        ? INCREMENTAL_ITERATION_MULTIPLIER
+        : CHEAP_INCREMENTAL_ITERATION_MULTIPLIER;
   const iterations = args.iterations * multiplier;
   const sideOptions = (side: Side): RunSideOptions => ({
     root: side === 'a' ? args.rootA : args.rootB,
