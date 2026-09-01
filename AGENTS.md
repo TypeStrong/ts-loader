@@ -16,6 +16,7 @@ yarn lint               # type-check + ESLint (no separate typecheck script)
 yarn test               # full test suite (comparison + execution tests)
 yarn comparison-tests   # fast subset: compare webpack output against snapshots
 yarn execution-tests    # run compiled code via Karma/Jasmine
+yarn benchmark          # compare this build's compile speed against another ts-loader checkout
 ```
 
 To run a single test:
@@ -61,6 +62,19 @@ module.exports.resolveLoader = { alias: { 'ts-loader': path.join(__dirname, "../
 yarn execution-tests                                    # all tests
 yarn execution-tests -- --single-test <name>            # one test
 yarn execution-tests -- --single-test <name> --watch    # watch mode (open http://localhost:9876/)
+```
+
+## Benchmark tests (`test/benchmark-tests/`)
+
+Answers "did this get faster or slower?", not "is the output correct?" - the comparison/execution packs never record timing, so this is a separate harness. It generates a synthetic project on the fly and times ts-loader compiling it (cold build, and incremental rebuild after touching a low-fan-out vs. high-fan-out file, under both `transpileOnly: true`/`false`), comparing two ts-loader checkouts (this build vs. another, e.g. `main`) back-to-back in one process so the relative numbers are meaningful despite noisy CI hosts.
+
+Full docs: [`test/benchmark-tests/README.md`](test/benchmark-tests/README.md)
+
+**Report-only**: `.github/workflows/benchmark.yml` posts results as a PR comment/job summary on every PR; it does not fail the build.
+
+```bash
+yarn benchmark -- --root-a . --root-b .                # sanity check against itself, expect ~0% deltas
+yarn benchmark -- --root-a . --root-b ../ts-loader-main # compare against another built checkout
 ```
 
 Always add or update tests when fixing bugs or adding features — see [CONTRIBUTING.md](CONTRIBUTING.md).

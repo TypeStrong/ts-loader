@@ -1,0 +1,181 @@
+name: benchmark
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+# Without this, two runs racing on the same PR can both find no existing
+# marker comment and each create their own duplicate (post-benchmark-comment.js
+# does a check-then-act listComments/createComment with no locking).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  benchmark_ubuntu:
+    name: Benchmark Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: install & build (PR branch)
+        run: |
+          yarn install
+          yarn build
+
+      # Checked out into a sibling worktree rather than a second checkout step
+      # so both builds can run from disk at the same time.
+      - name: checkout base branch into a worktree
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+        run: git worktree add ../ts-loader-main "$BASE_SHA"
+
+      - name: install & build (base branch)
+        working-directory: ../ts-loader-main
+        run: |
+          yarn install
+          yarn build
+
+      # --root-a is the PR branch checked out at $GITHUB_WORKSPACE above;
+      # --root-b is the base branch worktree built in the previous step.
+      - name: run benchmark
+        run: |
+          yarn benchmark -- \
+            --root-a "$GITHUB_WORKSPACE" --label-a "PR branch" \
+            --root-b "$GITHUB_WORKSPACE/../ts-loader-main" --label-b "base branch"
+
+      - name: write job summary
+        if: always()
+        run: cat .benchmark/benchmark-results.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || true
+
+      - name: upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results-ubuntu
+          path: .benchmark/benchmark-results.*
+          if-no-files-found: ignore
+
+      # Only runs with a writable token - GitHub automatically issues a
+      # read-only GITHUB_TOKEN for fork PRs, so this step is a silent no-op
+      # there. The step summary above still carries the numbers for everyone.
+      - name: comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const path = require('path');
+            const postComment = require(path.join(process.env.GITHUB_WORKSPACE, '.github/scripts/post-benchmark-comment.js'));
+            await postComment({
+              github,
+              context,
+              resultsPath: '.benchmark/benchmark-results.md',
+              marker: '<!-- ts-loader-benchmark:ubuntu -->',
+              title: 'Benchmark (Ubuntu)',
+            });
+
+  benchmark_windows:
+    name: Benchmark Windows
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      # Windows Defender's real-time scanning adds unpredictable latency to
+      # file I/O, and this benchmark does a lot of it (a 300-file fixture,
+      # webpack output per build, a touched file on every incremental
+      # iteration) - excluding the working directories keeps that noise out
+      # of the measurements.
+      - name: exclude working directories from Windows Defender
+        shell: pwsh
+        run: |
+          Add-MpPreference -ExclusionPath "C:\source"
+          Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
+
+      - name: copy files
+        shell: pwsh
+        run: |
+          New-Item C:\source\ts-loader -ItemType Directory
+          Copy-Item .\* C:\source\ts-loader -Recurse -Force
+
+      - name: install & build (PR branch)
+        run: |
+          yarn install
+          yarn build
+        working-directory: C:\source\ts-loader
+
+      # Checked out into a sibling worktree rather than a second checkout step
+      # so both builds can run from disk at the same time.
+      - name: checkout base branch into a worktree
+        shell: pwsh
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || 'origin/main' }}
+        run: git worktree add C:\source\ts-loader-main $env:BASE_SHA
+        working-directory: C:\source\ts-loader
+
+      - name: install & build (base branch)
+        run: |
+          yarn install
+          yarn build
+        working-directory: C:\source\ts-loader-main
+
+      # --root-a is the PR branch copied to C:\source\ts-loader above;
+      # --root-b is the base branch worktree built in the previous step.
+      - name: run benchmark
+        shell: pwsh
+        run: |
+          yarn benchmark -- `
+            --root-a C:\source\ts-loader --label-a "PR branch" `
+            --root-b C:\source\ts-loader-main --label-b "base branch"
+        working-directory: C:\source\ts-loader
+
+      - name: write job summary
+        if: always()
+        shell: pwsh
+        run: |
+          if (Test-Path .benchmark\benchmark-results.md) {
+            Get-Content .benchmark\benchmark-results.md | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+          }
+        working-directory: C:\source\ts-loader
+
+      - name: upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results-windows
+          path: C:\source\ts-loader\.benchmark\benchmark-results.*
+          if-no-files-found: ignore
+
+      - name: comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const path = require('path');
+            const postComment = require(path.join(process.env.GITHUB_WORKSPACE, '.github/scripts/post-benchmark-comment.js'));
+            await postComment({
+              github,
+              context,
+              resultsPath: 'C:\\source\\ts-loader\\.benchmark\\benchmark-results.md',
+              marker: '<!-- ts-loader-benchmark:windows -->',
+              title: 'Benchmark (Windows)',
+            });

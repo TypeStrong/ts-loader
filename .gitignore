@@ -8,6 +8,7 @@
 bundle.js
 npm-debug.log
 /.test/
+/.benchmark/
 /test/execution-tests/**/typings
 !/test/**/expectedOutput/**
 !/test/**/expectedOutput-transpile/**
