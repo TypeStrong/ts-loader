@@ -1,6 +1,6 @@
 # Benchmark Test Pack
 
-This pack answers a different question from the comparison and execution test packs: not "is the output correct?" but "did this change make ts-loader faster or slower?" It generates a synthetic webpack project on the fly and times ts-loader compiling it, comparing two ts-loader builds (typically: this branch vs. `main`) back-to-back in the same process.
+This pack answers a different question from the comparison and execution test packs: not "is the output correct?" but "did this change make ts-loader faster or slower?" It generates a synthetic webpack project on the fly and times ts-loader compiling it, comparing two ts-loader builds (typically: this branch vs. `main`).
 
 **This is report-only.** Nothing here fails a build - see `.github/workflows/benchmark.yml`, which posts the comparison as a PR comment and job summary rather than gating merges. That may change once we've watched real-world noise levels for a while.
 
@@ -10,14 +10,15 @@ Their fixtures are tiny (a handful of files, 1-2 watch patches) and built for ou
 
 ## How it works
 
-1. `generate-fixture.mts` writes a synthetic TypeScript project: a `hub` module imported by most other files, many independent `leaf` modules (imported by only a couple of files each), `mid` modules that combine a few leaves, and an entry point that imports every `mid`. Two identical copies are generated (`.benchmark/fixture-a`, `.benchmark/fixture-b`) so two concurrent watch sessions never see each other's file changes.
+1. `generate-fixture.mts` writes a synthetic TypeScript project: a `hub` module imported by most other files, many independent `leaf` modules (imported by only a couple of files each), `mid` modules that combine a few leaves, and an entry point that imports every `mid`. Two identical copies are generated (`.benchmark/fixture-a`, `.benchmark/fixture-b`) so the two sides' watch sessions never see each other's file changes.
 2. `scenarios.mts` provides the primitives: a cold (non-watch) build, and a watch session with a `nextCompile()` you can await after touching a file.
-3. `run-benchmark.mts` is the CLI entry point, run directly by Node's native TypeScript support (Node 24+, no build step). The `.mts` extension marks these as ES modules regardless of the package's own CommonJS `type`, matching how `import`/`export` is authored elsewhere in this repo. For both `transpileOnly: true` and `transpileOnly: false`, it runs:
+3. `run-side.mts` runs every iteration of one scenario for *one side* in its own Node process, so the two TypeScript + webpack instances never share a V8 heap (shared-heap GC pressure was a real source of measurement bias). It's invoked as a subprocess by `run-benchmark.mts`, never run directly.
+4. `run-benchmark.mts` is the CLI entry point, run directly by Node's native TypeScript support (Node 24+, no build step). The `.mts` extension marks these as ES modules regardless of the package's own CommonJS `type`, matching how `import`/`export` is authored elsewhere in this repo. For both `transpileOnly: true` and `transpileOnly: false`, it runs:
    - **Cold build** - a fresh `webpack()` compile.
    - **Incremental rebuild, leaf touch** - touch a file with ~1-2 dependants.
    - **Incremental rebuild, hub touch** - touch the file most things depend on, to specifically exercise dependant-recheck codepaths (see `src/after-compile.ts`'s `populateReverseDependencyGraph`/`collectAllDependants`, used by `determineFilesToCheckForErrors` to decide which files need rechecking after a change).
 
-   Each scenario runs 2 discarded warmup iterations plus 6 measured ones, alternating which side (`a`/`b`) goes first each iteration to cancel host drift/thermal bias, and reports the **median** (robust to the odd stalled iteration).
+   For each scenario, both sides' `run-side.mts` subprocesses are spawned and run **concurrently** (not one after the other) - this is what keeps the delta near zero when the two checkouts are identical, since any host noise (CPU contention, scheduling) hits both sides at the same wall-clock moment instead of biasing whichever side happened to run in a noisier window. Cold builds run 2 discarded warmup iterations plus several times the requested `--iterations` (see `ITERATION_MULTIPLIER` in `run-benchmark.mts`); incremental rebuilds get a much larger multiplier again, since each rebuild is only tens of ms and cheap to re-run many times to average out that much noisier measurement. The **median** of the measured iterations is reported (robust to the odd stalled one).
 
 ## Running it
 
@@ -33,9 +34,11 @@ yarn benchmark -- --root-a . --root-b ../ts-loader-main
 
 `--root-a`/`--root-b` each point at a ts-loader checkout root (must contain a built `index.js`/`dist/`) - matching the `resolveLoader.alias` pattern used in `test/execution-tests/*/webpack.config.js`.
 
-Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup <n>` (default 2), `--iterations <n>` (default 6), `--benchmark-dir <path>` (default `.benchmark`, gitignored), `--label-a`/`--label-b <name>` (default `A`/`B` - override for more readable table headers, e.g. `--label-a "PR branch" --label-b "base branch"` as `.github/workflows/benchmark.yml` does).
+Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup <n>` (default 2), `--iterations <n>` (default 10, before the per-scenario multiplier described above), `--benchmark-dir <path>` (default `.benchmark`, gitignored), `--label-a`/`--label-b <name>` (default `A`/`B` - override for more readable table headers, e.g. `--label-a "PR branch" --label-b "base branch"` as `.github/workflows/benchmark.yml` does).
 
 Results are written to `.benchmark/benchmark-results.json` (raw samples) and `.benchmark/benchmark-results.md` (summary table), and also printed to stdout.
+
+On Windows CI specifically, `.github/workflows/benchmark.yml` also excludes the working directories from Windows Defender's real-time scanning before running the benchmark, since that scanning otherwise adds unpredictable latency to this benchmark's heavy file I/O.
 
 ## Interpreting deltas
 
