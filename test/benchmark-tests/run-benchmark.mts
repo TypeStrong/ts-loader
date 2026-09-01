@@ -53,21 +53,28 @@ interface ScenarioResult {
 function parseArgs(argv: string[]): Args {
   const get = (flag: string, fallback: string): string => {
     const i = argv.indexOf(flag);
-    return i === -1 ? fallback : argv[i + 1];
+    if (i === -1) return fallback;
+    const value = argv[i + 1];
+    if (value === undefined || value.startsWith('--')) {
+      throw new Error(`Missing value for argument: ${flag}`);
+    }
+    return value;
   };
   const rootA = path.resolve(get('--root-a', process.cwd()));
   const rootB = path.resolve(get('--root-b', rootA));
   const warmup = Number(get('--warmup', String(WARMUP_ITERATIONS)));
   const iterations = Number(get('--iterations', String(MEASURED_ITERATIONS)));
+  const fileCount = Number(get('--files', '300'));
   if (!Number.isInteger(warmup) || warmup < 0) throw new Error(`--warmup must be a non-negative integer (got ${warmup})`);
   if (!Number.isInteger(iterations) || iterations <= 0) throw new Error(`--iterations must be a positive integer (got ${iterations})`);
   if (warmup >= iterations) throw new Error(`--warmup (${warmup}) must be less than --iterations (${iterations})`);
+  if (!Number.isInteger(fileCount) || fileCount <= 0) throw new Error(`--files must be a positive integer (got ${fileCount})`);
   return {
     rootA,
     rootB,
     labelA: get('--label-a', 'A'),
     labelB: get('--label-b', 'B'),
-    fileCount: Number(get('--files', '300')),
+    fileCount,
     warmup,
     iterations,
     benchmarkDir: path.resolve(get('--benchmark-dir', path.join(process.cwd(), '.benchmark'))),
@@ -160,12 +167,11 @@ function spawnSide(processArgs: string[]): Promise<number[]> {
 function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, warmup, iterations }: RunSideOptions): Promise<number[]> {
   // Write the touch-original content to a temp file so the subprocess can
   // read it without us serialising potentially-large strings through argv.
-  const touchKey = scenarioType as 'leaf' | 'hub';
   let touchOriginalPath = '';
   if (scenarioType !== 'cold') {
     touchOriginalPath = path.join(outputPath, 'touch-original.ts');
     fs.mkdirSync(outputPath, { recursive: true });
-    fs.writeFileSync(touchOriginalPath, meta[`${touchKey}TouchOriginal`]);
+    fs.writeFileSync(touchOriginalPath, meta.touch[scenarioType].original);
   }
 
   const processArgs = [
@@ -179,7 +185,7 @@ function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, w
     '--scenario-type', scenarioType,
     '--iterations', String(warmup + iterations),
     ...(scenarioType !== 'cold' ? [
-      '--touch-file', meta[`${touchKey}TouchFile`],
+      '--touch-file', meta.touch[scenarioType].file,
       '--touch-original', touchOriginalPath,
     ] : []),
   ];
@@ -241,6 +247,10 @@ async function runScenario({
  */
 function isRegressionFlagged(r: ScenarioResult): boolean {
   if (Math.abs(r.deltaPct) < REGRESSION_FLAG_PCT) return false;
+  // Can't compute a noise ratio against a zero baseline (and deltaPct itself
+  // is already +-Infinity/NaN at that point) - fall back to the flat
+  // threshold above rather than let a zero median produce a NaN comparison.
+  if (r.b.median === 0) return true;
   const combinedStddevPct = (Math.sqrt(r.a.stddev ** 2 + r.b.stddev ** 2) / r.b.median) * 100;
   return Math.abs(r.deltaPct) >= REGRESSION_FLAG_NOISE_MULTIPLIER * combinedStddevPct;
 }

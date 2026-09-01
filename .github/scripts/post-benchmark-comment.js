@@ -9,7 +9,7 @@ const fs = require('fs');
  *     listComments: (options: { owner: string, repo: string, issue_number: number }) => Promise<{ data: Array<{ id: number, body: string }> }>,
  *     updateComment: (options: { owner: string, repo: string, comment_id: number, body: string }) => Promise<unknown>,
  *     createComment: (options: { owner: string, repo: string, issue_number: number, body: string }) => Promise<unknown>
- *   } } },
+ *   } }, paginate: (endpoint: unknown, options: unknown) => Promise<Array<{ id: number, body: string }>> },
  *   context: { repo: { owner: string, repo: string }, issue: { number: number } },
  *   resultsPath: string,
  *   marker: string,
@@ -27,7 +27,11 @@ module.exports = async ({ github, context, resultsPath, marker, title }) => {
   body = `${marker}\n### ${title}\n\n${body}`;
 
   try {
-    const { data: comments } = await github.rest.issues.listComments({
+    // paginate (rather than a single listComments call) so the marker is
+    // still found on PRs with more comments than fit on one page - otherwise
+    // it'd never be found past page 1, and every run would create a fresh
+    // duplicate instead of updating the existing one.
+    const comments = await github.paginate(github.rest.issues.listComments, {
       owner: context.repo.owner,
       repo: context.repo.repo,
       issue_number: context.issue.number,

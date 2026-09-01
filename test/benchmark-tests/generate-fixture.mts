@@ -99,14 +99,19 @@ interface GenerateFixtureOptions {
   seed?: number;
 }
 
+interface TouchTarget {
+  file: string;
+  original: string;
+}
+
 export interface FixtureMeta {
   fixtureDir: string;
   tsconfigPath: string;
   entryFile: string;
-  leafTouchFile: string;
-  leafTouchOriginal: string;
-  hubTouchFile: string;
-  hubTouchOriginal: string;
+  touch: {
+    leaf: TouchTarget;
+    hub: TouchTarget;
+  };
 }
 
 /**
@@ -177,9 +182,9 @@ export function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }: Gene
     fixtureDir,
     tsconfigPath,
     entryFile: path.join(srcDir, 'index.ts'),
-    leafTouchFile,
-    leafTouchOriginal: fs.readFileSync(leafTouchFile, 'utf8'),
-    hubTouchFile,
-    hubTouchOriginal: fs.readFileSync(hubTouchFile, 'utf8'),
+    touch: {
+      leaf: { file: leafTouchFile, original: fs.readFileSync(leafTouchFile, 'utf8') },
+      hub: { file: hubTouchFile, original: fs.readFileSync(hubTouchFile, 'utf8') },
+    },
   };
 }

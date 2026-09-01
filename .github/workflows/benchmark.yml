@@ -4,6 +4,13 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Without this, two runs racing on the same PR can both find no existing
+# marker comment and each create their own duplicate (post-benchmark-comment.js
+# does a check-then-act listComments/createComment with no locking).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: write
