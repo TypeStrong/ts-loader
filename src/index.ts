@@ -158,6 +158,28 @@ function getTypeScriptInstance(
     instance.typeScriptApiInstance.pendingInvalidation = true;
   });
 
+  // The typeScript API instance holds a live `tsgo` child process (see
+  // typeScriptApi.ts's createTypeScriptApiInstance) that nothing else kills:
+  // it's spawned per instance, not per file, and the instance cache is a
+  // WeakMap keyed on the compiler, so leaving this untapped leaks one native
+  // process per compiler for as long as the Node process runs. `watchClose`
+  // covers a watcher's own teardown; `shutdown` (webpack 5 only - webpack 4
+  // has no `compiler.close()`/`shutdown` hook) covers the one-shot
+  // run/close pattern.
+  const disposeTypeScriptApiInstance = () => {
+    instance.typeScriptApiInstance.api.close();
+  };
+  loader._compiler!.hooks.watchClose.tap(
+    'ts-loader',
+    disposeTypeScriptApiInstance,
+  );
+  if (loaderUtils.isWebpack5) {
+    loader._compiler!.hooks.shutdown.tap(
+      'ts-loader',
+      disposeTypeScriptApiInstance,
+    );
+  }
+
   if (!loaderOptions.transpileOnly) {
     addPostCompileHooks(loader, instance);
   }
