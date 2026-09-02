@@ -11,6 +11,7 @@ import {
 import {
   createTypeScriptApiInstance,
   getTypeScriptEmit,
+  recheckAllTransitiveDependants,
 } from './typeScriptApi';
 import type {
   FilePath,
@@ -209,6 +210,7 @@ function addPostCompileHooks(
 ) {
   const report = (compilation: webpack.Compilation) => {
     if (!compilation.compiler.isChild()) {
+      recheckAllTransitiveDependants(instance, compilation);
       reportPendingTypeScriptDiagnostics(instance, compilation);
       emitPendingDeclarationFiles(instance, compilation);
     }
