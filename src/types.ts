@@ -111,6 +111,19 @@ export interface TypeScriptInstance {
    */
   projectDtsFileNamesCache: Map<FilePath, readonly string[]>;
   /**
+   * Memoizes each project's non-default-lib, non-external-library source file
+   * names (see recheckAllTransitiveDependants) across every file compiled in
+   * the same build, keyed by project config path - classifying every file in
+   * the program via `isSourceFileDefaultLibrary`/`isSourceFileFromExternalLibrary`
+   * is itself a round trip per file per call, so recomputing this on every
+   * single dependant recheck (as an earlier version did) turns a whole-project
+   * scan into two extra round trips per file, every build. Cleared whenever
+   * `pendingInvalidation` forces a real rescan (see updateSnapshot), since only
+   * then could the project's file set have changed. Keyed via `FilePathKey`
+   * like `projectDtsFileNamesCache`, for the same reason.
+   */
+  projectFileNamesCache: Map<FilePath, readonly string[]>;
+  /**
    * Api-facing names (see toApiFacingFileName) of every primary-project file
    * compiled so far in the current build/watch rebuild - accumulated by
    * getTypeScriptEmit, consumed once (and cleared) by
