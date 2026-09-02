@@ -9,7 +9,7 @@ import {
   reportPendingTypeScriptDiagnostics,
 } from './diagnostics';
 import {
-  createTypeScriptApiInstance,
+  createTypeScriptInstance,
   getTypeScriptEmit,
   recheckAllTransitiveDependants,
 } from './typeScriptApi';
@@ -135,7 +135,7 @@ function getTypeScriptInstance(
     loaderOptions,
     files,
     resolvedFilePathCache,
-    typeScriptApiInstance: createTypeScriptApiInstance(
+    typeScriptApiInstance: createTypeScriptInstance(
       loaderOptions,
       configFilePath,
       files,
@@ -184,7 +184,7 @@ function getTypeScriptInstance(
   });
 
   // The typeScript API instance holds a live `tsgo` child process (see
-  // typeScriptApi.ts's createTypeScriptApiInstance) that nothing else kills:
+  // typeScriptApi.ts's createTypeScriptInstance) that nothing else kills:
   // it's spawned per instance, not per file, and the instance cache is a
   // WeakMap keyed on the compiler, so leaving this untapped leaks one native
   // process per compiler for as long as the Node process runs. `watchClose`
