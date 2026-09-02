@@ -75,6 +75,7 @@ export function createTypeScriptApiInstance(
     pendingInvalidation: true,
     directImportsCache: new Map(),
     projectDtsFileNamesCache: new Map(),
+    changedFilesThisBuild: new Set(),
   };
 }
 
@@ -216,16 +217,13 @@ export function getTypeScriptEmit(
 
       // A dependant's diagnostics can change without its own module
       // rebuilding, and webpack has no reason to re-invoke ts-loader for it -
-      // recheck explicitly, matching classic's afterCompile re-check. Only
-      // meaningful against the primary project: a synthetic one-off project
-      // uses the wrong compiler options/import graph for any other file.
+      // recorded here and rechecked once for the whole build by
+      // recheckAllTransitiveDependants (see index.ts's postCompile hook),
+      // matching classic's afterCompile re-check. Only meaningful against the
+      // primary project: a synthetic one-off project uses the wrong compiler
+      // options/import graph for any other file.
       if (projectConfigPath === typeScriptInstance.configFilePath) {
-        recheckTransitiveDependants(
-          instance,
-          program,
-          apiFileName,
-          loaderContext,
-        );
+        typeScriptInstance.changedFilesThisBuild.add(apiFileName);
       }
 
       // Read out synchronously for the same reason as `errors` above;
@@ -1053,16 +1051,68 @@ function getDirectResolvedImports(
 
 /**
  * Recomputes and stores fresh diagnostics for every project file that
- * (directly or transitively) imports `changedFileName`, so a dependant's
- * type-check is reported even when webpack has no reason to rebuild its
- * module (see the call site).
+ * (directly or transitively) imports any file compiled so far in the current
+ * build (see `changedFilesThisBuild`), so a dependant's type-check is
+ * reported even when webpack has no reason to rebuild its own module - e.g.
+ * a `mid` file that only imports a `leaf` gets no webpack-level rebuild when
+ * a `hub` file both `leaf` and `mid` transitively depend on changes, since
+ * `mid` never registered `hub` as one of its own webpack dependencies (see
+ * registerResolvedImportDependencies). Matches classic ts-loader's
+ * afterCompile re-check.
+ *
+ * Called once per build from index.ts's postCompile hook rather than once
+ * per compiled file: each call already does an O(project size) scan (the
+ * dependant search below, plus two diagnostic calls per dependant found), so
+ * calling it per file - as an earlier version of this function did - turns a
+ * single build into O(files compiled Ă— dependants per file) redundant work.
+ * For a wide-fanout change (a file most of the project depends on, directly
+ * or transitively) that's most of the project rechecked once per file
+ * webpack recompiles, i.e. close to O(nÂ˛) - measured at over 80% of total
+ * build time on a synthetic 300-file fixture. Batching the whole build's
+ * changed-file set into a single dependant search and diagnostic pass fixes
+ * that without changing what gets reported.
  */
-function recheckTransitiveDependants(
+export function recheckAllTransitiveDependants(
   instance: TSInstance,
-  program: Program,
-  changedFileName: string,
-  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  compilation: webpack.Compilation,
 ) {
+  const typeScriptInstance = instance.typeScriptApiInstance;
+  const changedFileNames = typeScriptInstance.changedFilesThisBuild;
+  if (changedFileNames.size === 0) {
+    return;
+  }
+  // Consumed up front so a later throw here can't replay the same recheck
+  // (with a now-stale program) on the next build.
+  typeScriptInstance.changedFilesThisBuild = new Set();
+
+  // Forces the upcoming updateSnapshot to do a full rescan rather than an
+  // incremental one scoped to a single "open" file. Without this, the
+  // snapshot below can still reflect an earlier changed file's stale view of
+  // a *later*-compiled changed file - e.g. fileA imports fileB, both changed
+  // in this build, fileA compiles first: its own invalidateAll rescan reads
+  // fileB before fileB's own loader call has updated the shared file cache
+  // (see the `fs` override in createTypeScriptApiInstance), so a recheck
+  // that reuses that view still sees fileB's old content. By now (this only
+  // runs once per build, from the post-compile hook) every file webpack
+  // compiled this build has already updated that cache, so a fresh rescan
+  // here is guaranteed current for all of them - and, being O(1) per build
+  // rather than per file, affordable where it wasn't before this function
+  // existed.
+  typeScriptInstance.pendingInvalidation = true;
+
+  // Any already-open, real project file works as the anchor for this
+  // snapshot refresh - the whole point is just to get the primary project's
+  // current program, not to focus on one particular file.
+  const anchorFileName = changedFileNames.values().next().value as string;
+  const { primaryProject } = openPrimaryProject(
+    typeScriptInstance,
+    anchorFileName,
+  );
+  if (!primaryProject) {
+    return;
+  }
+  const program = primaryProject.program;
+
   const projectFileNames = program
     .getSourceFileNames()
     .filter(otherFileName => {
@@ -1079,10 +1129,10 @@ function recheckTransitiveDependants(
   );
 
   const dependants = findTransitiveDependants(
-    instance.typeScriptApiInstance,
+    typeScriptInstance,
     instance.resolvedFilePathCache,
     program,
-    changedFileName,
+    changedFileNames,
     projectFileNames,
     comparableSourceFileNames,
   );
@@ -1091,12 +1141,11 @@ function recheckTransitiveDependants(
     return;
   }
 
-  // Looked up despite running from a different file's own loader
-  // invocation, so the error can be tagged with its module for webpack's
-  // stats.
-  const modulesByFile = loaderContext._compilation
-    ? determineModulesByFile(loaderContext._compilation, instance)
-    : undefined;
+  const modulesByFile = determineModulesByFile(compilation, instance);
+  // No single file's own loaderContext applies to a whole-build recheck;
+  // the compiler's own context is the natural stand-in for reportFiles glob
+  // matching (see filterDiagnosticsForReporting) and error display.
+  const context = compilation.compiler.context;
 
   for (const dependantFileName of dependants) {
     const diagnostics = dedupeDiagnostics([
@@ -1104,21 +1153,16 @@ function recheckTransitiveDependants(
       ...program.getSemanticDiagnostics(dependantFileName),
     ]);
 
-    const dependantModule = modulesByFile?.get(
+    const dependantModule = modulesByFile.get(
       instance.resolvedFilePathCache(dependantFileName),
     )?.[0];
 
     const errors = filterDiagnosticsForReporting(
       instance,
-      loaderContext.context,
+      context,
       diagnostics,
     ).map(diagnostic =>
-      buildTypeScriptError(
-        instance,
-        diagnostic,
-        loaderContext.context,
-        dependantModule,
-      ),
+      buildTypeScriptError(instance, diagnostic, context, dependantModule),
     );
 
     instance.pendingDiagnostics.set(
@@ -1129,15 +1173,15 @@ function recheckTransitiveDependants(
 }
 
 /**
- * Every project file that (directly or transitively) imports `changedFileName`,
- * via breadth-first search over each file's direct resolved imports (see
- * getDirectResolvedImports/getCachedDirectResolvedImports).
+ * Every project file that (directly or transitively) imports any file in
+ * `changedFileNames`, via breadth-first search over each file's direct
+ * resolved imports (see getDirectResolvedImports/getCachedDirectResolvedImports).
  */
 function findTransitiveDependants(
   typeScriptInstance: TypeScriptApiInstance,
   resolvedPathCache: ResolvedFilePathCache,
   program: Program,
-  changedFileName: string,
+  changedFileNames: ReadonlySet<string>,
   projectFileNames: readonly string[],
   comparableSourceFileNames: ReadonlySet<string>,
 ): Set<string> {
@@ -1157,18 +1201,24 @@ function findTransitiveDependants(
     ]),
   );
 
-  const comparableChangedFileName = toComparablePath(changedFileName);
+  // Seeds the search frontier - NOT excluded from being found as a dependant
+  // below. A changed file can itself import another changed file (e.g. an
+  // entry file and the dependency it just changed both recompile in the same
+  // build): its own direct compile may have already run - and computed its
+  // diagnostics - before that other file's compile updated the shared file
+  // cache the API's readFile override serves from, leaving it stale unless
+  // it's rechecked here too, against every changed file's final state.
+  const comparableChangedFileNames = new Set(
+    [...changedFileNames].map(toComparablePath),
+  );
   const dependants = new Set<string>();
-  let frontier = new Set([comparableChangedFileName]);
+  let frontier = comparableChangedFileNames;
 
   while (frontier.size > 0) {
     const nextFrontier = new Set<string>();
 
     for (const [candidateFileName, directImports] of directImportsByFile) {
-      if (
-        dependants.has(candidateFileName) ||
-        candidateFileName === comparableChangedFileName
-      ) {
+      if (dependants.has(candidateFileName)) {
         continue;
       }
 

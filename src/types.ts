@@ -110,6 +110,17 @@ export interface TypeScriptInstance {
    * config paths are already stable, single-sourced strings in practice.
    */
   projectDtsFileNamesCache: Map<FilePath, readonly string[]>;
+  /**
+   * Api-facing names (see toApiFacingFileName) of every primary-project file
+   * compiled so far in the current build/watch rebuild - accumulated by
+   * getTypeScriptEmit, consumed once (and cleared) by
+   * recheckAllTransitiveDependants at the end of the build. Batches the
+   * transitive-dependant recheck into a single pass over the whole changed
+   * set instead of one pass per compiled file, which otherwise turns into
+   * O(files compiled Ă— dependants per file) redundant work - see
+   * recheckAllTransitiveDependants's comment.
+   */
+  changedFilesThisBuild: Set<string>;
 }
 
 interface PendingTypeScriptDiagnostics {
