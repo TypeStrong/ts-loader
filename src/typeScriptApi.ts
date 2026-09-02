@@ -7,6 +7,7 @@ import type {
   CompilerOptions,
   Diagnostic,
   EmitOutput,
+  ParsedCommandLine,
   Program,
 } from 'typescript/unstable/sync';
 
@@ -22,7 +23,7 @@ import type {
   FilePath,
   LoaderOptions,
   PendingDeclarationFile,
-  TypeScriptInstance as TypeScriptApiInstance,
+  TypeScriptInstance,
   TSInstance,
   ResolvedFilePathCache,
 } from './types';
@@ -32,43 +33,45 @@ interface TypeScriptApiModule {
   API: new (options?: APIOptions) => API;
 }
 
-export function createTypeScriptApiInstance(
+export function createTypeScriptInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
   files: TSInstance['files'],
   resolvedFilePathCache: ResolvedFilePathCache,
-): TypeScriptApiInstance {
+): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
   // Served entirely via the `readFile` override below - never written to
   // real disk (see ensureSyntheticConfigForFile).
   const syntheticConfigContents = new Map<FilePath, string>();
+  const api = new typeScriptApiModule.API(
+    loaderOptions.transpileOnly
+      ? undefined
+      : {
+          fs: {
+            // Without this, a purely synthetic identity (e.g. `component.vue.ts`)
+            // reports "File not found" (TS6053) even though readFile can serve
+            // it. `true`/`undefined`, not `false`, so anything else still falls
+            // through to real disk.
+            fileExists: fileName =>
+              syntheticConfigContents.has(resolvedFilePathCache(fileName)) ||
+              files.has(resolvedFilePathCache(fileName))
+                ? true
+                : undefined,
+            // resolvedPathCache since the API may hand back a different path
+            // spelling (or case, on a case-insensitive filesystem) than what
+            // this was stored under.
+            readFile: fileName =>
+              syntheticConfigContents.get(resolvedFilePathCache(fileName)) ??
+              files.get(resolvedFilePathCache(fileName))?.text,
+          },
+        },
+  );
 
   return {
-    // Serves ts-loader's own post-transform file content (other loaders may
-    // have altered it) instead of hitting real disk; falls through
-    // (`undefined`) for anything not in `files`, matching classic
-    // ts-loader's LanguageServiceHost.
-    api: new typeScriptApiModule.API({
-      fs: {
-        // Without this, a purely synthetic identity (e.g. `component.vue.ts`)
-        // reports "File not found" (TS6053) even though readFile can serve
-        // it. `true`/`undefined`, not `false`, so anything else still falls
-        // through to real disk.
-        fileExists: fileName =>
-          syntheticConfigContents.has(resolvedFilePathCache(fileName)) ||
-          files.has(resolvedFilePathCache(fileName))
-            ? true
-            : undefined,
-        // resolvedPathCache since the API may hand back a different path
-        // spelling (or case, on a case-insensitive filesystem) than what
-        // this was stored under.
-        readFile: fileName =>
-          syntheticConfigContents.get(resolvedFilePathCache(fileName)) ??
-          files.get(resolvedFilePathCache(fileName))?.text,
-      },
-    }),
+    api,
     configFilePath: resolvedFilePathCache(configFilePath),
+    transpileConfig: undefined,
     syntheticConfigContents,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
@@ -258,21 +261,8 @@ function getTranspileOnlyEmit(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
   const typeScriptInstance = instance.typeScriptApiInstance;
-  const { primaryProjectPath, primaryProject: project } = openPrimaryProject(
-    typeScriptInstance,
-    instance.resolvedFilePathCache,
-    apiFileName,
-  );
-
-  if (!project) {
-    throw new Error(
-      `TypeScript TypeScript mode could not resolve project for ${fileName}.`,
-    );
-  }
-
-  const program = project.program;
-  const configFileParsingDiagnostics =
-    program.getConfigFileParsingDiagnostics();
+  const config = getTranspileConfig(typeScriptInstance);
+  const configFileParsingDiagnostics = config.errors;
 
   if (configFileParsingDiagnostics.length > 0) {
     // See the equivalent check in getTypeScriptEmit.
@@ -283,7 +273,7 @@ function getTranspileOnlyEmit(
         instance,
         loaderContext,
         configFileParsingDiagnostics,
-        primaryProjectPath,
+        typeScriptInstance.configFilePath,
       ),
     };
   }
@@ -296,7 +286,7 @@ function getTranspileOnlyEmit(
   // toComparablePath.
   const transpileFileName = toComparablePath(apiFileName);
 
-  const compilerOptions = program.getCompilerOptions();
+  const compilerOptions = config.options;
   const {
     outputText,
     sourceMapText,
@@ -307,56 +297,42 @@ function getTranspileOnlyEmit(
     reportDiagnostics: true,
   });
 
-  // Classic ts-loader's transpileOnly path also surfaces whole-program
-  // diagnostics (e.g. "rootDir must be explicitly set"); transpileModule
-  // has no project of its own to derive these from, so pull them from the
-  // resolved project directly.
-  const programDiagnostics = dedupeDiagnostics(program.getProgramDiagnostics());
-
-  const errors = [
-    ...filterDiagnosticsForReporting(
+  const errors = filterDiagnosticsForReporting(
+    instance,
+    loaderContext.context,
+    dedupeDiagnostics(diagnostics),
+  ).map(diagnostic =>
+    buildTypeScriptError(
       instance,
+      diagnostic,
       loaderContext.context,
-      dedupeDiagnostics(diagnostics),
-    ).map(diagnostic =>
-      buildTypeScriptError(
-        instance,
-        diagnostic,
-        loaderContext.context,
-        loaderContext._module,
-        '',
-        fileName,
-      ),
+      loaderContext._module,
+      '',
+      fileName,
     ),
-    // Program diagnostics have no associated file (classic attributes them
-    // to the tsconfig instead).
-    ...filterDiagnosticsForReporting(
-      instance,
-      loaderContext.context,
-      programDiagnostics,
-    ).map(diagnostic =>
-      buildTypeScriptError(
+  );
+  if (!typeScriptInstance.transpileConfigDiagnosticsReported) {
+    errors.push(
+      ...filterDiagnosticsForReporting(
         instance,
-        diagnostic,
         loaderContext.context,
-        loaderContext._module,
-        primaryProjectPath,
+        typeScriptInstance.transpileConfigDiagnostics ?? [],
+      ).map(diagnostic =>
+        buildTypeScriptError(
+          instance,
+          diagnostic,
+          loaderContext.context,
+          loaderContext._module,
+          typeScriptInstance.configFilePath,
+        ),
       ),
-    ),
-  ];
+    );
+    typeScriptInstance.transpileConfigDiagnosticsReported = true;
+  }
 
   // No type-checking to wait for in transpileOnly mode, so report
   // immediately, matching classic ts-loader.
   reportTypeScriptErrors(loaderContext, errors);
-
-  registerTypeScriptDependencies(
-    loaderContext,
-    program,
-    fileName,
-    apiFileName,
-    primaryProjectPath,
-    instance,
-  );
 
   // transpileDeclaration is the only way transpileOnly can produce .d.ts
   // output: the full, type-checked program.getDeclarationEmit path needs a
@@ -377,6 +353,64 @@ function getTranspileOnlyEmit(
   }
 
   return { outputText, sourceMapText, configParseErrorMessage: undefined };
+}
+
+function getTranspileConfig(
+  typeScriptInstance: TypeScriptInstance,
+): ParsedCommandLine {
+  if (
+    typeScriptInstance.transpileConfig === undefined ||
+    typeScriptInstance.pendingInvalidation ||
+    typeScriptInstance.pendingChangedFiles !== undefined ||
+    typeScriptInstance.pendingRemovedFiles !== undefined
+  ) {
+    typeScriptInstance.transpileConfig = typeScriptInstance.api.parseConfigFile(
+      typeScriptInstance.configFilePath,
+    );
+    const config = typeScriptInstance.transpileConfig;
+    if (config.errors.length === 0) {
+      // Match classic transpileOnly's empty program unless root files are
+      // required for emit-path diagnostics such as TS5055 and TS6059.
+      const rootFiles = requiresRootFileDiagnostics(config)
+        ? config.fileNames
+        : [];
+      const program = typeScriptInstance.api.createProgram(rootFiles, {
+        compilerOptions:
+          rootFiles.length === 0
+            ? config.options
+            : { ...config.options, noCheck: true, noResolve: true },
+        configFileParsingDiagnostics: config.errors,
+      });
+      typeScriptInstance.transpileConfigDiagnostics =
+        program.getProgramDiagnostics();
+      program.dispose();
+    } else {
+      typeScriptInstance.transpileConfigDiagnostics = [];
+    }
+    typeScriptInstance.transpileConfigDiagnosticsReported = false;
+    typeScriptInstance.pendingInvalidation = false;
+    typeScriptInstance.pendingChangedFiles = undefined;
+    typeScriptInstance.pendingRemovedFiles = undefined;
+  }
+  return typeScriptInstance.transpileConfig;
+}
+
+function requiresRootFileDiagnostics(config: ParsedCommandLine): boolean {
+  if (config.options.allowJs) {
+    return true;
+  }
+  if (!config.options.rootDir) {
+    return false;
+  }
+  const rootDir = path.resolve(config.options.rootDir);
+  return config.fileNames.some(fileName => {
+    const relativePath = path.relative(rootDir, fileName);
+    return (
+      relativePath === '..' ||
+      relativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relativePath)
+    );
+  });
 }
 
 /**
@@ -420,7 +454,7 @@ function reportConfigFileParsingErrors(
  */
 function recordTranspileOnlyDeclarationFile(
   instance: TSInstance,
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileName: string,
   // Forward-slash-normalized (see transpileFileName's own comment at the
@@ -535,7 +569,7 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
 }
 
 function updateSnapshot(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   openProjects?: FilePath[],
@@ -645,7 +679,7 @@ function mapApiFacingFileNames(
  * (which may fall back to a synthetic project) and `getTranspileOnlyEmit`.
  */
 function openPrimaryProject(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   changedFileNames?: ReadonlySet<string>,
@@ -670,7 +704,7 @@ function openPrimaryProject(
 }
 
 function prepareSnapshotForFile(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   forceSyntheticRoot: boolean,
@@ -731,7 +765,7 @@ function prepareSnapshotForFile(
 const maxOrphanFileProjects = 20;
 
 function ensureSyntheticConfigForFile(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   configFilePath: FilePath,
   rootFiles: readonly string[],
@@ -768,7 +802,7 @@ function ensureSyntheticConfigForFile(
   }
 
   // A sibling of the real config, so its directory always already exists on
-  // disk - see syntheticConfigContents in createTypeScriptApiInstance.
+  // disk - see syntheticConfigContents in createTypeScriptInstance.
   const syntheticConfigPath = resolvedFilePathCache(
     path.join(
       path.dirname(configFilePath),
@@ -940,7 +974,7 @@ function registerTypeScriptDependencies(
  * invalidation signal.
  */
 function getProjectFileNames(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   projectConfigPath: string,
   program: Program,
@@ -984,7 +1018,7 @@ function sameFileNames(a: readonly string[], b: readonly string[]): boolean {
  * it costs no API calls beyond what that already pays for.
  */
 function getProjectDtsFileNames(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   projectConfigPath: string,
   program: Program,
@@ -1046,7 +1080,7 @@ function getDependencyVersionTag(
  * up-to-date result too.
  */
 function registerResolvedImportDependencies(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   program: Program,
   fileName: string,
@@ -1083,7 +1117,7 @@ function registerResolvedImportDependencies(
  * same key, a cache entry it writes could never be found here on Windows.
  */
 function getCachedDirectResolvedImports(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   program: Program,
   fileName: string,
@@ -1197,7 +1231,7 @@ export function recheckAllTransitiveDependants(
   // a *later*-compiled changed file - e.g. fileA imports fileB, both changed
   // in this build, fileA compiles first: its own rescan reads fileB before
   // fileB's own loader call has updated the shared file cache (see the `fs`
-  // override in createTypeScriptApiInstance), so a recheck that reuses that
+  // override in createTypeScriptInstance), so a recheck that reuses that
   // view still sees fileB's old content. By now (this only runs once per
   // build, from the post-compile hook) every file webpack compiled this
   // build has already updated that cache, so listing all of them here is
@@ -1284,7 +1318,7 @@ export function recheckAllTransitiveDependants(
  * resolved imports (see getDirectResolvedImports/getCachedDirectResolvedImports).
  */
 function findTransitiveDependants(
-  typeScriptInstance: TypeScriptApiInstance,
+  typeScriptInstance: TypeScriptInstance,
   resolvedPathCache: ResolvedFilePathCache,
   program: Program,
   changedFileNames: ReadonlySet<string>,
