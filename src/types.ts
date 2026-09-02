@@ -1,5 +1,10 @@
 import type { Colors } from './colors';
-import type { API as SyncApi, Snapshot } from 'typescript/unstable/sync';
+import type {
+  API,
+  Diagnostic,
+  ParsedCommandLine,
+  Snapshot,
+} from 'typescript/unstable/sync';
 import type * as webpack from 'webpack';
 
 export interface ErrorInfo {
@@ -67,8 +72,11 @@ export interface TSFile {
 }
 
 export interface TypeScriptInstance {
-  api: SyncApi;
+  api: API;
   configFilePath: FilePath;
+  transpileConfig?: ParsedCommandLine;
+  transpileConfigDiagnostics?: readonly Diagnostic[];
+  transpileConfigDiagnosticsReported?: boolean;
   syntheticConfigContents: Map<FilePath, string>;
   /** Orphan file (see ensureSyntheticConfigForFile) -> its synthetic project's config path. */
   syntheticConfigFiles: Map<FilePath, FilePath>;
