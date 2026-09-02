@@ -74,7 +74,6 @@ export function createTypeScriptApiInstance(
     openedProjectPaths: new Set(),
     pendingInvalidation: true,
     directImportsCache: new Map(),
-    projectDtsFileNamesCache: new Map(),
     projectFileNamesCache: new Map(),
     changedFilesThisBuild: new Set(),
   };
@@ -261,6 +260,7 @@ function getTranspileOnlyEmit(
   const typeScriptInstance = instance.typeScriptApiInstance;
   const { primaryProjectPath, primaryProject: project } = openPrimaryProject(
     typeScriptInstance,
+    instance.resolvedFilePathCache,
     apiFileName,
   );
 
@@ -536,6 +536,7 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
 
 function updateSnapshot(
   typeScriptInstance: TypeScriptApiInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   openProjects?: FilePath[],
   closeProjects?: FilePath[],
@@ -548,33 +549,59 @@ function updateSnapshot(
   changedFileNames?: ReadonlySet<string>,
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
-  // `invalidateAll` forces a full rescan: ts-loader only knows about the one
-  // file webpack asked it to compile, not whether other project files
-  // changed on disk since the last snapshot. Only needed once per build/watch
-  // rebuild (see `pendingInvalidation` and its `compile`-hook wiring in
-  // index.ts) - every other file compiled within the same build reuses the
-  // snapshot that call already refreshed.
+  // Priority, highest first: (1) `pendingInvalidation`'s full `invalidateAll` -
+  // ts-loader has no idea what changed (webpack 4, or the very first build),
+  // so it has to assume anything could have. (2) `pendingChangedFiles`/
+  // `pendingRemovedFiles` - webpack 5's watcher already knows exactly which
+  // files changed since the last build (see its `compile`-hook wiring in
+  // index.ts), so listing them is just as sufficient as (1) but far cheaper.
+  // (3) `changedFileNames` - see its own doc comment above. Only ever one of
+  // these three is live for a given call: (1) and (2) are set (and consumed
+  // here) once per build, before any file compiles; (3) is passed explicitly
+  // by the one caller that needs it, once that's no longer true.
+  const pendingChangedOrRemovedFiles =
+    typeScriptInstance.pendingChangedFiles ??
+    typeScriptInstance.pendingRemovedFiles;
   const fileChanges = typeScriptInstance.pendingInvalidation
     ? ({ invalidateAll: true } as const)
-    : changedFileNames && changedFileNames.size > 0
-      ? { changed: [...changedFileNames] }
-      : undefined;
+    : pendingChangedOrRemovedFiles
+      ? {
+          changed: mapApiFacingFileNames(typeScriptInstance.pendingChangedFiles),
+          deleted: mapApiFacingFileNames(typeScriptInstance.pendingRemovedFiles),
+        }
+      : changedFileNames && changedFileNames.size > 0
+        ? { changed: [...changedFileNames] }
+        : undefined;
   if (typeScriptInstance.pendingInvalidation) {
-    // A real rescan can change any file's content or a project's file set,
-    // so caches derived from the previous build can no longer be trusted -
-    // see findTransitiveDependants/directImportsCache and
-    // registerTypeScriptDependencies/projectDtsFileNamesCache and
-    // recheckAllTransitiveDependants/projectFileNamesCache. A targeted
-    // `changed` list (the other branch above) needs no such clear: every
-    // listed file's own directImportsCache entry is already fresh (written by
-    // its own compile earlier this build - see registerResolvedImportDependencies),
-    // and content-only edits never change which files exist in the project, so
-    // projectDtsFileNamesCache/projectFileNamesCache stay valid too.
+    // A real rescan can change any file's content, so directImportsCache
+    // entries (derived from a file's own imports - see
+    // findTransitiveDependants) can no longer be trusted. A targeted
+    // `changed`/`deleted` list (either branch below) needs no such clear:
+    // every *other* file's own entry is unaffected by files it doesn't
+    // import, and the listed files' own entries are handled explicitly below
+    // (`pendingChangedFiles`/`pendingRemovedFiles`) or are already fresh,
+    // written by their own compile earlier this build (`changedFileNames` -
+    // see registerResolvedImportDependencies). projectFileNamesCache isn't
+    // cleared here at all - it validates itself against the program's own
+    // file list on every read (see getProjectFileNames), so it's safe to
+    // keep across every case here, including a full rescan.
     typeScriptInstance.directImportsCache.clear();
-    typeScriptInstance.projectDtsFileNamesCache.clear();
-    typeScriptInstance.projectFileNamesCache.clear();
+  } else if (pendingChangedOrRemovedFiles) {
+    // Only these specific files' own direct-imports could have changed (a
+    // content edit) or stopped mattering (a removal) - every other project
+    // file's own entry is still derived from its own, unaffected content.
+    for (const rawFileName of [
+      ...(typeScriptInstance.pendingChangedFiles ?? []),
+      ...(typeScriptInstance.pendingRemovedFiles ?? []),
+    ]) {
+      typeScriptInstance.directImportsCache.delete(
+        resolvedFilePathCache(toApiFacingFileName(rawFileName)),
+      );
+    }
   }
   typeScriptInstance.pendingInvalidation = false;
+  typeScriptInstance.pendingChangedFiles = undefined;
+  typeScriptInstance.pendingRemovedFiles = undefined;
   const snapshot = typeScriptInstance.api.updateSnapshot(
     openProjects && openProjects.length > 0
       ? { openProjects, openFiles: [fileName], fileChanges, closeProjects }
@@ -594,18 +621,35 @@ function updateSnapshot(
 }
 
 /**
+ * Api-facing names (see `toApiFacingFileName`) of a raw webpack file-path
+ * set, or `undefined` for an absent/empty set - so an unpopulated
+ * `pendingRemovedFiles` (say) omits `deleted` from `APIFileChanges` entirely
+ * rather than sending an empty array.
+ */
+function mapApiFacingFileNames(
+  fileNames: ReadonlySet<string> | undefined,
+): string[] | undefined {
+  if (!fileNames || fileNames.size === 0) {
+    return undefined;
+  }
+  return [...fileNames].map(toApiFacingFileName);
+}
+
+/**
  * Opens (or reuses) the primary project - the one configured project
  * ts-loader resolved via `configFilePath`. Shared by `prepareSnapshotForFile`
  * (which may fall back to a synthetic project) and `getTranspileOnlyEmit`.
  */
 function openPrimaryProject(
   typeScriptInstance: TypeScriptApiInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   changedFileNames?: ReadonlySet<string>,
 ) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
     typeScriptInstance,
+    resolvedFilePathCache,
     fileName,
     typeScriptInstance.openedProjectPaths.has(primaryProjectPath)
       ? undefined
@@ -629,6 +673,7 @@ function prepareSnapshotForFile(
 ) {
   const { snapshot, primaryProjectPath, primaryProject } = openPrimaryProject(
     typeScriptInstance,
+    resolvedFilePathCache,
     fileName,
   );
 
@@ -656,6 +701,7 @@ function prepareSnapshotForFile(
     );
   const syntheticSnapshot = updateSnapshot(
     typeScriptInstance,
+    resolvedFilePathCache,
     fileName,
     typeScriptInstance.openedProjectPaths.has(syntheticConfigPath)
       ? undefined
@@ -869,57 +915,25 @@ function registerTypeScriptDependencies(
 }
 
 /**
- * Memoized list of a project's qualifying `.d.ts` file names - every
- * non-default-lib, non-external-library `.d.ts` in the program, matching
- * registerTypeScriptDependencies's own filter - reused across every file
- * compiled against the same project in the same build instead of rescanning
- * every file in the program on every single compile (see
- * `TypeScriptInstance.projectDtsFileNamesCache`).
- */
-function getProjectDtsFileNames(
-  typeScriptInstance: TypeScriptApiInstance,
-  resolvedFilePathCache: ResolvedFilePathCache,
-  projectConfigPath: string,
-  program: Program,
-): readonly string[] {
-  const cachedFilePath = resolvedFilePathCache(projectConfigPath);
-  const cachedProjectDtsFileNames =
-    typeScriptInstance.projectDtsFileNamesCache.get(cachedFilePath);
-  if (cachedProjectDtsFileNames) {
-    return cachedProjectDtsFileNames;
-  }
-
-  const projectDtsFileNames: string[] = [];
-  for (const otherFileName of program.getSourceFileNames()) {
-    if (!constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName)) {
-      continue;
-    }
-
-    const sourceFile = program.getSourceFile(otherFileName);
-
-    if (
-      sourceFile &&
-      !program.isSourceFileDefaultLibrary(sourceFile) &&
-      !program.isSourceFileFromExternalLibrary(sourceFile)
-    ) {
-      projectDtsFileNames.push(otherFileName);
-    }
-  }
-
-  typeScriptInstance.projectDtsFileNamesCache.set(
-    cachedFilePath,
-    projectDtsFileNames,
-  );
-  return projectDtsFileNames;
-}
-
-/**
- * Memoized list of a project's non-default-lib, non-external-library source
- * file names (see `recheckAllTransitiveDependants`), reused across every
- * dependant recheck in the same build instead of reclassifying every file in
- * the program (two API round trips each - see `isSourceFileDefaultLibrary`/
- * `isSourceFileFromExternalLibrary`) on every single recheck. Mirrors
- * `getProjectDtsFileNames`'s cache, cleared under the same conditions.
+ * Self-validating memoized list of a project's non-default-lib,
+ * non-external-library source file names (see `recheckAllTransitiveDependants`
+ * and `getProjectDtsFileNames`) - reused across every file compiled against
+ * the same project, in this build and every subsequent one, instead of
+ * reclassifying every file in the program (two extra API round trips each -
+ * see `isSourceFileDefaultLibrary`/`isSourceFileFromExternalLibrary`) on
+ * every single call.
+ *
+ * `program.getSourceFileNames()` is one cheap round trip that returns every
+ * name up front, so it's always fetched fresh and compared (in plain JS, no
+ * API calls) against the exact list the cached result was computed from - a
+ * content-only edit to an already-known file never changes that list, so the
+ * overwhelming majority of calls hit cache; a genuine project file
+ * addition/removal changes it, which this detects and reclassifies on its
+ * own. That self-check is what makes it safe to keep this cache across
+ * builds indefinitely (see `TypeScriptInstance.projectFileNamesCache`),
+ * unlike `directImportsCache`, which has no equally cheap way to detect a
+ * known file's *content* changing and so still relies on an explicit
+ * invalidation signal.
  */
 function getProjectFileNames(
   typeScriptInstance: TypeScriptApiInstance,
@@ -928,13 +942,13 @@ function getProjectFileNames(
   program: Program,
 ): readonly string[] {
   const cachedFilePath = resolvedFilePathCache(projectConfigPath);
-  const cachedProjectFileNames =
-    typeScriptInstance.projectFileNamesCache.get(cachedFilePath);
-  if (cachedProjectFileNames) {
-    return cachedProjectFileNames;
+  const sourceFileNames = program.getSourceFileNames();
+  const cached = typeScriptInstance.projectFileNamesCache.get(cachedFilePath);
+  if (cached && sameFileNames(cached.sourceFileNames, sourceFileNames)) {
+    return cached.result;
   }
 
-  const projectFileNames = program.getSourceFileNames().filter(otherFileName => {
+  const result = sourceFileNames.filter(otherFileName => {
     const sourceFile = program.getSourceFile(otherFileName);
     return (
       sourceFile &&
@@ -943,8 +957,42 @@ function getProjectFileNames(
     );
   });
 
-  typeScriptInstance.projectFileNamesCache.set(cachedFilePath, projectFileNames);
-  return projectFileNames;
+  typeScriptInstance.projectFileNamesCache.set(cachedFilePath, {
+    sourceFileNames,
+    result,
+  });
+  return result;
+}
+
+/** Order-insensitive equality check for two file-name lists - no API calls. */
+function sameFileNames(a: readonly string[], b: readonly string[]): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const bSet = new Set(b);
+  return a.every(name => bSet.has(name));
+}
+
+/**
+ * Every non-default-lib, non-external-library `.d.ts` in the program,
+ * matching registerTypeScriptDependencies's own filter - a name-only filter
+ * over getProjectFileNames's own (self-validating, cross-build) result, so
+ * it costs no API calls beyond what that already pays for.
+ */
+function getProjectDtsFileNames(
+  typeScriptInstance: TypeScriptApiInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  projectConfigPath: string,
+  program: Program,
+): readonly string[] {
+  return getProjectFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+    projectConfigPath,
+    program,
+  ).filter(otherFileName =>
+    constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName),
+  );
 }
 
 /**
@@ -1150,11 +1198,11 @@ export function recheckAllTransitiveDependants(
   // build, from the post-compile hook) every file webpack compiled this
   // build has already updated that cache, so listing all of them here is
   // guaranteed to pick up their current content - without discarding
-  // directImportsCache/projectDtsFileNamesCache/projectFileNamesCache for
-  // every *other* project file too, unlike `pendingInvalidation`'s
-  // `invalidateAll` (see updateSnapshot): none of those entries were
-  // invalidated by this build's changes, since only `changedFileNames`'
-  // content differs from what they were computed against.
+  // directImportsCache for every *other* project file too, unlike
+  // `pendingInvalidation`'s `invalidateAll` (see updateSnapshot): none of
+  // those entries were invalidated by this build's changes, since only
+  // `changedFileNames`' content differs from what they were computed
+  // against.
   //
   // Any already-open, real project file works as the anchor for this
   // snapshot refresh - the whole point is just to get the primary project's
@@ -1162,6 +1210,7 @@ export function recheckAllTransitiveDependants(
   const anchorFileName = changedFileNames.values().next().value as string;
   const { primaryProject } = openPrimaryProject(
     typeScriptInstance,
+    instance.resolvedFilePathCache,
     anchorFileName,
     changedFileNames,
   );
