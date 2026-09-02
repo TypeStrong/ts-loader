@@ -151,12 +151,36 @@ function getTypeScriptInstance(
     loader.addDependency(configFilePath);
   }
 
-  // Only the first file compiled in a given build needs to force the API to
-  // discard its caches and rescan disk (see `pendingInvalidation` in
-  // typeScriptApi.ts); `compile` fires once per build/watch rebuild in both
-  // webpack 4 and 5, so tap it to re-arm that ahead of every rebuild.
-  loader._compiler!.hooks.compile.tap('ts-loader', () => {
-    instance.typeScriptApiInstance.pendingInvalidation = true;
+  // Captured now rather than read as `loader._compiler` from inside the hook
+  // callback below: `loader` is this one loader invocation's short-lived
+  // context, torn down well before a later rebuild's `compile` fires, but
+  // the `Compiler` it currently points to is the same long-lived instance
+  // for the whole watch session - only the reference needs capturing early,
+  // its `modifiedFiles`/`removedFiles` are still read fresh on every fire.
+  const compiler = loader._compiler!;
+
+  // Only the first file compiled in a given build needs to tell the API
+  // which files might be stale in its view (see `pendingInvalidation`/
+  // `pendingChangedFiles`/`pendingRemovedFiles` in typeScriptApi.ts);
+  // `compile` fires once per build/watch rebuild in both webpack 4 and 5, so
+  // tap it to re-arm that ahead of every rebuild.
+  compiler.hooks.compile.tap('ts-loader', () => {
+    // Webpack 5's watcher already knows exactly which files changed/were
+    // removed since the last build - both are `undefined` only for the very
+    // first build (nothing to compare against yet) or on webpack 4 (no
+    // equivalent API), which is when a full rescan is genuinely needed.
+    if (
+      loaderUtils.isWebpack5 &&
+      (compiler.modifiedFiles !== undefined ||
+        compiler.removedFiles !== undefined)
+    ) {
+      instance.typeScriptApiInstance.pendingChangedFiles =
+        compiler.modifiedFiles;
+      instance.typeScriptApiInstance.pendingRemovedFiles =
+        compiler.removedFiles;
+    } else {
+      instance.typeScriptApiInstance.pendingInvalidation = true;
+    }
   });
 
   // The typeScript API instance holds a live `tsgo` child process (see
@@ -170,22 +194,16 @@ function getTypeScriptInstance(
   const disposeTypeScriptApiInstance = () => {
     instance.typeScriptApiInstance.api.close();
   };
-  loader._compiler!.hooks.watchClose.tap(
-    'ts-loader',
-    disposeTypeScriptApiInstance,
-  );
+  compiler.hooks.watchClose.tap('ts-loader', disposeTypeScriptApiInstance);
   if (loaderUtils.isWebpack5) {
-    loader._compiler!.hooks.shutdown.tap(
-      'ts-loader',
-      disposeTypeScriptApiInstance,
-    );
+    compiler.hooks.shutdown.tap('ts-loader', disposeTypeScriptApiInstance);
   }
 
   if (!loaderOptions.transpileOnly) {
     addPostCompileHooks(loader, instance);
   }
 
-  setTSInstanceInCache(loader._compiler, loaderOptions.instance, instance);
+  setTSInstanceInCache(compiler, loaderOptions.instance, instance);
   log.logInfo(
     `ts-loader: Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`,
   );

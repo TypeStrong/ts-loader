@@ -83,6 +83,24 @@ export interface TypeScriptInstance {
    */
   pendingInvalidation: boolean;
   /**
+   * Set by webpack's `compile` hook (once per build/watch rebuild) from
+   * `compiler.modifiedFiles`/`removedFiles` (webpack 5 only, and only once
+   * watching has actually started - both are `undefined` for the first
+   * build) - see `updateSnapshot`. A targeted alternative to
+   * `pendingInvalidation`: webpack's own watcher already knows exactly which
+   * files changed since the last build, so listing them is both sufficient
+   * (matches what `pendingInvalidation`'s full `invalidateAll` was
+   * conservatively guessing at) and far cheaper - it lets `directImportsCache`
+   * survive across builds instead of being discarded and rebuilt from
+   * scratch every single time. Consumed (and cleared) by the first
+   * `updateSnapshot` call of the build, same as `pendingInvalidation`; when
+   * neither this nor `pendingRemovedFiles` is set (webpack 4, or the very
+   * first build), `pendingInvalidation` is used instead.
+   */
+  pendingChangedFiles?: ReadonlySet<string>;
+  /** Removed-file counterpart to `pendingChangedFiles` - see there. */
+  pendingRemovedFiles?: ReadonlySet<string>;
+  /**
    * Memoizes each project file's direct resolved relative imports (see
    * getDirectResolvedImports) across every file compiled in the same build -
    * findTransitiveDependants's dependant search otherwise recomputes this
@@ -97,32 +115,33 @@ export interface TypeScriptInstance {
    */
   directImportsCache: Map<FilePath, readonly string[]>;
   /**
-   * Memoizes each project's qualifying `.d.ts` file names (see
-   * registerTypeScriptDependencies) across every file compiled in the same
-   * build, keyed by project config path - registerTypeScriptDependencies
-   * otherwise rescans every file in the program on every single compile just
-   * to find these. Cleared whenever `pendingInvalidation` forces a real
-   * rescan (see updateSnapshot), since only then could the project's file set
-   * have changed. Keyed by project (primary vs a synthetic one-off project
-   * for an orphan file - see ensureSyntheticConfigForFile) rather than a
-   * single shared list, since their file sets are unrelated. Keyed via
-   * `FilePathKey` (like `directImportsCache`) for consistency, though project
-   * config paths are already stable, single-sourced strings in practice.
+   * Self-validating memo of each project's non-default-lib,
+   * non-external-library source file names (see `getProjectFileNames`,
+   * `getProjectDtsFileNames`, `registerTypeScriptDependencies`, and
+   * `recheckAllTransitiveDependants`), keyed by project config path.
+   * Classifying every file in the program via
+   * `isSourceFileDefaultLibrary`/`isSourceFileFromExternalLibrary` is a round
+   * trip per file per call, so recomputing this on every compile/recheck (as
+   * an earlier version did) turns a whole-project scan into two extra round
+   * trips per file, every single time. Unlike `directImportsCache` (cleared
+   * whenever content might have changed - see `pendingInvalidation`), this
+   * cache stores the exact `program.getSourceFileNames()` list it was
+   * computed against and is safe to keep across builds indefinitely: a
+   * content-only edit never changes that list, so the vast majority of
+   * lookups are a free comparison against an unchanged list; a genuine
+   * project file addition/removal changes the list, which
+   * `getProjectFileNames` detects itself (no external invalidation signal
+   * needed) and reclassifies. Keyed by project (primary vs a synthetic
+   * one-off project for an orphan file - see ensureSyntheticConfigForFile)
+   * rather than a single shared list, since their file sets are unrelated.
+   * Keyed via `FilePathKey` (like `directImportsCache`) for consistency,
+   * though project config paths are already stable, single-sourced strings
+   * in practice.
    */
-  projectDtsFileNamesCache: Map<FilePath, readonly string[]>;
-  /**
-   * Memoizes each project's non-default-lib, non-external-library source file
-   * names (see recheckAllTransitiveDependants) across every file compiled in
-   * the same build, keyed by project config path - classifying every file in
-   * the program via `isSourceFileDefaultLibrary`/`isSourceFileFromExternalLibrary`
-   * is itself a round trip per file per call, so recomputing this on every
-   * single dependant recheck (as an earlier version did) turns a whole-project
-   * scan into two extra round trips per file, every build. Cleared whenever
-   * `pendingInvalidation` forces a real rescan (see updateSnapshot), since only
-   * then could the project's file set have changed. Keyed via `FilePathKey`
-   * like `projectDtsFileNamesCache`, for the same reason.
-   */
-  projectFileNamesCache: Map<FilePath, readonly string[]>;
+  projectFileNamesCache: Map<
+    FilePath,
+    { sourceFileNames: readonly string[]; result: readonly string[] }
+  >;
   /**
    * Api-facing names (see toApiFacingFileName) of every primary-project file
    * compiled so far in the current build/watch rebuild - accumulated by
