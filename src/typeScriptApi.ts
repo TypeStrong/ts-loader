@@ -566,8 +566,12 @@ function updateSnapshot(
     ? ({ invalidateAll: true } as const)
     : pendingChangedOrRemovedFiles
       ? {
-          changed: mapApiFacingFileNames(typeScriptInstance.pendingChangedFiles),
-          deleted: mapApiFacingFileNames(typeScriptInstance.pendingRemovedFiles),
+          changed: mapApiFacingFileNames(
+            typeScriptInstance.pendingChangedFiles,
+          ),
+          deleted: mapApiFacingFileNames(
+            typeScriptInstance.pendingRemovedFiles,
+          ),
         }
       : changedFileNames && changedFileNames.size > 0
         ? { changed: [...changedFileNames] }

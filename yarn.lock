@@ -4110,7 +4110,7 @@ typedarray@^0.0.6:
   resolved "https://registry.npmjs.org/typedarray/-/typedarray-0.0.6.tgz"
   integrity sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==
 
-typescript@^7.1.0-dev.20260902.1:
+typescript@next:
   version "7.1.0-dev.20260902.1"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-7.1.0-dev.20260902.1.tgz#f247a155ff381c0c983cd1fc021fb6a3881f1de7"
   integrity sha512-Q+H2lm/zA8dhOyxUNmIIAqdAB9OkMMuDKsUg8hsTKBpkFLEtlHj8KzWSxuAEiSSgopI4cpltGeTmp+It2LuASQ==
