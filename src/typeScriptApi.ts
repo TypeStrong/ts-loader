@@ -75,6 +75,7 @@ export function createTypeScriptApiInstance(
     pendingInvalidation: true,
     directImportsCache: new Map(),
     projectDtsFileNamesCache: new Map(),
+    projectFileNamesCache: new Map(),
     changedFilesThisBuild: new Set(),
   };
 }
@@ -538,6 +539,13 @@ function updateSnapshot(
   fileName: string,
   openProjects?: FilePath[],
   closeProjects?: FilePath[],
+  // Api-facing names of specific files known to have just changed (see
+  // `changedFilesThisBuild`) - passed only by recheckAllTransitiveDependants's
+  // own snapshot refresh. Tells the API to re-read exactly these files rather
+  // than every file in the project, unlike `pendingInvalidation`'s full
+  // `invalidateAll` below - see its call site for why a targeted list is both
+  // sufficient and far cheaper there.
+  changedFileNames?: ReadonlySet<string>,
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
   // `invalidateAll` forces a full rescan: ts-loader only knows about the one
@@ -548,14 +556,23 @@ function updateSnapshot(
   // snapshot that call already refreshed.
   const fileChanges = typeScriptInstance.pendingInvalidation
     ? ({ invalidateAll: true } as const)
-    : undefined;
+    : changedFileNames && changedFileNames.size > 0
+      ? { changed: [...changedFileNames] }
+      : undefined;
   if (typeScriptInstance.pendingInvalidation) {
     // A real rescan can change any file's content or a project's file set,
     // so caches derived from the previous build can no longer be trusted -
     // see findTransitiveDependants/directImportsCache and
-    // registerTypeScriptDependencies/projectDtsFileNamesCache.
+    // registerTypeScriptDependencies/projectDtsFileNamesCache and
+    // recheckAllTransitiveDependants/projectFileNamesCache. A targeted
+    // `changed` list (the other branch above) needs no such clear: every
+    // listed file's own directImportsCache entry is already fresh (written by
+    // its own compile earlier this build - see registerResolvedImportDependencies),
+    // and content-only edits never change which files exist in the project, so
+    // projectDtsFileNamesCache/projectFileNamesCache stay valid too.
     typeScriptInstance.directImportsCache.clear();
     typeScriptInstance.projectDtsFileNamesCache.clear();
+    typeScriptInstance.projectFileNamesCache.clear();
   }
   typeScriptInstance.pendingInvalidation = false;
   const snapshot = typeScriptInstance.api.updateSnapshot(
@@ -584,6 +601,7 @@ function updateSnapshot(
 function openPrimaryProject(
   typeScriptInstance: TypeScriptApiInstance,
   fileName: string,
+  changedFileNames?: ReadonlySet<string>,
 ) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
@@ -592,6 +610,8 @@ function openPrimaryProject(
     typeScriptInstance.openedProjectPaths.has(primaryProjectPath)
       ? undefined
       : [primaryProjectPath],
+    undefined,
+    changedFileNames,
   );
 
   return {
@@ -894,6 +914,40 @@ function getProjectDtsFileNames(
 }
 
 /**
+ * Memoized list of a project's non-default-lib, non-external-library source
+ * file names (see `recheckAllTransitiveDependants`), reused across every
+ * dependant recheck in the same build instead of reclassifying every file in
+ * the program (two API round trips each - see `isSourceFileDefaultLibrary`/
+ * `isSourceFileFromExternalLibrary`) on every single recheck. Mirrors
+ * `getProjectDtsFileNames`'s cache, cleared under the same conditions.
+ */
+function getProjectFileNames(
+  typeScriptInstance: TypeScriptApiInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  projectConfigPath: string,
+  program: Program,
+): readonly string[] {
+  const cachedFilePath = resolvedFilePathCache(projectConfigPath);
+  const cachedProjectFileNames =
+    typeScriptInstance.projectFileNamesCache.get(cachedFilePath);
+  if (cachedProjectFileNames) {
+    return cachedProjectFileNames;
+  }
+
+  const projectFileNames = program.getSourceFileNames().filter(otherFileName => {
+    const sourceFile = program.getSourceFile(otherFileName);
+    return (
+      sourceFile &&
+      !program.isSourceFileDefaultLibrary(sourceFile) &&
+      !program.isSourceFileFromExternalLibrary(sourceFile)
+    );
+  });
+
+  typeScriptInstance.projectFileNamesCache.set(cachedFilePath, projectFileNames);
+  return projectFileNames;
+}
+
+/**
  * A `"<file>@<version>"` tag for `buildMeta.tsLoaderDefinitionFileVersions`
  * that changes whenever `dependencyFileName`'s content genuinely changes.
  * Falls back to hashing the program's view of the file when it has no
@@ -1085,21 +1139,23 @@ export function recheckAllTransitiveDependants(
   // (with a now-stale program) on the next build.
   typeScriptInstance.changedFilesThisBuild = new Set();
 
-  // Forces the upcoming updateSnapshot to do a full rescan rather than an
-  // incremental one scoped to a single "open" file. Without this, the
+  // Tells the upcoming updateSnapshot exactly which files may still be stale
+  // in its view, rather than forcing a full project rescan. Without this, the
   // snapshot below can still reflect an earlier changed file's stale view of
   // a *later*-compiled changed file - e.g. fileA imports fileB, both changed
-  // in this build, fileA compiles first: its own invalidateAll rescan reads
-  // fileB before fileB's own loader call has updated the shared file cache
-  // (see the `fs` override in createTypeScriptApiInstance), so a recheck
-  // that reuses that view still sees fileB's old content. By now (this only
-  // runs once per build, from the post-compile hook) every file webpack
-  // compiled this build has already updated that cache, so a fresh rescan
-  // here is guaranteed current for all of them - and, being O(1) per build
-  // rather than per file, affordable where it wasn't before this function
-  // existed.
-  typeScriptInstance.pendingInvalidation = true;
-
+  // in this build, fileA compiles first: its own rescan reads fileB before
+  // fileB's own loader call has updated the shared file cache (see the `fs`
+  // override in createTypeScriptApiInstance), so a recheck that reuses that
+  // view still sees fileB's old content. By now (this only runs once per
+  // build, from the post-compile hook) every file webpack compiled this
+  // build has already updated that cache, so listing all of them here is
+  // guaranteed to pick up their current content - without discarding
+  // directImportsCache/projectDtsFileNamesCache/projectFileNamesCache for
+  // every *other* project file too, unlike `pendingInvalidation`'s
+  // `invalidateAll` (see updateSnapshot): none of those entries were
+  // invalidated by this build's changes, since only `changedFileNames`'
+  // content differs from what they were computed against.
+  //
   // Any already-open, real project file works as the anchor for this
   // snapshot refresh - the whole point is just to get the primary project's
   // current program, not to focus on one particular file.
@@ -1107,22 +1163,19 @@ export function recheckAllTransitiveDependants(
   const { primaryProject } = openPrimaryProject(
     typeScriptInstance,
     anchorFileName,
+    changedFileNames,
   );
   if (!primaryProject) {
     return;
   }
   const program = primaryProject.program;
 
-  const projectFileNames = program
-    .getSourceFileNames()
-    .filter(otherFileName => {
-      const sourceFile = program.getSourceFile(otherFileName);
-      return (
-        sourceFile &&
-        !program.isSourceFileDefaultLibrary(sourceFile) &&
-        !program.isSourceFileFromExternalLibrary(sourceFile)
-      );
-    });
+  const projectFileNames = getProjectFileNames(
+    typeScriptInstance,
+    instance.resolvedFilePathCache,
+    typeScriptInstance.configFilePath,
+    program,
+  );
 
   const comparableSourceFileNames = new Set(
     program.getSourceFileNames().map(toComparablePath),
