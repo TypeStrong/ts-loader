@@ -192,7 +192,19 @@ function getTypeScriptInstance(
   // has no `compiler.close()`/`shutdown` hook) covers the one-shot
   // run/close pattern.
   const disposeTypeScriptApiInstance = () => {
-    instance.typeScriptApiInstance.api.close();
+    try {
+      instance.typeScriptApiInstance.api.close();
+    } catch {
+      // The child process may already be gone (crashed, OOM-killed, or
+      // otherwise reaped) - close() talks to it one last time to shut it
+      // down cleanly, and that call throws like any other request does once
+      // the pipe is dead (see updateSnapshot's own callers). There's nothing
+      // left to preserve at this point; letting this escape would crash the
+      // whole webpack process on an otherwise-unrelated watcher teardown.
+      log.logInfo(
+        'failed to close TypeScript API child process, it may have already been closed',
+      );
+    }
   };
   compiler.hooks.watchClose.tap('ts-loader', disposeTypeScriptApiInstance);
   if (loaderUtils.isWebpack5) {
@@ -205,7 +217,7 @@ function getTypeScriptInstance(
 
   setTSInstanceInCache(compiler, loaderOptions.instance, instance);
   log.logInfo(
-    `ts-loader: Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`,
+    `Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`,
   );
   return instance;
 }

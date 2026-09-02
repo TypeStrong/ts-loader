@@ -246,7 +246,7 @@ async function runScenario({
  * sample variance (e.g. cold builds on a noisy CI host) doesn't trip the
  * flag on jitter alone while a tight, reproducible delta still does.
  */
-function isRegressionFlagged(r: ScenarioResult): boolean {
+function isDeltaFlagged(r: ScenarioResult): boolean {
   if (Math.abs(r.deltaPct) < REGRESSION_FLAG_PCT) return false;
   // Can't compute a noise ratio against a zero baseline (and deltaPct itself
   // is already +-Infinity/NaN at that point) - fall back to the flat
@@ -262,7 +262,7 @@ function toMarkdown(results: ScenarioResult[], args: Args): string {
     '| --- | --- | --- | --- | --- |',
   ];
   for (const r of results) {
-    const flag = isRegressionFlagged(r) ? ' ⚠️' : '';
+    const flag = isDeltaFlagged(r) ? (r.deltaPct < 0 ? ' 🎉' : ' ⚠️') : '';
     lines.push(
       `| ${r.label} | ${r.transpileOnly} | ${r.a.median.toFixed(1)} | ${r.b.median.toFixed(1)} | ${r.deltaPct >= 0 ? '+' : ''}${r.deltaPct.toFixed(1)}%${flag} |`
     );
