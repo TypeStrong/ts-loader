@@ -703,13 +703,44 @@ function openPrimaryProject(
   };
 }
 
+/**
+ * The primary project's snapshot for the current build, established once and
+ * reused for every file compiled against it via runWithTemporaryFileUpdate,
+ * instead of calling updateSnapshot per file - see
+ * https://github.com/microsoft/TypeScript/issues/63875#issuecomment-5513828692.
+ * Refreshed only when `pendingInvalidation`/`pendingChangedFiles`/
+ * `pendingRemovedFiles` indicate something may be stale since it was last
+ * captured (same gate as getTranspileConfig).
+ */
+function getSnapshot(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  fileName: string,
+) {
+  if (
+    typeScriptInstance.snapshot === undefined ||
+    typeScriptInstance.pendingInvalidation ||
+    typeScriptInstance.pendingChangedFiles !== undefined ||
+    typeScriptInstance.pendingRemovedFiles !== undefined
+  ) {
+    openPrimaryProject(typeScriptInstance, resolvedFilePathCache, fileName);
+  }
+  const primaryProjectPath = typeScriptInstance.configFilePath;
+  const snapshot = typeScriptInstance.snapshot!;
+  return {
+    snapshot,
+    primaryProjectPath,
+    primaryProject: snapshot.getProject(primaryProjectPath),
+  };
+}
+
 function prepareSnapshotForFile(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   forceSyntheticRoot: boolean,
 ) {
-  const { snapshot, primaryProjectPath, primaryProject } = openPrimaryProject(
+  const { snapshot, primaryProjectPath, primaryProject } = getSnapshot(
     typeScriptInstance,
     resolvedFilePathCache,
     fileName,
