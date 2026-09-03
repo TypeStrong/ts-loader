@@ -77,11 +77,16 @@ export interface TypeScriptInstance {
   transpileConfig?: ParsedCommandLine;
   transpileConfigDiagnostics?: readonly Diagnostic[];
   transpileConfigDiagnosticsReported?: boolean;
+  /**
+   * The current snapshot, refreshed by updateSnapshot - see getSnapshot,
+   * which reuses this as the primary project's base snapshot for the whole
+   * build.
+   */
+  snapshot?: Snapshot;
   syntheticConfigContents: Map<FilePath, string>;
   /** Orphan file (see ensureSyntheticConfigForFile) -> its synthetic project's config path. */
   syntheticConfigFiles: Map<FilePath, FilePath>;
   openedProjectPaths: Set<FilePath>;
-  snapshot?: Snapshot;
   /**
    * Set on creation and by webpack's `compile` hook (once per build/watch
    * rebuild) - see `updateSnapshot`. Consumed (and cleared) by the first
