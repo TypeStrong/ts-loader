@@ -14,13 +14,13 @@ npm-debug.log
 !/test/**/expectedOutput-transpile/**
 /**/node_modules
 /dist
+/dist-2018
 /test/execution-tests/**/dist
-/**/.happypack
 /**/.cache-loader
 !build.js
 /**/debug.log
 .pnp
 .pnp.js
-!.eslintrc.js
 .vs/**
 .pnpm-store
+.spike-tmp

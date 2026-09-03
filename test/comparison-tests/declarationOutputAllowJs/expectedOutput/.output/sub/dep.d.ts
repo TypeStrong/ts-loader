@@ -1,4 +1,4 @@
-export class Test {
+export declare class Test {
     /**
      * @param {number} x
      */

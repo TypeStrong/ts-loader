@@ -1,201 +1,377 @@
 import * as crypto from 'crypto';
+import * as fs from 'fs';
 import * as path from 'path';
-import type typescript from 'typescript';
-import type * as webpack from 'webpack';
+import * as webpack from 'webpack';
 
-import * as constants from './constants';
+import { createColors } from './colors';
 import {
-  buildSolutionReferences,
-  getEmitOutput,
-  getInputFileNameFromOutput,
-  getTypeScriptInstance,
-  initializeInstance,
-  reportTranspileErrors,
-} from './instances';
+  emitPendingDeclarationFiles,
+  reportPendingTypeScriptDiagnostics,
+} from './diagnostics';
+import {
+  createTypeScriptInstance,
+  getTypeScriptEmit,
+  recheckAllTransitiveDependants,
+} from './typeScriptApi';
 import type {
-  FilePathKey,
+  FilePath,
   LoaderOptions,
   LoaderOptionsCache,
   LogLevel,
+  ResolvedFilePathCache,
+  TSFile,
   TSInstance,
-} from './interfaces';
+} from './types';
 import * as loaderUtils from './loaderUtils';
-import {
-  appendSuffixesIfMatch,
-  arrify,
-  formatErrors,
-  isReferencedFile,
-} from './utils';
+import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
+import * as logger from './logger';
 import type { RawSourceMap } from 'source-map';
 import { SourceMapConsumer, SourceMapGenerator } from 'source-map';
-import { addErrorToModule } from './loaderUtils';
 
-/** 
+/**
  * we can only use SourceMapConsumer if the version available has a destroy method
  * see https://github.com/mozilla/source-map/blob/master/CHANGELOG.md#070
  */
-const canUseSourceMapConsumer = 
-  typeof SourceMapConsumer === 'function' && 
-  typeof SourceMapConsumer.prototype === 'object' && 
+const canUseSourceMapConsumer =
+  typeof SourceMapConsumer === 'function' &&
+  typeof SourceMapConsumer.prototype === 'object' &&
   typeof SourceMapConsumer.prototype.destroy === 'function';
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
-/**
- * The entry point for ts-loader
- */
 function loader(
   this: webpack.LoaderContext<LoaderOptions>,
   contents: string,
-  inputSourceMap?: Record<string, any>
+  inputSourceMap?: Record<string, unknown>,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
-  const options = getLoaderOptions(this);
-  const instanceOrError = getTypeScriptInstance(options, this);
-
-  if (instanceOrError.error !== undefined) {
-    callback(new Error(instanceOrError.error.message));
-    return;
+  const configParseErrorMessage = successLoader(
+    this,
+    contents,
+    inputSourceMap,
+    callback,
+  );
+  if (configParseErrorMessage !== undefined) {
+    // Reconstructed here, in `loader`'s own frame, so the stack trace
+    // matches classic ts-loader's single `at Object.loader (...)` frame.
+    callback(new Error(configParseErrorMessage));
   }
-  const instance = instanceOrError.instance!;
-  buildSolutionReferences(instance, this);
-  successLoader(this, contents, callback, instance, inputSourceMap);
 }
 
 function successLoader(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
+  inputSourceMap: Record<string, unknown> | undefined,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance,
-  inputSourceMap?: Record<string, any>
-) {
-  initializeInstance(loaderContext, instance);
-  reportTranspileErrors(instance, loaderContext);
-  const rawFilePath = path.normalize(loaderContext.resourcePath);
+): string | undefined {
+  try {
+    const options = getLoaderOptions(loaderContext);
+    const instance = getTypeScriptInstance(options, loaderContext);
+    const rawFilePath = path.normalize(loaderContext.resourcePath);
+    const filePath = appendSuffixesIfRequired(rawFilePath, options);
+    const fileVersion = updateFileInCache(filePath, contents, instance);
+    const { outputText, sourceMapText, configParseErrorMessage } =
+      getTypeScriptEmit(filePath, contents, instance, loaderContext);
 
-  const filePath =
-    instance.loaderOptions.appendTsSuffixTo.length > 0 ||
-    instance.loaderOptions.appendTsxSuffixTo.length > 0
-      ? appendSuffixesIfMatch(
-          {
-            '.ts': instance.loaderOptions.appendTsSuffixTo,
-            '.tsx': instance.loaderOptions.appendTsxSuffixTo,
-          },
-          rawFilePath
-        )
-      : rawFilePath;
+    if (configParseErrorMessage !== undefined) {
+      return configParseErrorMessage;
+    }
 
-  const fileVersion = updateFileInCache(
-    instance.loaderOptions,
-    filePath,
-    contents,
-    instance
-  );
-  const { outputText, sourceMapText } = instance.loaderOptions.transpileOnly
-    ? getTranspilationEmit(filePath, contents, instance, loaderContext)
-    : getEmit(rawFilePath, filePath, instance, loaderContext);
-
-  // the following function is async, which means it will immediately return and run in the "background"
-  // Webpack will be notified when it's finished when the function calls the `callback` method
-  makeSourceMapAndFinish(
-    sourceMapText,
-    outputText,
-    filePath,
-    contents,
-    loaderContext,
-    fileVersion,
-    callback,
-    instance,
-    inputSourceMap
-  );
+    makeSourceMapAndFinish(
+      sourceMapText,
+      outputText,
+      filePath,
+      contents,
+      loaderContext,
+      fileVersion,
+      callback,
+      options.allowTsInNodeModules,
+      inputSourceMap,
+    );
+  } catch (error) {
+    callback(error instanceof Error ? error : new Error(String(error)));
+  }
+  return undefined;
 }
 
-function makeSourceMapAndFinish(
-  sourceMapText: string | undefined,
-  outputText: string | undefined,
-  filePath: string,
-  contents: string,
-  loaderContext: webpack.LoaderContext<LoaderOptions>,
-  fileVersion: number,
-  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  instance: TSInstance,
-  inputSourceMap?: Record<string, any>
+function getTypeScriptInstance(
+  loaderOptions: LoaderOptions,
+  loader: webpack.LoaderContext<LoaderOptions>,
 ) {
-  if (outputText === null || outputText === undefined) {
-    setModuleMeta(loaderContext, instance, fileVersion);
-    const additionalGuidance = isReferencedFile(instance, filePath)
-      ? ' The most common cause for this is having errors when building referenced projects.'
-      : !instance.loaderOptions.allowTsInNodeModules &&
-        filePath.indexOf('node_modules') !== -1
-      ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
-        'You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n' +
-        'See: https://github.com/Microsoft/TypeScript/issues/12358'
-      : '';
-
-    callback(new Error(
-      `TypeScript emitted no output for ${filePath}.${additionalGuidance}`
-    ), outputText, undefined);
-    return;
+  const existing = getTSInstanceFromCache(
+    loader._compiler!,
+    loaderOptions.instance,
+  );
+  if (existing) {
+    return existing;
   }
 
-  const { sourceMap, output } = makeSourceMap(
-    sourceMapText,
-    outputText,
-    filePath,
-    contents,
-    loaderContext
+  const colors = createColors(loaderOptions.colors);
+  const log = logger.makeLogger({
+    logLevel: loaderOptions.logLevel,
+    logInfoToStdOut: loaderOptions.logInfoToStdOut,
+    silent: loaderOptions.silent,
+    colors,
+  });
+  const configFilePath = resolveConfigFilePath(
+    path.dirname(loader.resourcePath),
+    loaderOptions.configFile,
   );
 
-  setModuleMeta(loaderContext, instance, fileVersion);
-
-  // there are three cases where we don't need to perform input source map mapping:
-  //   - either the ts-compiler did not generate a source map (tsconfig had `sourceMap` set to false)
-  //   - or we did not get an input source map
-  //   - or the version of source-map available does not have a destroy method
-  //
-  // in the first case, we simply return undefined.
-  // in the second / third cases we only need to return the newly generated source map
-  // this avoids that we have to make a possibly expensive call to the source-map lib
-  if (sourceMap === undefined || !inputSourceMap || !canUseSourceMapConsumer) {
-    callback(null, output, sourceMap);
-    return;
+  if (!configFilePath) {
+    throw new Error(
+      `Could not find TypeScript config file '${loaderOptions.configFile}' from '${loader.resourcePath}'.`,
+    );
   }
 
-  // otherwise we have to make a mapping to the input source map which is asynchronous
-  mapToInputSourceMap(sourceMap, loaderContext, inputSourceMap as RawSourceMap)
-    .then(mappedSourceMap => {
-      callback(null, output, mappedSourceMap);
-    })
-    .catch((e: Error) => {
-      callback(e);
-    });
-}
+  const files: TSInstance['files'] = new Map();
+  const resolvedFilePathCache = createResolvedFilePathCache(loaderOptions);
 
-function setModuleMeta(
-  loaderContext: webpack.LoaderContext<LoaderOptions>,
-  instance: TSInstance,
-  fileVersion: number
-) {
-  // _module.meta is not available inside happypack
-  if (
-    !instance.loaderOptions.happyPackMode &&
-    loaderContext._module!.buildMeta !== undefined
-  ) {
-    // Make sure webpack is aware that even though the emitted JavaScript may be the same as
-    // a previously cached version the TypeScript may be different and therefore should be
-    // treated as new
-    loaderContext._module!.buildMeta.tsLoaderFileVersion = fileVersion;
+  const instance: TSInstance = {
+    version: 0,
+    colors,
+    loaderOptions,
+    files,
+    resolvedFilePathCache,
+    typeScriptApiInstance: createTypeScriptInstance(
+      loaderOptions,
+      configFilePath,
+      files,
+      resolvedFilePathCache,
+    ),
+    pendingDiagnostics: new Map(),
+    pendingDeclarationFiles: new Map(),
+  };
+
+  if (loaderUtils.isWebpack5) {
+    loader.addBuildDependency(configFilePath);
+  } else {
+    loader.addDependency(configFilePath);
   }
+
+  // Captured now rather than read as `loader._compiler` from inside the hook
+  // callback below: `loader` is this one loader invocation's short-lived
+  // context, torn down well before a later rebuild's `compile` fires, but
+  // the `Compiler` it currently points to is the same long-lived instance
+  // for the whole watch session - only the reference needs capturing early,
+  // its `modifiedFiles`/`removedFiles` are still read fresh on every fire.
+  const compiler = loader._compiler!;
+
+  // Only the first file compiled in a given build needs to tell the API
+  // which files might be stale in its view (see `pendingInvalidation`/
+  // `pendingChangedFiles`/`pendingRemovedFiles` in typeScriptApi.ts);
+  // `compile` fires once per build/watch rebuild in both webpack 4 and 5, so
+  // tap it to re-arm that ahead of every rebuild.
+  compiler.hooks.compile.tap('ts-loader', () => {
+    // Webpack 5's watcher already knows exactly which files changed/were
+    // removed since the last build - both are `undefined` only for the very
+    // first build (nothing to compare against yet) or on webpack 4 (no
+    // equivalent API), which is when a full rescan is genuinely needed.
+    if (
+      loaderUtils.isWebpack5 &&
+      (compiler.modifiedFiles !== undefined ||
+        compiler.removedFiles !== undefined)
+    ) {
+      instance.typeScriptApiInstance.pendingChangedFiles =
+        compiler.modifiedFiles;
+      instance.typeScriptApiInstance.pendingRemovedFiles =
+        compiler.removedFiles;
+    } else {
+      instance.typeScriptApiInstance.pendingInvalidation = true;
+    }
+  });
+
+  // The typeScript API instance holds a live `tsgo` child process (see
+  // typeScriptApi.ts's createTypeScriptInstance) that nothing else kills:
+  // it's spawned per instance, not per file, and the instance cache is a
+  // WeakMap keyed on the compiler, so leaving this untapped leaks one native
+  // process per compiler for as long as the Node process runs. `watchClose`
+  // covers a watcher's own teardown; `shutdown` (webpack 5 only - webpack 4
+  // has no `compiler.close()`/`shutdown` hook) covers the one-shot
+  // run/close pattern.
+  const disposeTypeScriptApiInstance = () => {
+    try {
+      instance.typeScriptApiInstance.api.close();
+    } catch {
+      // The child process may already be gone (crashed, OOM-killed, or
+      // otherwise reaped) - close() talks to it one last time to shut it
+      // down cleanly, and that call throws like any other request does once
+      // the pipe is dead (see updateSnapshot's own callers). There's nothing
+      // left to preserve at this point; letting this escape would crash the
+      // whole webpack process on an otherwise-unrelated watcher teardown.
+      log.logInfo(
+        'failed to close TypeScript API child process, it may have already been closed',
+      );
+    }
+  };
+  compiler.hooks.watchClose.tap('ts-loader', disposeTypeScriptApiInstance);
+  if (loaderUtils.isWebpack5) {
+    compiler.hooks.shutdown.tap('ts-loader', disposeTypeScriptApiInstance);
+  }
+
+  if (!loaderOptions.transpileOnly) {
+    addPostCompileHooks(loader, instance);
+  }
+
+  setTSInstanceInCache(compiler, loaderOptions.instance, instance);
+  log.logInfo(
+    `Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`,
+  );
+  return instance;
 }
 
 /**
- * Get a unique hash based on the contents of the options
- * Hash is created from the values converted to strings
- * Values which are functions (such as getCustomTransformers) are
- * converted to strings by this code, which JSON.stringify would not do.
+ * Diagnostics/declaration files for non-transpileOnly compiles are gathered
+ * per-file but attached only once webpack finishes building every module
+ * (see reportPendingTypeScriptDiagnostics/emitPendingDeclarationFiles),
+ * matching classic ts-loader's afterCompile timing.
+ *
+ * Webpack 5 deprecated `afterCompile` reporting for `processAssets`; since
+ * `compiler.hooks.compilation` only fires for compilations created *after*
+ * this tap is registered, the current one (`loader._compilation`) needs
+ * wiring up directly too. Webpack 4 has no `processAssets`, so it uses
+ * `afterCompile` directly, which already fires once per compilation.
  */
+function addPostCompileHooks(
+  loader: webpack.LoaderContext<LoaderOptions>,
+  instance: TSInstance,
+) {
+  const report = (compilation: webpack.Compilation) => {
+    if (!compilation.compiler.isChild()) {
+      recheckAllTransitiveDependants(instance, compilation);
+      reportPendingTypeScriptDiagnostics(instance, compilation);
+      emitPendingDeclarationFiles(instance, compilation);
+    }
+  };
+
+  if (loaderUtils.isWebpack5) {
+    const attachToCompilation = (compilation: webpack.Compilation) => {
+      compilation.hooks.processAssets.tap(
+        {
+          name: 'ts-loader',
+          stage: webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONAL,
+        },
+        () => report(compilation),
+      );
+    };
+
+    attachToCompilation(loader._compilation!);
+    loader._compiler!.hooks.compilation.tap('ts-loader', attachToCompilation);
+  } else {
+    loader._compiler!.hooks.afterCompile.tapAsync(
+      'ts-loader',
+      (compilation, callback) => {
+        report(compilation);
+        callback();
+      },
+    );
+  }
+}
+
+function createResolvedFilePathCache(
+  loaderOptions: LoaderOptions,
+): ResolvedFilePathCache {
+  const resolvedPathCache = new Map<string, FilePath>();
+  const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
+  const useCaseSensitiveFileNames =
+    loaderOptions.useCaseSensitiveFileNames ?? process.platform !== 'win32';
+
+  return useCaseSensitiveFileNames ? pathResolve : toFileNameLowerCase;
+
+  function pathResolve(filePath: string): FilePath {
+    let cachedPath = resolvedPathCache.get(filePath);
+    if (cachedPath === undefined) {
+      cachedPath = path.resolve(filePath) as FilePath;
+      resolvedPathCache.set(filePath, cachedPath);
+    }
+    return cachedPath;
+  }
+
+  function toFileNameLowerCase(filePath: string): FilePath {
+    let cachedPath = resolvedPathCache.get(filePath);
+    if (cachedPath === undefined) {
+      const resolvedPath = path.resolve(filePath);
+      cachedPath = (
+        fileNameLowerCaseRegExp.test(resolvedPath)
+          ? resolvedPath.replace(fileNameLowerCaseRegExp, ch =>
+              ch.toLowerCase(),
+            )
+          : resolvedPath
+      ) as FilePath;
+      resolvedPathCache.set(filePath, cachedPath);
+    }
+    return cachedPath;
+  }
+}
+
+function resolveConfigFilePath(requestDirPath: string, configFile: string) {
+  if (path.isAbsolute(configFile)) {
+    return fs.existsSync(configFile) ? configFile : undefined;
+  }
+
+  if (configFile.match(/^\.\.?(\/|\\)/) !== null) {
+    const resolvedPath = path.resolve(requestDirPath, configFile);
+    return fs.existsSync(resolvedPath) ? resolvedPath : undefined;
+  }
+
+  while (true) {
+    const fileName = path.join(requestDirPath, configFile);
+    if (fs.existsSync(fileName)) {
+      return fileName;
+    }
+    const parentPath = path.dirname(requestDirPath);
+    if (parentPath === requestDirPath) {
+      return undefined;
+    }
+    requestDirPath = parentPath;
+  }
+}
+
+type ValidLoaderOptions = keyof LoaderOptions;
+const validLoaderOptions: ValidLoaderOptions[] = [
+  'silent',
+  'logLevel',
+  'logInfoToStdOut',
+  'instance',
+  'compiler',
+  'configFile',
+  'transpileOnly',
+  'ignoreDiagnostics',
+  'errorFormatter',
+  'colors',
+  'appendTsSuffixTo',
+  'appendTsxSuffixTo',
+  'getCustomTransformers',
+  'reportFiles',
+  'allowTsInNodeModules',
+  'projectReferences',
+  // Accepted for backwards compatibility but currently inert: the
+  // `typescript/unstable/sync` (tsgo) API this loader now runs on only
+  // exposes filesystem-level hooks, not a resolveModuleName-style custom
+  // resolver hook. See test/execution-tests/3.0.1_resolveModuleName.
+  'resolveModuleName',
+  'resolveTypeReferenceDirective',
+  'useCaseSensitiveFileNames',
+];
+
+function validateLoaderOptions(loaderOptions: LoaderOptions) {
+  const loaderOptionKeys = Object.keys(loaderOptions);
+  for (let i = 0; i < loaderOptionKeys.length; i++) {
+    const option = loaderOptionKeys[i];
+    const isUnexpectedOption =
+      (validLoaderOptions as string[]).indexOf(option) === -1;
+    if (isUnexpectedOption) {
+      throw new Error(`ts-loader was supplied with an unexpected loader option: ${option}
+
+Please take a look at the options you are supplying; the following are valid options:
+${validLoaderOptions.join(' / ')}
+`);
+    }
+  }
+}
+
 function getOptionsHash(loaderOptions: LoaderOptions) {
   const hash = crypto.createHash('sha256');
   Object.keys(loaderOptions).forEach(key => {
@@ -209,17 +385,9 @@ function getOptionsHash(loaderOptions: LoaderOptions) {
   return hash.digest('hex').substring(0, 16);
 }
 
-/**
- * either retrieves loader options from the cache
- * or creates them, adds them to the cache and returns
- */
-function getLoaderOptions(
-  loaderContext: webpack.LoaderContext<LoaderOptions>
-) {
+function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
   const loaderOptions = loaderUtils.getOptions(loaderContext);
 
-  // If no instance name is given in the options, use the hash of the loader options
-  // In this way, if different options are given the instances will be different
   const instanceName =
     loaderOptions.instance || 'default_' + getOptionsHash(loaderOptions);
 
@@ -235,456 +403,164 @@ function getLoaderOptions(
 
   validateLoaderOptions(loaderOptions);
 
-  const options = makeLoaderOptions(instanceName, loaderOptions, loaderContext);
-
-  cache.set(loaderOptions, options);
-
-  return options;
-}
-
-type ValidLoaderOptions = keyof LoaderOptions;
-const validLoaderOptions: ValidLoaderOptions[] = [
-  'silent',
-  'logLevel',
-  'logInfoToStdOut',
-  'instance',
-  'compiler',
-  'context',
-  'configFile',
-  'transpileOnly',
-  'ignoreDiagnostics',
-  'errorFormatter',
-  'colors',
-  'compilerOptions',
-  'appendTsSuffixTo',
-  'appendTsxSuffixTo',
-  'onlyCompileBundledFiles',
-  'happyPackMode',
-  'getCustomTransformers',
-  'reportFiles',
-  'experimentalWatchApi',
-  'allowTsInNodeModules',
-  'experimentalFileCaching',
-  'projectReferences',
-  'resolveModuleName',
-  'resolveTypeReferenceDirective',
-  'useCaseSensitiveFileNames',
-];
-
-/**
- * Validate the supplied loader options.
- * At present this validates the option names only; in future we may look at validating the values too
- * @param loaderOptions
- */
-function validateLoaderOptions(loaderOptions: LoaderOptions) {
-  const loaderOptionKeys = Object.keys(loaderOptions);
-  for (let i = 0; i < loaderOptionKeys.length; i++) {
-    const option = loaderOptionKeys[i];
-    const isUnexpectedOption =
-      (validLoaderOptions as string[]).indexOf(option) === -1;
-    if (isUnexpectedOption) {
-      throw new Error(`ts-loader was supplied with an unexpected loader option: ${option}
-
-Please take a look at the options you are supplying; the following are valid options:
-${validLoaderOptions.join(' / ')}
-`);
-    }
-  }
-
-  if (
-    loaderOptions.context !== undefined &&
-    !path.isAbsolute(loaderOptions.context)
-  ) {
-    throw new Error(
-      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`
-    );
-  }
-}
-
-function makeLoaderOptions(
-  instanceName: string,
-  loaderOptions: LoaderOptions,
-  loaderContext: webpack.LoaderContext<LoaderOptions>
-) {
   const hasForkTsCheckerWebpackPlugin =
     loaderContext._compiler?.options.plugins?.some(
       plugin =>
         plugin !== null &&
         typeof plugin === 'object' &&
-        plugin.constructor?.name === 'ForkTsCheckerWebpackPlugin'
+        plugin.constructor?.name === 'ForkTsCheckerWebpackPlugin',
     ) ?? false;
 
   const options = Object.assign(
     {},
     {
       silent: false,
-      logLevel: 'WARN',
+      logLevel: 'WARN' as keyof typeof LogLevel,
       logInfoToStdOut: false,
       compiler: 'typescript',
-      context: undefined,
-      // Set default transpileOnly to true if there is an instance of ForkTsCheckerWebpackPlugin
       transpileOnly: hasForkTsCheckerWebpackPlugin,
-      compilerOptions: {},
       appendTsSuffixTo: [],
       appendTsxSuffixTo: [],
-      transformers: {},
-      happyPackMode: false,
       colors: true,
-      onlyCompileBundledFiles: false,
       reportFiles: [],
-      // When the watch API usage stabilises look to remove this option and make watch usage the default behaviour when available
-      experimentalWatchApi: false,
       allowTsInNodeModules: false,
-      experimentalFileCaching: true,
-    } as Partial<LoaderOptions>,
-    loaderOptions
+      ignoreDiagnostics: [] as number[],
+    } satisfies Partial<LoaderOptions>,
+    loaderOptions,
   );
 
   options.ignoreDiagnostics = arrify(options.ignoreDiagnostics).map(Number);
-  options.logLevel = options.logLevel.toUpperCase() as LogLevel;
+  options.logLevel = options.logLevel.toUpperCase() as keyof typeof LogLevel;
   options.instance = instanceName;
   options.configFile = options.configFile || 'tsconfig.json';
 
-  // happypack can be used only together with transpileOnly mode
-  options.transpileOnly = options.happyPackMode ? true : options.transpileOnly;
+  cache.set(loaderOptions, options);
 
   return options;
 }
 
-/**
- * Either add file to the overall files cache or update it in the cache when the file contents have changed
- * Also add the file to the modified files
- */
 function updateFileInCache(
-  options: LoaderOptions,
   filePath: string,
   contents: string,
-  instance: TSInstance
+  instance: TSInstance,
 ) {
-  let fileWatcherEventKind: typescript.FileWatcherEventKind | undefined;
-  // Update file contents
-  const key = instance.filePathKeyMapper(filePath);
-  let file = instance.files.get(key);
+  const resolvedPath = instance.resolvedFilePathCache(filePath);
+  let file: TSFile | undefined = instance.files.get(resolvedPath);
+
   if (file === undefined) {
-    file = instance.otherFiles.get(key);
-    if (file !== undefined) {
-      if (!isReferencedFile(instance, filePath)) {
-        instance.otherFiles.delete(key);
-        instance.files.set(key, file);
-        instance.changedFilesList = true;
-      }
-    } else {
-      if (instance.watchHost !== undefined) {
-        fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Created;
-      }
-      file = { fileName: filePath, version: 0 };
-      if (!isReferencedFile(instance, filePath)) {
-        instance.files.set(key, file);
-        instance.changedFilesList = true;
-      }
-    }
-  }
-
-  if (instance.watchHost !== undefined && contents === undefined) {
-    fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Deleted;
-  }
-
-  // filePath is a root file as it was passed to the loader. But it
-  // could have been found earlier as a dependency of another file. If
-  // that is the case, compiling this file changes the structure of
-  // the program and we need to increase the instance version.
-  //
-  // See https://github.com/TypeStrong/ts-loader/issues/943
-  if (
-    !isReferencedFile(instance, filePath) &&
-    !instance.rootFileNames.has(filePath) &&
-    // however, be careful not to add files from node_modules unless
-    // it is allowed by the options.
-    (options.allowTsInNodeModules || filePath.indexOf('node_modules') === -1)
-  ) {
+    // No "don't compile this" step needed for a disallowed node_modules
+    // file here: the API already skips emit for files it considers part of
+    // an external library, surfaced instead as makeSourceMapAndFinish's
+    // "TypeScript emitted no output" error below.
+    file = { fileName: filePath, version: 0 };
+    instance.files.set(resolvedPath, file);
     instance.version++;
-    instance.rootFileNames.add(filePath);
   }
 
   if (file.text !== contents) {
     file.version++;
     file.text = contents;
-    file.modifiedTime = new Date();
     instance.version++;
-    if (
-      instance.watchHost !== undefined &&
-      fileWatcherEventKind === undefined
-    ) {
-      fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Changed;
-    }
   }
-
-  // Added in case the files were already updated by the watch API
-  if (instance.modifiedFiles && instance.modifiedFiles.get(key)) {
-    fileWatcherEventKind = instance.compiler.FileWatcherEventKind.Changed;
-  }
-
-  if (instance.watchHost !== undefined && fileWatcherEventKind !== undefined) {
-    instance.hasUnaccountedModifiedFiles =
-      instance.watchHost.invokeFileWatcher(filePath, fileWatcherEventKind) ||
-      instance.hasUnaccountedModifiedFiles;
-  }
-
-  // push this file to modified files hash.
-  if (!instance.modifiedFiles) {
-    instance.modifiedFiles = new Map();
-  }
-  instance.modifiedFiles.set(key, true);
 
   return file.version;
 }
 
-function getEmit(
-  rawFilePath: string,
-  filePath: string,
-  instance: TSInstance,
-  loaderContext: webpack.LoaderContext<LoaderOptions>
-) {
-  const outputFiles = getEmitOutput(instance, filePath);
-  loaderContext.clearDependencies();
-  loaderContext.addDependency(rawFilePath);
-
-  const dependencies: string[] = [];
-  const addDependency = (file: string) => {
-    file = path.resolve(file);
-    loaderContext.addDependency(file);
-    dependencies.push(file);
-  };
-
-  // Make this file dependent on *all* definition files in the program
-  if (!isReferencedFile(instance, filePath)) {
-    for (const { fileName: defFilePath } of instance.files.values()) {
-      if (
-        defFilePath.match(constants.dtsDtsxOrDtsDtsxMapRegex) &&
-        // Remove the project reference d.ts as we are adding dependency for .ts later
-        // This removed extra build pass (resulting in new stats object in initial build)
-        !instance.solutionBuilderHost?.getOutputFileKeyFromReferencedProject(
-          defFilePath
-        )
-      ) {
-        addDependency(defFilePath);
-      }
-    }
-  }
-
-  // Additionally make this file dependent on all imported files
-  const fileDependencies = instance.dependencyGraph.get(
-    instance.filePathKeyMapper(filePath)
+function appendSuffixesIfRequired(filePath: string, options: LoaderOptions) {
+  return (
+    appendSuffixIfMatch(options.appendTsSuffixTo, filePath, '.ts') ||
+    appendSuffixIfMatch(options.appendTsxSuffixTo, filePath, '.tsx') ||
+    filePath
   );
-  if (fileDependencies) {
-    for (const { resolvedFileName, originalFileName } of fileDependencies) {
-      // In the case of dependencies that are part of a project reference,
-      // the real dependency that webpack should watch is the JS output file.
-      addDependency(
-        getInputFileNameFromOutput(instance, path.resolve(resolvedFileName)) ||
-          originalFileName
-      );
-    }
-  }
-
-  addDependenciesFromSolutionBuilder(instance, filePath, addDependency);
-
-  if (loaderContext._module && loaderContext._module.buildMeta) loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions =
-    dependencies.map(
-      defFilePath =>
-        path.relative(loaderContext.rootContext, defFilePath) +
-        '@' +
-        (isReferencedFile(instance, defFilePath)
-          ? instance
-              .solutionBuilderHost!.getInputFileStamp(defFilePath)
-              .toString()
-          : (
-              instance.files.get(instance.filePathKeyMapper(defFilePath)) ||
-              instance.otherFiles.get(
-                instance.filePathKeyMapper(defFilePath)
-              ) || {
-                version: '?',
-              }
-            ).version)
-    );
-
-  return getOutputAndSourceMapFromOutputFiles(outputFiles);
 }
 
-function getOutputAndSourceMapFromOutputFiles(
-  outputFiles: typescript.OutputFile[]
-) {
-  const outputFile = outputFiles
-    .filter(file => file.name.match(constants.jsJsx))
-    .pop();
-  const outputText = outputFile === undefined ? undefined : outputFile.text;
-
-  const sourceMapFile = outputFiles
-    .filter(file => file.name.match(constants.jsJsxMap))
-    .pop();
-  const sourceMapText =
-    sourceMapFile === undefined ? undefined : sourceMapFile.text;
-  return { outputText, sourceMapText };
-}
-
-function addDependenciesFromSolutionBuilder(
-  instance: TSInstance,
+function appendSuffixIfMatch(
+  patterns: (RegExp | string)[],
   filePath: string,
-  addDependency: (file: string) => void
+  suffix: string,
 ) {
-  if (!instance.solutionBuilderHost) {
-    return;
-  }
-
-  // Add all the input files from the references as
-  const resolvedFilePath = instance.filePathKeyMapper(filePath);
-  if (!isReferencedFile(instance, filePath)) {
-    if (
-      instance.configParseResult.fileNames.some(
-        f => instance.filePathKeyMapper(f) === resolvedFilePath
-      )
-    ) {
-      addDependenciesFromProjectReferences(
-        instance,
-        instance.configFilePath!,
-        instance.configParseResult.projectReferences,
-        addDependency
-      );
-    }
-    return;
-  }
-
-  // Referenced file find the config for it
-  for (const [
-    configFile,
-    configInfo,
-  ] of instance.solutionBuilderHost.configFileInfo.entries()) {
-    if (
-      !configInfo.config ||
-      !configInfo.config.projectReferences ||
-      !configInfo.config.projectReferences.length
-    ) {
-      continue;
-    }
-    if (configInfo.outputFileNames) {
-      if (!configInfo.outputFileNames.has(resolvedFilePath)) {
-        continue;
-      }
-    } else if (
-      !configInfo.config.fileNames.some(
-        f => instance.filePathKeyMapper(f) === resolvedFilePath
-      )
-    ) {
-      continue;
-    }
-
-    // Depend on all the dts files from the program
-    if (configInfo.dtsFiles) {
-      configInfo.dtsFiles.forEach(addDependency);
-    }
-    addDependenciesFromProjectReferences(
-      instance,
-      configFile,
-      configInfo.config.projectReferences,
-      addDependency
-    );
-    break;
-  }
-}
-
-function addDependenciesFromProjectReferences(
-  instance: TSInstance,
-  configFile: string,
-  projectReferences: readonly typescript.ProjectReference[] | undefined,
-  addDependency: (file: string) => void
-) {
-  if (!projectReferences || !projectReferences.length) {
-    return;
-  }
-  // This is the config for the input file
-  const seenMap = new Map<FilePathKey, true>();
-  seenMap.set(instance.filePathKeyMapper(configFile), true);
-
-  // Add dependencies to all the input files from the project reference files since building them
-  const queue = projectReferences.slice();
-  while (true) {
-    const currentRef = queue.pop();
-    if (!currentRef) {
-      break;
-    }
-    const refConfigFile = instance.filePathKeyMapper(
-      instance.compiler.resolveProjectReferencePath(currentRef)
-    );
-    if (seenMap.has(refConfigFile)) {
-      continue;
-    }
-    const refConfigInfo =
-      instance.solutionBuilderHost!.configFileInfo.get(refConfigFile);
-    if (!refConfigInfo) {
-      continue;
-    }
-    seenMap.set(refConfigFile, true);
-    if (refConfigInfo.config) {
-      refConfigInfo.config.fileNames.forEach(addDependency);
-      if (refConfigInfo.config.projectReferences) {
-        queue.push(...refConfigInfo.config.projectReferences);
+  if (patterns.length > 0) {
+    for (const regexp of patterns) {
+      if (filePath.match(regexp) !== null) {
+        return filePath + suffix;
       }
     }
   }
+
+  return undefined;
 }
 
-/**
- * Transpile file
- */
-function getTranspilationEmit(
-  fileName: string,
+function arrify<T>(value: T | T[] | undefined) {
+  return value === undefined ? [] : Array.isArray(value) ? value : [value];
+}
+
+function makeSourceMapAndFinish(
+  sourceMapText: string | undefined,
+  outputText: string | undefined,
+  filePath: string,
   contents: string,
-  instance: TSInstance,
-  loaderContext: webpack.LoaderContext<LoaderOptions>
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  fileVersion: number,
+  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
+  allowTsInNodeModules: boolean,
+  inputSourceMap?: Record<string, unknown>,
 ) {
-  if (isReferencedFile(instance, fileName)) {
-    const outputFiles =
-      instance.solutionBuilderHost!.getOutputFilesFromReferencedProjectInput(
-        fileName
-      );
-    addDependenciesFromSolutionBuilder(instance, fileName, file =>
-      loaderContext.addDependency(path.resolve(file))
+  if (outputText === null || outputText === undefined) {
+    setModuleMeta(loaderContext, fileVersion);
+    // A file under node_modules is the most common cause: the API skips
+    // emit for a source file it considers part of an external library,
+    // matching classic ts-loader's guidance for the same situation.
+    const additionalGuidance =
+      !allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
+        ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
+          'You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n' +
+          'See: https://github.com/Microsoft/TypeScript/issues/12358'
+        : '';
+    callback(
+      new Error(
+        `TypeScript emitted no output for ${filePath}.${additionalGuidance}`,
+      ),
+      outputText,
+      undefined,
     );
-    return getOutputAndSourceMapFromOutputFiles(outputFiles);
+    return;
   }
 
-  const { outputText, sourceMapText, diagnostics } =
-    instance.compiler.transpileModule(contents, {
-      compilerOptions: instance.compilerOptions,
-      transformers: instance.transformers,
-      reportDiagnostics: true,
-      fileName,
-    });
-  const module = loaderContext._module;
-
-  addDependenciesFromSolutionBuilder(instance, fileName, file =>
-    loaderContext.addDependency(path.resolve(file))
+  const { sourceMap, output } = makeSourceMap(
+    sourceMapText,
+    outputText,
+    filePath,
+    contents,
+    loaderContext,
   );
 
-  // _module.errors is not available inside happypack - see https://github.com/TypeStrong/ts-loader/issues/336
-  if (!instance.loaderOptions.happyPackMode) {
-    const errors = formatErrors(
-      diagnostics,
-      instance.loaderOptions,
-      instance.colors,
-      instance.compiler,
-      { module },
-      loaderContext.context
-    );
+  setModuleMeta(loaderContext, fileVersion);
 
-    errors.forEach(error => {
-      if (module) {
-        addErrorToModule(module, error);
-      }
-    });
+  if (sourceMap === undefined || !inputSourceMap || !canUseSourceMapConsumer) {
+    callback(null, output, sourceMap);
+    return;
   }
 
-  return { outputText, sourceMapText };
+  mapToInputSourceMap(
+    sourceMap,
+    loaderContext,
+    inputSourceMap as unknown as RawSourceMap,
+  )
+    .then(mappedSourceMap => {
+      callback(null, output, mappedSourceMap);
+    })
+    .catch((e: Error) => {
+      callback(e);
+    });
+}
+
+function setModuleMeta(
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+  fileVersion: number,
+) {
+  if (loaderContext._module?.buildMeta !== undefined) {
+    loaderContext._module.buildMeta.tsLoaderFileVersion = fileVersion;
+  }
 }
 
 function makeSourceMap(
@@ -692,7 +568,7 @@ function makeSourceMap(
   outputText: string,
   filePath: string,
   contents: string,
-  loaderContext: webpack.LoaderContext<LoaderOptions>
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
   if (sourceMapText === undefined) {
     return { output: outputText, sourceMap: undefined };
@@ -708,14 +584,10 @@ function makeSourceMap(
   };
 }
 
-/**
- * This method maps the newly generated @param{sourceMap} to the input source map.
- * This is required when ts-loader is not the first loader in the Webpack loader chain.
- */
 function mapToInputSourceMap(
   sourceMap: RawSourceMap,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
-  inputSourceMap: RawSourceMap
+  inputSourceMap: RawSourceMap,
 ): Promise<RawSourceMap> {
   return new Promise<RawSourceMap>((resolve, reject) => {
     const inMap: RawSourceMap = {
@@ -734,22 +606,19 @@ function mapToInputSourceMap(
       .then(sourceMapConsumers => {
         try {
           const generator = SourceMapGenerator.fromSourceMap(
-            sourceMapConsumers[1]
+            sourceMapConsumers[1],
           );
           generator.applySourceMap(sourceMapConsumers[0]);
           const mappedSourceMap = generator.toJSON();
 
-          // before resolving, we free memory by calling destroy on the source map consumers
           sourceMapConsumers.forEach(sourceMapConsumer =>
-            sourceMapConsumer.destroy()
+            sourceMapConsumer.destroy(),
           );
           resolve(mappedSourceMap);
         } catch (e) {
-          //before rejecting, we free memory by calling destroy on the source map consumers
           sourceMapConsumers.forEach(sourceMapConsumer =>
-            sourceMapConsumer.destroy()
+            sourceMapConsumer.destroy(),
           );
-          // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
           reject(e);
         }
       })
@@ -759,9 +628,6 @@ function mapToInputSourceMap(
 
 export = loader;
 
-/**
- * expose public types via declaration merging
- */
 // eslint-disable-next-line @typescript-eslint/no-namespace
 namespace loader {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type

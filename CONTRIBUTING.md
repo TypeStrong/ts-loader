@@ -23,7 +23,7 @@ In short: fork, make your changes, and submit a pull request.
 
 ## Testing
 
-This project makes use of 2 integration test packs to make sure we don't break anything. That's right, count them, 2! There is a comparison test pack which compares compilation outputs and is long established.  There is also an execution test pack which executes the compiled JavaScript. This test pack is young and contains fewer tests; but it shows promise.
+This project makes use of 2 integration test packs to make sure we don't break anything. That's right, count them, 2! There is a comparison test pack which compares compilation outputs and is long established. There is also an execution test pack which executes the compiled JavaScript. This test pack is young and contains fewer tests; but it shows promise.
 
 You can run all the tests (in both test packs) with `yarn test`.
 

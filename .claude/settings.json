@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "defaultMode": "dontAsk",
+    "allow": [
+      "Edit",
+      "Write",
+      "Bash(rm -rf .spike-tmp*)",
+      "Bash(yarn build *)",
+      "Bash(yarn lint *)",
+      "Bash(yarn format *)",
+      "Bash(yarn test *)",
+      "Bash(yarn comparison-tests *)",
+      "Bash(yarn execution-tests *)",
+      "Bash(yarn clean *)",
+      "Bash(yarn install *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git stash *)",
+      "Bash(git checkout *)",
+      "Bash(git clean *)",
+      "Bash(npm ls *)",
+      "Bash(npm view *)",
+      "Bash(npm root *)",
+      "Bash(npm config *)",
+      "Bash(node *)",
+      "Bash(node_modules/.bin/tsc *)",
+      "Bash(npx tsc *)",
+      "Bash(npx mocha *)",
+      "Bash(grep *)",
+      "Read(//usr/local/lib/node_modules/**)",
+      "Bash(rm -rf .test)",
+      "Bash(FORCE_COLOR=1 node node_modules/mocha/bin/_mocha test/comparison-tests/create-and-execute-test.js --reporter spec --test-to-run * --timeout 25000)",
+      "Bash(node node_modules/mocha/bin/_mocha test/comparison-tests/create-and-execute-test.js --reporter spec --test-to-run * --timeout 25000)",
+      "Bash(echo \"PID $!\")"
+    ]
+  }
+}
