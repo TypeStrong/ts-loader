@@ -1,6 +1,6 @@
 import type typescript from 'typescript';
 
-import type { Chalk } from 'chalk';
+import type { ChalkInstance } from 'chalk';
 import type * as logger from './logger';
 
 export interface ErrorInfo {
@@ -196,7 +196,7 @@ export interface TSInstance {
   dependencyGraph: DependencyGraph;
   filesWithErrors?: TSFiles;
   transformers: typescript.CustomTransformers;
-  colors: Chalk;
+  colors: ChalkInstance;
 
   otherFiles: TSFiles;
   watchHost?: WatchHost;
@@ -260,7 +260,7 @@ export interface LoaderOptions {
   transpileOnly: boolean;
   ignoreDiagnostics: number[];
   reportFiles: string[];
-  errorFormatter: (message: ErrorInfo, colors: Chalk) => string;
+  errorFormatter: (message: ErrorInfo, colors: ChalkInstance) => string;
   onlyCompileBundledFiles: boolean;
   colors: boolean;
   compilerOptions: typescript.CompilerOptions;

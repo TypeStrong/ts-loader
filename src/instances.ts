@@ -34,6 +34,7 @@ import {
 } from './utils';
 import { makeWatchRun } from './watch-run';
 import { isWebpack5 } from './loaderUtils';
+import { supportsColor, Chalk } from 'chalk';
 
 const instancesBySolutionBuilderConfigs = new Map<FilePathKey, TSInstance>();
 
@@ -60,8 +61,8 @@ export function getTypeScriptInstance(
   }
 
   const level =
-    loaderOptions.colors && chalk.supportsColor ? chalk.supportsColor.level : 0;
-  const colors = new chalk.Instance({ level });
+    loaderOptions.colors && supportsColor ? supportsColor.level : 0;
+  const colors = new Chalk({ level });
   const log = logger.makeLogger(loaderOptions, colors);
   const compiler = getCompiler(loaderOptions, log);
 
@@ -122,7 +123,7 @@ function successfulTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>,
   log: logger.Logger,
-  colors: chalk.Chalk,
+  colors: chalk.ChalkInstance,
   compiler: typeof typescript,
   compilerCompatible: boolean,
   compilerDetailsLogMessage: string

@@ -1,4 +1,4 @@
-import type { Chalk } from 'chalk';
+import type { ChalkInstance } from 'chalk';
 import { Console } from 'console';
 import type { LoaderOptions } from './interfaces';
 
@@ -42,7 +42,7 @@ const makeExternalLogger = (
 const makeLogInfo = (
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
-  green: Chalk
+  green: ChalkInstance
 ) =>
   LogLevel[loaderOptions.logLevel] <= LogLevel.INFO
     ? (message: string) =>
@@ -55,7 +55,7 @@ const makeLogInfo = (
 const makeLogError = (
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
-  red: Chalk
+  red: ChalkInstance
 ) =>
   LogLevel[loaderOptions.logLevel] <= LogLevel.ERROR
     ? (message: string) => logger(stderrConsole, red(message))
@@ -64,7 +64,7 @@ const makeLogError = (
 const makeLogWarning = (
   loaderOptions: LoaderOptions,
   logger: InternalLoggerFunc,
-  yellow: Chalk
+  yellow: ChalkInstance
 ) =>
   LogLevel[loaderOptions.logLevel] <= LogLevel.WARN
     ? (message: string) => logger(stderrConsole, yellow(message))
@@ -72,7 +72,7 @@ const makeLogWarning = (
 
 export function makeLogger(
   loaderOptions: LoaderOptions,
-  colors: Chalk
+  colors: ChalkInstance
 ): Logger {
   const logger = makeLoggerFunc(loaderOptions);
   return {
