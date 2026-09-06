@@ -1,4 +1,4 @@
-import type { Chalk } from 'chalk';
+import type { ChalkInstance } from 'chalk';
 import * as path from 'path';
 import type typescript from 'typescript';
 import type * as webpack from 'webpack';
@@ -15,7 +15,7 @@ interface ConfigFile {
 
 export function getConfigFile(
   compiler: typeof typescript,
-  colors: Chalk,
+  colors: ChalkInstance,
   loader: webpack.LoaderContext<LoaderOptions>,
   loaderOptions: LoaderOptions,
   compilerCompatible: boolean,

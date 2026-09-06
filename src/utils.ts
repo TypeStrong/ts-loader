@@ -1,4 +1,4 @@
-import type { Chalk } from 'chalk';
+import type { ChalkInstance } from 'chalk';
 import * as fs from 'fs';
 import picomatch from 'picomatch';
 import * as path from 'path';
@@ -22,7 +22,7 @@ import { isWebpack5 } from './loaderUtils';
 /**
  * The default error formatter.
  */
-function defaultErrorFormatter(error: ErrorInfo, colors: Chalk) {
+function defaultErrorFormatter(error: ErrorInfo, colors: ChalkInstance) {
   const messageColor =
     error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
 
@@ -79,7 +79,7 @@ function makeReportFilesMatcher(
 export function formatErrors(
   diagnostics: ReadonlyArray<typescript.Diagnostic> | undefined,
   loaderOptions: LoaderOptions,
-  colors: Chalk,
+  colors: ChalkInstance,
   compiler: typeof typescript,
   merge: { file?: string; module?: webpack.Module },
   context: string,
