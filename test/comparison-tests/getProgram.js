@@ -10,8 +10,8 @@ function getProgram(tsconfigPath, optionsToExtend) {
             ? createExtendedConfigFile(tsconfigPath, optionsToExtend)
             : tsconfigPath;
     const api = new typescript.API();
-    const snapshot = api.updateSnapshot({ openProjects: [configFilePath] });
-    const project = snapshot.getProject(configFilePath);
+    const snapshot = api.createSnapshot({ openProjects: [configFilePath] });
+    const project = snapshot.getConfiguredProject(configFilePath);
     if (!project) {
         throw new Error("Error building project");
     }
