@@ -24,3 +24,4 @@ npm-debug.log
 .vs/**
 .pnpm-store
 .spike-tmp
+.DS_Store
