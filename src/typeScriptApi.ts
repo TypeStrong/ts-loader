@@ -136,7 +136,8 @@ export function getTypeScriptEmit(
       // Prefer the project ts-loader explicitly resolved over the API's own
       // nearest-tsconfig auto-discovery, which can pick an unrelated
       // tsconfig.json that happens to sit closer to `fileName` on disk.
-      const configuredProject = temporarySnapshot.getProject(projectConfigPath);
+      const configuredProject =
+        temporarySnapshot.getConfiguredProject(projectConfigPath);
       // A configured project that failed to parse at all is a hard failure
       // to surface as-is, not a reason to silently fall back to a different
       // project that happens to resolve `fileName`.
@@ -374,13 +375,15 @@ function getTranspileConfig(
       const rootFiles = requiresRootFileDiagnostics(config)
         ? config.fileNames
         : [];
-      const program = typeScriptInstance.api.createProgram(rootFiles, {
-        compilerOptions:
-          rootFiles.length === 0
-            ? config.options
-            : { ...config.options, noCheck: true, noResolve: true },
-        configFileParsingDiagnostics: config.errors,
-      });
+      const compilerOptions =
+        rootFiles.length === 0
+          ? config.options
+          : { ...config.options, noCheck: true, noResolve: true };
+      const program = typeScriptInstance.api.createProgram(
+        rootFiles,
+        compilerOptions,
+        { configFileParsingDiagnostics: config.errors },
+      );
       typeScriptInstance.transpileConfigDiagnostics =
         program.getProgramDiagnostics();
       program.dispose();
@@ -596,7 +599,7 @@ function updateSnapshot(
   const pendingChangedOrRemovedFiles =
     typeScriptInstance.pendingChangedFiles ??
     typeScriptInstance.pendingRemovedFiles;
-  const fileChanges = typeScriptInstance.pendingInvalidation
+  const fileNotifications = typeScriptInstance.pendingInvalidation
     ? ({ invalidateAll: true } as const)
     : pendingChangedOrRemovedFiles
       ? {
@@ -640,11 +643,23 @@ function updateSnapshot(
   typeScriptInstance.pendingInvalidation = false;
   typeScriptInstance.pendingChangedFiles = undefined;
   typeScriptInstance.pendingRemovedFiles = undefined;
-  const snapshot = typeScriptInstance.api.updateSnapshot(
+  const params =
     openProjects && openProjects.length > 0
-      ? { openProjects, openFiles: [fileName], fileChanges, closeProjects }
-      : { openFiles: [fileName], fileChanges, closeProjects },
-  );
+      ? {
+          openProjects,
+          openFiles: [fileName],
+          fileNotifications,
+          closeProjects,
+        }
+      : { openFiles: [fileName], fileNotifications, closeProjects };
+  // The API no longer tracks a "latest snapshot" of its own (see
+  // https://github.com/microsoft/TypeScript/pull/64204) - ts-loader must
+  // explicitly layer each new snapshot over the previous one via
+  // `snapshot.update` to retain its cache, falling back to a fresh
+  // `createSnapshot` only for the very first snapshot of the instance.
+  const snapshot = previousSnapshot
+    ? previousSnapshot.update(params)
+    : typeScriptInstance.api.createSnapshot(params);
 
   typeScriptInstance.snapshot = snapshot;
   openProjects?.forEach(projectPath =>
@@ -661,7 +676,7 @@ function updateSnapshot(
 /**
  * Api-facing names (see `toApiFacingFileName`) of a raw webpack file-path
  * set, or `undefined` for an absent/empty set - so an unpopulated
- * `pendingRemovedFiles` (say) omits `deleted` from `APIFileChanges` entirely
+ * `pendingRemovedFiles` (say) omits `deleted` from `FileNotifications` entirely
  * rather than sending an empty array.
  */
 function mapApiFacingFileNames(
@@ -699,7 +714,7 @@ function openPrimaryProject(
   return {
     snapshot,
     primaryProjectPath,
-    primaryProject: snapshot.getProject(primaryProjectPath),
+    primaryProject: snapshot.getConfiguredProject(primaryProjectPath),
   };
 }
 
@@ -730,7 +745,7 @@ function getSnapshot(
   return {
     snapshot,
     primaryProjectPath,
-    primaryProject: snapshot.getProject(primaryProjectPath),
+    primaryProject: snapshot.getConfiguredProject(primaryProjectPath),
   };
 }
 
