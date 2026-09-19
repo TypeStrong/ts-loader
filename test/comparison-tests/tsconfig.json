@@ -11,10 +11,10 @@
         "strict": false
     },
     "files": [
-        "getProgram.js",
+        "copySync.js",         
         "create-and-execute-test.js",
-        "run-tests.js",
+        "getProgram.js",
         "newline.loader.js",
-        "copySync.js"         
+        "run-tests.js"
     ]
 }
