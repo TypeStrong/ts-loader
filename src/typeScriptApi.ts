@@ -44,26 +44,42 @@ export function createTypeScriptInstance(
   // Served entirely via the `readFile` override below - never written to
   // real disk (see ensureSyntheticConfigForFile).
   const syntheticConfigContents = new Map<FilePath, string>();
+
+  /**
+   * Tries `fileName` as-is, then falls back to its pre-alias form (see
+   * `toRealFacingFileName`) - shared by the fs.fileExists/readFile overrides below.
+   *
+   * @param fileName The name of the file to look up.
+   * @returns The content of the file if it exists, otherwise `undefined`.
+   */
+  const contentFor = (fileName: string) =>
+    syntheticConfigContents.get(resolvedFilePathCache(fileName)) ??
+    files.get(resolvedFilePathCache(fileName))?.text;
+
+  /**
+   * Looks up the content of a virtual file, trying the API-facing name first,
+   * then falling back to the real-facing name if necessary.
+   *
+   * @param fileName The name of the file to look up.
+   * @returns The content of the file if it exists, otherwise `undefined`.
+   */
+  const lookupVirtualFile = (fileName: string): string | undefined => {
+    const content = contentFor(fileName);
+    if (content !== undefined) {
+      return content;
+    }
+    const realFileName = toRealFacingFileName(fileName);
+    return realFileName === undefined ? undefined : contentFor(realFileName);
+  };
+
   const api = new typeScriptApiModule.API(
     loaderOptions.transpileOnly
       ? undefined
       : {
           fs: {
-            // Without this, a purely synthetic identity (e.g. `component.vue.ts`)
-            // reports "File not found" (TS6053) even though readFile can serve
-            // it. `true`/`undefined`, not `false`, so anything else still falls
-            // through to real disk.
             fileExists: fileName =>
-              syntheticConfigContents.has(resolvedFilePathCache(fileName)) ||
-              files.has(resolvedFilePathCache(fileName))
-                ? true
-                : undefined,
-            // resolvedPathCache since the API may hand back a different path
-            // spelling (or case, on a case-insensitive filesystem) than what
-            // this was stored under.
-            readFile: fileName =>
-              syntheticConfigContents.get(resolvedFilePathCache(fileName)) ??
-              files.get(resolvedFilePathCache(fileName))?.text,
+              lookupVirtualFile(fileName) !== undefined ? true : undefined,
+            readFile: lookupVirtualFile,
           },
         },
   );
@@ -657,9 +673,37 @@ function updateSnapshot(
   // explicitly layer each new snapshot over the previous one via
   // `snapshot.update` to retain its cache, falling back to a fresh
   // `createSnapshot` only for the very first snapshot of the instance.
-  const snapshot = previousSnapshot
-    ? previousSnapshot.update(params)
-    : typeScriptInstance.api.createSnapshot(params);
+  let snapshot;
+  try {
+    snapshot = previousSnapshot
+      ? previousSnapshot.update(params)
+      : typeScriptInstance.api.createSnapshot(params);
+  } catch (error) {
+    // `fileName` can be a virtual identity that isn't part of the project
+    // being opened in this same call (e.g. a webpack entry aliased by
+    // `appendTsSuffixTo`/`toApiFacingFileName`, not yet on disk under that
+    // name) - asking to open the project and that file together panics the
+    // API on Windows ("no project found for opened file") instead of
+    // falling back to an inferred project, per
+    // `SnapshotRequestChangesParams.openFiles`'s own doc comment. Retry
+    // opening just the project, without the file: prepareSnapshotForFile's
+    // own membership check + synthetic-config fallback (see
+    // ensureSyntheticConfigForFile) then takes over, exactly as it already
+    // does for any later never-before-seen file. Only relevant when this
+    // call was opening a project in the first place - anything else is a
+    // genuine failure, not this shape of bug.
+    if (!openProjects || openProjects.length === 0) {
+      throw error;
+    }
+    const paramsWithoutOpenFiles = {
+      openProjects,
+      fileNotifications,
+      closeProjects,
+    };
+    snapshot = previousSnapshot
+      ? previousSnapshot.update(paramsWithoutOpenFiles)
+      : typeScriptInstance.api.createSnapshot(paramsWithoutOpenFiles);
+  }
 
   typeScriptInstance.snapshot = snapshot;
   openProjects?.forEach(projectPath =>
@@ -901,6 +945,26 @@ function toApiFacingFileName(fileName: string) {
     constants.jsonRegex.test(fileName)
     ? fileName
     : `${fileName}.ts`;
+}
+
+/**
+ * Reverses toApiFacingFileName's `.ts` alias, so the `fs.fileExists`/
+ * `readFile` overrides below can find a virtual file's content, which is
+ * stored under its real name (e.g. `component.vue`), not the alias the
+ * TypeScript API round-trips back into the host (e.g. `component.vue.ts`).
+ * Returns `undefined` for anything toApiFacingFileName wouldn't have aliased
+ * in the first place - a real `.ts`/`.tsx`/`.js`/`.jsx`/`.json` file, which
+ * already resolves via its own name and never needs this fallback.
+ */
+function toRealFacingFileName(fileName: string): string | undefined {
+  if (!fileName.endsWith('.ts')) {
+    return undefined;
+  }
+  const withoutAlias = fileName.slice(0, -'.ts'.length);
+  return constants.tsTsxJsJsxRegex.test(withoutAlias) ||
+    constants.jsonRegex.test(withoutAlias)
+    ? undefined
+    : withoutAlias;
 }
 
 function getOutputAndSourceMapFromTypeScriptEmit(emitResult: EmitOutput) {
