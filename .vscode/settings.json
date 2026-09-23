@@ -8,5 +8,6 @@
     "sed": true,
     "yarn": true,
     "git check-ignore": true
-  }
+  },
+  "editor.formatOnSave": true
 }

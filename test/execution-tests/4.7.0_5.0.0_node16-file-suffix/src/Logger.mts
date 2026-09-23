@@ -1,4 +1,4 @@
-import chalk, { Chalk } from 'chalk';
+import chalk, { type ChalkInstance } from 'chalk';
 import { Exception } from './Exception.cjs';
 import { Messages } from './Messages.js';
 import { ProjectName } from './ProjectName.mjs';
@@ -31,7 +31,7 @@ export class Logger {
     /**
      * Gets a component for formatting messages.
      */
-    public get Chalk(): Chalk {
+    public get Chalk(): ChalkInstance {
         return chalk;
     }
 

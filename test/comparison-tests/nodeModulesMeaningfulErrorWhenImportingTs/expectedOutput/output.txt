@@ -7,9 +7,9 @@ Module build failed (from ../../index.js):
 Error: TypeScript emitted no output for node_modules/a/index.ts. By default, ts-loader will not compile .ts files in node_modules.
 You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.
 See: https://github.com/Microsoft/TypeScript/issues/12358
-    at makeSourceMapAndFinish (dist/index.js:90:18)
-    at successLoader (dist/index.js:77:5)
-    at Object.loader (dist/index.js:58:5)
+    at makeSourceMapAndFinish (dist/index.js:336:18)
+    at successLoader (dist/index.js:75:9)
+    at Object.loader (dist/index.js:57:37)
  @ ./app.ts 3:10-22
 
 webpack compiled with 1 error

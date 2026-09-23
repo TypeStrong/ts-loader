@@ -1,4 +1,4 @@
-asset bundle.js 1.36 KiB [emitted] (name: main)
+asset bundle.js 1.37 KiB [emitted] (name: main)
 ./app.ts 39 bytes [built] [code generated] [3 errors]
 
 ERROR in tsconfig.json
@@ -14,7 +14,7 @@ ERROR in tsconfig.json
 ERROR in ./app.ts
 Module build failed (from ../../index.js):
 Error: [31merror while parsing tsconfig.json[39m
-    at Object.loader (dist/index.js:51:18)
+    at Object.loader (dist/index.js:61:18)
 
 2 errors have detailed information that is not shown.
 Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
