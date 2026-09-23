@@ -621,13 +621,15 @@ function updateSnapshot(
       ? {
           changed: mapApiFacingFileNames(
             typeScriptInstance.pendingChangedFiles,
+            resolvedFilePathCache,
           ),
           deleted: mapApiFacingFileNames(
             typeScriptInstance.pendingRemovedFiles,
+            resolvedFilePathCache,
           ),
         }
       : changedFileNames && changedFileNames.size > 0
-        ? { changed: [...changedFileNames] }
+        ? { changed: [...changedFileNames].map(resolvedFilePathCache) }
         : undefined;
   if (typeScriptInstance.pendingInvalidation) {
     // A real rescan can change any file's content, so directImportsCache
@@ -659,51 +661,32 @@ function updateSnapshot(
   typeScriptInstance.pendingInvalidation = false;
   typeScriptInstance.pendingChangedFiles = undefined;
   typeScriptInstance.pendingRemovedFiles = undefined;
+  // `openProjects`/`closeProjects` are already resolvedFilePathCache'd (see
+  // `configFilePath` and `ensureSyntheticConfigForFile`) - `fileName` needs
+  // the same treatment here so every path in a single request shares one
+  // canonical casing. Without this, `openProjects` could carry a
+  // lowercased drive letter while `openFiles` keeps `fileName`'s natural
+  // (e.g. real, uppercase-drive-letter) casing, which is enough on its own
+  // to make the API unable to find a project for the opened file on
+  // Windows - see https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
+  const apiFacingFileName = resolvedFilePathCache(fileName);
   const params =
     openProjects && openProjects.length > 0
       ? {
           openProjects,
-          openFiles: [fileName],
+          openFiles: [apiFacingFileName],
           fileNotifications,
           closeProjects,
         }
-      : { openFiles: [fileName], fileNotifications, closeProjects };
+      : { openFiles: [apiFacingFileName], fileNotifications, closeProjects };
   // The API no longer tracks a "latest snapshot" of its own (see
   // https://github.com/microsoft/TypeScript/pull/64204) - ts-loader must
   // explicitly layer each new snapshot over the previous one via
   // `snapshot.update` to retain its cache, falling back to a fresh
   // `createSnapshot` only for the very first snapshot of the instance.
-  let snapshot;
-  try {
-    snapshot = previousSnapshot
-      ? previousSnapshot.update(params)
-      : typeScriptInstance.api.createSnapshot(params);
-  } catch (error) {
-    // `fileName` can be a virtual identity that isn't part of the project
-    // being opened in this same call (e.g. a webpack entry aliased by
-    // `appendTsSuffixTo`/`toApiFacingFileName`, not yet on disk under that
-    // name) - asking to open the project and that file together panics the
-    // API on Windows ("no project found for opened file") instead of
-    // falling back to an inferred project, per
-    // `SnapshotRequestChangesParams.openFiles`'s own doc comment. Retry
-    // opening just the project, without the file: prepareSnapshotForFile's
-    // own membership check + synthetic-config fallback (see
-    // ensureSyntheticConfigForFile) then takes over, exactly as it already
-    // does for any later never-before-seen file. Only relevant when this
-    // call was opening a project in the first place - anything else is a
-    // genuine failure, not this shape of bug.
-    if (!openProjects || openProjects.length === 0) {
-      throw error;
-    }
-    const paramsWithoutOpenFiles = {
-      openProjects,
-      fileNotifications,
-      closeProjects,
-    };
-    snapshot = previousSnapshot
-      ? previousSnapshot.update(paramsWithoutOpenFiles)
-      : typeScriptInstance.api.createSnapshot(paramsWithoutOpenFiles);
-  }
+  const snapshot = previousSnapshot
+    ? previousSnapshot.update(params)
+    : typeScriptInstance.api.createSnapshot(params);
 
   typeScriptInstance.snapshot = snapshot;
   openProjects?.forEach(projectPath =>
@@ -725,11 +708,14 @@ function updateSnapshot(
  */
 function mapApiFacingFileNames(
   fileNames: ReadonlySet<string> | undefined,
+  resolvedFilePathCache: ResolvedFilePathCache,
 ): string[] | undefined {
   if (!fileNames || fileNames.size === 0) {
     return undefined;
   }
-  return [...fileNames].map(toApiFacingFileName);
+  return [...fileNames].map(fileName =>
+    resolvedFilePathCache(toApiFacingFileName(fileName)),
+  );
 }
 
 /**
