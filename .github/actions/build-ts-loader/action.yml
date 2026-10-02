@@ -1,0 +1,37 @@
+name: Build ts-loader
+description: >
+  Install and build ts-loader (expects actions/checkout to have already run).
+  On Windows runners this excludes the working directory from Windows
+  Defender's real-time scanning and copies the checkout to
+  C:\source\ts-loader first - Defender's scanning of the heavy file I/O that
+  yarn does during install/build/test is a major source of slowdown and
+  flakiness on hosted Windows runners.
+inputs:
+  working-directory:
+    description: 'Directory to run install/build in. Use C:\source\ts-loader on Windows runners.'
+    required: false
+    default: '.'
+runs:
+  using: composite
+  steps:
+    - name: exclude working directory from Windows Defender
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: Add-MpPreference -ExclusionPath "C:\source"
+
+    - name: copy files
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        New-Item C:\source\ts-loader -ItemType Directory
+        Copy-Item .\* C:\source\ts-loader -Recurse -Force
+
+    - name: install
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: yarn install
+
+    - name: build
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: yarn build

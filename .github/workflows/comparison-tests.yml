@@ -1,0 +1,30 @@
+name: Comparison Tests
+
+on:
+  workflow_call:
+
+jobs:
+  comparison_test_ubuntu:
+    name: Comparison Tests Ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        run: sudo yarn comparison-tests
+
+  comparison_test_windows:
+    name: Comparison Tests Windows
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/build-ts-loader
+        with:
+          working-directory: C:\source\ts-loader
+
+      - name: test
+        run: yarn comparison-tests
+        working-directory: C:\source\ts-loader

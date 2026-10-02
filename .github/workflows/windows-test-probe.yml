@@ -1,14 +1,24 @@
 name: Windows test probe
 
-# A deliberately lean, on-demand counterpart to the `comparison_test_windows`
-# job in push.yml - triggered only via workflow_dispatch (never on push/PR,
-# so it adds no cost/noise to normal CI) and able to target a single test or
-# a name pattern, so a single iteration comes back in a couple of minutes
-# instead of running the full comparison/execution test matrix.
+# A deliberately lean, on-demand counterpart to the `comparison_test_*` jobs
+# in comparison-tests.yml - triggered only via workflow_dispatch (never on
+# push/PR, so it adds no cost/noise to normal CI) and able to target a single
+# test or a name pattern, so a single iteration comes back in a couple of
+# minutes instead of running the full comparison/execution test matrix.
 
 on:
   workflow_dispatch:
     inputs:
+      os:
+        description: 'Which OS(es) to run the probe on'
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
       single_test:
         description: 'Run only this comparison test (matches the test directory name, e.g. "dependencyErrors")'
         required: false
@@ -19,46 +29,74 @@ on:
         type: string
 
 jobs:
-  probe:
-    name: Windows comparison test probe
+  probe_ubuntu:
+    name: Comparison test probe (Ubuntu)
+    if: inputs.os == 'all' || inputs.os == 'ubuntu-latest'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        shell: bash
+        env:
+          SINGLE_TEST: ${{ inputs.single_test }}
+          MATCH_TEST: ${{ inputs.match_test }}
+        run: |
+          if [ -n "$SINGLE_TEST" ]; then
+            sudo yarn comparison-tests --single-test "$SINGLE_TEST"
+          elif [ -n "$MATCH_TEST" ]; then
+            sudo yarn comparison-tests --match-test "$MATCH_TEST"
+          else
+            sudo yarn comparison-tests
+          fi
+
+  probe_macos:
+    name: Comparison test probe (macOS)
+    if: inputs.os == 'all' || inputs.os == 'macos-latest'
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        shell: bash
+        env:
+          SINGLE_TEST: ${{ inputs.single_test }}
+          MATCH_TEST: ${{ inputs.match_test }}
+        run: |
+          if [ -n "$SINGLE_TEST" ]; then
+            yarn comparison-tests --single-test "$SINGLE_TEST"
+          elif [ -n "$MATCH_TEST" ]; then
+            yarn comparison-tests --match-test "$MATCH_TEST"
+          else
+            yarn comparison-tests
+          fi
+
+  probe_windows:
+    name: Comparison test probe (Windows)
+    if: inputs.os == 'all' || inputs.os == 'windows-latest'
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
-
-      # Windows Defender's real-time scanning adds unpredictable latency to
-      # file I/O, and this probe does a lot of it (installing, building, then
-      # running comparison tests) - excluding the working directory keeps
-      # that noise out of the results.
-      - name: exclude working directory from Windows Defender
-        shell: pwsh
-        run: Add-MpPreference -ExclusionPath "C:\source"
-
-      - name: copy files
-        shell: pwsh
-        run: |
-          New-Item C:\source\ts-loader -ItemType Directory
-          Copy-Item .\* C:\source\ts-loader -Recurse -Force
-
-      - name: install
-        run: yarn install
-        working-directory: C:\source\ts-loader
-
-      - name: build
-        run: yarn build
-        working-directory: C:\source\ts-loader
+      - uses: ./.github/actions/build-ts-loader
+        with:
+          working-directory: C:\source\ts-loader
 
       - name: test
-        shell: pwsh
+        shell: bash
         working-directory: C:\source\ts-loader
         env:
           SINGLE_TEST: ${{ inputs.single_test }}
           MATCH_TEST: ${{ inputs.match_test }}
         run: |
-          if ($env:SINGLE_TEST -ne "") {
-            yarn comparison-tests --single-test "$env:SINGLE_TEST"
-          } elseif ($env:MATCH_TEST -ne "") {
-            yarn comparison-tests --match-test "$env:MATCH_TEST"
-          } else {
+          if [ -n "$SINGLE_TEST" ]; then
+            yarn comparison-tests --single-test "$SINGLE_TEST"
+          elif [ -n "$MATCH_TEST" ]; then
+            yarn comparison-tests --match-test "$MATCH_TEST"
+          else
             yarn comparison-tests
-          }
+          fi

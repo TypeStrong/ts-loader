@@ -1,0 +1,17 @@
+name: Lint
+
+on:
+  workflow_call:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: install
+        run: yarn install
+
+      - name: lint
+        run: yarn lint
