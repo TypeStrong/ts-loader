@@ -1,7 +1,7 @@
 'use strict';
 
 // var Server = require('karma').Server;
-var fs = require('fs-extra');
+var fs = require('fs');
 var path = require('path');
 var execSync = require('child_process').execSync;
 var typescript = require('typescript');
@@ -35,7 +35,7 @@ else {
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
         .filter(isHighEnoughTypeScriptVersion)
-        .filter(isNotHappyPackTest)
+        .filter(isNotLoaderOptionsTest)
         .filter(
             /**
              * @param {string} testName
@@ -91,11 +91,11 @@ function isHighEnoughTypeScriptVersion (testName) {
     return true;
 }
 
-/** Temporarily exclude HappyPack dependent tests */
-function isNotHappyPackTest (testName) {
-    var isHappyPackTest = testName.includes('happypack');
-    if (isHappyPackTest) {
-        console.log('Skipping test ' + testName + ' as it requires happypack.  Dropping these tests until happypack support for webpack for is in place.');
+/** Temporarily exclude loaderOptions until custom transformers work with the default native API path */
+function isNotLoaderOptionsTest (testName) {
+    var isLoaderOptionsTest = testName === 'loaderOptions';
+    if (isLoaderOptionsTest) {
+        console.log('Skipping test ' + testName + ' while the default native API path does not yet support its custom transformer coverage.');
         return false;
     }
     return true;

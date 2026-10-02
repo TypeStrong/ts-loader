@@ -17,6 +17,10 @@ on:
         description: 'Run only comparison tests whose name matches this regex (ignored if single_test is set)'
         required: false
         type: string
+      repro_script:
+        description: 'Path (relative to repo root) to a standalone Node script to run instead of the comparison tests, e.g. a minimal upstream-bug repro'
+        required: false
+        type: string
 
 jobs:
   probe:
@@ -54,8 +58,11 @@ jobs:
         env:
           SINGLE_TEST: ${{ inputs.single_test }}
           MATCH_TEST: ${{ inputs.match_test }}
+          REPRO_SCRIPT: ${{ inputs.repro_script }}
         run: |
-          if ($env:SINGLE_TEST -ne "") {
+          if ($env:REPRO_SCRIPT -ne "") {
+            node "$env:REPRO_SCRIPT"
+          } elseif ($env:SINGLE_TEST -ne "") {
             yarn comparison-tests --single-test "$env:SINGLE_TEST"
           } elseif ($env:MATCH_TEST -ne "") {
             yarn comparison-tests --match-test "$env:MATCH_TEST"

@@ -1,17 +1,37 @@
 asset bundle.js 1.22 KiB [emitted] (name: main)
-./src/index.js 38 bytes [built] [code generated] [2 errors]
-
-ERROR in ./src/index.js
-[90m[tsl] [39m[1m[31mERROR[39m[22m
-[1m[31m      TS5011: The common source directory of 'tsconfig.json' is './src'. The 'rootDir' setting must be explicitly set to this or another path to adjust your output's file layout.[39m[22m
-[1m[31m  Visit https://aka.ms/ts6 for migration information.[39m[22m
-ts-loader-default_de8929d96064b0d0
+./src/index.js 38 bytes [built] [code generated] [6 errors]
 
 ERROR in tsconfig.json
 ./src/index.js tsconfig.json
 [90m[tsl] [39m[1m[31mERROR[39m[22m
-[1m[31m      TS5011: The common source directory of 'tsconfig.json' is '../..'. The 'rootDir' setting must be explicitly set to this or another path to adjust your output's file layout.[39m[22m
-[1m[31m  Visit https://aka.ms/ts6 for migration information.[39m[22m
-ts-loader-default_de8929d96064b0d0
+[1m[31m      TS5055: Cannot write file 'expectedOutput-transpile/bundle.js' because it would overwrite input file.[39m[22m
 
-webpack compiled with 2 errors
+ERROR in tsconfig.json
+./src/index.js tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS5055: Cannot write file 'expectedOutput/bundle.js' because it would overwrite input file.[39m[22m
+
+ERROR in tsconfig.json
+./src/index.js tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS5055: Cannot write file 'webpack.config.js' because it would overwrite input file.[39m[22m
+
+ERROR in tsconfig.json
+./src/index.js tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS6059: File 'expectedOutput-transpile/bundle.js' is not under 'rootDir' 'src'. 'rootDir' is expected to contain all source files.[39m[22m
+
+ERROR in tsconfig.json
+./src/index.js tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS6059: File 'expectedOutput/bundle.js' is not under 'rootDir' 'src'. 'rootDir' is expected to contain all source files.[39m[22m
+
+ERROR in tsconfig.json
+./src/index.js tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS6059: File 'webpack.config.js' is not under 'rootDir' 'src'. 'rootDir' is expected to contain all source files.[39m[22m
+
+6 errors have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack compiled with 6 errors

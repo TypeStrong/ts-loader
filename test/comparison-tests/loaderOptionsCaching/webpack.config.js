@@ -13,18 +13,14 @@ module.exports = {
                 test: /submodule-es6.*\.ts$/,
                 loader: 'ts-loader',
                 options: {
-                    compilerOptions: {
-                        target: 'es6',
-                    },
+                    ignoreDiagnostics: [1],
                 },
             },
             {
                 test: /submodule-es2016.*\.ts$/,
                 loader: 'ts-loader',
                 options: {
-                    compilerOptions: {
-                        target: 'es2016',
-                    },
+                    ignoreDiagnostics: [2],
                 },
             }
         ]
