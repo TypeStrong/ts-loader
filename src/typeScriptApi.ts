@@ -10,6 +10,8 @@ import type {
   ParsedCommandLine,
   Program,
 } from 'typescript/unstable/sync';
+import type { FileSystemCallbacks } from 'typescript/unstable/fs';
+import { serverFS } from 'typescript/unstable/fs';
 
 import * as constants from './constants';
 import {
@@ -72,17 +74,24 @@ export function createTypeScriptInstance(
     return realFileName === undefined ? undefined : contentFor(realFileName);
   };
 
-  const api = new typeScriptApiModule.API(
-    loaderOptions.transpileOnly
-      ? undefined
-      : {
-          fs: {
-            fileExists: fileName =>
-              lookupVirtualFile(fileName) !== undefined ? true : undefined,
-            readFile: lookupVirtualFile,
-          },
-        },
-  );
+  // Only fileExists/readFile are overridden - everything else defers to the
+  // real OS filesystem via the serverFS.useOS sentinel (see FileSystemCallbacks).
+  // Not needed at all in transpileOnly mode, which never touches the API's fs.
+  const fs: FileSystemCallbacks | undefined = loaderOptions.transpileOnly
+    ? undefined
+    : {
+        directoryExists: serverFS.useOS,
+        fileExists: fileName =>
+          lookupVirtualFile(fileName) !== undefined ? true : serverFS.useOS,
+        getAccessibleEntries: serverFS.useOS,
+        readFile: fileName => lookupVirtualFile(fileName) ?? serverFS.useOS,
+        realpath: serverFS.useOS,
+        stat: serverFS.useOS,
+        writeFile: serverFS.useOS,
+        removeFile: serverFS.useOS,
+      };
+
+  const api = new typeScriptApiModule.API(fs ? { fs } : undefined);
 
   return {
     api,
