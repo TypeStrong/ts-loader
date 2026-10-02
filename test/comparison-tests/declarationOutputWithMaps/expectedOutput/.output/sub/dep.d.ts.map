@@ -1,1 +1,1 @@
-{"version":3,"file":"dep.d.ts","sourceRoot":"","sources":["../../sub/dep.ts"],"names":[],"mappings":"AACA,cAAM,IAAI;IACT,WAAW,SAEV;CACD;SAEQ,IAAI"}
+{"version":3,"file":"dep.d.ts","sources":["../../sub/dep.ts"],"names":[],"mappings":"AACA,cAAM,IAAI;IACT,WAAW,SAEV;CACD;AAED,SAAS,IAAI,CAAC"}
