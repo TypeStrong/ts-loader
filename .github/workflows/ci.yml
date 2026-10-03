@@ -1,4 +1,4 @@
-name: build and test
+name: ci
 
 on: [push, pull_request, workflow_dispatch]
 
@@ -8,9 +8,11 @@ concurrency:
 
 jobs:
   comparison-tests:
+    name: Comparison tests
     uses: ./.github/workflows/comparison-tests.yml
 
   execution-tests:
+    name: Execution tests
     uses: ./.github/workflows/execution-tests.yml
 
   lint:

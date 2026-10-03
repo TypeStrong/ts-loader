@@ -5,7 +5,7 @@ on:
 
 jobs:
   execution_test_ubuntu:
-    name: Execution Tests Ubuntu
+    name: ubuntu
     strategy:
       matrix:
         node: [26, 24, 22]
@@ -33,7 +33,7 @@ jobs:
         run: yarn execution-tests
 
   # execution_test_macos:
-  #   name: Execution Tests macOS
+  #   name: macOS
   #   strategy:
   #     matrix:
   #       node: [26, 24, 22]
@@ -61,7 +61,7 @@ jobs:
   #       run: yarn execution-tests
 
   execution_test_windows:
-    name: Execution Tests Windows
+    name: windows
     strategy:
       matrix:
         node: [26, 24, 22]

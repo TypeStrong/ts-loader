@@ -45,11 +45,11 @@ jobs:
           MATCH_TEST: ${{ inputs.match_test }}
         run: |
           if [ -n "$SINGLE_TEST" ]; then
-            sudo yarn comparison-tests --single-test "$SINGLE_TEST"
+            yarn comparison-tests --single-test "$SINGLE_TEST"
           elif [ -n "$MATCH_TEST" ]; then
-            sudo yarn comparison-tests --match-test "$MATCH_TEST"
+            yarn comparison-tests --match-test "$MATCH_TEST"
           else
-            sudo yarn comparison-tests
+            yarn comparison-tests
           fi
 
   probe_macos:

@@ -5,7 +5,7 @@ on:
 
 jobs:
   comparison_test_ubuntu:
-    name: Comparison Tests Ubuntu
+    name: ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -16,7 +16,7 @@ jobs:
         run: yarn comparison-tests
 
   comparison_test_macos:
-    name: Comparison Tests macOS
+    name: macOS
     runs-on: macos-latest
     timeout-minutes: 25
     steps:
@@ -27,7 +27,7 @@ jobs:
         run: yarn comparison-tests
 
   comparison_test_windows:
-    name: Comparison Tests Windows
+    name: windows
     runs-on: windows-latest
     timeout-minutes: 25
     steps:
