@@ -10,6 +10,12 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
@@ -21,6 +27,12 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
@@ -32,6 +44,12 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
