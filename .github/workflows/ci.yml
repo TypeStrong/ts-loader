@@ -12,12 +12,13 @@ concurrency:
 
 jobs:
   comparison-tests:
-    name: Comparison tests
+    name: comparison tests
     uses: ./.github/workflows/comparison-tests.yml
 
   execution-tests:
-    name: Execution tests
+    name: execution tests
     uses: ./.github/workflows/execution-tests.yml
 
   lint:
-    uses: ./.github/workflows/lint.yml
+    name: build and lint
+    uses: ./.github/workflows/build-and-lint.yml
