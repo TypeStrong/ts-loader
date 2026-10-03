@@ -1,4 +1,4 @@
-name: Windows test probe
+name: Test probe
 
 # A deliberately lean, on-demand counterpart to the `comparison_test_*` jobs
 # in comparison-tests.yml - triggered only via workflow_dispatch (never on
