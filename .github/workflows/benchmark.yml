@@ -164,12 +164,8 @@ jobs:
           node-version: 24
           cache: yarn
 
-      # Excludes the working directories from Windows Defender (this
-      # benchmark does a lot of file I/O, so scanning would add noise to the
-      # measurements) and copies the checkout to C:\source\ts-loader.
+      # Copies the checkout to C:\source\ts-loader before building.
       - uses: ./.github/actions/build-ts-loader
-        with:
-          working-directory: C:\source\ts-loader
 
       # Checked out into a sibling worktree rather than a second checkout step
       # so both builds can run from disk at the same time.

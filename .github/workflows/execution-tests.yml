@@ -77,8 +77,6 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - uses: ./.github/actions/build-ts-loader
-        with:
-          working-directory: C:\source\ts-loader
 
       - name: install typescript
         run: yarn add typescript@${{ matrix.ts }}

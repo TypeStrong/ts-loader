@@ -1,40 +1,13 @@
 name: Build ts-loader
 description: >
   Install and build ts-loader (expects actions/checkout to have already run).
-  On Windows runners this excludes the checkout and C:\source from Windows
-  Defender's real-time scanning and copies the checkout to
-  C:\source\ts-loader first - Defender's scanning of the heavy file I/O that
-  yarn does during install/build/test is a major source of slowdown and
-  flakiness on hosted Windows runners.
-inputs:
-  working-directory:
-    description: 'Directory to run install/build in. Use C:\source\ts-loader on Windows runners.'
-    required: false
-    default: '.'
+  On Windows runners this first copies the checkout to C:\source\ts-loader
+  and installs/builds there, giving a consistent path that the comparison
+  tests' output normalisation expects - later Windows steps should use
+  working-directory: C:\source\ts-loader.
 runs:
   using: composite
   steps:
-    # TEMPORARY: checks whether Defender real-time scanning is actually on
-    # for hosted Windows runners. If it isn't, the exclusions below (and
-    # possibly the copy to C:\source) are unnecessary. Remove once answered.
-    - name: report Windows Defender status
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        try {
-          Get-MpComputerStatus | Format-List AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled, OnAccessProtectionEnabled
-          (Get-MpPreference).ExclusionPath
-        } catch {
-          Write-Output "Could not query Defender: $_"
-        }
-
-    - name: exclude working directories from Windows Defender
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        Add-MpPreference -ExclusionPath "C:\source"
-        Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
-
     - name: copy files
       if: runner.os == 'Windows'
       shell: pwsh
@@ -44,10 +17,10 @@ runs:
 
     - name: install
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: ${{ runner.os == 'Windows' && 'C:\source\ts-loader' || '.' }}
       run: yarn install
 
     - name: build
       shell: bash
-      working-directory: ${{ inputs.working-directory }}
+      working-directory: ${{ runner.os == 'Windows' && 'C:\source\ts-loader' || '.' }}
       run: yarn build
