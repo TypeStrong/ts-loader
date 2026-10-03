@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  comparison-tests:
+    name: comparison tests
+    uses: ./.github/workflows/comparison-tests.yml
+
+  execution-tests:
+    name: execution tests
+    uses: ./.github/workflows/execution-tests.yml
+
+  lint:
+    name: build and lint
+    uses: ./.github/workflows/build-and-lint.yml
