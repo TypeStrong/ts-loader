@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         node: [26, 24, 22]
-        ts: [5.6.2, 5.7.2, 5.8.2, 5.9.2, 6.0.2] # next excluded for now
+        ts: [5.7.2, 5.8.2, 5.9.2, 6.0.2] # next excluded for now
         webpack: [4, 5]
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         node: [26, 24, 22]
-        ts: [5.6.2, 5.7.2, 5.8.2, 5.9.2, 6.0.2] # next excluded for now
+        ts: [5.7.2, 5.8.2, 5.9.2, 6.0.2] # next excluded for now
         webpack: [4, 5]
     runs-on: macos-latest
     steps:
@@ -65,7 +65,7 @@ jobs:
     strategy:
       matrix:
         node: [26, 24, 22]
-        ts: [5.6.2, 5.7.2, 5.8.2, 5.9.2, 6.0.2] # next excluded for now
+        ts: [5.7.2, 5.8.2, 5.9.2, 6.0.2] # next excluded for now
         webpack: [4, 5]
     runs-on: windows-latest
     steps:
