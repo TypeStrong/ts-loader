@@ -15,16 +15,16 @@ jobs:
       - name: test
         run: yarn comparison-tests
 
-  # comparison_test_macos:
-  #   name: Comparison Tests macOS
-  #   runs-on: macos-latest
-  #   timeout-minutes: 25
-  #   steps:
-  #     - uses: actions/checkout@v7
-  #     - uses: ./.github/actions/build-ts-loader
+  comparison_test_macos:
+    name: Comparison Tests macOS
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/build-ts-loader
 
-  #     - name: test
-  #       run: yarn comparison-tests
+      - name: test
+        run: yarn comparison-tests
 
   comparison_test_windows:
     name: Comparison Tests Windows
