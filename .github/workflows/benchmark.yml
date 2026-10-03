@@ -30,10 +30,7 @@ jobs:
           node-version: 24
           cache: yarn
 
-      - name: install & build (PR branch)
-        run: |
-          yarn install
-          yarn build
+      - uses: ./.github/actions/build-ts-loader
 
       # Checked out into a sibling worktree rather than a second checkout step
       # so both builds can run from disk at the same time.
@@ -100,10 +97,7 @@ jobs:
           node-version: 24
           cache: yarn
 
-      - name: install & build (PR branch)
-        run: |
-          yarn install
-          yarn build
+      - uses: ./.github/actions/build-ts-loader
 
       # Checked out into a sibling worktree rather than a second checkout step
       # so both builds can run from disk at the same time.
@@ -170,28 +164,12 @@ jobs:
           node-version: 24
           cache: yarn
 
-      # Windows Defender's real-time scanning adds unpredictable latency to
-      # file I/O, and this benchmark does a lot of it (a 300-file fixture,
-      # webpack output per build, a touched file on every incremental
-      # iteration) - excluding the working directories keeps that noise out
-      # of the measurements.
-      - name: exclude working directories from Windows Defender
-        shell: pwsh
-        run: |
-          Add-MpPreference -ExclusionPath "C:\source"
-          Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
-
-      - name: copy files
-        shell: pwsh
-        run: |
-          New-Item C:\source\ts-loader -ItemType Directory
-          Copy-Item .\* C:\source\ts-loader -Recurse -Force
-
-      - name: install & build (PR branch)
-        run: |
-          yarn install
-          yarn build
-        working-directory: C:\source\ts-loader
+      # Excludes the working directories from Windows Defender (this
+      # benchmark does a lot of file I/O, so scanning would add noise to the
+      # measurements) and copies the checkout to C:\source\ts-loader.
+      - uses: ./.github/actions/build-ts-loader
+        with:
+          working-directory: C:\source\ts-loader
 
       # Checked out into a sibling worktree rather than a second checkout step
       # so both builds can run from disk at the same time.

@@ -1,7 +1,7 @@
 name: Build ts-loader
 description: >
   Install and build ts-loader (expects actions/checkout to have already run).
-  On Windows runners this excludes the working directory from Windows
+  On Windows runners this excludes the checkout and C:\source from Windows
   Defender's real-time scanning and copies the checkout to
   C:\source\ts-loader first - Defender's scanning of the heavy file I/O that
   yarn does during install/build/test is a major source of slowdown and
@@ -14,10 +14,26 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: exclude working directory from Windows Defender
+    # TEMPORARY: checks whether Defender real-time scanning is actually on
+    # for hosted Windows runners. If it isn't, the exclusions below (and
+    # possibly the copy to C:\source) are unnecessary. Remove once answered.
+    - name: report Windows Defender status
       if: runner.os == 'Windows'
       shell: pwsh
-      run: Add-MpPreference -ExclusionPath "C:\source"
+      run: |
+        try {
+          Get-MpComputerStatus | Format-List AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled, OnAccessProtectionEnabled
+          (Get-MpPreference).ExclusionPath
+        } catch {
+          Write-Output "Could not query Defender: $_"
+        }
+
+    - name: exclude working directories from Windows Defender
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        Add-MpPreference -ExclusionPath "C:\source"
+        Add-MpPreference -ExclusionPath "$env:GITHUB_WORKSPACE"
 
     - name: copy files
       if: runner.os == 'Windows'
