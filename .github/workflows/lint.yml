@@ -1,11 +1,11 @@
-name: Lint
+name: lint
 
 on:
   workflow_call:
 
 jobs:
   lint:
-    name: Lint
+    name: lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

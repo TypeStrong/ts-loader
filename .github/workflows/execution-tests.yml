@@ -1,4 +1,4 @@
-name: Execution Tests
+name: execution tests
 
 on:
   workflow_call:
