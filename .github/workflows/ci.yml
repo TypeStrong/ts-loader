@@ -23,5 +23,5 @@ jobs:
     uses: ./.github/workflows/execution-tests.yml
 
   lint:
-    name: build and lint
-    uses: ./.github/workflows/build-and-lint.yml
+    name: lint
+    uses: ./.github/workflows/lint.yml

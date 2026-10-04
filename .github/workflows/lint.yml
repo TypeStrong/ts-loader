@@ -1,22 +1,9 @@
-name: build and lint
+name: lint
 
 on:
   workflow_call:
 
 jobs:
-  build:
-    name: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          cache: yarn
-
-      - uses: ./.github/actions/build-ts-loader
-
   lint:
     name: lint
     runs-on: ubuntu-latest
