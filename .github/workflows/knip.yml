@@ -1,0 +1,22 @@
+name: knip
+
+on:
+  workflow_call:
+
+jobs:
+  knip:
+    name: knip
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - name: install
+        run: yarn install
+
+      - name: knip
+        run: yarn knip

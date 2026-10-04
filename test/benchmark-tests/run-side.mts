@@ -35,7 +35,7 @@ const REBUILD_TIMEOUT_MS = 30_000;
 // timeout long before every scenario finishes. Capping wall-clock instead of
 // guessing a smaller fixed iteration count keeps full statistical power for
 // scenarios that stay cheap while still bounding the expensive ones.
-const SCENARIO_TIME_BUDGET_MS = 60_000;
+const SCENARIO_TIME_BUDGET_MS = 90_000;
 const MIN_MEASURED_ITERATIONS = 2;
 
 function get(flag: string): string {

@@ -2,7 +2,7 @@ const fs = require('fs');
 
 /**
  * Creates or updates the benchmark result comment identified by `marker`.
- * Shared by the "comment on PR" steps in benchmark.yml (Ubuntu + Windows jobs).
+ * Used by the "comment on PR" step of each OS in benchmark.yml's matrix.
  *
  * @param {{
  *   github: { rest: { issues: {

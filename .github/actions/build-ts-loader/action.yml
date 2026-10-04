@@ -1,0 +1,26 @@
+name: Build ts-loader
+description: >
+  Install and build ts-loader (expects actions/checkout to have already run).
+  On Windows runners this first copies the checkout to C:\source\ts-loader
+  and installs/builds there, giving a consistent path that the comparison
+  tests' output normalisation expects - later Windows steps should use
+  working-directory: C:\source\ts-loader.
+runs:
+  using: composite
+  steps:
+    - name: copy files
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        New-Item C:\source\ts-loader -ItemType Directory
+        Copy-Item .\* C:\source\ts-loader -Recurse -Force
+
+    - name: install
+      shell: bash
+      working-directory: ${{ runner.os == 'Windows' && 'C:\source\ts-loader' || '.' }}
+      run: yarn install
+
+    - name: build
+      shell: bash
+      working-directory: ${{ runner.os == 'Windows' && 'C:\source\ts-loader' || '.' }}
+      run: yarn build

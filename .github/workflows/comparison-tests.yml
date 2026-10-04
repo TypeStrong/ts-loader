@@ -1,0 +1,57 @@
+name: comparison tests
+
+on:
+  workflow_call:
+
+jobs:
+  comparison_test_ubuntu:
+    name: ubuntu
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        run: yarn comparison-tests
+
+  comparison_test_macos:
+    name: macOS
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        run: yarn comparison-tests
+
+  comparison_test_windows:
+    name: windows
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        run: yarn comparison-tests
+        working-directory: C:\source\ts-loader
