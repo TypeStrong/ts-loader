@@ -55,9 +55,35 @@ yarn comparison-tests -- --save-output --single-test <name>       # regenerate o
 
 > Note: test name casing must be exact when using `--single-test`.
 
+### Test probe workflow
+
+`.github/workflows/test-probe.yml` (registered on `main`, so dispatchable against any branch/ref) runs just the comparison tests via `workflow_dispatch` on Ubuntu, macOS, and/or Windows — much faster than the full CI run from `ci.yml` (which also runs the full Node/TS/webpack execution-test matrix). Use it to iterate on a failing test, or an OS-specific failure, without asking a human to relay CI output.
+
+Three separate jobs (`probe_ubuntu`/`probe_macos`/`probe_windows`), each gated by the `os` input — defaults to `all`; pass `ubuntu-latest`, `macos-latest`, or `windows-latest` to run just one. All three share their install/build steps (including, on Windows, copying the checkout to `C:\source\ts-loader` so the comparison tests' path normalisation sees a consistent location) via the composite action `.github/actions/build-ts-loader/action.yml`, which every workflow that builds ts-loader uses (`comparison-tests.yml`, `execution-tests.yml`, `lint.yml`, `benchmark.yml`, `release.yml`) — edit that action, not each workflow, if the build steps themselves need to change.
+
+Requires `gh` CLI authenticated with the `workflow` scope (`gh auth login`, then `gh auth refresh -s workflow` if `gh auth status` doesn't already list `workflow` — both scopes need a human to complete the browser device-flow prompt, they can't be scripted).
+
+````bash
+# trigger — omit single_test/match_test to run the full comparison-test suite;
+# omit os (or pass os=all) to run on every platform
+gh workflow run test-probe.yml --repo TypeStrong/ts-loader \
+  --ref <branch> -f os=windows-latest -f single_test=<name>            # one test, Windows only
+gh workflow run test-probe.yml --repo TypeStrong/ts-loader \
+  --ref <branch> -f match_test='^(testA|testB)$'                       # several, by regex, all OSes
+
+# the trigger command prints the run URL directly - grab the numeric id from it, then:
+gh run watch <run-id> --repo TypeStrong/ts-loader --exit-status   # blocks until done
+
+# `gh run watch` can itself fail on a transient network blip even when the run
+# succeeded - always verify conclusion this way rather than trusting its exit code
+gh run view <run-id> --repo TypeStrong/ts-loader --json status,conclusion
+
+gh run view <run-id> --repo TypeStrong/ts-loader --log-failed    # full failure log text
+````
+
 ## Execution tests (`test/execution-tests/`)
 
-Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. The harness compiles the project and **runs the compiled code** — useful for asserting correct runtime behaviour. These are matrix-tested in CI across multiple Node and TypeScript versions (see `.github/workflows/push.yml` for the current matrix).
+Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. The harness compiles the project and **runs the compiled code** — useful for asserting correct runtime behaviour. These are matrix-tested in CI across multiple Node and TypeScript versions (see `.github/workflows/execution-tests.yml` for the current matrix).
 
 Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 
@@ -105,7 +131,7 @@ gh run view <run-id> --repo TypeStrong/ts-loader --json status,conclusion
 gh run view <run-id> --repo TypeStrong/ts-loader --log-failed    # full failure log text
 ## Benchmark tests (`test/benchmark-tests/`)
 
-Answers "did this get faster or slower?", not "is the output correct?" - the comparison/execution packs never record timing, so this is a separate harness. It generates a synthetic project on the fly and times ts-loader compiling it (cold build, and incremental rebuild after touching a low-fan-out vs. high-fan-out file, under both `transpileOnly: true`/`false`), comparing two ts-loader checkouts (this build vs. another, e.g. `main`) back-to-back in one process so the relative numbers are meaningful despite noisy CI hosts.
+Answers "did this get faster or slower?", not "is the output correct?" - the comparison/execution packs never record timing, so this is a separate harness. It generates a synthetic project on the fly and times ts-loader compiling it (cold build, and incremental rebuild after touching a low-fan-out vs. high-fan-out file, under both `transpileOnly: true`/`false`), comparing two ts-loader checkouts (this build vs. another, e.g. `main`), each in its own process but run concurrently so host noise hits both sides equally and the relative numbers stay meaningful on noisy CI hosts.
 
 Full docs: [`test/benchmark-tests/README.md`](test/benchmark-tests/README.md)
 
