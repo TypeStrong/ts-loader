@@ -92,7 +92,7 @@ yarn execution-tests -- --single-test <name> --watch    # watch mode (open http:
 
 ## Benchmark tests (`test/benchmark-tests/`)
 
-Answers "did this get faster or slower?", not "is the output correct?" - the comparison/execution packs never record timing, so this is a separate harness. It generates a synthetic project on the fly and times ts-loader compiling it (cold build, and incremental rebuild after touching a low-fan-out vs. high-fan-out file, under both `transpileOnly: true`/`false`), comparing two ts-loader checkouts (this build vs. another, e.g. `main`) back-to-back in one process so the relative numbers are meaningful despite noisy CI hosts.
+Answers "did this get faster or slower?", not "is the output correct?" - the comparison/execution packs never record timing, so this is a separate harness. It generates a synthetic project on the fly and times ts-loader compiling it (cold build, and incremental rebuild after touching a low-fan-out vs. high-fan-out file, under both `transpileOnly: true`/`false`), comparing two ts-loader checkouts (this build vs. another, e.g. `main`), each in its own process but run concurrently so host noise hits both sides equally and the relative numbers stay meaningful on noisy CI hosts.
 
 Full docs: [`test/benchmark-tests/README.md`](test/benchmark-tests/README.md)
 
