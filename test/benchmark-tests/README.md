@@ -20,6 +20,8 @@ Their fixtures are tiny (a handful of files, 1-2 watch patches) and built for ou
 
    For each scenario, both sides' `run-side.mts` subprocesses are spawned and run **concurrently** (not one after the other) - this is what keeps the delta near zero when the two checkouts are identical, since any host noise (CPU contention, scheduling) hits both sides at the same wall-clock moment instead of biasing whichever side happened to run in a noisier window. Cold builds run 2 discarded warmup iterations plus several times the requested `--iterations` (see `ITERATION_MULTIPLIER` in `run-benchmark.mts`); incremental rebuilds get a much larger multiplier again, since each rebuild is only tens of ms and cheap to re-run many times to average out that much noisier measurement. The **median** of the measured iterations is reported (robust to the odd stalled one).
 
+   Each side also has a 90s wall-clock budget per scenario (`SCENARIO_TIME_BUDGET_MS` in `run-side.mts`): once it's past that budget *and* has its warmup plus at least 2 measured iterations, it stops early and logs `stopped early after <n>/<total> iterations`. That bounds scenarios that are far more expensive per iteration than expected (e.g. a compiler that spawns a native process per instance) so they can't blow the CI job's timeout. Seeing it occasionally for cold typeCheck builds is normal - the median of the iterations that did run is still reported; it's only worth a closer look if a scenario stops after just a handful of iterations, or the two sides stop at very different counts.
+
 ## Running it
 
 ```bash
@@ -38,7 +40,7 @@ Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup 
 
 Results are written to `.benchmark/benchmark-results.json` (raw samples) and `.benchmark/benchmark-results.md` (summary table), and also printed to stdout.
 
-On Windows CI specifically, `.github/workflows/benchmark.yml` also excludes the working directories from Windows Defender's real-time scanning before running the benchmark, since that scanning otherwise adds unpredictable latency to this benchmark's heavy file I/O.
+In CI, `.github/workflows/benchmark.yml` runs this on Ubuntu, macOS and Windows (one matrix job per OS), building the PR branch with the shared `.github/actions/build-ts-loader` action and the base branch in a sibling git worktree. On Windows that action copies the checkout to `C:\source\ts-loader`, so the benchmark runs from there (base branch at `C:\source\ts-loader-main`).
 
 ## Interpreting deltas
 

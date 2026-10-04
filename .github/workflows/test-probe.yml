@@ -1,0 +1,118 @@
+name: Test probe
+
+# A deliberately lean, on-demand counterpart to the `comparison_test_*` jobs
+# in comparison-tests.yml - triggered only via workflow_dispatch (never on
+# push/PR, so it adds no cost/noise to normal CI) and able to target a single
+# test or a name pattern, so a single iteration comes back in a couple of
+# minutes instead of running the full comparison/execution test matrix.
+
+on:
+  workflow_dispatch:
+    inputs:
+      os:
+        description: 'Which OS(es) to run the probe on'
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+      single_test:
+        description: 'Run only this comparison test (matches the test directory name, e.g. "dependencyErrors")'
+        required: false
+        type: string
+      match_test:
+        description: 'Run only comparison tests whose name matches this regex (ignored if single_test is set)'
+        required: false
+        type: string
+
+jobs:
+  probe_ubuntu:
+    name: Comparison test probe (Ubuntu)
+    if: inputs.os == 'all' || inputs.os == 'ubuntu-latest'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        shell: bash
+        env:
+          SINGLE_TEST: ${{ inputs.single_test }}
+          MATCH_TEST: ${{ inputs.match_test }}
+        run: |
+          if [ -n "$SINGLE_TEST" ]; then
+            yarn comparison-tests --single-test "$SINGLE_TEST"
+          elif [ -n "$MATCH_TEST" ]; then
+            yarn comparison-tests --match-test "$MATCH_TEST"
+          else
+            yarn comparison-tests
+          fi
+
+  probe_macos:
+    name: Comparison test probe (macOS)
+    if: inputs.os == 'all' || inputs.os == 'macos-latest'
+    runs-on: macos-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        shell: bash
+        env:
+          SINGLE_TEST: ${{ inputs.single_test }}
+          MATCH_TEST: ${{ inputs.match_test }}
+        run: |
+          if [ -n "$SINGLE_TEST" ]; then
+            yarn comparison-tests --single-test "$SINGLE_TEST"
+          elif [ -n "$MATCH_TEST" ]; then
+            yarn comparison-tests --match-test "$MATCH_TEST"
+          else
+            yarn comparison-tests
+          fi
+
+  probe_windows:
+    name: Comparison test probe (Windows)
+    if: inputs.os == 'all' || inputs.os == 'windows-latest'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: test
+        shell: bash
+        working-directory: C:\source\ts-loader
+        env:
+          SINGLE_TEST: ${{ inputs.single_test }}
+          MATCH_TEST: ${{ inputs.match_test }}
+        run: |
+          if [ -n "$SINGLE_TEST" ]; then
+            yarn comparison-tests --single-test "$SINGLE_TEST"
+          elif [ -n "$MATCH_TEST" ]; then
+            yarn comparison-tests --match-test "$MATCH_TEST"
+          else
+            yarn comparison-tests
+          fi

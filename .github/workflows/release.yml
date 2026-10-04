@@ -21,11 +21,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org/
 
-      - name: install
-        run: yarn install
-
-      - name: build
-        run: yarn build
+      - uses: ./.github/actions/build-ts-loader
 
       - run: npm install -g npm@latest
 
