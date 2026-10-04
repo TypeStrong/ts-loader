@@ -63,7 +63,7 @@ Three separate jobs (`probe_ubuntu`/`probe_macos`/`probe_windows`), each gated b
 
 Requires `gh` CLI authenticated with the `workflow` scope (`gh auth login`, then `gh auth refresh -s workflow` if `gh auth status` doesn't already list `workflow` — both scopes need a human to complete the browser device-flow prompt, they can't be scripted).
 
-````bash
+```bash
 # trigger — omit single_test/match_test to run the full comparison-test suite;
 # omit os (or pass os=all) to run on every platform
 gh workflow run test-probe.yml --repo TypeStrong/ts-loader \
@@ -79,7 +79,7 @@ gh run watch <run-id> --repo TypeStrong/ts-loader --exit-status   # blocks until
 gh run view <run-id> --repo TypeStrong/ts-loader --json status,conclusion
 
 gh run view <run-id> --repo TypeStrong/ts-loader --log-failed    # full failure log text
-````
+```
 
 ## Execution tests (`test/execution-tests/`)
 
