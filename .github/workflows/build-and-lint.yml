@@ -1,4 +1,4 @@
-name: lint
+name: build and lint
 
 on:
   workflow_call:
@@ -16,7 +16,7 @@ jobs:
           cache: yarn
 
       - uses: ./.github/actions/build-ts-loader
-      
+
   lint:
     name: lint
     runs-on: ubuntu-latest

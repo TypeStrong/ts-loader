@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   benchmark_ubuntu:
-    name: ubuntu
+    name: benchmark ubuntu
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -84,7 +84,7 @@ jobs:
             });
 
   benchmark_macos:
-    name: macos
+    name: benchmark macOS
     runs-on: macos-latest
     timeout-minutes: 20
     steps:
@@ -151,7 +151,7 @@ jobs:
             });
 
   benchmark_windows:
-    name: windows
+    name: benchmark windows
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
