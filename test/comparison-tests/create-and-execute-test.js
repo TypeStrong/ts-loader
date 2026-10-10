@@ -304,7 +304,7 @@ function compareFiles(paths, test, patch) {
             // First surfaced as a Windows-only failure when the floating
             // `typescript` dep moved from nightly .20260922.1 to .20261002.1
             // (the only relevant change at that commit). Benchmarking both
-            // nightlies' out-of-process compiler calls (typescript/unstable/
+            // nightlies' out-of-process compiler calls (typescript/
             // sync) showed the newer one is faster on both Mac and Windows,
             // but by a different relative amount per OS (~30% vs ~15%
             // cold-start, ~0% vs ~5% warm) - a plausible trigger for

@@ -1,7 +1,7 @@
 import * as path from 'path';
 import picomatch from 'picomatch';
 import * as webpack from 'webpack';
-import type { Diagnostic } from 'typescript/unstable/sync';
+import type { Diagnostic } from 'typescript/sync';
 
 import * as constants from './constants';
 import type { Colors } from './colors';
