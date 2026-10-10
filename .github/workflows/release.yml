@@ -25,7 +25,8 @@ jobs:
 
       - run: npm install -g npm@latest
 
-      - run: npm publish
+      # Pre-releases go to the `next` dist-tag so they never become `latest`
+      - run: npm publish ${{ github.event.release.prerelease && '--tag next' || '' }}
         env:
           NPM_CONFIG_PROVENANCE: true
           # NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}} no longer needed with trusted publishing and OIDC token generation
