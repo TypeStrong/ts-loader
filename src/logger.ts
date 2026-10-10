@@ -27,6 +27,6 @@ export function makeLogger({
 
   const whereToLog = logInfoToStdOut ? stdoutConsole : stderrConsole;
   return {
-    logInfo: message => console.log.call(whereToLog, colors.green(message)),
+    logInfo: message => whereToLog.log(colors.green(message)),
   };
 }
