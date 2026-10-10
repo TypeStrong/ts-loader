@@ -22,6 +22,7 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 - Removed the `experimentalFileCaching` loader option; there's no equivalent under the native API's own caching model.
 - Removed the `experimentalWatchApi` loader option, now that the native API supersedes TypeScript's classic watch API.
 - Removed the `onlyCompileBundledFiles` loader option; the native API always resolves a project's own root files and offers no hook to restrict them to what webpack actually bundles.
+- Info-level log messages are now written to stderr by default, as documented; previously they always went to stdout regardless of `logInfoToStdOut`. Set `logInfoToStdOut: true` to keep them on stdout.
 - `errorFormatter`'s `colors` argument is now a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper object instead of a `chalk` instance; `chalk` has been dropped as a runtime dependency in favour of `picocolors`.
 
 ## 9.6.2
