@@ -1,5 +1,7 @@
 # Using TypeScript Project References with ts-loader and webpack
 
+> **Note:** This guide describes `ts-loader` v9 and earlier. Project references are not yet supported in v10, which is built on TypeScript's native API.
+
 Project References were added to TypeScript in 3.0. The benefits of using project references include:
 
 - Better code organisation
