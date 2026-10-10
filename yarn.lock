@@ -477,40 +477,40 @@
   dependencies:
     "@types/node" "*"
 
-"@typescript/typescript-darwin-arm64@7.1.0-dev.20261009.1":
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.1.0-dev.20261009.1.tgz#4f3fe8445d4156a18c67891bc58c5da6ed11adf3"
-  integrity sha512-m1MMcqEmqjNjHDUn/boOGmKzglrzUK0jsIbRlPujZg1YdT3/LpzA20jr2vz/yKx5h3rgadpEXmocbkq6FhiwEw==
+"@typescript/typescript-darwin-arm64@7.1.0-dev.20261010.1":
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-arm64/-/typescript-darwin-arm64-7.1.0-dev.20261010.1.tgz#bf12d199a44818efa0635d741568a87650f94ecd"
+  integrity sha512-wlbeCCvLUclm23v7IzenMIWrtWGhSW9cVxLgaDbqYL4CCePnPcJK8oxCz8k9eaUlx+W2AnMtZj4BEukm+b6I7A==
 
-"@typescript/typescript-darwin-x64@7.1.0-dev.20261009.1":
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-x64/-/typescript-darwin-x64-7.1.0-dev.20261009.1.tgz#9ea03ff15809f60a46976b9862d8b1839f9fd492"
-  integrity sha512-O1OERN7NeCWA4lMbJGkwPyLjoUyhSCV3hRq9AC/Rnt+bOYJNhs18VnxY9WY5/Jhtqiuxk6aHipsccntPXmdZFQ==
+"@typescript/typescript-darwin-x64@7.1.0-dev.20261010.1":
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-darwin-x64/-/typescript-darwin-x64-7.1.0-dev.20261010.1.tgz#e6fa891fbf7dabfc5a998763aeca81b2e707702b"
+  integrity sha512-bdvaLC2rkP7FkmAn5KWxXxLAg3asY/YlnOKUxsBZjOmopsXzrnakTBhypSTYmy7ih61PXZbsr5XQ+svnDttgoA==
 
-"@typescript/typescript-linux-arm64@7.1.0-dev.20261009.1":
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm64/-/typescript-linux-arm64-7.1.0-dev.20261009.1.tgz#8209152c84e02f2d5c10bbbc57f75be53682ed29"
-  integrity sha512-ALgtgCdH16y5ycjQ8rIDYBtpnMJ7U2Vpo+KE3e6k9Ja3LbFg82yHxhLYjd8GBUFt7K93jllQlJcZYXgO8kTLZw==
+"@typescript/typescript-linux-arm64@7.1.0-dev.20261010.1":
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm64/-/typescript-linux-arm64-7.1.0-dev.20261010.1.tgz#be97112ff08910b9c404f133480e8356d5cd9e3c"
+  integrity sha512-OPIt+zM2cH+trrG1IawPvR97DRuA0DS0uFVsMFzcfSBhS10TuWNStnWX0gPX/IGa6VRI4Vf80Sq7Pdu28bnjVA==
 
-"@typescript/typescript-linux-arm@7.1.0-dev.20261009.1":
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm/-/typescript-linux-arm-7.1.0-dev.20261009.1.tgz#8ccb6e1534efe180c4b148fbb567f7b0b94f0135"
-  integrity sha512-wmIB/rMko4L9zqv7mM5KlOQTGQvnOQ4ZqfQltdq1IYJz6KYgoHeI/RAAWDGwhGF5i0rK3Bhs9uqLugqQBCuXYQ==
+"@typescript/typescript-linux-arm@7.1.0-dev.20261010.1":
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-arm/-/typescript-linux-arm-7.1.0-dev.20261010.1.tgz#64d778c5af68f1f698195182ca81411ff35f9f1f"
+  integrity sha512-CUtTCEtEdXJEvoCazKwNdjNEKSvXBe1azwTsOWloXMFFDYHHhx9E56ZPtFPQ+ozrFirZOThGuAk1WOWYY3Zgiw==
 
-"@typescript/typescript-linux-x64@7.1.0-dev.20261009.1":
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.1.0-dev.20261009.1.tgz#9b02178464c97a15cfc33d3b90e0e2c40b65e87e"
-  integrity sha512-wZgAhamV43/6yMJp8lZLkyvFRpgUiDA58iKYkZuY3e+vKYOZHTB6SgqeQCBbbrfACMAhE2T6UWq04QD6wi/pUw==
+"@typescript/typescript-linux-x64@7.1.0-dev.20261010.1":
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-linux-x64/-/typescript-linux-x64-7.1.0-dev.20261010.1.tgz#ae9a493d29478df225123ececf0dc5b64503bbc0"
+  integrity sha512-/O2ofLSO/VmT45ly/Zw1oHii2U5dxs+7zs4Fjg/qkpR9FWjyfidGhOptYX769l4yMw+MrHA5Fmv9pczayomo1A==
 
-"@typescript/typescript-win32-arm64@7.1.0-dev.20261009.1":
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-arm64/-/typescript-win32-arm64-7.1.0-dev.20261009.1.tgz#fe47bd7e071eca6e5ac746e9b02b3295eeb8547d"
-  integrity sha512-ir4giZdkF/wsH3JBnI+oQA9npUCrxCnelevrWO9n/jPeneEGNBjaoeaqkEd4PzFHR9iU1nCD6oxcQf3oExeUmw==
+"@typescript/typescript-win32-arm64@7.1.0-dev.20261010.1":
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-arm64/-/typescript-win32-arm64-7.1.0-dev.20261010.1.tgz#a16a54655f7b83321fa2f6ac362653a8ccef7bc1"
+  integrity sha512-1oN9YHCr2qZXmw0HQ2prkoDJXSUUc2u/Jm6v6K70goNWwzNDyxg8ZLInVV5L1vrqRuM9C8RtkoEX23Go3Ov6eg==
 
-"@typescript/typescript-win32-x64@7.1.0-dev.20261009.1":
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-x64/-/typescript-win32-x64-7.1.0-dev.20261009.1.tgz#41de86c6b5fb895591cfd44aee3f2d4585914997"
-  integrity sha512-5cd9xYpd77pA3DMrqai4yXCYQ0jNWRHo7C/JEAcQhHpch7os4sUQ1qtz1zdlK434gGBn5GM7HjWNMs2u5vSB1A==
+"@typescript/typescript-win32-x64@7.1.0-dev.20261010.1":
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/@typescript/typescript-win32-x64/-/typescript-win32-x64-7.1.0-dev.20261010.1.tgz#77e79e445ac87791e4b367256034fae369b018c9"
+  integrity sha512-xX+c96W4amv+6fu6AdSLHiaZhnwZOoNoGn6/xBpw69p09YXHEiLW+FrKeThMIGTOVEHkCTfwizsdxdNKHRfwxg==
 
 "@webassemblyjs/ast@1.14.1", "@webassemblyjs/ast@^1.14.1":
   version "1.14.1"
@@ -4112,17 +4112,17 @@ typedarray@^0.0.6:
   integrity sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==
 
 typescript@^7.1.0-dev.20261009.1:
-  version "7.1.0-dev.20261009.1"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-7.1.0-dev.20261009.1.tgz#3179faa766e1394a1487ca9507edef67364dd9f9"
-  integrity sha512-UltaECVd47Mw4LibKV5FzI3OuCkk2fkX8gUbg3ndOO42k6gJWWuwHloOSsCwq75nIqppwfiK6L/7bI+BU7giNQ==
+  version "7.1.0-dev.20261010.1"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-7.1.0-dev.20261010.1.tgz#f94349f78c0585f4f89cddbb7d4d5e5669fbe2ce"
+  integrity sha512-enC2la4Wl5gkLPyyrJYuXEfES/wLk/UCWrYSYKdTKhlbNzzfyAQOqX1YqLA6MheWU97TciOskvFJwHoRWIpIuQ==
   optionalDependencies:
-    "@typescript/typescript-darwin-arm64" "7.1.0-dev.20261009.1"
-    "@typescript/typescript-darwin-x64" "7.1.0-dev.20261009.1"
-    "@typescript/typescript-linux-arm" "7.1.0-dev.20261009.1"
-    "@typescript/typescript-linux-arm64" "7.1.0-dev.20261009.1"
-    "@typescript/typescript-linux-x64" "7.1.0-dev.20261009.1"
-    "@typescript/typescript-win32-arm64" "7.1.0-dev.20261009.1"
-    "@typescript/typescript-win32-x64" "7.1.0-dev.20261009.1"
+    "@typescript/typescript-darwin-arm64" "7.1.0-dev.20261010.1"
+    "@typescript/typescript-darwin-x64" "7.1.0-dev.20261010.1"
+    "@typescript/typescript-linux-arm" "7.1.0-dev.20261010.1"
+    "@typescript/typescript-linux-arm64" "7.1.0-dev.20261010.1"
+    "@typescript/typescript-linux-x64" "7.1.0-dev.20261010.1"
+    "@typescript/typescript-win32-arm64" "7.1.0-dev.20261010.1"
+    "@typescript/typescript-win32-x64" "7.1.0-dev.20261010.1"
 
 ua-parser-js@^0.7.30:
   version "0.7.41"
