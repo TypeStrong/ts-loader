@@ -42,6 +42,17 @@ Results are written to `.benchmark/benchmark-results.json` (raw samples) and `.b
 
 In CI, `.github/workflows/benchmark.yml` runs this on Ubuntu, macOS and Windows (one matrix job per OS), building the PR branch with the shared `.github/actions/build-ts-loader` action and the base branch in a sibling git worktree. On Windows that action copies the checkout to `C:\source\ts-loader`, so the benchmark runs from there (base branch at `C:\source\ts-loader-main`).
 
+## Cleaning up
+
+Nothing here cleans up after itself automatically:
+
+```bash
+rm -rf .benchmark                                      # gitignored fixture + results, safe to delete any time
+git worktree remove ../ts-loader-main                  # drop the comparison checkout
+```
+
+If `git worktree remove` refuses because of untracked/modified files left behind by `yarn install`/`yarn build`, either clean those up first or pass `--force`. Once the worktree directory is gone, `git worktree list` may still show a stale entry until you run `git worktree prune`.
+
 ## Interpreting deltas
 
 The percentage is **A relative to B** (`(a.median - b.median) / b.median`), so a positive number means side A is slower. A row gets a ⚠️ only when its delta both passes ±10% *and* clears 2x the combined sample stddev (as a % of B's median) - a flat percentage threshold alone flags noisy scenarios (e.g. cold builds on a busy CI host) on jitter rather than a real difference. It's a nudge to look closer, not a failure signal.

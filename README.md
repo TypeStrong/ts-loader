@@ -1,7 +1,7 @@
 # TypeScript loader for webpack
 
 [![npm version](https://img.shields.io/npm/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
-[![build and test](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml/badge.svg)](https://github.com/TypeStrong/ts-loader/actions/workflows/push.yml)
+[![build and test](https://github.com/TypeStrong/ts-loader/actions/workflows/ci.yml/badge.svg)](https://github.com/TypeStrong/ts-loader/actions/workflows/ci.yml)
 [![Downloads](https://img.shields.io/npm/dm/ts-loader.svg)](https://npmjs.org/package/ts-loader)
 [![node version](https://img.shields.io/node/v/ts-loader.svg)](https://www.npmjs.com/package/ts-loader)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
@@ -27,47 +27,44 @@
 <!-- toc -->
 
 - [Getting Started](#getting-started)
-  * [Installation](#installation)
-  * [Running](#running)
-  * [Examples](#examples)
-  * [Faster Builds](#faster-builds)
-  * [Yarn Plug’n’Play](#yarn-plugnplay)
-  * [Babel](#babel)
-  * [Compatibility](#compatibility)
-  * [Configuration](#configuration)
-    + [`devtool` / sourcemaps](#devtool--sourcemaps)
-  * [Code Splitting and Loading Other Resources](#code-splitting-and-loading-other-resources)
-  * [Declarations (.d.ts)](#declaration-files-dts)
-  * [Failing the build on TypeScript compilation error](#failing-the-build-on-typescript-compilation-error)
-  * [`baseUrl` / `paths` module resolution](#baseurl--paths-module-resolution)
-  * [Options](#options)
-  * [Loader Options](#loader-options)
-    + [transpileOnly](#transpileonly)
-    + [happyPackMode](#happypackmode)
-    + [resolveModuleName and resolveTypeReferenceDirective](#resolvemodulename-and-resolvetypereferencedirective)
-    + [getCustomTransformers](#getcustomtransformers)
-    + [logInfoToStdOut](#loginfotostdout)
-    + [logLevel](#loglevel)
-    + [silent](#silent)
-    + [ignoreDiagnostics](#ignorediagnostics)
-    + [reportFiles](#reportfiles)
-    + [compiler](#compiler)
-    + [configFile](#configfile)
-    + [colors](#colors)
-    + [errorFormatter](#errorformatter)
-    + [compilerOptions](#compileroptions)
-    + [instance](#instance)
-    + [appendTsSuffixTo](#appendtssuffixto)
-    + [appendTsxSuffixTo](#appendtsxsuffixto)
-    + [onlyCompileBundledFiles](#onlycompilebundledfiles)
-    + [useCaseSensitiveFileNames](#useCaseSensitiveFileNames)
-    + [allowTsInNodeModules](#allowtsinnodemodules)
-    + [context](#context)
-    + [experimentalFileCaching](#experimentalfilecaching)
-    + [projectReferences](#projectreferences)
-  * [Usage with webpack watch](#usage-with-webpack-watch)
-  * [Hot Module replacement](#hot-module-replacement)
+  - [Installation](#installation)
+  - [Upgrading to v10](#upgrading-to-v10)
+  - [Running](#running)
+  - [Examples](#examples)
+  - [Faster Builds](#faster-builds)
+  - [Yarn Plug’n’Play](#yarn-plugnplay)
+  - [Babel](#babel)
+  - [Compatibility](#compatibility)
+  - [Configuration](#configuration)
+    - [`devtool` / sourcemaps](#devtool--sourcemaps)
+  - [Code Splitting and Loading Other Resources](#code-splitting-and-loading-other-resources)
+  - [Declarations (.d.ts)](#declaration-files-dts)
+  - [Failing the build on TypeScript compilation error](#failing-the-build-on-typescript-compilation-error)
+  - [`paths` module resolution](#paths-module-resolution)
+  - [Options](#options)
+  - [Loader Options](#loader-options)
+    - [transpileOnly](#transpileonly)
+    - [resolveModuleName and resolveTypeReferenceDirective](#resolvemodulename-and-resolvetypereferencedirective)
+    - [getCustomTransformers](#getcustomtransformers)
+    - [logInfoToStdOut](#loginfotostdout)
+    - [logLevel](#loglevel)
+    - [silent](#silent)
+    - [ignoreDiagnostics](#ignorediagnostics)
+    - [reportFiles](#reportfiles)
+    - [configFile](#configfile)
+    - [compiler](#compiler)
+    - [colors](#colors)
+    - [errorFormatter](#errorformatter)
+    - [instance](#instance)
+    - [appendTsSuffixTo](#appendtssuffixto)
+    - [appendTsxSuffixTo](#appendtsxsuffixto)
+    - [useCaseSensitiveFileNames](#usecasesensitivefilenames)
+    - [allowTsInNodeModules](#allowtsinnodemodules)
+    - [projectReferences](#projectreferences)
+  - [Usage with webpack watch](#usage-with-webpack-watch)
+  - [Hot Module replacement](#hot-module-replacement)
 - [Contributing](#contributing)
+- [History](#history)
 - [License](#license)
 
 <!-- tocstop -->
@@ -86,17 +83,29 @@ or
 npm install ts-loader --save-dev
 ```
 
-You will also need to install TypeScript if you have not already.
+You will also need to install TypeScript 7.1+ if you have not already. `ts-loader` compiles through TypeScript's native `typescript/sync` API, which older versions of TypeScript do not provide. Until TypeScript 7.1 has a stable release, install the `next` prerelease:
 
 ```
-yarn add typescript --dev
+yarn add typescript@next --dev
 ```
 
 or
 
 ```
-npm install typescript --save-dev
+npm install typescript@next --save-dev
 ```
+
+### Upgrading to v10
+
+v10 is a rewrite of `ts-loader` on top of TypeScript's native (`tsgo`-powered) API. Before upgrading, note that:
+
+- TypeScript 7.1+ and Node.js 22+ are required.
+- The `compilerOptions`, `context`, `happyPackMode`, `onlyCompileBundledFiles`, `experimentalWatchApi` and `experimentalFileCaching` loader options have been removed. Supplying any of them fails the build with an "unexpected loader option" error. Set compiler options in your `tsconfig.json` instead.
+- `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted but currently have no effect, and `projectReferences` is not yet supported.
+- The [`compiler`](#compiler) option must resolve to a package that exposes a `<compiler>/sync` entry point.
+- `errorFormatter`'s `colors` argument is now a small `picocolors`-backed helper rather than a `chalk` instance.
+
+See the [changelog](CHANGELOG.md) for full details.
 
 ### Running
 
@@ -107,36 +116,42 @@ build system using the [Node.js API](https://webpack.js.org/api/node/).
 
 We have a number of example setups to accommodate different workflows. Our examples can be found [here](examples/).
 
-We probably have more examples than we need.  That said, here's a good way to get started:
+> **Note:** The examples have not yet been updated for v10 and still use `ts-loader` v9 or earlier with older versions of TypeScript.
 
-- I want the simplest setup going.  Use "[vanilla](examples/vanilla)" `ts-loader`
-- I want the fastest compilation that's available.  Use [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin).  It performs type checking in a separate process with `ts-loader` just handling transpilation.
+We probably have more examples than we need. That said, here's a good way to get started:
+
+- I want the simplest setup going. Use "[vanilla](examples/vanilla)" `ts-loader`
+- I want the fastest compilation that's available. Use [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin). It performs type checking in a separate process with `ts-loader` just handling transpilation.
 
 ### Faster Builds
 
-As your project becomes bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild. 
-The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking and *will not output declaration files*.
+As your project becomes bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild.
+The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking and _will not output declaration files_.
 
 You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin).
 It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking.
 
 If you'd like to see a simple setup take a look at [our example](examples/fork-ts-checker-webpack-plugin/).
 
+> **Note:** fork-ts-checker-webpack-plugin may not support TypeScript 7 yet. Check its documentation before relying on it with `ts-loader` v10.
+
 ### Yarn Plug’n’Play
 
-`ts-loader` supports [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).  The recommended way to integrate is using the [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration).
+> **Note:** Yarn Plug’n’Play integration is not currently supported in v10. The [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration) integration relies on the [`resolveModuleName`](#resolvemodulename-and-resolvetypereferencedirective) option, which TypeScript's native API does not currently support.
+
+`ts-loader` v9 and earlier support [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp). The recommended way to integrate is using the [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration).
 
 ### Babel
 
-`ts-loader` works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). There is an [example](https://github.com/Microsoft/TypeScriptSamples/tree/master/react-flux-babel-karma) of this in the official [TypeScript Samples](https://github.com/Microsoft/TypeScriptSamples). 
+`ts-loader` works very well in combination with [babel](https://babeljs.io/) and [babel-loader](https://github.com/babel/babel-loader). Chain them so that `ts-loader` runs first, for example `use: ['babel-loader', 'ts-loader']` (webpack applies loaders from right to left).
 
 ### Compatibility
 
-* TypeScript: 3.6.3+
-* webpack: 4.x+ and 5.x+
-* node: 12.x+
+- TypeScript: 7.1+
+- webpack: 4.x+ and 5.x+
+- node: 22.x+
 
-A full test suite runs each night (and on each pull request). It runs both on Linux and Windows, testing `ts-loader` against major releases of TypeScript and against both webpack 4 and webpack 5. Comparison tests run against webpack 5 only; execution tests run against both webpack 4 and webpack 5. The test suite also runs against TypeScript@next (because we want to use it as much as you do).
+A full test suite runs on each pull request. It runs on Linux, macOS and Windows, testing `ts-loader` against a pinned TypeScript 7.1 build and against TypeScript@next, on Node.js 22, 24 and 26. Comparison tests run against webpack 5 only; execution tests run against both webpack 4 and webpack 5.
 
 If you become aware of issues not caught by the test suite then please let us know. Better yet, write a test and submit it in a PR!
 
@@ -146,28 +161,28 @@ If you become aware of issues not caught by the test suite then please let us kn
 
    ```javascript
    module.exports = {
-     mode: "development",
-     devtool: "inline-source-map",
-     entry: "./app.ts",
+     mode: 'development',
+     devtool: 'inline-source-map',
+     entry: './app.ts',
      output: {
-       filename: "bundle.js"
+       filename: 'bundle.js',
      },
      resolve: {
        // Add `.ts` and `.tsx` as a resolvable extension.
-       extensions: [".ts", ".tsx", ".js"],
+       extensions: ['.ts', '.tsx', '.js'],
        // Add support for TypeScripts fully qualified ESM imports.
        extensionAlias: {
-        ".js": [".js", ".ts"],
-        ".cjs": [".cjs", ".cts"],
-        ".mjs": [".mjs", ".mts"]
-       }
+         '.js': ['.js', '.ts'],
+         '.cjs': ['.cjs', '.cts'],
+         '.mjs': ['.mjs', '.mts'],
+       },
      },
      module: {
        rules: [
          // all files with a `.ts`, `.cts`, `.mts` or `.tsx` extension will be handled by `ts-loader`
-         { test: /\.([cm]?ts|tsx)$/, loader: "ts-loader" }
-       ]
-     }
+         { test: /\.([cm]?ts|tsx)$/, loader: 'ts-loader' },
+       ],
+     },
    };
    ```
 
@@ -193,9 +208,9 @@ First, for `ts-loader` to produce **sourcemaps**, you will need to set the [tsco
 
 Second, you need to set the `devtool` option in your `webpack.config.js` to support the type of sourcemaps you want. To make your choice have a read of the [`devtool` webpack docs](https://webpack.js.org/configuration/devtool/). You may be somewhat daunted by the choice available. You may also want to vary the sourcemap strategy depending on your build environment. Here are some example strategies for different environments:
 
-* `devtool: 'inline-source-map'` - Solid sourcemap support; the best "all-rounder". Works well with karma-webpack (not all strategies do)
-* `devtool: 'eval-cheap-module-source-map'` - Best support for sourcemaps whilst debugging.
-* `devtool: 'source-map'` - Approach that plays well with UglifyJsPlugin; typically you might use this in Production
+- `devtool: 'inline-source-map'` - Solid sourcemap support; the best "all-rounder". Works well with karma-webpack (not all strategies do)
+- `devtool: 'eval-cheap-module-source-map'` - Best support for sourcemaps whilst debugging.
+- `devtool: 'source-map'` - Separate, full sourcemap files that work with minifiers; typically you might use this in Production
 
 ### Code Splitting and Loading Other Resources
 
@@ -208,7 +223,7 @@ declare var require: {
   (paths: string[], callback: (...modules: any[]) => void): void;
   ensure: (
     paths: string[],
-    callback: (require: <T>(path: string) => T) => void
+    callback: (require: <T>(path: string) => T) => void,
   ) => void;
 };
 ```
@@ -216,33 +231,58 @@ declare var require: {
 Then you can simply require assets or chunks per the [webpack documentation](https://webpack.js.org/guides/code-splitting/).
 
 ```javascript
-require("!style!css!./style.css");
+require('!style!css!./style.css');
 ```
 
 The same basic process is required for code splitting. In this case, you `import` modules you need but you
 don't directly use them. Instead you require them at [split points](https://webpack.js.org/guides/code-splitting/). See [this example](test/comparison-tests/codeSplitting) and [this example](test/comparison-tests/es6codeSplitting) for more details.
 
-[TypeScript 2.4 provides support for ECMAScript's new `import()` calls. These calls import a module and return a promise to that module.](https://blogs.msdn.microsoft.com/typescript/2017/06/12/announcing-typescript-2-4-rc/) This is also supported in webpack - details on usage can be found [here](https://webpack.js.org/guides/code-splitting-async/#dynamic-import-import-). Happy code splitting!
+TypeScript also supports ECMAScript's `import()` calls, which import a module and return a promise to that module. webpack treats these as split points too - details on usage can be found [here](https://webpack.js.org/guides/code-splitting/#dynamic-imports). Happy code splitting!
 
 ### Declaration Files (.d.ts)
 
 To output declaration files (.d.ts), you can set "declaration": true in your tsconfig and set "transpileOnly" to false.
 
-If you use ts-loader with  "transpileOnly": true along with [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin), you will need to configure fork-ts-checker-webpack-plugin to output definition files, you can learn more on the plugin's documentation page: https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#typescript-options
+If you use ts-loader with "transpileOnly": true along with [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin), you will need to configure fork-ts-checker-webpack-plugin to output definition files, you can learn more on the plugin's documentation page: https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#typescript-options
 
 To output a built .d.ts file, you can use the [DeclarationBundlerPlugin](https://www.npmjs.com/package/types-webpack-bundler) in your webpack config.
 
 ### Failing the build on TypeScript compilation error
 
-The build **should** fail on TypeScript compilation errors as of webpack 2. If for some reason it does not, you can use the [webpack-fail-plugin](https://www.npmjs.com/package/webpack-fail-plugin).
+The build **should** fail on TypeScript compilation errors. If it does not, check that you are not running webpack with an option that ignores errors, and that you have not filtered TypeScript errors out with [`ignoreDiagnostics`](#ignorediagnostics) or [`reportFiles`](#reportfiles).
 
 For more background have a read of [this issue](https://github.com/TypeStrong/ts-loader/issues/108).
 
-### `baseUrl` / `paths` module resolution
+### `paths` module resolution
 
-If you want to resolve modules according to `baseUrl` and `paths` in your `tsconfig.json` then you can use the [tsconfig-paths-webpack-plugin](https://www.npmjs.com/package/tsconfig-paths-webpack-plugin) package. For details about this functionality, see the [module resolution documentation](https://www.typescriptlang.org/docs/handbook/module-resolution.html#base-url).
+TypeScript's [`paths`](https://www.typescriptlang.org/tsconfig/#paths) option lets you import modules through aliases such as `@app/utils`. TypeScript does not rewrite those import specifiers in its output, so webpack also needs to know how to resolve them.
 
-This feature requires webpack 2.1+ and TypeScript 2.0+. Use the config below or check the [package](https://github.com/dividab/tsconfig-paths-webpack-plugin/blob/master/README.md) for more information on usage.
+TypeScript 7 removed the `baseUrl` option, so each `paths` entry must be relative to the `tsconfig.json` it is declared in:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@app/*": ["./src/app/*"],
+      "@lib/*": ["./src/lib/*"]
+    }
+  }
+}
+```
+
+If you are using webpack 5.105 or later, webpack can read `paths` from your `tsconfig.json` itself using the [`resolve.tsconfig`](https://webpack.js.org/configuration/resolve/#resolvetsconfig) option:
+
+```javascript
+module.exports = {
+  ...
+  resolve: {
+    tsconfig: true, // or a path, e.g. './path/to/tsconfig.json'
+  }
+  ...
+}
+```
+
+For webpack 4 or earlier versions of webpack 5, use the [tsconfig-paths-webpack-plugin](https://www.npmjs.com/package/tsconfig-paths-webpack-plugin) package (v4 or later, which supports `paths` without `baseUrl`). Use the config below or check the [package](https://github.com/dividab/tsconfig-paths-webpack-plugin/blob/master/README.md) for more information on usage.
 
 ```javascript
 const TsconfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
@@ -284,14 +324,15 @@ module.exports = {
 ### Loader Options
 
 #### transpileOnly
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
+
+| Type      | Default Value |
+| --------- | ------------- |
+| `boolean` | `false`       |
 
 If you want to speed up compilation significantly you can set this flag.
-However, many of the benefits you get from static type checking between different dependencies in your application will be lost. `transpileOnly` will *not* speed up compilation of project references.
+However, many of the benefits you get from static type checking between different dependencies in your application will be lost.
 
-It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our example](examples/fork-ts-checker-webpack-plugin).
+It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our example](examples/fork-ts-checker-webpack-plugin). (Note that fork-ts-checker-webpack-plugin may not support TypeScript 7 yet - see [Faster Builds](#faster-builds).)
 
 > Tip: When you add the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to your webpack config, the `transpileOnly` will default to `true`, so you can skip that option.
 
@@ -315,79 +356,63 @@ module.exports = {
 }
 ```
 
-#### happyPackMode
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
-
-If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) to parallelise your builds then you'll need to set this to `true`. This implicitly sets `*transpileOnly*` to `true` and **WARNING!** stops registering **_all_** errors to webpack.
-
-It's advisable to use this with the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. **_IMPORTANT_**: If you are using fork-ts-checker-webpack-plugin alongside HappyPack or thread-loader then ensure you set the `syntactic` diagnostic option like so:
-
-```javascript
-        new ForkTsCheckerWebpackPlugin({
-          typescript: {
-            diagnosticOptions: {
-              semantic: true,
-              syntactic: true,
-            },
-          },
-        })
-```
-
-This will ensure that the plugin checks for both syntactic errors (eg `const array = [{} {}];`) and semantic errors (eg `const x: number = '1';`). By default the plugin only checks for semantic errors (as when used with `ts-loader` in `transpileOnly` mode, `ts-loader` will still report syntactic errors).
-
-Also, if you are using `thread-loader` in watch mode, remember to set `poolTimeout: Infinity` so workers don't die.
-
 #### resolveModuleName and resolveTypeReferenceDirective
+
+> **Note:** These options are accepted for backwards compatibility but currently have no effect. TypeScript's native API does not expose a custom module resolution hook. If it gains one, these options will work again; if it never does, they will be removed.
 
 These options should be functions which will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. It's not intended that these will typically be used by a user of `ts-loader` - they exist to facilitate functionality such as [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).
 
 #### getCustomTransformers
-| Type |
-|------|
-| ` (program: Program, getProgram: () => Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; afterDeclarations?: TransformerFactory<SourceFile>[]; } ` |
 
-Provide custom transformers - only compatible with TypeScript 2.3+ (and 2.4 if using `transpileOnly` mode). For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
+| Type                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `(program: Program, getProgram: () => Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; afterDeclarations?: TransformerFactory<SourceFile>[]; }` |
 
-You can also pass a path string to locate a js module file which exports the function described above, this useful especially in `happyPackMode`. (Because forked processes cannot serialize functions see more at [related issue](https://github.com/Igorbek/typescript-plugin-styled-components/issues/6#issue-303387183))
+> **Note:** This option is accepted for backwards compatibility but currently has no effect. TypeScript's native API does not expose custom transformers. If it gains support, this option will work again; if it never does, it will be removed.
+
+Provide custom transformers. For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 
 #### logInfoToStdOut
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
+
+| Type      | Default Value |
+| --------- | ------------- |
+| `boolean` | `false`       |
 
 This is important if you read from stdout or stderr and for proper error handling.
 The default value ensures that you can read from stdout e.g. via pipes or you use webpack -j to generate json output.
 
 #### logLevel
-| Type | Default Value |
-|------|--------------|
-| `string` | `warn` |
+
+| Type     | Default Value |
+| -------- | ------------- |
+| `string` | `warn`        |
 
 Can be `info`, `warn` or `error` which limits the log output to the specified log level.
-Beware of the fact that errors are written to stderr and everything else is written to stderr (or stdout if logInfoToStdOut is true).
+Beware of the fact that errors are always written to stderr, and everything else is written to stderr too unless `logInfoToStdOut` is true, in which case it goes to stdout.
 
 #### silent
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
+
+| Type      | Default Value |
+| --------- | ------------- |
+| `boolean` | `false`       |
 
 If `true`, no console.log messages will be emitted. Note that most error
 messages are emitted via webpack which is not affected by this flag.
 
 #### ignoreDiagnostics
-| Type | Default Value |
-|------|--------------|
-| `number[]` | `[]`|
+
+| Type       | Default Value |
+| ---------- | ------------- |
+| `number[]` | `[]`          |
 
 You can squelch certain TypeScript errors by specifying an array of diagnostic
 codes to ignore.
 
 #### reportFiles
-| Type | Default Value |
-|------|--------------|
-| `string[]` | `[]`|
+
+| Type       | Default Value |
+| ---------- | ------------- |
+| `string[]` | `[]`          |
 
 Only report errors on files matching these glob patterns.
 
@@ -402,41 +427,43 @@ Only report errors on files matching these glob patterns.
 
 This can be useful when certain types definitions have errors that are not fatal to your application.
 
-#### compiler
-| Type | Default Value |
-|------|--------------|
-| `string` | `'typescript'`|
-
-Allows use of TypeScript compilers other than the official one. Should be
-set to the NPM name of the compiler, eg [`ntypescript`](https://github.com/basarat/ntypescript).
-
 #### configFile
-| Type | Default Value |
-|------|--------------|
-| `string` | `'tsconfig.json'`|
+
+| Type     | Default Value     |
+| -------- | ----------------- |
+| `string` | `'tsconfig.json'` |
 
 Allows you to specify where to find the TypeScript configuration file.
 
 You may provide
 
-* just a file name. The loader then will search for the config file of each entry point in the respective entry point's containing folder. If a config file cannot be found there, it will travel up the parent directory chain and look for the config file in those folders.
-* a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
-* an absolute path to the configuration file.
+- just a file name. The loader then will search for the config file of each entry point in the respective entry point's containing folder. If a config file cannot be found there, it will travel up the parent directory chain and look for the config file in those folders.
+- a relative path to the configuration file. It will be resolved relative to the respective `.ts` entry file.
+- an absolute path to the configuration file.
 
-Please note, that if the configuration file is outside of your project directory, you might need to set the `context` option to avoid TypeScript issues (like TS18003).
-In this case the `configFile` should point to the `tsconfig.json` and `context` to the project root.
+#### compiler
+
+| Type     | Default Value  |
+| -------- | -------------- |
+| `string` | `'typescript'` |
+
+Allows you to use a TypeScript package other than the one installed as `typescript`, such as a fork or a specific prerelease installed under an alias.
+
+The package must expose TypeScript's native API at a `<compiler>/sync` entry point (for example `typescript/sync`). Packages that only provide the classic compiler API, such as `ttypescript`, are not supported.
 
 #### colors
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `true`|
+
+| Type      | Default Value |
+| --------- | ------------- |
+| `boolean` | `true`        |
 
 If `false`, disables built-in colors in logger messages.
 
 #### errorFormatter
-| Type | Default Value |
-|------|--------------|
-| `(message: ErrorInfo, colors: boolean) => string` | `undefined`|
+
+| Type                                              | Default Value |
+| ------------------------------------------------- | ------------- |
+| `(message: ErrorInfo, colors: boolean) => string` | `undefined`   |
 
 By default `ts-loader` formats TypeScript compiler output for an error or a warning in the style:
 
@@ -445,14 +472,14 @@ By default `ts-loader` formats TypeScript compiler output for an error or a warn
       TS4711: you did something very wrong
 ```
 
-If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter. Please note that the `colors` parameter is an instance of [`chalk`](https://github.com/chalk/chalk) which you can use to color your output. (This instance will respect the `colors` option.)
+If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter. Please note that the `colors` parameter is a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper object which you can use to color your output. (It will respect the `colors` option.)
 
 ```javascript
 function customErrorFormatter(error, colors) {
   const messageColor =
-    error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
+    error.severity === 'warning' ? colors.bold.yellow : colors.bold.red;
   return (
-    "Does not compute.... " +
+    'Does not compute.... ' +
     messageColor(Object.keys(error).map(key => `${key}: ${error[key]}`))
   );
 }
@@ -462,12 +489,12 @@ If the above formatter received an error like this:
 
 ```json
 {
-  "code":2307,
+  "code": 2307,
   "severity": "error",
   "content": "Cannot find module 'components/myComponent2'.",
-  "file":"/.test/errorFormatter/app.ts",
-  "line":2,
-  "character":31
+  "file": "/.test/errorFormatter/app.ts",
+  "line": 2,
+  "character": 31
 }
 ```
 
@@ -479,43 +506,41 @@ Does not compute.... code: 2307,severity: error,content: Cannot find module 'com
 
 And the bit after "Does not compute.... " would be red.
 
-#### compilerOptions
-| Type | Default Value |
-|------|--------------|
-| `object` | `{}`|
-
-Allows overriding TypeScript options. Should be specified in the same format
-as you would do for the `compilerOptions` property in tsconfig.json.
-
 #### instance
-| Type | Default Value |
-|------|--------------|
-| `string` | `TODO`|
+
+| Type     | Default Value                     |
+| -------- | --------------------------------- |
+| `string` | derived from the loader's options |
 
 Advanced option to force files to go through different instances of the
 TypeScript compiler. Can be used to force segregation between different parts
-of your code.
+of your code. If not set, rules with identical loader options share an
+instance and rules with different options get separate ones.
 
 #### appendTsSuffixTo
-| Type | Default Value |
-|------|--------------|
-| `(RegExp \| string)[]` | `[]`|
+
+| Type                   | Default Value |
+| ---------------------- | ------------- |
+| `(RegExp \| string)[]` | `[]`          |
 
 #### appendTsxSuffixTo
-| Type | Default Value |
-|------|--------------|
-| `(RegExp \| string)[]` | `[]`|
+
+| Type                   | Default Value |
+| ---------------------- | ------------- |
+| `(RegExp \| string)[]` | `[]`          |
 
 A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
-If you're using [HappyPack](https://github.com/amireh/happypack) or [thread-loader](https://github.com/webpack-contrib/thread-loader) with `ts-loader`, you need use the `string` type for the regular expressions, not `RegExp` object.
 
 ```js
 // change this:
-{ appendTsSuffixTo: [/\.vue$/] }
+{
+  appendTsSuffixTo: [/\.vue$/];
+}
 // to:
-{ appendTsSuffixTo: ['\\.vue$'] }
+{
+  appendTsSuffixTo: ['\\.vue$'];
+}
 ```
-
 
 This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefit from the new single file format in the future.)
 
@@ -525,35 +550,37 @@ webpack.config.js:
 
 ```javascript
 module.exports = {
-  entry: "./index.vue",
-  output: { filename: "bundle.js" },
+  entry: './index.vue',
+  output: { filename: 'bundle.js' },
   resolve: {
-    extensions: [".ts", ".vue"]
+    extensions: ['.ts', '.vue'],
   },
   module: {
     rules: [
-      { test: /\.vue$/, loader: "vue-loader" },
+      { test: /\.vue$/, loader: 'vue-loader' },
       {
         test: /\.ts$/,
-        loader: "ts-loader",
-        options: { appendTsSuffixTo: [/\.vue$/] }
-      }
-    ]
-  }
+        loader: 'ts-loader',
+        options: { appendTsSuffixTo: [/\.vue$/] },
+      },
+    ],
+  },
 };
 ```
 
 index.vue
 
 ```vue
-<template><p>hello {{msg}}</p></template>
+<template>
+  <p>hello {{ msg }}</p>
+</template>
 <script lang="ts">
 export default {
   data(): Object {
     return {
-      msg: "world"
+      msg: 'world',
     };
-  }
+  },
 };
 </script>
 ```
@@ -564,26 +591,36 @@ webpack.config.js:
 
 ```javascript
 module.exports = {
-    entry: './index.vue',
-    output: { filename: 'bundle.js' },
-    resolve: {
-        extensions: ['.ts', '.tsx', '.vue', '.vuex']
-    },
-    module: {
-        rules: [
-            { test: /\.vue$/, loader: 'vue-loader',
-              options: {
-                loaders: {
-                  ts: 'ts-loader',
-                  tsx: 'babel-loader!ts-loader',
-                }
-              }
-            },
-            { test: /\.ts$/, loader: 'ts-loader', options: { appendTsSuffixTo: [/TS\.vue$/] } }
-            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/TSX\.vue$/] } }
-        ]
-    }
-}
+  entry: './index.vue',
+  output: { filename: 'bundle.js' },
+  resolve: {
+    extensions: ['.ts', '.tsx', '.vue', '.vuex'],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.vue$/,
+        loader: 'vue-loader',
+        options: {
+          loaders: {
+            ts: 'ts-loader',
+            tsx: 'babel-loader!ts-loader',
+          },
+        },
+      },
+      {
+        test: /\.ts$/,
+        loader: 'ts-loader',
+        options: { appendTsSuffixTo: [/TS\.vue$/] },
+      },
+      {
+        test: /\.tsx$/,
+        loader: 'babel-loader!ts-loader',
+        options: { appendTsxSuffixTo: [/TSX\.vue$/] },
+      },
+    ],
+  },
+};
 ```
 
 tsconfig.json (set `jsx` option to `preserve` to let babel handle jsx)
@@ -603,48 +640,36 @@ index.vue
 export default {
   functional: true,
   render(h, c) {
-    return (<div>Content</div>);
-  }
-}
+    return <div>Content</div>;
+  },
+};
 </script>
 ```
 
 Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
 
 ```javascript
-            { test: /\.ts$/, loader: 'ts-loader' }
+            { test: /\.ts$/, loader: 'ts-loader' },
             { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/\.vue$/] } }
 ```
 
-#### onlyCompileBundledFiles
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
-
-The default behavior of `ts-loader` is to act as a drop-in replacement for the `tsc` command,
-so it respects the `include`, `files`, and `exclude` options in your `tsconfig.json`, loading
-any files specified by those options. The `onlyCompileBundledFiles` option modifies this behavior,
-loading only those files that are actually bundled by webpack, as well as any `.d.ts` files included
-by the `tsconfig.json` settings. `.d.ts` files are still included because they may be needed for
-compilation without being explicitly imported, and therefore not picked up by webpack.
-
 #### useCaseSensitiveFileNames
-| Type | Default Value |
-|------|--------------|
-| `boolean` | determined by typescript based on platform |
 
-The default behavior of `ts-loader` is to act as a drop-in replacement for the `tsc` command,
-so it respects the `useCaseSensitiveFileNames` set internally by typescript. The `useCaseSensitiveFileNames` option modifies this behavior,
-by changing the way in which ts-loader resolves file paths to compile. Setting this to true can have some performance benefits due to simplifying the file resolution codepath.
+| Type      | Default Value                              |
+| --------- | ------------------------------------------ |
+| `boolean` | `false` on Windows, `true` everywhere else |
+
+Controls whether `ts-loader` treats file paths as case-sensitive when it tracks the files it compiles. By default paths are treated as case-insensitive on Windows and case-sensitive on every other platform, including macOS. If you are on a case-insensitive filesystem other than Windows (for example the macOS default) and import the same file using different casing, set this to `false`. Setting it to `true` can have some performance benefits, because it simplifies the file resolution code path.
 
 #### allowTsInNodeModules
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
+
+| Type      | Default Value |
+| --------- | ------------- |
+| `boolean` | `false`       |
 
 By default, `ts-loader` will not compile `.ts` files in `node_modules`.
 You should not need to recompile `.ts` files there, but if you really want to, use this option.
-Note that this option acts as a *whitelist* - any modules you desire to import must be included in
+Note that this option acts as a _whitelist_ - any modules you desire to import must be included in
 the `"files"` or `"include"` block of your project's `tsconfig.json`.
 
 See: [https://github.com/Microsoft/TypeScript/issues/12358](https://github.com/Microsoft/TypeScript/issues/12358)
@@ -661,66 +686,19 @@ See: [https://github.com/Microsoft/TypeScript/issues/12358](https://github.com/M
 And in your `tsconfig.json`:
 
 ```json
-  {
-    "include": [
-      "node_modules/whitelisted_module.ts"
-    ],
-    "files": [
-      "node_modules/my_module/whitelisted_file.ts"
-    ]
-  }
-```
-
-#### context
-| Type | Default Value |
-|------|--------------|
-| `string` | `undefined`|
-
-If set, will parse the TypeScript configuration file with given **absolute path** as base path.
-Per default the directory of the configuration file is used as base path. Relative paths in the configuration
-file are resolved with respect to the base path when parsed. Option `context` allows to set option
-`configFile` to a path other than the project root (e.g. a NPM package), while the base path for `ts-loader`
-can remain the project root.
-
-Keep in mind that **not** having a `tsconfig.json` in your project root can cause different behaviour between `ts-loader` and `tsc`.
-When using editors like `VS Code` it is advised to add a `tsconfig.json` file to the root of the project and extend the config file
-referenced in option `configFile`. For more information please [read the PR](https://github.com/TypeStrong/ts-loader/pull/681) that
-is the base and [read the PR](https://github.com/TypeStrong/ts-loader/pull/688) that contributed this option.
-
-webpack:
-
-```javascript
 {
-  loader: require.resolve('ts-loader'),
-  options: {
-    context: __dirname,
-    configFile: require.resolve('ts-config-react-app')
-  }
+  "include": ["node_modules/whitelisted_module.ts"],
+  "files": ["node_modules/my_module/whitelisted_file.ts"]
 }
 ```
 
-Extending `tsconfig.json`:
-
-```json
-{ "extends": "./node_modules/ts-config-react-app/index" }
-```
-
-Note that changes in the extending file while not be respected by `ts-loader`. Its purpose is to satisfy the code editor.
-
-#### experimentalFileCaching
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `true`|
-
-By default whenever the TypeScript compiler needs to check that a file/directory exists or resolve symlinks it makes syscalls. It does not cache the result of these operations and this may result in many syscalls with the same arguments ([see comment](https://github.com/TypeStrong/ts-loader/issues/825#issue-354725524) with example).
-In some cases it may produce performance degradation.
-
-This flag enables caching for some FS-functions like `fileExists`, `realpath` and `directoryExists` for TypeScript compiler. Note that caches are cleared between compilations.
-
 #### projectReferences
-| Type | Default Value |
-|------|--------------|
-| `boolean` | `false`|
+
+| Type      | Default Value |
+| --------- | ------------- |
+| `boolean` | `false`       |
+
+> **Note:** Project references are not yet supported in v10, which is built on TypeScript's native API. The option is still accepted, but the rest of this section describes v9 behaviour. Support will be added once the native API makes it possible.
 
 ts-loader has opt-in support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html). With this configuration option enabled, `ts-loader` will incrementally rebuild upstream projects the same way `tsc --build` does. Otherwise, source files in referenced projects will be treated as if they’re part of the root project.
 
@@ -744,7 +722,7 @@ plugins: [
   new webpack.WatchIgnorePlugin({
     paths:[
       /\.js$/,
-      /\.d\.[cm]ts$/
+      /\.d\.[cm]?ts$/
   ]})
 ],
 ```

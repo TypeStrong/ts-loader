@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["es2018"],
+    "lib": ["es2022"],
     "types": ["node"],
-    "target": "es2018",
+    "target": "es2022",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

@@ -1,19 +1,14 @@
 import type * as webpack from 'webpack';
-import type { TSInstance } from './interfaces';
 
-// Some loaders (e.g. thread-loader) will set the _compiler property to undefined.
-// We can't use undefined as a WeakMap key as it will throw an error at runtime,
-// thus we keep a dummy "marker" object to use as key in those situations.
+import type { TSInstance } from './types';
+
 const marker: webpack.Compiler = {} as webpack.Compiler;
 
-// Each TypeScript instance is cached based on the webpack instance (key of the WeakMap)
-// and also the name that was generated or passed via the options (string key of the
-// internal Map)
 const cache: WeakMap<webpack.Compiler, Map<string, TSInstance>> = new WeakMap();
 
 export function getTSInstanceFromCache(
   key: webpack.Compiler,
-  name: string
+  name: string,
 ): TSInstance | undefined {
   const compiler = key ?? marker;
 
@@ -29,7 +24,7 @@ export function getTSInstanceFromCache(
 export function setTSInstanceInCache(
   key: webpack.Compiler | undefined,
   name: string,
-  instance: TSInstance
+  instance: TSInstance,
 ) {
   const compiler = key ?? marker;
 
