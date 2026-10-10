@@ -4,7 +4,7 @@ import type {
   Diagnostic,
   ParsedCommandLine,
   Snapshot,
-} from 'typescript/unstable/sync';
+} from 'typescript/sync';
 import type * as webpack from 'webpack';
 
 export interface ErrorInfo {

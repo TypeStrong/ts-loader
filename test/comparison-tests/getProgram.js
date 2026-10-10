@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const typescript = require('typescript/unstable/sync');
+const typescript = require('typescript/sync');
 
 function getProgram(tsconfigPath, optionsToExtend) {
     const configFilePath =

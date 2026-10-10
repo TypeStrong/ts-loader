@@ -4,7 +4,7 @@
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
 
-This is a ground-up rewrite of ts-loader's compilation engine. Instead of driving TypeScript's classic `LanguageService` / `Program` / watch APIs, ts-loader now compiles exclusively through TypeScript's new native `typescript/unstable/sync` API (the [tsgo](https://github.com/microsoft/typescript-go)-powered engine) - the legacy compiler API integration has been removed entirely.
+This is a ground-up rewrite of ts-loader's compilation engine. Instead of driving TypeScript's classic `LanguageService` / `Program` / watch APIs, ts-loader now compiles exclusively through TypeScript's new native `typescript/sync` API (the [tsgo](https://github.com/microsoft/typescript-go)-powered engine) - the legacy compiler API integration has been removed entirely.
 
 ### Not supported yet
 
@@ -15,7 +15,7 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 
 - Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). ts-loader currently depends on a TypeScript `next` prerelease that exposes this native API ahead of a stable 7.1 release.
 - Minimum supported Node.js version is now 22.x+ (up from 12.x+).
-- The `compiler` option must now resolve to a package exposing a `<compiler>/unstable/sync` entry point (the TypeScript native API). Drop-in classic-API compilers (e.g. `ttypescript`) are no longer supported.
+- The `compiler` option must now resolve to a package exposing a `<compiler>/sync` entry point (the TypeScript native API). Drop-in classic-API compilers (e.g. `ttypescript`) are no longer supported.
 - Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
 - Removed the `context` loader option; the native API always resolves relative paths against the config file's own directory, with no basePath override exposed to let a tsconfig live outside the project root.
 - Removed the `happyPackMode` loader option - HappyPack / thread-loader based parallelisation is no longer supported this way.

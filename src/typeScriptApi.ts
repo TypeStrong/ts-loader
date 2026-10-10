@@ -9,9 +9,9 @@ import type {
   EmitOutput,
   ParsedCommandLine,
   Program,
-} from 'typescript/unstable/sync';
-import type { FileSystemCallbacks } from 'typescript/unstable/fs';
-import { serverFS } from 'typescript/unstable/fs';
+} from 'typescript/sync';
+import type { FileSystemCallbacks } from 'typescript/fs';
+import { serverFS } from 'typescript/fs';
 
 import * as constants from './constants';
 import {
@@ -583,7 +583,7 @@ function computeDeclarationFilePath(
 }
 
 function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
-  const specifier = `${compilerPackage}/unstable/sync`;
+  const specifier = `${compilerPackage}/sync`;
 
   try {
     return require(specifier) as TypeScriptApiModule;
