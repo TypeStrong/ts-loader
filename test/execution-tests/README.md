@@ -41,21 +41,21 @@ Without this, the test won't be able to resolve ts-loader and webpack won't find
 
 ## What sort of tests can be included?
 
-It's pretty much your choice what goes in testwise.  At present there are only Jasmine tests in place; it should be possible to put any test in place that Karma is compatible with. You can specify dependencies (include @types dependencies) using `package.json`.  As a first step before tests are executed, `yarn install` is called to install dependencies.
+It's pretty much your choice what goes in testwise.  At present there are only Jasmine tests in place; it should be possible to put any test in place that Karma is compatible with. You can specify dependencies (include @types dependencies) using `package.json`.  As a first step before tests are executed, `npm install` is called to install dependencies.
 
 ## Running / debugging the tests
 
 To run all the tests use:
 
-`yarn run execution-tests`.
+`npm run execution-tests`.
 
 If you would like to run just a single test then:
 
-`yarn run execution-tests -- --single-test nameOfTest`
+`npm run execution-tests -- --single-test nameOfTest`
 
 It's pretty handy to be able to debug tests; for that reason you can run a single test in watch mode like this:
 
-`yarn run execution-tests -- --single-test nameOfTest --watch`
+`npm run execution-tests -- --single-test nameOfTest --watch`
 
 Then you can fire up http://localhost:9876/ and the world's your oyster.
 

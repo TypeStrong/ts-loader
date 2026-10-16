@@ -15,18 +15,18 @@
     "benchmark": "node test/benchmark-tests/run-benchmark.mts",
     "clean": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests",
     "docker:build": "docker build -t ts-loader .",
-    "postdocker:build": "docker run -it ts-loader yarn test",
+    "postdocker:build": "docker run -it ts-loader npm test",
     "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\"",
     "knip": "knip"
   },
   "lint-staged": {
     "src/**/*.*": [
-      "yarn format",
-      "yarn lint",
+      "npm run format",
+      "npm run lint",
       "git add"
     ],
     "*.md": [
-      "yarn format",
+      "npm run format",
       "git add"
     ]
   },
@@ -99,6 +99,11 @@
   "peerDependenciesMeta": {
     "loader-utils": {
       "optional": true
+    }
+  },
+  "overrides": {
+    "babel-loader": {
+      "webpack": "$webpack"
     }
   },
   "publishConfig": {

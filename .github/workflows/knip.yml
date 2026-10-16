@@ -13,10 +13,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - name: install
-        run: yarn install
+        run: npm ci
 
       - name: knip
-        run: yarn knip
+        run: npm run knip

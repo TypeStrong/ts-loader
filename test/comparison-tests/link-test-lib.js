@@ -1,5 +1,5 @@
 // Links node_modules/lib to testLib for the npmLink test. Replaces
-// `npm link`, which reifies the whole dependency tree and rewrites yarn.lock.
+// `npm link`, which reifies the whole dependency tree.
 const fs = require('fs');
 const path = require('path');
 

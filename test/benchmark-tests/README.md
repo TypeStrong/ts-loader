@@ -25,13 +25,13 @@ Their fixtures are tiny (a handful of files, 1-2 watch patches) and built for ou
 ## Running it
 
 ```bash
-yarn build                                             # build this checkout's dist/
-yarn benchmark -- --root-a . --root-b .                # sanity check: compares a build against itself, expect ~0% deltas
+npm run build                              # build this checkout's dist/
+npm run benchmark -- --root-a . --root-b . # sanity check: compares a build against itself, expect ~0% deltas
 
 # compare against another ts-loader checkout, e.g. a git worktree of main
 git worktree add ../ts-loader-main main
-(cd ../ts-loader-main && yarn install && yarn build)
-yarn benchmark -- --root-a . --root-b ../ts-loader-main
+(cd ../ts-loader-main && npm install && npm run build)
+npm run benchmark -- --root-a . --root-b ../ts-loader-main
 ```
 
 `--root-a`/`--root-b` each point at a ts-loader checkout root (must contain a built `index.js`/`dist/`) - matching the `resolveLoader.alias` pattern used in `test/execution-tests/*/webpack.config.js`.
@@ -51,7 +51,7 @@ rm -rf .benchmark                                      # gitignored fixture + re
 git worktree remove ../ts-loader-main                  # drop the comparison checkout
 ```
 
-If `git worktree remove` refuses because of untracked/modified files left behind by `yarn install`/`yarn build`, either clean those up first or pass `--force`. Once the worktree directory is gone, `git worktree list` may still show a stale entry until you run `git worktree prune`.
+If `git worktree remove` refuses because of untracked/modified files left behind by `npm install`/`npm run build`, either clean those up first or pass `--force`. Once the worktree directory is gone, `git worktree list` may still show a stale entry until you run `git worktree prune`.
 
 ## Interpreting deltas
 
