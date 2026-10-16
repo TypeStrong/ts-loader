@@ -18,9 +18,9 @@ runs:
     - name: install
       shell: bash
       working-directory: ${{ runner.os == 'Windows' && 'C:\source\ts-loader' || '.' }}
-      run: yarn install
+      run: npm ci
 
     - name: build
       shell: bash
       working-directory: ${{ runner.os == 'Windows' && 'C:\source\ts-loader' || '.' }}
-      run: yarn build
+      run: npm run build

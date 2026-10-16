@@ -52,7 +52,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
@@ -67,15 +67,16 @@ jobs:
       - name: install & build (base branch)
         working-directory: ${{ env.ROOT }}-main
         run: |
-          yarn install
-          yarn build
+          # npm install, not npm ci: the base branch may predate package-lock.json
+          npm install
+          npm run build
 
       # --root-a is the PR branch built by the build-ts-loader action;
       # --root-b is the base branch worktree built in the previous step.
       - name: run benchmark
         working-directory: ${{ env.ROOT }}
         run: |
-          yarn benchmark -- \
+          npm run benchmark -- \
             --root-a "$ROOT" --label-a "PR branch" \
             --root-b "$ROOT-main" --label-b "base branch"
 

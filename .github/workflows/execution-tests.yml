@@ -19,19 +19,19 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: install typescript
-        run: yarn add typescript@${{ matrix.ts }}
+        run: npm install -D typescript@${{ matrix.ts }}
 
       - name: install webpack 4
         if: matrix.webpack == 4
-        run: yarn add webpack@^4.47.0 karma-webpack@^4.0.2
+        run: npm install -D webpack@^4.47.0 karma-webpack@^4.0.2
 
       - name: test
-        run: yarn execution-tests
+        run: npm run execution-tests
 
   # execution_test_macos:
   #   name: macOS
@@ -48,19 +48,19 @@ jobs:
   #       uses: actions/setup-node@v7
   #       with:
   #         node-version: ${{ matrix.node }}
-  #         cache: yarn
+  #         cache: npm
 
   #     - uses: ./.github/actions/build-ts-loader
 
   #     - name: install typescript
-  #       run: yarn add typescript@${{ matrix.ts }}
+  #       run: npm install -D typescript@${{ matrix.ts }}
 
   #     - name: install webpack 4
   #       if: matrix.webpack == 4
-  #       run: yarn add webpack@^4.47.0 karma-webpack@^4.0.2
+  #       run: npm install -D webpack@^4.47.0 karma-webpack@^4.0.2
 
   #     - name: test
-  #       run: yarn execution-tests
+  #       run: npm run execution-tests
 
   execution_test_windows:
     name: windows
@@ -77,19 +77,19 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node }}
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: install typescript
-        run: yarn add typescript@${{ matrix.ts }}
+        run: npm install -D typescript@${{ matrix.ts }}
         working-directory: C:\source\ts-loader
 
       - name: install webpack 4
         if: matrix.webpack == 4
-        run: yarn add webpack@^4.47.0 karma-webpack@^4.0.2
+        run: npm install -D webpack@^4.47.0 karma-webpack@^4.0.2
         working-directory: C:\source\ts-loader
 
       - name: test
-        run: yarn execution-tests
+        run: npm run execution-tests
         working-directory: C:\source\ts-loader
