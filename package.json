@@ -9,7 +9,7 @@
     "format": "prettier --write \"src/**/*.*\" \"*.md\"",
     "format:check": "prettier --check \"src/**/*.*\" \"*.md\"",
     "lint": "tsc --project \"./src\" --noEmit && oxlint src",
-    "comparison-tests": "git clean -xfd test/comparison-tests && npm link --legacy-peer-deps ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
+    "comparison-tests": "git clean -xfd test/comparison-tests && node test/comparison-tests/link-test-lib.js && node test/comparison-tests/run-tests.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
     "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",
     "benchmark": "node test/benchmark-tests/run-benchmark.mts",
