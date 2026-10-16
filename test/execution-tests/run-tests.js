@@ -146,8 +146,11 @@ function runTests(testName) {
         execSync('npm install -g pnpm', { cwd: testPath, stdio: 'inherit' });
         execSync('pnpm install', { cwd: testPath, stdio: 'inherit' });
     } else if (pathExists(path.join(testPath, 'package.json'))) {
-        console.log('yarn install into ' + testPath);
-        execSync('yarn install', { cwd: testPath, stdio: 'inherit' });
+        console.log('npm install into ' + testPath);
+        // install-links: some packs git-track copies of their file: deps in node_modules,
+        // which npm's default of symlinking file: deps would delete.
+        // legacy-peer-deps: yarn never enforced the packs' (often stale) peer ranges.
+        execSync('npm install --install-links --legacy-peer-deps --no-audit --no-fund', { cwd: testPath, stdio: 'inherit' });
     }
 
     try {

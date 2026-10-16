@@ -40,7 +40,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
@@ -51,11 +51,11 @@ jobs:
           MATCH_TEST: ${{ inputs.match_test }}
         run: |
           if [ -n "$SINGLE_TEST" ]; then
-            yarn comparison-tests --single-test "$SINGLE_TEST"
+            npm run comparison-tests -- --single-test "$SINGLE_TEST"
           elif [ -n "$MATCH_TEST" ]; then
-            yarn comparison-tests --match-test "$MATCH_TEST"
+            npm run comparison-tests -- --match-test "$MATCH_TEST"
           else
-            yarn comparison-tests
+            npm run comparison-tests
           fi
 
   probe_macos:
@@ -69,7 +69,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
@@ -80,11 +80,11 @@ jobs:
           MATCH_TEST: ${{ inputs.match_test }}
         run: |
           if [ -n "$SINGLE_TEST" ]; then
-            yarn comparison-tests --single-test "$SINGLE_TEST"
+            npm run comparison-tests -- --single-test "$SINGLE_TEST"
           elif [ -n "$MATCH_TEST" ]; then
-            yarn comparison-tests --match-test "$MATCH_TEST"
+            npm run comparison-tests -- --match-test "$MATCH_TEST"
           else
-            yarn comparison-tests
+            npm run comparison-tests
           fi
 
   probe_windows:
@@ -98,7 +98,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
@@ -110,9 +110,9 @@ jobs:
           MATCH_TEST: ${{ inputs.match_test }}
         run: |
           if [ -n "$SINGLE_TEST" ]; then
-            yarn comparison-tests --single-test "$SINGLE_TEST"
+            npm run comparison-tests -- --single-test "$SINGLE_TEST"
           elif [ -n "$MATCH_TEST" ]; then
-            yarn comparison-tests --match-test "$MATCH_TEST"
+            npm run comparison-tests -- --match-test "$MATCH_TEST"
           else
-            yarn comparison-tests
+            npm run comparison-tests
           fi
