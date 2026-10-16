@@ -1,0 +1,30 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "tags": [
+    "-lintignore"
+  ],
+  "project": [
+    "src/**/*.ts"
+  ],
+  "ignoreDependencies": [
+    "babel",
+    "babel-core",
+    "babel-loader",
+    "babel-polyfill",
+    "babel-preset-es2015",
+    "babel-preset-es2016",
+    "babel-preset-react",
+    "glob",
+    "jasmine-core",
+    "karma",
+    "karma-chrome-launcher",
+    "karma-jasmine",
+    "karma-mocha-reporter",
+    "karma-sourcemap-loader",
+    "karma-webpack",
+    "lint-staged",
+    "loader-utils",
+    "mocha",
+    "webpack-cli"
+  ]
+}

@@ -1,4 +1,5 @@
 *.ts eol=lf
 *.js eol=lf
+*.vue eol=lf
 
 test/** linguist-detectable=false

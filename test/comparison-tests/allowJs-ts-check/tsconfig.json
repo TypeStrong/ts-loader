@@ -3,6 +3,7 @@
     "target": "es6",
     "module": "commonjs",
     "emitBOM": true,
+		"rootDir": "./src",
     "outDir": "node",
     "allowJs": true
   },
