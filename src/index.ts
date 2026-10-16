@@ -347,11 +347,9 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'allowTsInNodeModules',
   'projectReferences',
-  // Accepted for backwards compatibility but currently inert: the
-  // `typescript/sync` (tsgo) API this loader now runs on only
-  // exposes filesystem-level hooks, not a resolveModuleName-style custom
-  // resolver hook. See test/execution-tests/3.0.1_resolveModuleName.
   'resolveModuleName',
+  // Accepted for backwards compatibility but currently inert: the
+  // `typescript/sync` (tsgo) API has no type reference resolver hook.
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
 ];

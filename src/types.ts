@@ -1,9 +1,14 @@
 import type { Colors } from './colors';
 import type {
   API,
+  CompilerOptions,
   Diagnostic,
+  ModuleResolver,
+  PackageId,
   ParsedCommandLine,
+  ResolvedModule,
   Snapshot,
+  SyntheticProjectId,
 } from 'typescript/sync';
 import type * as webpack from 'webpack';
 
@@ -56,9 +61,63 @@ export interface LoaderOptions {
     string | ((program: unknown, getProgram: () => unknown) => unknown);
   allowTsInNodeModules: boolean;
   projectReferences?: boolean;
-  resolveModuleName?: (...args: unknown[]) => unknown;
+  resolveModuleName?: CustomResolveModuleName;
   resolveTypeReferenceDirective?: (...args: unknown[]) => unknown;
   useCaseSensitiveFileNames?: boolean;
+}
+
+export interface CustomResolvedModule {
+  resolvedFileName: string;
+  originalPath?: string;
+  packageId?: PackageId;
+}
+
+export interface CustomResolvedModuleWithFailedLookupLocations {
+  resolvedModule?: CustomResolvedModule;
+}
+
+export interface ModuleResolutionHost {
+  fileExists(fileName: string): boolean;
+  readFile(fileName: string): string | undefined;
+  directoryExists(directoryName: string): boolean;
+  realpath(path: string): string;
+  getCurrentDirectory(): string;
+}
+
+export type ParentResolveModuleName = (
+  moduleName: string,
+  containingFile: string,
+  compilerOptions?: CompilerOptions,
+  moduleResolutionHost?: ModuleResolutionHost,
+) => { resolvedModule?: ResolvedModule };
+
+/** Matches classic ts-loader's `resolveModuleName` loader option signature. */
+export type CustomResolveModuleName = (
+  moduleName: string,
+  containingFile: string,
+  compilerOptions: CompilerOptions,
+  moduleResolutionHost: ModuleResolutionHost,
+  parentResolver: ParentResolveModuleName,
+) => CustomResolvedModuleWithFailedLookupLocations | undefined;
+
+/**
+ * State for the `resolveModuleName` loader option. The API only accepts a
+ * custom resolver on synthetic programs (`createPrograms`), not configured
+ * projects, so every project is then a synthetic program built from
+ * `config` - see openPrimaryProject.
+ */
+export interface CustomModuleResolution {
+  resolveModuleName: CustomResolveModuleName;
+  config?: ParsedCommandLine;
+  resolvers?: { resolver: ModuleResolver; defaultResolver: ModuleResolver };
+  /** Project path (primary config path, or an orphan's synthetic config path) -> its program. */
+  programs: Map<FilePath, SyntheticProgram>;
+}
+
+export interface SyntheticProgram {
+  id: SyntheticProjectId;
+  /** Set for an orphan file's program - see ensureSyntheticConfigForFile. */
+  orphanFileName?: string;
 }
 
 export interface LoaderOptionsCache {
@@ -87,6 +146,7 @@ export interface TypeScriptInstance {
   /** Orphan file (see ensureSyntheticConfigForFile) -> its synthetic project's config path. */
   syntheticConfigFiles: Map<FilePath, FilePath>;
   openedProjectPaths: Set<FilePath>;
+  customModuleResolution?: CustomModuleResolution;
   /**
    * Set on creation and by webpack's `compile` hook (once per build/watch
    * rebuild) - see `updateSnapshot`. Consumed (and cleared) by the first

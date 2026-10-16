@@ -7,8 +7,11 @@ import type {
   CompilerOptions,
   Diagnostic,
   EmitOutput,
+  ModuleResolver,
   ParsedCommandLine,
   Program,
+  Project,
+  Snapshot,
 } from 'typescript/sync';
 import type { FileSystemCallbacks } from 'typescript/fs';
 import { serverFS } from 'typescript/fs';
@@ -22,6 +25,7 @@ import {
   reportTypeScriptErrors,
 } from './diagnostics';
 import type {
+  CustomModuleResolution,
   FilePath,
   LoaderOptions,
   PendingDeclarationFile,
@@ -30,6 +34,11 @@ import type {
   ResolvedFilePathCache,
 } from './types';
 import { isWebpack5 } from './loaderUtils';
+import {
+  createCustomModuleResolution,
+  refreshCustomModuleResolutionConfig,
+  toSyntheticProgramParams,
+} from './moduleResolution';
 
 interface TypeScriptApiModule {
   API: new (options?: APIOptions) => API;
@@ -100,6 +109,11 @@ export function createTypeScriptInstance(
     syntheticConfigContents,
     syntheticConfigFiles: new Map(),
     openedProjectPaths: new Set(),
+    // transpileOnly never resolves modules, so the option is inert there.
+    customModuleResolution:
+      loaderOptions.resolveModuleName && !loaderOptions.transpileOnly
+        ? createCustomModuleResolution(loaderOptions.resolveModuleName)
+        : undefined,
     pendingInvalidation: true,
     directImportsCache: new Map(),
     projectFileNamesCache: new Map(),
@@ -161,8 +175,11 @@ export function getTypeScriptEmit(
       // Prefer the project ts-loader explicitly resolved over the API's own
       // nearest-tsconfig auto-discovery, which can pick an unrelated
       // tsconfig.json that happens to sit closer to `fileName` on disk.
-      const configuredProject =
-        temporarySnapshot.getConfiguredProject(projectConfigPath);
+      const configuredProject = getProject(
+        typeScriptInstance,
+        temporarySnapshot,
+        projectConfigPath,
+      );
       // A configured project that failed to parse at all is a hard failure
       // to surface as-is, not a reason to silently fall back to a different
       // project that happens to resolve `fileName`.
@@ -596,12 +613,28 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   }
 }
 
+/**
+ * Projects to open/close (configured) or create/reconfigure/remove
+ * (synthetic programs - see CustomModuleResolution), keyed by project path.
+ */
+interface ProjectChanges {
+  openProjects?: FilePath[];
+  closeProjects?: FilePath[];
+  createPrograms?: SyntheticProgramChange[];
+  reconfigurePrograms?: SyntheticProgramChange[];
+  removePrograms?: FilePath[];
+}
+
+interface SyntheticProgramChange {
+  projectPath: FilePath;
+  orphanFileName?: string;
+}
+
 function updateSnapshot(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
-  openProjects?: FilePath[],
-  closeProjects?: FilePath[],
+  projectChanges: ProjectChanges = {},
   // Api-facing names of specific files known to have just changed (see
   // `changedFilesThisBuild`) - passed only by recheckAllTransitiveDependants's
   // own snapshot refresh. Tells the API to re-read exactly these files rather
@@ -679,15 +712,22 @@ function updateSnapshot(
   // to make the API unable to find a project for the opened file on
   // Windows - see https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
   const apiFacingFileName = resolvedFilePathCache(fileName);
-  const params =
-    openProjects && openProjects.length > 0
-      ? {
-          openProjects,
-          openFiles: [apiFacingFileName],
-          fileNotifications,
-          closeProjects,
-        }
-      : { openFiles: [apiFacingFileName], fileNotifications, closeProjects };
+  const { openProjects, closeProjects } = projectChanges;
+  const customModuleResolution = typeScriptInstance.customModuleResolution;
+  const params = {
+    openProjects:
+      openProjects && openProjects.length > 0 ? openProjects : undefined,
+    // Opening a file makes the API load the nearest tsconfig as a configured
+    // project - a redundant program, built without the custom resolver.
+    openFiles: customModuleResolution ? undefined : [apiFacingFileName],
+    // ...and opening a file is also what brings its dirty program up to date.
+    ensurePrograms: customModuleResolution ? (true as const) : undefined,
+    fileNotifications,
+    closeProjects,
+    ...(customModuleResolution
+      ? toSyntheticProgramChangeParams(customModuleResolution, projectChanges)
+      : {}),
+  };
   // The API no longer tracks a "latest snapshot" of its own (see
   // https://github.com/microsoft/TypeScript/pull/64204) - ts-loader must
   // explicitly layer each new snapshot over the previous one via
@@ -698,6 +738,16 @@ function updateSnapshot(
     : typeScriptInstance.api.createSnapshot(params);
 
   typeScriptInstance.snapshot = snapshot;
+  projectChanges.createPrograms?.forEach(
+    ({ projectPath, orphanFileName }, index) =>
+      customModuleResolution!.programs.set(projectPath, {
+        id: snapshot.operation.createdPrograms![index].id,
+        orphanFileName,
+      }),
+  );
+  projectChanges.removePrograms?.forEach(projectPath =>
+    customModuleResolution!.programs.delete(projectPath),
+  );
   openProjects?.forEach(projectPath =>
     typeScriptInstance.openedProjectPaths.add(projectPath),
   );
@@ -707,6 +757,95 @@ function updateSnapshot(
   previousSnapshot?.dispose?.();
 
   return snapshot;
+}
+
+function toSyntheticProgramChangeParams(
+  customModuleResolution: CustomModuleResolution,
+  { createPrograms, reconfigurePrograms, removePrograms }: ProjectChanges,
+) {
+  const { config, resolvers, programs } = customModuleResolution;
+  const toParams = ({ orphanFileName }: SyntheticProgramChange) =>
+    toSyntheticProgramParams(
+      config!,
+      resolvers!.resolver,
+      orphanFileName === undefined
+        ? config!.fileNames
+        : [...new Set([...config!.fileNames, orphanFileName])].sort(),
+    );
+  return {
+    createPrograms: createPrograms?.map(toParams),
+    reconfigurePrograms: reconfigurePrograms?.map(change => ({
+      id: programs.get(change.projectPath)!.id,
+      ...toParams(change),
+    })),
+    removePrograms: removePrograms?.map(
+      projectPath => programs.get(projectPath)!.id,
+    ),
+  };
+}
+
+/** A project by path - synthetic program or configured project, see CustomModuleResolution. */
+function getProject(
+  typeScriptInstance: TypeScriptInstance,
+  snapshot: Snapshot,
+  projectPath: string,
+): Project | undefined {
+  const syntheticProgram =
+    typeScriptInstance.customModuleResolution?.programs.get(
+      projectPath as FilePath,
+    );
+  return syntheticProgram
+    ? snapshot.getProject(syntheticProgram.id)
+    : snapshot.getConfiguredProject(projectPath);
+}
+
+/**
+ * The synthetic-program equivalent of opening the primary configured
+ * project. Re-parses the config once per build (a configured project picks
+ * up tsconfig and root-file changes itself; a synthetic program doesn't), so
+ * must run before updateSnapshot consumes the pending flags.
+ */
+function getPrimaryProgramChanges(
+  typeScriptInstance: TypeScriptInstance,
+  customModuleResolution: CustomModuleResolution,
+): { projectChanges: ProjectChanges; replacedResolvers: ModuleResolver[] } {
+  const primaryProjectPath = typeScriptInstance.configFilePath;
+  const { programs } = customModuleResolution;
+  if (
+    programs.has(primaryProjectPath) &&
+    !typeScriptInstance.pendingInvalidation &&
+    typeScriptInstance.pendingChangedFiles === undefined &&
+    typeScriptInstance.pendingRemovedFiles === undefined
+  ) {
+    return { projectChanges: {}, replacedResolvers: [] };
+  }
+
+  const { configChanged, replacedResolvers } =
+    refreshCustomModuleResolutionConfig(
+      typeScriptInstance.api,
+      customModuleResolution,
+      primaryProjectPath,
+    );
+  if (!programs.has(primaryProjectPath)) {
+    return {
+      projectChanges: { createPrograms: [{ projectPath: primaryProjectPath }] },
+      replacedResolvers,
+    };
+  }
+  // Orphan programs are built from the same config, so they go stale too.
+  return {
+    projectChanges: configChanged
+      ? {
+          reconfigurePrograms: [...programs].map(
+            ([projectPath, { orphanFileName }]) => ({
+              projectPath,
+              orphanFileName,
+            }),
+          ),
+        }
+      : {},
+    replacedResolvers,
+  };
 }
 
 /**
@@ -739,21 +878,34 @@ function openPrimaryProject(
   changedFileNames?: ReadonlySet<string>,
 ) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
+  const customModuleResolution = typeScriptInstance.customModuleResolution;
+  const { projectChanges, replacedResolvers } = customModuleResolution
+    ? getPrimaryProgramChanges(typeScriptInstance, customModuleResolution)
+    : {
+        projectChanges: typeScriptInstance.openedProjectPaths.has(
+          primaryProjectPath,
+        )
+          ? {}
+          : { openProjects: [primaryProjectPath] },
+        replacedResolvers: [],
+      };
   const snapshot = updateSnapshot(
     typeScriptInstance,
     resolvedFilePathCache,
     fileName,
-    typeScriptInstance.openedProjectPaths.has(primaryProjectPath)
-      ? undefined
-      : [primaryProjectPath],
-    undefined,
+    projectChanges,
     changedFileNames,
   );
+  replacedResolvers.forEach(resolver => resolver.dispose());
 
   return {
     snapshot,
     primaryProjectPath,
-    primaryProject: snapshot.getConfiguredProject(primaryProjectPath),
+    primaryProject: getProject(
+      typeScriptInstance,
+      snapshot,
+      primaryProjectPath,
+    ),
   };
 }
 
@@ -784,7 +936,11 @@ function getSnapshot(
   return {
     snapshot,
     primaryProjectPath,
-    primaryProject: snapshot.getConfiguredProject(primaryProjectPath),
+    primaryProject: getProject(
+      typeScriptInstance,
+      snapshot,
+      primaryProjectPath,
+    ),
   };
 }
 
@@ -822,14 +978,31 @@ function prepareSnapshotForFile(
       primaryProject?.parsedCommandLine.fileNames ?? [],
       fileName,
     );
+  const customModuleResolution = typeScriptInstance.customModuleResolution;
+  const projectChanges: ProjectChanges = customModuleResolution
+    ? {
+        createPrograms: customModuleResolution.programs.has(syntheticConfigPath)
+          ? undefined
+          : [{ projectPath: syntheticConfigPath, orphanFileName: fileName }],
+        removePrograms:
+          evictedProjectPath &&
+          customModuleResolution.programs.has(evictedProjectPath)
+            ? [evictedProjectPath]
+            : undefined,
+      }
+    : {
+        openProjects: typeScriptInstance.openedProjectPaths.has(
+          syntheticConfigPath,
+        )
+          ? undefined
+          : [syntheticConfigPath],
+        closeProjects: evictedProjectPath ? [evictedProjectPath] : undefined,
+      };
   const syntheticSnapshot = updateSnapshot(
     typeScriptInstance,
     resolvedFilePathCache,
     fileName,
-    typeScriptInstance.openedProjectPaths.has(syntheticConfigPath)
-      ? undefined
-      : [syntheticConfigPath],
-    evictedProjectPath ? [evictedProjectPath] : undefined,
+    projectChanges,
   );
 
   return {
@@ -1035,8 +1208,12 @@ function registerTypeScriptDependencies(
   }
 
   // `getConfigFileNames` is forward-slash-normalized like
-  // `getSourceFileNames` above - same Windows requirement applies.
-  for (const configFileName of program.getConfigFileNames()) {
+  // `getSourceFileNames` above - same Windows requirement applies. Always
+  // empty for a synthetic program (see CustomModuleResolution).
+  const configFileNames = instance.typeScriptApiInstance.customModuleResolution
+    ? [instance.typeScriptApiInstance.configFilePath]
+    : program.getConfigFileNames();
+  for (const configFileName of configFileNames) {
     const normalizedConfigFileName = path.normalize(configFileName);
     if (isWebpack5) {
       loaderContext.addBuildDependency(normalizedConfigFileName);

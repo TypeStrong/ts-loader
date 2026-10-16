@@ -36,7 +36,7 @@ yarn benchmark -- --root-a . --root-b ../ts-loader-main
 
 `--root-a`/`--root-b` each point at a ts-loader checkout root (must contain a built `index.js`/`dist/`) - matching the `resolveLoader.alias` pattern used in `test/execution-tests/*/webpack.config.js`.
 
-Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup <n>` (default 2), `--iterations <n>` (default 10, before the per-scenario multiplier described above), `--benchmark-dir <path>` (default `.benchmark`, gitignored), `--label-a`/`--label-b <name>` (default `A`/`B` - override for more readable table headers, e.g. `--label-a "PR branch" --label-b "base branch"` as `.github/workflows/benchmark.yml` does).
+Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup <n>` (default 2), `--iterations <n>` (default 10, before the per-scenario multiplier described above), `--benchmark-dir <path>` (default `.benchmark`, gitignored), `--label-a`/`--label-b <name>` (default `A`/`B` - override for more readable table headers, e.g. `--label-a "PR branch" --label-b "base branch"` as `.github/workflows/benchmark.yml` does), `--resolve-module-name-a`/`--resolve-module-name-b` (give that side a pass-through `resolveModuleName` loader option, which delegates every lookup to the parent resolver - e.g. `--root-a . --root-b . --resolve-module-name-a` measures the option's own overhead).
 
 Results are written to `.benchmark/benchmark-results.json` (raw samples) and `.benchmark/benchmark-results.md` (summary table), and also printed to stdout.
 

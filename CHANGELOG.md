@@ -6,9 +6,10 @@
 
 This is a ground-up rewrite of ts-loader's compilation engine. Instead of driving TypeScript's classic `LanguageService` / `Program` / watch APIs, ts-loader now compiles exclusively through TypeScript's new native `typescript/sync` API (the [tsgo](https://github.com/microsoft/typescript-go)-powered engine) - the legacy compiler API integration has been removed entirely.
 
-### Not supported yet
+### Not supported
 
-- `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert - the native API doesn't expose equivalent extension points, so custom transformers and custom module/type-reference resolution are no longer applied. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+- `getCustomTransformers` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert - the native API doesn't expose equivalent extension points, so custom transformers and custom type-reference resolution are no longer applied. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+- `resolveModuleName` is supported via the native API's module resolver hook ([microsoft/TypeScript#64299](https://github.com/microsoft/TypeScript/pull/64299)). As yet it has not been supported in ts-loader as it's not clear that there are many consumers of this, and migrating to support this is a non-trivial change.
 - Project references are not yet supported under the native API. If / when support is added, ts-loader will need to be updated to support it.
 
 ### Breaking changes:

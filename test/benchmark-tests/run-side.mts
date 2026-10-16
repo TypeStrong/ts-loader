@@ -19,6 +19,7 @@
  *   --touch-original <path>  file containing original content (incremental scenarios only)
  *   --iterations    <n>      total number of iterations (warmup + measured)
  *   --warmup        <n>      warmup iterations already included in --iterations
+ *   --resolve-module-name <bool> 'true' | 'false' - set a pass-through resolveModuleName loader option
  */
 
 import fs from 'node:fs';
@@ -57,6 +58,7 @@ async function main(): Promise<void> {
   const scenarioType = get('--scenario-type') as 'cold' | 'leaf' | 'hub';
   const iterations = Number(get('--iterations'));
   const warmup = Number(get('--warmup'));
+  const resolveModuleName = get('--resolve-module-name') === 'true';
 
   const config = buildWebpackConfig({
     fixtureDir,
@@ -65,6 +67,7 @@ async function main(): Promise<void> {
     tsLoaderRoot,
     transpileOnly,
     outputPath,
+    resolveModuleName,
   });
 
   const durations: number[] = [];

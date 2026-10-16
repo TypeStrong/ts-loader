@@ -101,7 +101,7 @@ v10 is a rewrite of `ts-loader` on top of TypeScript's native (`tsgo`-powered) A
 
 - TypeScript 7.1+ and Node.js 22+ are required.
 - The `compilerOptions`, `context`, `happyPackMode`, `onlyCompileBundledFiles`, `experimentalWatchApi` and `experimentalFileCaching` loader options have been removed. Supplying any of them fails the build with an "unexpected loader option" error. Set compiler options in your `tsconfig.json` instead.
-- `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted but currently have no effect, and `projectReferences` is not yet supported.
+- `getCustomTransformers` and `resolveTypeReferenceDirective` are still accepted but currently have no effect, and `projectReferences` is not yet supported. `resolveModuleName` is supported, with [some differences](#resolvemodulename-and-resolvetypereferencedirective).
 - The [`compiler`](#compiler) option must resolve to a package that exposes a `<compiler>/sync` entry point.
 - `errorFormatter`'s `colors` argument is now a small `picocolors`-backed helper rather than a `chalk` instance.
 
@@ -137,7 +137,7 @@ If you'd like to see a simple setup take a look at [our example](examples/fork-t
 
 ### Yarn Plug’n’Play
 
-> **Note:** Yarn Plug’n’Play integration is not currently supported in v10. The [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration) integration relies on the [`resolveModuleName`](#resolvemodulename-and-resolvetypereferencedirective) option, which TypeScript's native API does not currently support.
+> **Note:** Yarn Plug’n’Play integration has not been tested with v10. The [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration) integration relies on the [`resolveModuleName`](#resolvemodulename-and-resolvetypereferencedirective) option, which v10 supports, and on `resolveTypeReferenceDirective`, which it does not.
 
 `ts-loader` v9 and earlier support [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp). The recommended way to integrate is using the [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration).
 
@@ -358,9 +358,16 @@ module.exports = {
 
 #### resolveModuleName and resolveTypeReferenceDirective
 
-> **Note:** These options are accepted for backwards compatibility but currently have no effect. TypeScript's native API does not expose a custom module resolution hook. If it gains one, these options will work again; if it never does, they will be removed.
-
 These options should be functions which will be used to resolve the import statements and the `<reference types="...">` directives instead of the default TypeScript implementation. It's not intended that these will typically be used by a user of `ts-loader` - they exist to facilitate functionality such as [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp).
+
+`resolveModuleName` has the signature `(moduleName, containingFile, compilerOptions, moduleResolutionHost, parentResolver) => { resolvedModule }`, where `parentResolver(moduleName, containingFile)` runs TypeScript's default resolution. Under v10:
+
+- TypeScript's native API only reports the importing file's directory, so `containingFile` is a placeholder file name inside that directory - use its directory, not its name.
+- `parentResolver` always resolves with the project's own compiler options; `compilerOptions`/`moduleResolutionHost` arguments passed to it are ignored.
+- `moduleResolutionHost` reads from disk, not from webpack's in-memory file system.
+- It has no effect when `transpileOnly` is set, which never resolves modules.
+
+> **Note:** `resolveTypeReferenceDirective` is accepted for backwards compatibility but currently has no effect. TypeScript's native API does not expose a custom type reference resolution hook. If it gains one, this option will work again; if it never does, it will be removed.
 
 #### getCustomTransformers
 

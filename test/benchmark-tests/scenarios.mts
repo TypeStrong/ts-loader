@@ -10,7 +10,19 @@ interface BuildWebpackConfigOptions {
   tsLoaderRoot: string;
   transpileOnly: boolean;
   outputPath: string;
+  resolveModuleName: boolean;
 }
+
+// Delegates every lookup straight back to ts-loader's parent resolver - the
+// worst case for the option's overhead, since it adds a JS round trip per
+// import without changing any resolution.
+const passThroughResolveModuleName = (
+  moduleName: string,
+  containingFile: string,
+  compilerOptions: unknown,
+  compilerHost: unknown,
+  parentResolver: (...args: unknown[]) => unknown,
+) => parentResolver(moduleName, containingFile, compilerOptions, compilerHost);
 
 export function buildWebpackConfig({
   fixtureDir,
@@ -19,6 +31,7 @@ export function buildWebpackConfig({
   tsLoaderRoot,
   transpileOnly,
   outputPath,
+  resolveModuleName,
 }: BuildWebpackConfigOptions): Configuration {
   return {
     mode: 'development',
@@ -31,7 +44,13 @@ export function buildWebpackConfig({
         {
           test: /\.ts$/,
           loader: 'ts-loader',
-          options: { transpileOnly, configFile: tsconfigPath },
+          options: {
+            transpileOnly,
+            configFile: tsconfigPath,
+            ...(resolveModuleName
+              ? { resolveModuleName: passThroughResolveModuleName }
+              : {}),
+          },
         },
       ],
     },

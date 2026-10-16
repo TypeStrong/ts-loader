@@ -37,6 +37,8 @@ interface Args {
   warmup: number;
   iterations: number;
   benchmarkDir: string;
+  resolveModuleNameA: boolean;
+  resolveModuleNameB: boolean;
 }
 
 type Side = 'a' | 'b';
@@ -78,6 +80,8 @@ function parseArgs(argv: string[]): Args {
     warmup,
     iterations,
     benchmarkDir: path.resolve(get('--benchmark-dir', path.join(process.cwd(), '.benchmark'))),
+    resolveModuleNameA: argv.includes('--resolve-module-name-a'),
+    resolveModuleNameB: argv.includes('--resolve-module-name-b'),
   };
 }
 
@@ -128,6 +132,7 @@ interface RunSideOptions {
   scenarioType: 'cold' | 'leaf' | 'hub';
   warmup: number;
   iterations: number;
+  resolveModuleName: boolean;
 }
 
 function spawnSide(processArgs: string[]): Promise<number[]> {
@@ -164,7 +169,7 @@ function spawnSide(processArgs: string[]): Promise<number[]> {
  * interleaved measurements when both TypeScript language service instances
  * co-existed in the same V8 heap.
  */
-function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, warmup, iterations }: RunSideOptions): Promise<number[]> {
+function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, warmup, iterations, resolveModuleName }: RunSideOptions): Promise<number[]> {
   // Write the touch-original content to a temp file so the subprocess can
   // read it without us serialising potentially-large strings through argv.
   let touchOriginalPath = '';
@@ -185,6 +190,7 @@ function runSideProcess({ root, meta, outputPath, transpileOnly, scenarioType, w
     '--scenario-type', scenarioType,
     '--iterations', String(warmup + iterations),
     '--warmup', String(warmup),
+    '--resolve-module-name', String(resolveModuleName),
     ...(scenarioType !== 'cold' ? [
       '--touch-file', meta.touch[scenarioType].file,
       '--touch-original', touchOriginalPath,
@@ -233,6 +239,7 @@ async function runScenario({
     scenarioType,
     warmup: args.warmup,
     iterations,
+    resolveModuleName: side === 'a' ? args.resolveModuleNameA : args.resolveModuleNameB,
   });
 
   const [a, b] = await Promise.all([runSideProcess(sideOptions('a')), runSideProcess(sideOptions('b'))]);
@@ -269,7 +276,7 @@ function toMarkdown(results: ScenarioResult[], args: Args): string {
   }
   lines.push('');
   lines.push(
-    `_${args.labelA} = \`${args.rootA}\`, ${args.labelB} = \`${args.rootB}\`. ${args.warmup} warmup + ${args.iterations} measured iterations per scenario, median reported. Report-only - no threshold fails this check._`
+    `_${args.labelA} = \`${args.rootA}\`${args.resolveModuleNameA ? ' (pass-through `resolveModuleName`)' : ''}, ${args.labelB} = \`${args.rootB}\`${args.resolveModuleNameB ? ' (pass-through `resolveModuleName`)' : ''}. ${args.warmup} warmup + ${args.iterations} measured iterations per scenario, median reported. Report-only - no threshold fails this check._`
   );
   return lines.join('\n');
 }
