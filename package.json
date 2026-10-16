@@ -7,13 +7,13 @@
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "lint": "tsc --project \"./src\" --noEmit && eslint --ext .ts ./src",
-    "comparison-tests": "git clean -xfd test/comparison-tests && npm link --legacy-peer-deps ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
+    "comparison-tests": "git clean -xfd test/comparison-tests && npm link ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
     "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",
     "benchmark": "node test/benchmark-tests/run-benchmark.mts",
     "clean": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests",
     "docker:build": "docker build -t ts-loader .",
-    "postdocker:build": "docker run -it ts-loader yarn test",
+    "postdocker:build": "docker run -it ts-loader npm test",
     "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\""
   },
   "husky": {
@@ -24,7 +24,7 @@
   "lint-staged": {
     "src/**/*.{ts,md}": [
       "prettier --write",
-      "yarn lint",
+      "npm run lint",
       "git add"
     ]
   },
@@ -103,6 +103,11 @@
   "peerDependenciesMeta": {
     "loader-utils": {
       "optional": true
+    }
+  },
+  "overrides": {
+    "babel-loader": {
+      "webpack": "$webpack"
     }
   },
   "publishConfig": {

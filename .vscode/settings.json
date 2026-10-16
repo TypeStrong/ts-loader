@@ -6,7 +6,7 @@
   "chat.tools.terminal.autoApprove": {
     "git blame": true,
     "sed": true,
-    "yarn": true,
+    "npm": true,
     "git check-ignore": true
   }
 }

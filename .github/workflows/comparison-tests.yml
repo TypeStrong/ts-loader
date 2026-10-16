@@ -14,12 +14,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
-        run: yarn comparison-tests
+        run: npm run comparison-tests
 
   comparison_test_macos:
     name: macOS
@@ -31,12 +31,12 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
-        run: yarn comparison-tests
+        run: npm run comparison-tests
 
   comparison_test_windows:
     name: windows
@@ -48,10 +48,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
-        run: yarn comparison-tests
+        run: npm run comparison-tests
         working-directory: C:\source\ts-loader
