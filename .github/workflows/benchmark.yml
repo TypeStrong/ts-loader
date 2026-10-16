@@ -67,8 +67,9 @@ jobs:
       - name: install & build (base branch)
         working-directory: ${{ env.ROOT }}-main
         run: |
-          # npm install, not npm ci: the base branch may predate package-lock.json
-          npm install
+          # A base branch that predates package-lock.json is still a yarn project:
+          # npm can't install it (babel-loader@7's stale webpack peer range).
+          if [ -f package-lock.json ]; then npm ci; else npx --yes yarn@1 install --frozen-lockfile; fi
           npm run build
 
       # --root-a is the PR branch built by the build-ts-loader action;
