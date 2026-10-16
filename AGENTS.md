@@ -4,25 +4,25 @@ ts-loader is a TypeScript loader for webpack, enabling webpack to compile `.ts` 
 
 ## Package manager
 
-Use `yarn` (not npm).
+Use `pnpm` (not npm or yarn).
 
 ## Key commands
 
 Note: test scripts clean test directories first using `git clean -xfd`.
 
 ```bash
-yarn build              # compile src/ → dist/ (tsc --project "./src")
-yarn lint               # type-check + ESLint (no separate typecheck script)
-yarn test               # full test suite (comparison + execution tests)
-yarn comparison-tests   # fast subset: compare webpack output against snapshots
-yarn execution-tests    # run compiled code via Karma/Jasmine
-yarn benchmark          # compare this build's compile speed against another ts-loader checkout
+pnpm build              # compile src/ → dist/ (tsc --project "./src")
+pnpm lint               # type-check + ESLint (no separate typecheck script)
+pnpm test               # full test suite (comparison + execution tests)
+pnpm comparison-tests   # fast subset: compare webpack output against snapshots
+pnpm execution-tests                                    # run compiled code via Karma/Jasmine
+pnpm benchmark          # compare this build's compile speed against another ts-loader checkout
 ```
 
 To run a single test:
 ```bash
-yarn comparison-tests -- --single-test <testName>
-yarn execution-tests  -- --single-test <testName> --watch
+pnpm comparison-tests --single-test <testName>
+pnpm execution-tests --single-test <testName> --watch
 ```
 
 ## Comparison tests (`test/comparison-tests/`)
@@ -36,10 +36,10 @@ Full docs: [`test/comparison-tests/README.md`](test/comparison-tests/README.md)
 **Flaky tests**: place an empty `_FLAKY_` file in the test directory to allow occasional failures without blocking the build.
 
 ```bash
-yarn comparison-tests                                              # all tests
-yarn comparison-tests -- --single-test <name>                     # one test
-yarn comparison-tests -- --save-output                            # regenerate all snapshots
-yarn comparison-tests -- --save-output --single-test <name>       # regenerate one snapshot
+pnpm comparison-tests                                          # all tests
+pnpm comparison-tests --single-test <name>                     # one test
+pnpm comparison-tests --save-output                            # regenerate all snapshots
+pnpm comparison-tests --save-output --single-test <name>       # regenerate one snapshot
 ```
 
 > Note: test name casing must be exact when using `--single-test`.
@@ -85,9 +85,9 @@ module.exports.resolveLoader = { alias: { 'ts-loader': path.join(__dirname, "../
 ```
 
 ```bash
-yarn execution-tests                                    # all tests
-yarn execution-tests -- --single-test <name>            # one test
-yarn execution-tests -- --single-test <name> --watch    # watch mode (open http://localhost:9876/)
+pnpm execution-tests                                    # all tests
+pnpm execution-tests --single-test <name>               # one test
+pnpm execution-tests --single-test <name> --watch       # watch mode (open http://localhost:9876/)
 ```
 
 ## Benchmark tests (`test/benchmark-tests/`)
@@ -99,8 +99,8 @@ Full docs: [`test/benchmark-tests/README.md`](test/benchmark-tests/README.md)
 **Report-only**: `.github/workflows/benchmark.yml` posts results as a PR comment/job summary on every PR; it does not fail the build.
 
 ```bash
-yarn benchmark -- --root-a . --root-b .                # sanity check against itself, expect ~0% deltas
-yarn benchmark -- --root-a . --root-b ../ts-loader-main # compare against another built checkout
+pnpm benchmark --root-a . --root-b .                 # sanity check against itself, expect ~0% deltas
+pnpm benchmark --root-a . --root-b ../ts-loader-main # compare against another built checkout
 ```
 
 Always add or update tests when fixing bugs or adding features — see [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -11,15 +11,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v6
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: pnpm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
-        run: yarn comparison-tests
+        run: pnpm comparison-tests
 
   comparison_test_macos:
     name: macOS
@@ -28,15 +30,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v6
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: pnpm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
-        run: yarn comparison-tests
+        run: pnpm comparison-tests
 
   comparison_test_windows:
     name: windows
@@ -45,13 +49,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v6
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: yarn
+          cache: pnpm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: test
-        run: yarn comparison-tests
+        run: pnpm comparison-tests
         working-directory: C:\source\ts-loader

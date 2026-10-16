@@ -1,0 +1,4 @@
+# Flat, yarn/npm-style node_modules: karma only discovers karma-* plugins
+# installed alongside it, and the test packs resolve webpack, babel presets etc.
+# from the root node_modules.
+nodeLinker: hoisted

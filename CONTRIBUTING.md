@@ -12,8 +12,8 @@ action to take before coding begins.
 ## Building
 
 ```shell
-yarn install
-yarn build
+pnpm install
+pnpm build
 ```
 
 ## Changing
@@ -25,10 +25,10 @@ In short: fork, make your changes, and submit a pull request.
 
 This project makes use of 2 integration test packs to make sure we don't break anything. That's right, count them, 2! There is a comparison test pack which compares compilation outputs and is long established.  There is also an execution test pack which executes the compiled JavaScript. This test pack is young and contains fewer tests; but it shows promise.
 
-You can run all the tests (in both test packs) with `yarn test`.
+You can run all the tests (in both test packs) with `pnpm test`.
 
-To run comparison tests alone use `yarn run comparison-tests`.
-To run execution tests alone use `yarn run execution-tests`.
+To run comparison tests alone use `pnpm comparison-tests`.
+To run execution tests alone use `pnpm execution-tests`.
 
 Not all bugs/features necessarily fit into either framework and that's OK. However, most do and therefore you should make every effort to create at least one test which demonstrates the issue or exercises the feature. Use your judgement to decide whether you think a comparison test or an execution test is most appropriate.
 
@@ -41,7 +41,7 @@ To read about the execution test pack take a look [here](test/execution-tests/RE
 
 If you’re using VS Code, set breakpoints anywhere in `src`. Open any file inside the comparison test or execution test you want to debug, then, in the debug pane, select “Run open comparison test” or “Run open execution test.”
 
-If you’re not using VS Code, simply adding `--debug` to either a `yarn run comparison-tests` or `yarn run execution-tests` will pause before each test (this is best combined with `--single-test`), allowing you to attach to the node process on port 5858 with your favorite debugger.
+If you’re not using VS Code, simply adding `--debug` to either a `pnpm comparison-tests` or `pnpm execution-tests` will pause before each test (this is best combined with `--single-test`), allowing you to attach to the node process on port 5858 with your favorite debugger.
 
 ### Debugging ts-loader installed from npm in your own Webpack project
 
@@ -55,7 +55,7 @@ Then put a breakpoint in `node_modules/ts-loader/dist/index.js`, and debug in VS
 
 Just like the steps above, except substituting a local copy of ts-loader for the one in node_modules:
 
-1. In `ts-loader`, run `yarn build`
+1. In `ts-loader`, run `pnpm build`
 2. Still in `ts-loader`, run `npm link`
 3. In your own Webpack project directory, run `npm link ts-loader`. There’s now a chain of symlinks from `node_modules/ts-loader` to your cloned copy built from source.
 4. Repeat the steps above in “Debugging ts-loader installed from npm...” except now, you can take advantage of source maps, so you can set breakpoints in `ts-loader/src` instead of `ts-loader/dist`.

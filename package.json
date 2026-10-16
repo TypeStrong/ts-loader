@@ -7,13 +7,13 @@
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "lint": "tsc --project \"./src\" --noEmit && eslint --ext .ts ./src",
-    "comparison-tests": "git clean -xfd test/comparison-tests && npm link --legacy-peer-deps ./test/comparison-tests/testLib && node test/comparison-tests/run-tests.js",
+    "comparison-tests": "git clean -xfd test/comparison-tests && node test/comparison-tests/link-test-lib.js && node test/comparison-tests/run-tests.js",
     "execution-tests": "git clean -xfd test/execution-tests && node test/execution-tests/run-tests.js",
     "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",
     "benchmark": "node test/benchmark-tests/run-benchmark.mts",
     "clean": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests",
     "docker:build": "docker build -t ts-loader .",
-    "postdocker:build": "docker run -it ts-loader yarn test",
+    "postdocker:build": "docker run -it ts-loader pnpm test",
     "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\""
   },
   "husky": {
@@ -24,7 +24,7 @@
   "lint-staged": {
     "src/**/*.{ts,md}": [
       "prettier --write",
-      "yarn lint",
+      "pnpm lint",
       "git add"
     ]
   },
@@ -43,6 +43,7 @@
   "engines": {
     "node": ">=12.0.0"
   },
+  "packageManager": "pnpm@12.11.2",
   "author": "John Reilly <johnny_reilly@hotmail.com> (https://johnnyreilly.com)",
   "contributors": [
     "John Reilly <johnny_reilly@hotmail.com> (https://johnnyreilly.com)",

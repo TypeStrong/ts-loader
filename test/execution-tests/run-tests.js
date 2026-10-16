@@ -141,13 +141,14 @@ function runTests(testName) {
     var karmaConfPath = path.join(testPath, 'karma.conf.js');
     var debug = process.argv.indexOf('--debug') > -1;
 
-    if (pathExists(path.join(testPath, 'pnpm-lock.yaml'))) {
-        console.log('npm install -g pnpm into ' + testPath);
-        execSync('npm install -g pnpm', { cwd: testPath, stdio: 'inherit' });
-        execSync('pnpm install', { cwd: testPath, stdio: 'inherit' });
-    } else if (pathExists(path.join(testPath, 'package.json'))) {
-        console.log('yarn install into ' + testPath);
-        execSync('yarn install', { cwd: testPath, stdio: 'inherit' });
+    if (pathExists(path.join(testPath, 'package.json'))) {
+        console.log('pnpm install into ' + testPath);
+        // hoisted: some packs git-track copies of their file: deps in node_modules,
+        // which pnpm's symlinked layout would delete. The pnpm pack exists to
+        // exercise that symlinked layout, so it keeps it.
+        // strict-dep-builds=false: no pack needs its deps' install scripts (e.g. fsevents@1).
+        var nodeLinker = testName === 'pnpm' ? 'isolated' : 'hoisted';
+        execSync('pnpm install --ignore-workspace --config.node-linker=' + nodeLinker + ' --config.strict-dep-builds=false', { cwd: testPath, stdio: 'inherit' });
     }
 
     try {

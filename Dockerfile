@@ -20,22 +20,22 @@ WORKDIR /TypeStrong/ts-loader
 COPY .git /TypeStrong/ts-loader/.git
 
 # install packages
-COPY package.json yarn.lock index.js /TypeStrong/ts-loader/
-RUN yarn
+COPY package.json pnpm-lock.yaml index.js /TypeStrong/ts-loader/
+RUN npm install -g pnpm@12.11.2 && pnpm install --frozen-lockfile
 
 # build
 COPY src /TypeStrong/ts-loader/src
-RUN yarn build
+RUN pnpm build
 
 # test
 COPY test /TypeStrong/ts-loader/test
 
 # build and run tests with:
 # docker build -t ts-loader . 
-# docker run -it ts-loader yarn test
+# docker run -it ts-loader pnpm test
 
 # regenerate comparison-tests with:
 # docker build -t ts-loader .
-# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader yarn
-# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader yarn build
-# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader yarn run comparison-tests --save-output
+# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader pnpm install
+# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader pnpm build
+# docker run -v $(pwd):/TypeStrong/ts-loader -it ts-loader pnpm comparison-tests --save-output

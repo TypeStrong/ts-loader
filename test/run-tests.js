@@ -9,5 +9,5 @@ const testArgs = process.argv.length > 2 ? ` -- ${process.argv.slice(2).join(" "
 console.log('Using webpack version --' + webpackVersion);
 console.log('Using typescript version ' + typescript.version);
 
-execSync(`yarn run comparison-tests${testArgs}`, { stdio: 'inherit' });
-execSync(`yarn run execution-tests${testArgs}`, { stdio: 'inherit' });
+execSync(`pnpm run comparison-tests${testArgs}`, { stdio: 'inherit' });
+execSync(`pnpm run execution-tests${testArgs}`, { stdio: 'inherit' });
