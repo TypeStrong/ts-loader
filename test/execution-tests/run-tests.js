@@ -144,11 +144,15 @@ function runTests(testName) {
     if (pathExists(path.join(testPath, 'package.json'))) {
         console.log('pnpm install into ' + testPath);
         // hoisted: some packs git-track copies of their file: deps in node_modules,
-        // which pnpm's symlinked layout would delete. The pnpm pack exists to
-        // exercise that symlinked layout, so it keeps it.
+        // which pnpm's symlinked layout would delete.
+        // auto-install-peers=false: yarn never installed peers, and doing so pulls
+        // e.g. webpack@3 into the babel packs via babel-loader@7's peer range.
+        // The pnpm pack exists to exercise pnpm's defaults, so it keeps them.
         // strict-dep-builds=false: no pack needs its deps' install scripts (e.g. fsevents@1).
-        var nodeLinker = testName === 'pnpm' ? 'isolated' : 'hoisted';
-        execSync('pnpm install --ignore-workspace --config.node-linker=' + nodeLinker + ' --config.strict-dep-builds=false', { cwd: testPath, stdio: 'inherit' });
+        var packSettings = testName === 'pnpm'
+            ? ''
+            : ' --config.node-linker=hoisted --config.auto-install-peers=false';
+        execSync('pnpm install --ignore-workspace --frozen-lockfile --config.strict-dep-builds=false' + packSettings, { cwd: testPath, stdio: 'inherit' });
     }
 
     try {

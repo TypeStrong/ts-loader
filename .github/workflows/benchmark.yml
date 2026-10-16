@@ -51,6 +51,13 @@ jobs:
 
       - uses: pnpm/action-setup@v6
 
+      # setup-node resolves the store from the checkout (D:), but installs run under
+      # C:\source\ts-loader, so pin the store or the cache post-step finds nothing.
+      - name: pin pnpm store
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo 'pnpm_config_store_dir=C:\pnpm-store' >> "$GITHUB_ENV"
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -69,8 +76,10 @@ jobs:
       - name: install & build (base branch)
         working-directory: ${{ env.ROOT }}-main
         run: |
-          # --no-frozen-lockfile: the base branch may predate pnpm-lock.yaml
-          pnpm install --no-frozen-lockfile
+          # A base branch that predates pnpm-lock.yaml gets one imported from its
+          # yarn.lock - resolving fresh pulls newer typings that break its build.
+          if [ ! -f pnpm-lock.yaml ]; then pnpm import; fi
+          pnpm install --frozen-lockfile
           pnpm build
 
       # --root-a is the PR branch built by the build-ts-loader action;

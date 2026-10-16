@@ -101,6 +101,13 @@ jobs:
 
       - uses: pnpm/action-setup@v6
 
+      # setup-node resolves the store from the checkout (D:), but installs run under
+      # C:\source\ts-loader, so pin the store or the cache post-step finds nothing.
+      - name: pin pnpm store
+        if: runner.os == 'Windows'
+        shell: bash
+        run: echo 'pnpm_config_store_dir=C:\pnpm-store' >> "$GITHUB_ENV"
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24

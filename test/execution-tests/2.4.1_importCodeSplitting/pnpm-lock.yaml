@@ -1,7 +1,7 @@
 lockfileVersion: '9.0'
 
 settings:
-  autoInstallPeers: true
+  autoInstallPeers: false
   excludeLinksFromLockfile: false
 
 importers:
@@ -10,30 +10,30 @@ importers:
     dependencies:
       tslib:
         specifier: ^1.9.0
-        version: 1.14.1
+        version: 1.9.0
     devDependencies:
       '@types/jasmine':
         specifier: ^2.5.35
-        version: 2.8.24
+        version: 2.8.4
       jasmine-core:
         specifier: ^2.3.4
-        version: 2.99.1
+        version: 2.9.1
 
 packages:
 
-  '@types/jasmine@2.8.24':
-    resolution: {integrity: sha512-AUiYOhMC7FV7risPijqkhCetw8Ar2Hk3Y5YOCBWRCAYd3KJX/nF13aF2xyRe4E4QH7fKo8fZWmX/V7lb6rZhMA==}
+  '@types/jasmine@2.8.4':
+    resolution: {integrity: sha512-sVK48Oni/wTt4J0MBvZs2vjObZTAL8qGt2pHPEuj5OVXEkN5983OcHvGqBOR4rvLneFBOYV+RFp6r71fRvjoNA==}
 
-  jasmine-core@2.99.1:
-    resolution: {integrity: sha512-ra97U4qu3OCcIxvN6eg3kyy8bLrID/TgxafSGMMICg3SFx5C/sUfDPpiOh7yoIsHdtjrOVdtT9rieYhqOsh9Ww==}
+  jasmine-core@2.9.1:
+    resolution: {integrity: sha512-EyOKGSvh+ZXVsvC77R80qiZfUykFD/n5xOFI31l23LgAoLMs6mFyW9TybYmRYYWK1jo7Gzgv0k/VYraWAZNQ2g==}
 
-  tslib@1.14.1:
-    resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
+  tslib@1.9.0:
+    resolution: {integrity: sha512-f/qGG2tUkrISBlQZEjEqoZ3B2+npJjIf04H1wuAv9iA8i04Icp+61KRXxFdha22670NJopsZCIjhC3SnjPRKrQ==}
 
 snapshots:
 
-  '@types/jasmine@2.8.24': {}
+  '@types/jasmine@2.8.4': {}
 
-  jasmine-core@2.99.1: {}
+  jasmine-core@2.9.1: {}
 
-  tslib@1.14.1: {}
+  tslib@1.9.0: {}
