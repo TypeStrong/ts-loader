@@ -267,8 +267,8 @@ function getTranspileOnlyEmit(
   // verbatim rather than resolving it through a `Project` - an OS-native
   // path panics on Windows ("mixed posix and windows paths") once combined
   // with the API's forward-slash-normalized internal paths. See
-  // toComparablePath.
-  const transpileFileName = toComparablePath(apiFileName);
+  // toForwardSlashPath.
+  const transpileFileName = toForwardSlashPath(apiFileName);
 
   const compilerOptions = config.options;
   const {
@@ -591,14 +591,24 @@ function updateSnapshot(
   const pendingChangedOrRemovedFiles =
     typeScriptInstance.pendingChangedFiles ??
     typeScriptInstance.pendingRemovedFiles;
+  const createdFiles = findCreatedFiles(
+    typeScriptInstance,
+    resolvedFilePathCache,
+  );
   const fileNotifications = typeScriptInstance.pendingInvalidation
     ? ({ invalidateAll: true } as const)
     : pendingChangedOrRemovedFiles
       ? {
           changed: mapApiFacingFileNames(
-            typeScriptInstance.pendingChangedFiles,
+            typeScriptInstance.pendingChangedFiles &&
+              new Set(
+                [...typeScriptInstance.pendingChangedFiles].filter(
+                  fileName => !createdFiles.has(fileName),
+                ),
+              ),
             resolvedFilePathCache,
           ),
+          created: mapApiFacingFileNames(createdFiles, resolvedFilePathCache),
           deleted: mapApiFacingFileNames(
             typeScriptInstance.pendingRemovedFiles,
             resolvedFilePathCache,
@@ -607,7 +617,10 @@ function updateSnapshot(
       : changedFileNames && changedFileNames.size > 0
         ? { changed: [...changedFileNames].map(resolvedFilePathCache) }
         : undefined;
-  if (typeScriptInstance.pendingInvalidation) {
+  if (typeScriptInstance.pendingInvalidation || createdFiles.size > 0) {
+    // A created file can also satisfy imports that other files previously
+    // failed to resolve, leaving their own entries stale too.
+    //
     // A real rescan can change any file's content, so directImportsCache
     // entries (derived from a file's own imports - see
     // findTransitiveDependants) can no longer be trusted. A targeted
@@ -663,6 +676,42 @@ function updateSnapshot(
   previousSnapshot?.dispose?.();
 
   return snapshot;
+}
+
+/**
+ * The TypeScript/JavaScript files in `pendingChangedFiles` that the primary
+ * program didn't contain when its file list was last read (see
+ * getProjectFileNames) - created, or restored after a deletion, rather than
+ * edited, since webpack's watcher reports both as modified.
+ */
+function findCreatedFiles(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): ReadonlySet<string> {
+  const changedFiles = typeScriptInstance.pendingChangedFiles;
+  const lastKnownFileNames = typeScriptInstance.projectFileNamesCache.get(
+    resolvedFilePathCache(typeScriptInstance.configFilePath),
+  )?.sourceFileNames;
+  if (!changedFiles || !lastKnownFileNames) {
+    return new Set();
+  }
+  const knownFileNames = new Set(
+    lastKnownFileNames.map(fileName =>
+      toComparablePath(resolvedFilePathCache, fileName),
+    ),
+  );
+  return new Set(
+    [...changedFiles].filter(
+      fileName =>
+        constants.tsTsxJsJsxRegex.test(fileName) &&
+        !knownFileNames.has(
+          toComparablePath(
+            resolvedFilePathCache,
+            toApiFacingFileName(fileName),
+          ),
+        ),
+    ),
+  );
 }
 
 /**
@@ -964,7 +1013,11 @@ function registerTypeScriptDependencies(
   // content can't affect this file's transpiled output.
   if (!instance.loaderOptions.transpileOnly) {
     const comparableSourceFileNames = new Set(
-      program.getSourceFileNames().map(toComparablePath),
+      program
+        .getSourceFileNames()
+        .map(fileName =>
+          toComparablePath(instance.resolvedFilePathCache, fileName),
+        ),
     );
     registerResolvedImportDependencies(
       instance.typeScriptApiInstance,
@@ -1135,6 +1188,7 @@ function registerResolvedImportDependencies(
   addDependency: (dependencyFileName: string) => void,
 ) {
   const resolvedImports = getDirectResolvedImports(
+    resolvedFilePathCache,
     program,
     fileName,
     comparableSourceFileNames,
@@ -1178,6 +1232,7 @@ function getCachedDirectResolvedImports(
   }
 
   const directResolvedImports = getDirectResolvedImports(
+    resolvedFilePathCache,
     program,
     fileName,
     comparableSourceFileNames,
@@ -1198,6 +1253,7 @@ function getCachedDirectResolvedImports(
  * in a given pass and rebuilding it per file is itself an O(n) cost.
  */
 function getDirectResolvedImports(
+  resolvedFilePathCache: ResolvedFilePathCache,
   program: Program,
   fileName: string,
   comparableSourceFileNames: ReadonlySet<string>,
@@ -1223,6 +1279,7 @@ function getDirectResolvedImports(
     }
 
     const resolvedFileName = resolveRelativeSpecifier(
+      resolvedFilePathCache,
       fromDir,
       specifier,
       comparableSourceFileNames,
@@ -1312,7 +1369,11 @@ export function recheckAllTransitiveDependants(
   );
 
   const comparableSourceFileNames = new Set(
-    program.getSourceFileNames().map(toComparablePath),
+    program
+      .getSourceFileNames()
+      .map(fileName =>
+        toComparablePath(instance.resolvedFilePathCache, fileName),
+      ),
   );
 
   const dependants = findTransitiveDependants(
@@ -1384,7 +1445,7 @@ function findTransitiveDependants(
         program,
         candidateFileName,
         comparableSourceFileNames,
-      ).map(toComparablePath),
+      ).map(fileName => toComparablePath(resolvedPathCache, fileName)),
     ]),
   );
 
@@ -1396,7 +1457,9 @@ function findTransitiveDependants(
   // cache the API's readFile override serves from, leaving it stale unless
   // it's rechecked here too, against every changed file's final state.
   const comparableChangedFileNames = new Set(
-    [...changedFileNames].map(toComparablePath),
+    [...changedFileNames].map(fileName =>
+      toComparablePath(resolvedPathCache, fileName),
+    ),
   );
   const dependants = new Set<string>();
   let frontier = comparableChangedFileNames;
@@ -1413,7 +1476,9 @@ function findTransitiveDependants(
         directImports.some(importedFileName => frontier.has(importedFileName))
       ) {
         dependants.add(candidateFileName);
-        nextFrontier.add(candidateFileName);
+        nextFrontier.add(
+          toComparablePath(resolvedPathCache, candidateFileName),
+        );
       }
     }
 
@@ -1437,6 +1502,7 @@ const relativeSpecifierExtensions = [
 ];
 
 function resolveRelativeSpecifier(
+  resolvedFilePathCache: ResolvedFilePathCache,
   fromDir: string,
   specifier: string,
   comparableSourceFileNames: ReadonlySet<string>,
@@ -1445,14 +1511,22 @@ function resolveRelativeSpecifier(
 
   for (const extension of relativeSpecifierExtensions) {
     const candidate = resolvedBase + extension;
-    if (comparableSourceFileNames.has(toComparablePath(candidate))) {
+    if (
+      comparableSourceFileNames.has(
+        toComparablePath(resolvedFilePathCache, candidate),
+      )
+    ) {
       return candidate;
     }
   }
 
   for (const extension of relativeSpecifierExtensions) {
     const candidate = path.join(resolvedBase, `index${extension}`);
-    if (comparableSourceFileNames.has(toComparablePath(candidate))) {
+    if (
+      comparableSourceFileNames.has(
+        toComparablePath(resolvedFilePathCache, candidate),
+      )
+    ) {
       return candidate;
     }
   }
@@ -1460,12 +1534,23 @@ function resolveRelativeSpecifier(
   return undefined;
 }
 
-/**
- * Forward-slash-normalized form of a file name, for comparing against the
- * TypeScript API's own (always forward-slash) source file names.
- */
-function toComparablePath(fileName: string): string {
+/** Forward-slash-normalized form of a file name - the API's own separator. */
+function toForwardSlashPath(fileName: string): string {
   return fileName.replace(/\\/g, '/');
+}
+
+/**
+ * A file name in the form every path comparison against the API's source
+ * file names must use: forward-slashed, and canonicalized the same way as
+ * `resolvedFilePathCache`. The API echoes back whatever casing it was given
+ * (and ts-loader hands it canonicalized paths), so on a case-insensitive
+ * filesystem its names can differ in case from webpack's for the same file.
+ */
+function toComparablePath(
+  resolvedFilePathCache: ResolvedFilePathCache,
+  fileName: string,
+): string {
+  return toForwardSlashPath(resolvedFilePathCache(fileName));
 }
 
 /**

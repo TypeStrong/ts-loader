@@ -154,7 +154,7 @@ export interface TypeScriptInstance {
    * project file addition/removal changes the list, which
    * `getProjectFileNames` detects itself (no external invalidation signal
    * needed) and reclassifies. Keyed by project (primary vs a synthetic
-   * one-off project for an orphan file - see ensureSyntheticConfigForFile)
+   * one-off program for an orphan file - see ensureSyntheticProgramForFile)
    * rather than a single shared list, since their file sets are unrelated.
    * Keyed via `FilePathKey` (like `directImportsCache`) for consistency,
    * though project config paths are already stable, single-sourced strings

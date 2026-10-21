@@ -179,10 +179,25 @@ function getTypeScriptInstance(
       (compiler.modifiedFiles !== undefined ||
         compiler.removedFiles !== undefined)
     ) {
-      instance.typeScriptApiInstance.pendingChangedFiles =
-        compiler.modifiedFiles;
-      instance.typeScriptApiInstance.pendingRemovedFiles =
-        compiler.removedFiles;
+      // Merged into, not replacing, anything still unconsumed: a rebuild
+      // that compiles nothing through ts-loader (e.g. one that only deletes
+      // a file) never reaches updateSnapshot, and its changes would
+      // otherwise never reach the API. A file's latest change wins.
+      const typeScriptInstance = instance.typeScriptApiInstance;
+      const changedFiles = new Set([
+        ...(typeScriptInstance.pendingChangedFiles ?? []),
+        ...(compiler.modifiedFiles ?? []),
+      ]);
+      const removedFiles = new Set([
+        ...(typeScriptInstance.pendingRemovedFiles ?? []),
+        ...(compiler.removedFiles ?? []),
+      ]);
+      compiler.modifiedFiles?.forEach(fileName =>
+        removedFiles.delete(fileName),
+      );
+      compiler.removedFiles?.forEach(fileName => changedFiles.delete(fileName));
+      typeScriptInstance.pendingChangedFiles = changedFiles;
+      typeScriptInstance.pendingRemovedFiles = removedFiles;
     } else {
       instance.typeScriptApiInstance.pendingInvalidation = true;
     }
