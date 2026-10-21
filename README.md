@@ -83,16 +83,16 @@ or
 npm install ts-loader --save-dev
 ```
 
-You will also need to install TypeScript 7.1+ if you have not already. `ts-loader` compiles through TypeScript's native `typescript/sync` API, which older versions of TypeScript do not provide. Until TypeScript 7.1 has a stable release, install the `next` prerelease:
+You will also need to install TypeScript 7.1+ if you have not already. `ts-loader` compiles through TypeScript's native `typescript/sync` API, which older versions of TypeScript do not provide. Until TypeScript 7.1 has a stable release, install the beta:
 
 ```
-yarn add typescript@next --dev
+yarn add typescript@beta --dev
 ```
 
 or
 
 ```
-npm install typescript@next --save-dev
+npm install typescript@beta --save-dev
 ```
 
 ### Upgrading to v10
@@ -101,7 +101,7 @@ v10 is a rewrite of `ts-loader` on top of TypeScript's native (`tsgo`-powered) A
 
 - TypeScript 7.1+ and Node.js 22+ are required.
 - The `compilerOptions`, `context`, `happyPackMode`, `onlyCompileBundledFiles`, `experimentalWatchApi` and `experimentalFileCaching` loader options have been removed. Supplying any of them fails the build with an "unexpected loader option" error. Set compiler options in your `tsconfig.json` instead.
-- `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted but currently have no effect, and `projectReferences` is not yet supported.
+- `getCustomTransformers`, `resolveModuleName`, `resolveTypeReferenceDirective` and `projectReferences` are still accepted but currently have no effect. See [projectReferences](#projectreferences) for the state of project references support.
 - The [`compiler`](#compiler) option must resolve to a package that exposes a `<compiler>/sync` entry point.
 - `errorFormatter`'s `colors` argument is now a small `picocolors`-backed helper rather than a `chalk` instance.
 
@@ -461,9 +461,9 @@ If `false`, disables built-in colors in logger messages.
 
 #### errorFormatter
 
-| Type                                              | Default Value |
-| ------------------------------------------------- | ------------- |
-| `(message: ErrorInfo, colors: boolean) => string` | `undefined`   |
+| Type                                             | Default Value |
+| ------------------------------------------------ | ------------- |
+| `(message: ErrorInfo, colors: Colors) => string` | `undefined`   |
 
 By default `ts-loader` formats TypeScript compiler output for an error or a warning in the style:
 

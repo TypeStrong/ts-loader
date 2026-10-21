@@ -9,11 +9,12 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 ### Not supported yet
 
 - `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert - the native API doesn't expose equivalent extension points, so custom transformers and custom module/type-reference resolution are no longer applied. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+- The `projectReferences` loader option is still accepted but is now inert.
 - Project references are not yet supported under the native API. If / when support is added, ts-loader will need to be updated to support it.
 
 ### Breaking changes:
 
-- Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). ts-loader currently depends on a TypeScript `next` prerelease that exposes this native API ahead of a stable 7.1 release.
+- Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). Until TypeScript 7.1 has a stable release, that means the 7.1 beta (`typescript@beta`) or later.
 - Minimum supported Node.js version is now 22.x+ (up from 12.x+).
 - The `compiler` option must now resolve to a package exposing a `<compiler>/sync` entry point (the TypeScript native API). Drop-in classic-API compilers (e.g. `ttypescript`) are no longer supported.
 - Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
