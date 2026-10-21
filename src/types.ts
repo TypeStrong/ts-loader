@@ -4,6 +4,7 @@ import type {
   Diagnostic,
   ParsedCommandLine,
   Snapshot,
+  SyntheticProjectId,
 } from 'typescript/sync';
 import type * as webpack from 'webpack';
 
@@ -71,6 +72,15 @@ export interface TSFile {
   version: number;
 }
 
+export interface SyntheticProgram {
+  id: SyntheticProjectId;
+  /**
+   * The root files/options it was last (re)configured with, serialized - a
+   * mismatch against the primary project's current ones means it's stale.
+   */
+  configuration: string;
+}
+
 export interface TypeScriptInstance {
   api: API;
   configFilePath: FilePath;
@@ -83,10 +93,9 @@ export interface TypeScriptInstance {
    * build.
    */
   snapshot?: Snapshot;
-  syntheticConfigContents: Map<FilePath, string>;
-  /** Orphan file (see ensureSyntheticConfigForFile) -> its synthetic project's config path. */
-  syntheticConfigFiles: Map<FilePath, FilePath>;
-  openedProjectPaths: Set<FilePath>;
+  /** Orphan file (see ensureSyntheticProgramForFile) -> its synthetic program. */
+  syntheticPrograms: Map<FilePath, SyntheticProgram>;
+  primaryProjectOpened: boolean;
   /**
    * Set on creation and by webpack's `compile` hook (once per build/watch
    * rebuild) - see `updateSnapshot`. Consumed (and cleared) by the first

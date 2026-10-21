@@ -5,10 +5,13 @@ import type {
   API,
   APIOptions,
   CompilerOptions,
+  CreateSnapshotParams,
   Diagnostic,
   EmitOutput,
   ParsedCommandLine,
   Program,
+  Snapshot,
+  SyntheticProjectId,
 } from 'typescript/sync';
 import type { FileSystemCallbacks } from 'typescript/fs';
 import { serverFS } from 'typescript/fs';
@@ -22,7 +25,6 @@ import {
   reportTypeScriptErrors,
 } from './diagnostics';
 import type {
-  FilePath,
   LoaderOptions,
   PendingDeclarationFile,
   TypeScriptInstance,
@@ -43,10 +45,6 @@ export function createTypeScriptInstance(
 ): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
 
-  // Served entirely via the `readFile` override below - never written to
-  // real disk (see ensureSyntheticConfigForFile).
-  const syntheticConfigContents = new Map<FilePath, string>();
-
   /**
    * Tries `fileName` as-is, then falls back to its pre-alias form (see
    * `toRealFacingFileName`) - shared by the fs.fileExists/readFile overrides below.
@@ -55,7 +53,6 @@ export function createTypeScriptInstance(
    * @returns The content of the file if it exists, otherwise `undefined`.
    */
   const contentFor = (fileName: string) =>
-    syntheticConfigContents.get(resolvedFilePathCache(fileName)) ??
     files.get(resolvedFilePathCache(fileName))?.text;
 
   /**
@@ -97,9 +94,8 @@ export function createTypeScriptInstance(
     api,
     configFilePath: resolvedFilePathCache(configFilePath),
     transpileConfig: undefined,
-    syntheticConfigContents,
-    syntheticConfigFiles: new Map(),
-    openedProjectPaths: new Set(),
+    syntheticPrograms: new Map(),
+    primaryProjectOpened: false,
     pendingInvalidation: true,
     directImportsCache: new Map(),
     projectFileNamesCache: new Map(),
@@ -135,17 +131,19 @@ export function getTypeScriptEmit(
   const typeScriptInstance = instance.typeScriptApiInstance;
   // The API skips emit for a node_modules file unless it's an explicit root
   // (matching classic ts-loader's default refusal to compile .ts there);
-  // `allowTsInNodeModules` opts in via the synthetic single-file project
-  // fallback below, which does list it as a root.
+  // `allowTsInNodeModules` opts in via the synthetic program fallback below,
+  // which does list it as a root.
   const forceSyntheticRoot =
     instance.loaderOptions.allowTsInNodeModules &&
     fileName.indexOf('node_modules') !== -1;
-  const { snapshot, projectConfigPath } = prepareSnapshotForFile(
+  const { snapshot, syntheticProgramId } = prepareSnapshotForFile(
     typeScriptInstance,
     instance.resolvedFilePathCache,
     apiFileName,
     forceSyntheticRoot,
   );
+  // Keys the per-project caches - see getProjectFileNames.
+  const projectKey = syntheticProgramId ?? typeScriptInstance.configFilePath;
   let outputText: string | undefined;
   let sourceMapText: string | undefined;
   // Captured here rather than thrown so index.ts's `loader` can reconstruct
@@ -161,8 +159,11 @@ export function getTypeScriptEmit(
       // Prefer the project ts-loader explicitly resolved over the API's own
       // nearest-tsconfig auto-discovery, which can pick an unrelated
       // tsconfig.json that happens to sit closer to `fileName` on disk.
-      const configuredProject =
-        temporarySnapshot.getConfiguredProject(projectConfigPath);
+      const configuredProject = syntheticProgramId
+        ? temporarySnapshot.getProject(syntheticProgramId)
+        : temporarySnapshot.getConfiguredProject(
+            typeScriptInstance.configFilePath,
+          );
       // A configured project that failed to parse at all is a hard failure
       // to surface as-is, not a reason to silently fall back to a different
       // project that happens to resolve `fileName`.
@@ -209,12 +210,22 @@ export function getTypeScriptEmit(
       ({ outputText, sourceMapText } =
         getOutputAndSourceMapFromTypeScriptEmit(emitResult));
 
+      // A synthetic program has no config files of its own - it's built from
+      // the primary project's, which are what can invalidate it.
+      const configFileNames = (
+        syntheticProgramId
+          ? (temporarySnapshot.getConfiguredProject(
+              typeScriptInstance.configFilePath,
+            )?.program ?? program)
+          : program
+      ).getConfigFileNames();
       registerTypeScriptDependencies(
         loaderContext,
         program,
         fileName,
         apiFileName,
-        projectConfigPath,
+        projectKey,
+        configFileNames,
         instance,
       );
 
@@ -249,9 +260,9 @@ export function getTypeScriptEmit(
       // recorded here and rechecked once for the whole build by
       // recheckAllTransitiveDependants (see index.ts's postCompile hook),
       // matching classic's afterCompile re-check. Only meaningful against the
-      // primary project: a synthetic one-off project uses the wrong compiler
-      // options/import graph for any other file.
-      if (projectConfigPath === typeScriptInstance.configFilePath) {
+      // primary project: a synthetic one-off program uses the wrong import
+      // graph for any other file.
+      if (syntheticProgramId === undefined) {
         typeScriptInstance.changedFilesThisBuild.add(apiFileName);
       }
 
@@ -596,12 +607,16 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   }
 }
 
+type ProjectChanges = Pick<
+  CreateSnapshotParams,
+  'openProjects' | 'createPrograms' | 'reconfigurePrograms' | 'removePrograms'
+>;
+
 function updateSnapshot(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
-  openProjects?: FilePath[],
-  closeProjects?: FilePath[],
+  projectChanges?: ProjectChanges,
   // Api-facing names of specific files known to have just changed (see
   // `changedFilesThisBuild`) - passed only by recheckAllTransitiveDependants's
   // own snapshot refresh. Tells the API to re-read exactly these files rather
@@ -670,24 +685,19 @@ function updateSnapshot(
   typeScriptInstance.pendingInvalidation = false;
   typeScriptInstance.pendingChangedFiles = undefined;
   typeScriptInstance.pendingRemovedFiles = undefined;
-  // `openProjects`/`closeProjects` are already resolvedFilePathCache'd (see
-  // `configFilePath` and `ensureSyntheticConfigForFile`) - `fileName` needs
-  // the same treatment here so every path in a single request shares one
-  // canonical casing. Without this, `openProjects` could carry a
-  // lowercased drive letter while `openFiles` keeps `fileName`'s natural
-  // (e.g. real, uppercase-drive-letter) casing, which is enough on its own
-  // to make the API unable to find a project for the opened file on
+  // `openProjects` is already resolvedFilePathCache'd (see `configFilePath`)
+  // - `fileName` needs the same treatment here so every path in a single
+  // request shares one canonical casing. Without this, `openProjects` could
+  // carry a lowercased drive letter while `openFiles` keeps `fileName`'s
+  // natural (e.g. real, uppercase-drive-letter) casing, which is enough on
+  // its own to make the API unable to find a project for the opened file on
   // Windows - see https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
   const apiFacingFileName = resolvedFilePathCache(fileName);
-  const params =
-    openProjects && openProjects.length > 0
-      ? {
-          openProjects,
-          openFiles: [apiFacingFileName],
-          fileNotifications,
-          closeProjects,
-        }
-      : { openFiles: [apiFacingFileName], fileNotifications, closeProjects };
+  const params: CreateSnapshotParams = {
+    ...projectChanges,
+    openFiles: [apiFacingFileName],
+    fileNotifications,
+  };
   // The API no longer tracks a "latest snapshot" of its own (see
   // https://github.com/microsoft/TypeScript/pull/64204) - ts-loader must
   // explicitly layer each new snapshot over the previous one via
@@ -698,12 +708,6 @@ function updateSnapshot(
     : typeScriptInstance.api.createSnapshot(params);
 
   typeScriptInstance.snapshot = snapshot;
-  openProjects?.forEach(projectPath =>
-    typeScriptInstance.openedProjectPaths.add(projectPath),
-  );
-  closeProjects?.forEach(projectPath =>
-    typeScriptInstance.openedProjectPaths.delete(projectPath),
-  );
   previousSnapshot?.dispose?.();
 
   return snapshot;
@@ -743,12 +747,12 @@ function openPrimaryProject(
     typeScriptInstance,
     resolvedFilePathCache,
     fileName,
-    typeScriptInstance.openedProjectPaths.has(primaryProjectPath)
+    typeScriptInstance.primaryProjectOpened
       ? undefined
-      : [primaryProjectPath],
-    undefined,
+      : { openProjects: [primaryProjectPath] },
     changedFileNames,
   );
+  typeScriptInstance.primaryProjectOpened = true;
 
   return {
     snapshot,
@@ -793,7 +797,7 @@ function prepareSnapshotForFile(
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   forceSyntheticRoot: boolean,
-) {
+): { snapshot: Snapshot; syntheticProgramId?: SyntheticProjectId } {
   const { snapshot, primaryProjectPath, primaryProject } = getSnapshot(
     typeScriptInstance,
     resolvedFilePathCache,
@@ -801,127 +805,110 @@ function prepareSnapshotForFile(
   );
 
   if (!forceSyntheticRoot && primaryProject?.program.getSourceFile(fileName)) {
-    return { snapshot, projectConfigPath: primaryProjectPath };
+    return { snapshot };
   }
 
   // A tsconfig that fails to parse is a hard failure classic ts-loader
-  // surfaces directly - falling back to a synthetic config would silently
+  // surfaces directly - falling back to a synthetic program would silently
   // paper over it by explicitly listing `fileName`.
   if (
     primaryProject &&
     primaryProject.program.getConfigFileParsingDiagnostics().length > 0
   ) {
-    return { snapshot, projectConfigPath: primaryProjectPath };
+    return { snapshot };
   }
 
-  const { syntheticConfigPath, evictedProjectPath } =
-    ensureSyntheticConfigForFile(
-      typeScriptInstance,
-      resolvedFilePathCache,
-      primaryProjectPath,
-      primaryProject?.parsedCommandLine.fileNames ?? [],
-      fileName,
-    );
-  const syntheticSnapshot = updateSnapshot(
+  return ensureSyntheticProgramForFile(
     typeScriptInstance,
     resolvedFilePathCache,
+    primaryProject?.parsedCommandLine ??
+      typeScriptInstance.api.parseConfigFile(primaryProjectPath),
     fileName,
-    typeScriptInstance.openedProjectPaths.has(syntheticConfigPath)
-      ? undefined
-      : [syntheticConfigPath],
-    evictedProjectPath ? [evictedProjectPath] : undefined,
   );
-
-  return {
-    snapshot: syntheticSnapshot,
-    projectConfigPath: syntheticConfigPath,
-  };
 }
 
 /**
- * Cap on distinct orphan-file synthetic projects (see below) tracked at
- * once. Each one holds its own ref-counted project open on the API side, so
- * leaving this unbounded would leak memory/state proportional to every
- * distinct orphan file (e.g. under `allowTsInNodeModules`) ever compiled
- * across a long watch session. Evicting the least-recently-used one past the
- * cap still lets a handful of actively-edited orphan files - the common
- * case - reuse their project across rebuilds.
+ * Cap on distinct orphan-file synthetic programs (see below) tracked at
+ * once. Each one is held on the API side until removed, so leaving this
+ * unbounded would leak memory/state proportional to every distinct orphan
+ * file (e.g. under `allowTsInNodeModules`) ever compiled across a long watch
+ * session. Evicting the least-recently-used one past the cap still lets a
+ * handful of actively-edited orphan files - the common case - reuse their
+ * program across rebuilds.
  */
 const maxOrphanFileProjects = 20;
 
-function ensureSyntheticConfigForFile(
+/**
+ * A synthetic program (the API's `createPrograms`) for a file the primary
+ * project doesn't include: the primary project's own root files and options,
+ * plus `fileName` as an extra root.
+ */
+function ensureSyntheticProgramForFile(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
-  configFilePath: FilePath,
-  rootFiles: readonly string[],
+  primaryConfig: ParsedCommandLine,
   fileName: string,
-): { syntheticConfigPath: FilePath; evictedProjectPath?: FilePath } {
-  // Canonicalized before use as a cache key or hash input - two importers
-  // spelling/casing the same orphan file differently would otherwise be
-  // treated as distinct files, each getting (and holding open) its own
-  // redundant synthetic project.
+): { snapshot: Snapshot; syntheticProgramId: SyntheticProjectId } {
+  const program = {
+    rootFiles: [...new Set([...primaryConfig.fileNames, fileName])].sort(),
+    compilerOptions: primaryConfig.options,
+    options: { projectReferences: primaryConfig.projectReferences },
+  };
+  const configuration = JSON.stringify(program);
+  // Canonicalized before use as a cache key - two importers spelling/casing
+  // the same orphan file differently would otherwise each get (and hold
+  // open) their own redundant synthetic program.
   const canonicalFileName = resolvedFilePathCache(fileName);
-  const existing =
-    typeScriptInstance.syntheticConfigFiles.get(canonicalFileName);
+  const { syntheticPrograms } = typeScriptInstance;
+
+  const existing = syntheticPrograms.get(canonicalFileName);
   if (existing) {
     // Bump to most-recently-used - a Map's iteration order is insertion
     // order, so deleting and re-setting moves this to the end.
-    typeScriptInstance.syntheticConfigFiles.delete(canonicalFileName);
-    typeScriptInstance.syntheticConfigFiles.set(canonicalFileName, existing);
-    return { syntheticConfigPath: existing };
+    syntheticPrograms.delete(canonicalFileName);
+    syntheticPrograms.set(canonicalFileName, existing);
+    if (existing.configuration === configuration) {
+      return {
+        snapshot: typeScriptInstance.snapshot!,
+        syntheticProgramId: existing.id,
+      };
+    }
+    existing.configuration = configuration;
+    return {
+      snapshot: updateSnapshot(
+        typeScriptInstance,
+        resolvedFilePathCache,
+        fileName,
+        {
+          reconfigurePrograms: [{ id: existing.id, ...program }],
+        },
+      ),
+      syntheticProgramId: existing.id,
+    };
   }
 
-  let evictedProjectPath: FilePath | undefined;
-  if (typeScriptInstance.syntheticConfigFiles.size >= maxOrphanFileProjects) {
-    const oldestEntry = typeScriptInstance.syntheticConfigFiles
-      .entries()
-      .next().value;
+  let removePrograms: SyntheticProjectId[] | undefined;
+  if (syntheticPrograms.size >= maxOrphanFileProjects) {
+    const oldestEntry = syntheticPrograms.entries().next().value;
     if (oldestEntry) {
-      const [evictedFileName, evictedSyntheticConfigPath] = oldestEntry;
-      typeScriptInstance.syntheticConfigFiles.delete(evictedFileName);
-      typeScriptInstance.syntheticConfigContents.delete(
-        evictedSyntheticConfigPath,
-      );
-      evictedProjectPath = evictedSyntheticConfigPath;
+      const [evictedFileName, evicted] = oldestEntry;
+      syntheticPrograms.delete(evictedFileName);
+      removePrograms = [evicted.id];
     }
   }
 
-  // A sibling of the real config, so its directory always already exists on
-  // disk - see syntheticConfigContents in createTypeScriptInstance.
-  const syntheticConfigPath = resolvedFilePathCache(
-    path.join(
-      path.dirname(configFilePath),
-      `.${path.basename(configFilePath, '.json')}.ts-loader.${hashFileName(
-        canonicalFileName,
-      )}.json`,
-    ),
+  const snapshot = updateSnapshot(
+    typeScriptInstance,
+    resolvedFilePathCache,
+    fileName,
+    { createPrograms: [program], removePrograms },
   );
-  const files = [...new Set([...rootFiles, fileName])].sort();
-  const configText = JSON.stringify(
-    {
-      extends: configFilePath,
-      files,
-    },
-    null,
-    2,
-  );
-  // `syntheticConfigFiles`/`syntheticConfigPath` are canonicalized (via
-  // `resolvedPathCache`) opaque ids, used only for later `getProject`/
-  // `openProjects` calls and as this same `readFile`/`fileExists`-serving
-  // map's own key - not real on-disk paths.
-  typeScriptInstance.syntheticConfigContents.set(
-    syntheticConfigPath,
-    configText,
-  );
-  typeScriptInstance.syntheticConfigFiles.set(
-    canonicalFileName,
-    syntheticConfigPath,
-  );
-  return { syntheticConfigPath, evictedProjectPath };
-}
-
-function hashFileName(fileName: string) {
-  return crypto.createHash('sha1').update(fileName).digest('hex').slice(0, 12);
+  const syntheticProgramId = snapshot.operation.createdPrograms![0].id;
+  syntheticPrograms.set(canonicalFileName, {
+    id: syntheticProgramId,
+    configuration,
+  });
+  return { snapshot, syntheticProgramId };
 }
 
 /**
@@ -982,7 +969,8 @@ function registerTypeScriptDependencies(
   program: Program,
   fileName: string,
   apiFileName: string,
-  projectConfigPath: string,
+  projectKey: string,
+  configFileNames: readonly string[],
   instance: TSInstance,
 ) {
   loaderContext.clearDependencies();
@@ -1005,7 +993,7 @@ function registerTypeScriptDependencies(
   for (const otherFileName of getProjectDtsFileNames(
     instance.typeScriptApiInstance,
     instance.resolvedFilePathCache,
-    projectConfigPath,
+    projectKey,
     program,
   )) {
     if (otherFileName === apiFileName) {
@@ -1036,7 +1024,7 @@ function registerTypeScriptDependencies(
 
   // `getConfigFileNames` is forward-slash-normalized like
   // `getSourceFileNames` above - same Windows requirement applies.
-  for (const configFileName of program.getConfigFileNames()) {
+  for (const configFileName of configFileNames) {
     const normalizedConfigFileName = path.normalize(configFileName);
     if (isWebpack5) {
       loaderContext.addBuildDependency(normalizedConfigFileName);
@@ -1081,10 +1069,10 @@ function registerTypeScriptDependencies(
 function getProjectFileNames(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
-  projectConfigPath: string,
+  projectKey: string,
   program: Program,
 ): readonly string[] {
-  const cachedFilePath = resolvedFilePathCache(projectConfigPath);
+  const cachedFilePath = resolvedFilePathCache(projectKey);
   const sourceFileNames = program.getSourceFileNames();
   const cached = typeScriptInstance.projectFileNamesCache.get(cachedFilePath);
   if (cached && sameFileNames(cached.sourceFileNames, sourceFileNames)) {
@@ -1125,13 +1113,13 @@ function sameFileNames(a: readonly string[], b: readonly string[]): boolean {
 function getProjectDtsFileNames(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
-  projectConfigPath: string,
+  projectKey: string,
   program: Program,
 ): readonly string[] {
   return getProjectFileNames(
     typeScriptInstance,
     resolvedFilePathCache,
-    projectConfigPath,
+    projectKey,
     program,
   ).filter(otherFileName =>
     constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName),
