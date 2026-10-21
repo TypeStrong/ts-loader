@@ -152,8 +152,7 @@ function createWebpackConfig(paths, optionsOriginal) {
     const extraOptionMaybe = extraOption ? { [extraOption]: true } : {};
     const options = Object.assign({
         // colors: false,
-        silent: true,
-        useCaseSensitiveFileNames: true
+        silent: true
     }, optionsOriginal, extraOptionMaybe);
 
     const tsLoaderPath = path.join(__dirname, "../../index.js");

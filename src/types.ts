@@ -83,7 +83,8 @@ interface SyntheticProgram {
 
 export interface TypeScriptInstance {
   api: API;
-  configFilePath: FilePath;
+  /** Real-cased, as given to the API - not a canonical key (see FilePath). */
+  configFilePath: string;
   transpileConfig?: ParsedCommandLine;
   transpileConfigDiagnostics?: readonly Diagnostic[];
   transpileConfigDiagnosticsReported?: boolean;

@@ -15,6 +15,6 @@ ERROR in app.ts
 ./app.ts 1:6-8
 [tsl] ERROR in app.ts(1,7)
       TS1005: ',' expected.
-ts-loader-default_310eb6605cd5f0bf
+ts-loader-default_2a0135d8fd166c11
 
 webpack compiled with 2 errors

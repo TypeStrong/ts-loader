@@ -39,7 +39,6 @@ interface TypeScriptApiModule {
 export function createTypeScriptInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
-  resolvedFilePathCache: ResolvedFilePathCache,
   useCaseSensitiveFileNames: boolean,
 ): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
@@ -52,7 +51,7 @@ export function createTypeScriptInstance(
 
   return {
     api,
-    configFilePath: resolvedFilePathCache(configFilePath),
+    configFilePath: path.resolve(configFilePath),
     transpileConfig: undefined,
     syntheticPrograms: new Map(),
     primaryProjectOpened: false,
@@ -606,16 +605,18 @@ function updateSnapshot(
                   fileName => !createdFiles.has(fileName),
                 ),
               ),
-            resolvedFilePathCache,
           ),
-          created: mapApiFacingFileNames(createdFiles, resolvedFilePathCache),
+          created: mapApiFacingFileNames(createdFiles),
           deleted: mapApiFacingFileNames(
             typeScriptInstance.pendingRemovedFiles,
-            resolvedFilePathCache,
           ),
         }
       : changedFileNames && changedFileNames.size > 0
-        ? { changed: [...changedFileNames].map(resolvedFilePathCache) }
+        ? {
+            changed: [...changedFileNames].map(fileName =>
+              path.resolve(fileName),
+            ),
+          }
         : undefined;
   if (typeScriptInstance.pendingInvalidation || createdFiles.size > 0) {
     // A created file can also satisfy imports that other files previously
@@ -650,14 +651,14 @@ function updateSnapshot(
   typeScriptInstance.pendingInvalidation = false;
   typeScriptInstance.pendingChangedFiles = undefined;
   typeScriptInstance.pendingRemovedFiles = undefined;
-  // `openProjects` is already resolvedFilePathCache'd (see `configFilePath`)
-  // - `fileName` needs the same treatment here so every path in a single
-  // request shares one canonical casing. Without this, `openProjects` could
-  // carry a lowercased drive letter while `openFiles` keeps `fileName`'s
-  // natural (e.g. real, uppercase-drive-letter) casing, which is enough on
-  // its own to make the API unable to find a project for the opened file on
-  // Windows - see https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
-  const apiFacingFileName = resolvedFilePathCache(fileName);
+  // Every path in a request keeps its real casing, the same as `openProjects`
+  // (see `configFilePath`): a mismatch - e.g. a lowercased drive letter in
+  // one and not the other - is enough on its own to make the API unable to
+  // find a project for the opened file on Windows - see
+  // https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
+  // resolvedFilePathCache's canonical form is only for ts-loader's own keys:
+  // the API echoes back whatever casing it's given, into diagnostics too.
+  const apiFacingFileName = path.resolve(fileName);
   const params: CreateSnapshotParams = {
     ...changes,
     openFiles: [apiFacingFileName],
@@ -722,13 +723,12 @@ function findCreatedFiles(
  */
 function mapApiFacingFileNames(
   fileNames: ReadonlySet<string> | undefined,
-  resolvedFilePathCache: ResolvedFilePathCache,
 ): string[] | undefined {
   if (!fileNames || fileNames.size === 0) {
     return undefined;
   }
   return [...fileNames].map(fileName =>
-    resolvedFilePathCache(toApiFacingFileName(fileName)),
+    path.resolve(toApiFacingFileName(fileName)),
   );
 }
 
