@@ -127,7 +127,12 @@ function getTypeScriptInstance(
   }
 
   const files: TSInstance['files'] = new Map();
-  const resolvedFilePathCache = createResolvedFilePathCache(loaderOptions);
+  const useCaseSensitiveFileNames =
+    loaderOptions.useCaseSensitiveFileNames ??
+    isFileSystemCaseSensitive(configFilePath);
+  const resolvedFilePathCache = createResolvedFilePathCache(
+    useCaseSensitiveFileNames,
+  );
 
   const instance: TSInstance = {
     version: 0,
@@ -139,6 +144,7 @@ function getTypeScriptInstance(
       loaderOptions,
       configFilePath,
       resolvedFilePathCache,
+      useCaseSensitiveFileNames,
     ),
     pendingDiagnostics: new Map(),
     pendingDeclarationFiles: new Map(),
@@ -269,13 +275,31 @@ function addPostCompileHooks(
   }
 }
 
+/**
+ * Whether the volume `existingFilePath` lives on is case-sensitive - the same
+ * probe `tsc` uses: if the file is also found under a case-swapped name, case
+ * doesn't matter there.
+ */
+function isFileSystemCaseSensitive(existingFilePath: string): boolean {
+  if (process.platform === 'win32') {
+    return false;
+  }
+  const swappedCaseFileName = path
+    .basename(existingFilePath)
+    .replace(/\w/g, ch => {
+      const upper = ch.toUpperCase();
+      return ch === upper ? ch.toLowerCase() : upper;
+    });
+  return !fs.existsSync(
+    path.join(path.dirname(existingFilePath), swappedCaseFileName),
+  );
+}
+
 function createResolvedFilePathCache(
-  loaderOptions: LoaderOptions,
+  useCaseSensitiveFileNames: boolean,
 ): ResolvedFilePathCache {
   const resolvedPathCache = new Map<string, FilePath>();
   const fileNameLowerCaseRegExp = /[^\u0130\u0131\u00DFa-z0-9\\/:\-_. ]+/g;
-  const useCaseSensitiveFileNames =
-    loaderOptions.useCaseSensitiveFileNames ?? process.platform !== 'win32';
 
   return useCaseSensitiveFileNames ? pathResolve : toFileNameLowerCase;
 

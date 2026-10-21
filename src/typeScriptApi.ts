@@ -40,12 +40,15 @@ export function createTypeScriptInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
   resolvedFilePathCache: ResolvedFilePathCache,
+  useCaseSensitiveFileNames: boolean,
 ): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
   // No `fs` callbacks: the API reads the host filesystem directly, and the
   // content webpack hands the loader is layered over it per file instead -
-  // see layerFileContents.
-  const api = new typeScriptApiModule.API();
+  // see layerFileContents. Case sensitivity is passed explicitly so the API
+  // always agrees with `resolvedFilePathCache` about which paths are the
+  // same file.
+  const api = new typeScriptApiModule.API({ useCaseSensitiveFileNames });
 
   return {
     api,

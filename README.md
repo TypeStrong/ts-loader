@@ -655,11 +655,11 @@ Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
 
 #### useCaseSensitiveFileNames
 
-| Type      | Default Value                              |
-| --------- | ------------------------------------------ |
-| `boolean` | `false` on Windows, `true` everywhere else |
+| Type      | Default Value                                                                |
+| --------- | ---------------------------------------------------------------------------- |
+| `boolean` | detected from the filesystem your `tsconfig.json` is on (`false` on Windows) |
 
-Controls whether `ts-loader` treats file paths as case-sensitive when it tracks the files it compiles. By default paths are treated as case-insensitive on Windows and case-sensitive on every other platform, including macOS. If you are on a case-insensitive filesystem other than Windows (for example the macOS default) and import the same file using different casing, set this to `false`. Setting it to `true` can have some performance benefits, because it simplifies the file resolution code path.
+Controls whether file paths are treated as case-sensitive. By default `ts-loader` checks the filesystem your `tsconfig.json` lives on, the same way `tsc` does, so for example the default macOS volume is treated as case-insensitive. The same value is passed to TypeScript's API, so `ts-loader` and TypeScript always agree on which paths refer to the same file. Set this option to override the detected value.
 
 #### allowTsInNodeModules
 
