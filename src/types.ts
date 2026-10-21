@@ -72,11 +72,11 @@ export interface TSFile {
   version: number;
 }
 
-interface SyntheticProgram {
+export interface SyntheticProgram {
   id: SyntheticProjectId;
   /**
    * The root files/options it was last (re)configured with, serialized - a
-   * mismatch against the primary project's current ones means it's stale.
+   * mismatch against the current ones means it needs reconfiguring.
    */
   configuration: string;
 }
@@ -89,13 +89,17 @@ export interface TypeScriptInstance {
   transpileConfigDiagnostics?: readonly Diagnostic[];
   transpileConfigDiagnosticsReported?: boolean;
   /**
-   * The current snapshot, refreshed by updateSnapshot - see getSnapshot,
-   * which reuses this as the primary project's base snapshot for the whole
-   * build.
+   * The current snapshot, refreshed by updateSnapshot and layered onto per
+   * file by layerFileContents.
    */
   snapshot?: Snapshot;
-  /** Orphan file (see ensureSyntheticProgramForFile) -> its synthetic program. */
-  syntheticPrograms: Map<FilePath, SyntheticProgram>;
+  /** The one synthetic program shared by every orphan file - see ensureOrphanProgram. */
+  orphanProgram?: SyntheticProgram;
+  /**
+   * Orphan files that had to be added to `orphanProgram` as extra roots,
+   * canonical key -> api-facing name.
+   */
+  orphanRootFileNames: Map<FilePath, string>;
   primaryProjectOpened: boolean;
   /**
    * Set on creation and by webpack's `compile` hook (once per build/watch
@@ -155,7 +159,7 @@ export interface TypeScriptInstance {
    * project file addition/removal changes the list, which
    * `getProjectFileNames` detects itself (no external invalidation signal
    * needed) and reclassifies. Keyed by project (primary vs a synthetic
-   * one-off program for an orphan file - see ensureSyntheticProgramForFile)
+   * program shared by orphan files - see ensureOrphanProgram)
    * rather than a single shared list, since their file sets are unrelated.
    * Keyed via `FilePathKey` (like `directImportsCache`) for consistency,
    * though project config paths are already stable, single-sourced strings

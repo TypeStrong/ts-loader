@@ -97,6 +97,12 @@ interface GenerateFixtureOptions {
   fixtureDir: string;
   fileCount?: number;
   seed?: number;
+  /**
+   * List only a `.d.ts` in the tsconfig's `files`, so every module webpack
+   * compiles is outside the configured project - an "orphan" file, compiled
+   * through ts-loader's synthetic orphan program instead.
+   */
+  orphanFiles?: boolean;
 }
 
 interface TouchTarget {
@@ -122,7 +128,7 @@ export interface FixtureMeta {
  * modules (each imported by only a handful of `mid` modules), `mid` modules
  * that combine a few leaves, and a single entry point importing every mid.
  */
-export function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }: GenerateFixtureOptions): FixtureMeta {
+export function generateFixture({ fixtureDir, fileCount = 300, seed = 42, orphanFiles = false }: GenerateFixtureOptions): FixtureMeta {
   fs.rmSync(fixtureDir, { recursive: true, force: true });
   const srcDir = path.join(fixtureDir, 'src');
   fs.mkdirSync(srcDir, { recursive: true });
@@ -153,6 +159,10 @@ export function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }: Gene
 
   fs.writeFileSync(path.join(srcDir, 'index.ts'), entrySource(midCount));
 
+  if (orphanFiles) {
+    fs.writeFileSync(path.join(srcDir, 'globals.d.ts'), 'declare const BUILD_ID: string;\n');
+  }
+
   const tsconfigPath = path.join(fixtureDir, 'tsconfig.json');
   fs.writeFileSync(
     tsconfigPath,
@@ -168,7 +178,7 @@ export function generateFixture({ fixtureDir, fileCount = 300, seed = 42 }: Gene
           declaration: false,
           sourceMap: false,
         },
-        include: ['src/**/*.ts'],
+        ...(orphanFiles ? { files: ['src/globals.d.ts'] } : { include: ['src/**/*.ts'] }),
       },
       null,
       2

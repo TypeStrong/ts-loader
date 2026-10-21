@@ -26,6 +26,7 @@ import {
 import type {
   LoaderOptions,
   PendingDeclarationFile,
+  SyntheticProgram,
   TypeScriptInstance,
   TSInstance,
   ResolvedFilePathCache,
@@ -53,7 +54,7 @@ export function createTypeScriptInstance(
     api,
     configFilePath: path.resolve(configFilePath),
     transpileConfig: undefined,
-    syntheticPrograms: new Map(),
+    orphanRootFileNames: new Map(),
     primaryProjectOpened: false,
     pendingInvalidation: true,
     directImportsCache: new Map(),
@@ -207,12 +208,8 @@ export function getTypeScriptEmit(
   // rebuilding, and webpack has no reason to re-invoke ts-loader for it -
   // recorded here and rechecked once for the whole build by
   // recheckAllTransitiveDependants (see index.ts's postCompile hook),
-  // matching classic's afterCompile re-check. Only meaningful against the
-  // primary project: a synthetic one-off program uses the wrong import
-  // graph for any other file.
-  if (syntheticProgramId === undefined) {
-    typeScriptInstance.changedFilesThisBuild.add(apiFileName);
-  }
+  // matching classic's afterCompile re-check.
+  typeScriptInstance.changedFilesThisBuild.add(apiFileName);
 
   // Read out synchronously for the same reason as `errors` above;
   // emitted as webpack assets later by emitPendingDeclarationFiles.
@@ -690,8 +687,11 @@ function findCreatedFiles(
   resolvedFilePathCache: ResolvedFilePathCache,
 ): ReadonlySet<string> {
   const changedFiles = typeScriptInstance.pendingChangedFiles;
+  // The orphan program contains the whole primary project too.
   const lastKnownFileNames = typeScriptInstance.projectFileNamesCache.get(
-    resolvedFilePathCache(typeScriptInstance.configFilePath),
+    resolvedFilePathCache(
+      typeScriptInstance.orphanProgram?.id ?? typeScriptInstance.configFilePath,
+    ),
   )?.sourceFileNames;
   if (!changedFiles || !lastKnownFileNames) {
     return new Set();
@@ -841,89 +841,68 @@ function prepareSnapshotForFile(
     return { snapshot };
   }
 
-  return ensureSyntheticProgramForFile(
+  return ensureOrphanProgram(
     typeScriptInstance,
     resolvedFilePathCache,
     primaryProject?.parsedCommandLine ??
       typeScriptInstance.api.parseConfigFile(primaryProjectPath),
     fileName,
+    forceSyntheticRoot,
   );
 }
 
 /**
- * Cap on distinct orphan-file synthetic programs (see below) tracked at
- * once. Each one is held on the API side until removed, so leaving this
- * unbounded would leak memory/state proportional to every distinct orphan
- * file (e.g. under `allowTsInNodeModules`) ever compiled across a long watch
- * session. Evicting the least-recently-used one past the cap still lets a
- * handful of actively-edited orphan files - the common case - reuse their
- * program across rebuilds.
+ * The one synthetic program (the API's `createPrograms`) shared by every
+ * file the primary project doesn't include - matching classic ts-loader's
+ * single program, whose roots were the tsconfig's files plus every file
+ * webpack handed it. Its roots are the primary project's own root files plus
+ * just the orphan files that need to be roots: one is added only when the
+ * program doesn't already contain it (most orphans arrive via an import), or
+ * always under `forceRoot` (the API skips emit for a node_modules file that
+ * isn't one). Being a superset of the primary project, it also gives the
+ * transitive-dependant recheck the full import graph - see
+ * recheckAllTransitiveDependants.
  */
-const maxOrphanFileProjects = 20;
-
-/**
- * A synthetic program (the API's `createPrograms`) for a file the primary
- * project doesn't include: the primary project's own root files and options,
- * plus `fileName` as an extra root.
- */
-function ensureSyntheticProgramForFile(
+function ensureOrphanProgram(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   primaryConfig: ParsedCommandLine,
   fileName: string,
+  forceRoot: boolean,
 ): { snapshot: Snapshot; syntheticProgramId: SyntheticProjectId } {
-  const program = {
-    rootFiles: [...new Set([...primaryConfig.fileNames, fileName])].sort(),
-    compilerOptions: primaryConfig.options,
-    options: { projectReferences: primaryConfig.projectReferences },
-  };
-  const configuration = JSON.stringify(program);
-  // Canonicalized before use as a cache key - two importers spelling/casing
-  // the same orphan file differently would otherwise each get (and hold
-  // open) their own redundant synthetic program.
+  const { orphanProgram, orphanRootFileNames } = typeScriptInstance;
   const canonicalFileName = resolvedFilePathCache(fileName);
-  const { syntheticPrograms } = typeScriptInstance;
+  if (
+    orphanProgram &&
+    (forceRoot
+      ? orphanRootFileNames.has(canonicalFileName)
+      : typeScriptInstance
+          .snapshot!.getProject(orphanProgram.id)
+          ?.program.getSourceFile(fileName))
+  ) {
+    return reconfigureOrphanProgramIfStale(
+      typeScriptInstance,
+      resolvedFilePathCache,
+      primaryConfig,
+      fileName,
+      orphanProgram,
+    );
+  }
 
-  const existing = syntheticPrograms.get(canonicalFileName);
-  if (existing) {
-    // Bump to most-recently-used - a Map's iteration order is insertion
-    // order, so deleting and re-setting moves this to the end.
-    syntheticPrograms.delete(canonicalFileName);
-    syntheticPrograms.set(canonicalFileName, existing);
-    if (existing.configuration === configuration) {
-      return {
-        snapshot: typeScriptInstance.snapshot!,
-        syntheticProgramId: existing.id,
-      };
-    }
-    existing.configuration = configuration;
+  orphanRootFileNames.set(canonicalFileName, fileName);
+  const program = orphanProgramParams(typeScriptInstance, primaryConfig);
+  const configuration = JSON.stringify(program);
+  if (orphanProgram) {
+    orphanProgram.configuration = configuration;
     return {
       snapshot: updateSnapshot(
         typeScriptInstance,
         resolvedFilePathCache,
         fileName,
-        {
-          reconfigurePrograms: [{ id: existing.id, ...program }],
-        },
+        { reconfigurePrograms: [{ id: orphanProgram.id, ...program }] },
       ),
-      syntheticProgramId: existing.id,
+      syntheticProgramId: orphanProgram.id,
     };
-  }
-
-  if (syntheticPrograms.size >= maxOrphanFileProjects) {
-    const oldestEntry = syntheticPrograms.entries().next().value;
-    if (oldestEntry) {
-      const [evictedFileName, evicted] = oldestEntry;
-      syntheticPrograms.delete(evictedFileName);
-      // A request of its own: removing one synthetic program in the same
-      // request that creates another crashes tsgo (7.1.0-beta - a nil
-      // dereference in ProjectCollectionBuilder.HandleAPIRequest).
-      const previousSnapshot = typeScriptInstance.snapshot!;
-      typeScriptInstance.snapshot = previousSnapshot.update({
-        removePrograms: [evicted.id],
-      });
-      previousSnapshot.dispose();
-    }
   }
 
   const snapshot = updateSnapshot(
@@ -933,11 +912,55 @@ function ensureSyntheticProgramForFile(
     { createPrograms: [program] },
   );
   const syntheticProgramId = snapshot.operation.createdPrograms![0].id;
-  syntheticPrograms.set(canonicalFileName, {
-    id: syntheticProgramId,
-    configuration,
-  });
+  typeScriptInstance.orphanProgram = { id: syntheticProgramId, configuration };
   return { snapshot, syntheticProgramId };
+}
+
+/**
+ * Keeps the orphan program's options and the primary project's share of its
+ * roots in step with the primary project's own (e.g. after a full rescan).
+ */
+function reconfigureOrphanProgramIfStale(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  primaryConfig: ParsedCommandLine,
+  fileName: string,
+  orphanProgram: SyntheticProgram,
+): { snapshot: Snapshot; syntheticProgramId: SyntheticProjectId } {
+  const program = orphanProgramParams(typeScriptInstance, primaryConfig);
+  const configuration = JSON.stringify(program);
+  if (orphanProgram.configuration === configuration) {
+    return {
+      snapshot: typeScriptInstance.snapshot!,
+      syntheticProgramId: orphanProgram.id,
+    };
+  }
+  orphanProgram.configuration = configuration;
+  return {
+    snapshot: updateSnapshot(
+      typeScriptInstance,
+      resolvedFilePathCache,
+      fileName,
+      { reconfigurePrograms: [{ id: orphanProgram.id, ...program }] },
+    ),
+    syntheticProgramId: orphanProgram.id,
+  };
+}
+
+function orphanProgramParams(
+  typeScriptInstance: TypeScriptInstance,
+  primaryConfig: ParsedCommandLine,
+) {
+  return {
+    rootFiles: [
+      ...new Set([
+        ...primaryConfig.fileNames,
+        ...typeScriptInstance.orphanRootFileNames.values(),
+      ]),
+    ].sort(),
+    compilerOptions: primaryConfig.options,
+    options: { projectReferences: primaryConfig.projectReferences },
+  };
 }
 
 /**
@@ -1356,26 +1379,39 @@ export function recheckAllTransitiveDependants(
   // snapshot refresh - the whole point is just to get the primary project's
   // current program, not to focus on one particular file.
   const anchorFileName = changedFileNames.values().next().value as string;
-  const { primaryProject } = openPrimaryProject(
+  const { snapshot, primaryProject } = openPrimaryProject(
     typeScriptInstance,
     instance.resolvedFilePathCache,
     anchorFileName,
     changedFileNames,
+    // The orphan program isn't the anchor's default project, so it would
+    // otherwise keep serving its pre-notification content.
+    { ensurePrograms: true },
   );
   if (!primaryProject) {
     return;
   }
-  const program = primaryProject.program;
+  const primaryProgram = primaryProject.program;
+  const { orphanProgram } = typeScriptInstance;
+  const orphanProjectProgram = orphanProgram
+    ? snapshot.getProject(orphanProgram.id)?.program
+    : undefined;
+  // The orphan program also contains the whole primary project, so whenever
+  // there is one it's the complete import graph to search.
+  const graphProgram = orphanProjectProgram ?? primaryProgram;
+  const graphProjectKey =
+    (orphanProjectProgram && orphanProgram?.id) ??
+    typeScriptInstance.configFilePath;
 
   const projectFileNames = getProjectFileNames(
     typeScriptInstance,
     instance.resolvedFilePathCache,
-    typeScriptInstance.configFilePath,
-    program,
+    graphProjectKey,
+    graphProgram,
   );
 
   const comparableSourceFileNames = new Set(
-    program
+    graphProgram
       .getSourceFileNames()
       .map(fileName =>
         toComparablePath(instance.resolvedFilePathCache, fileName),
@@ -1385,7 +1421,7 @@ export function recheckAllTransitiveDependants(
   const dependants = findTransitiveDependants(
     typeScriptInstance,
     instance.resolvedFilePathCache,
-    program,
+    graphProgram,
     changedFileNames,
     projectFileNames,
     comparableSourceFileNames,
@@ -1401,7 +1437,25 @@ export function recheckAllTransitiveDependants(
   // matching (see filterDiagnosticsForReporting) and error display.
   const context = compilation.compiler.context;
 
+  // Each dependant is checked in the program it's compiled in (see
+  // prepareSnapshotForFile), so its diagnostics match a direct compile's.
+  const primaryFileNames =
+    graphProgram === primaryProgram
+      ? comparableSourceFileNames
+      : new Set(
+          primaryProgram
+            .getSourceFileNames()
+            .map(fileName =>
+              toComparablePath(instance.resolvedFilePathCache, fileName),
+            ),
+        );
+
   for (const dependantFileName of dependants) {
+    const program = primaryFileNames.has(
+      toComparablePath(instance.resolvedFilePathCache, dependantFileName),
+    )
+      ? primaryProgram
+      : graphProgram;
     const diagnostics = dedupeDiagnostics([
       ...program.getSyntacticDiagnostics(dependantFileName),
       ...program.getSemanticDiagnostics(dependantFileName),
