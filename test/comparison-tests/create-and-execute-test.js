@@ -173,14 +173,26 @@ function createWebpackConfig(paths, optionsOriginal) {
 
 function createWebpackWatchHandler(done, paths, testState, options, test) {
     return function (err, stats) {
-        const patch = setPathsAndGetPatch(paths, testState, options);
+        if (testState.doneHasBeenCalled) {
+            return;
+        }
+        try {
+            const patch = setPathsAndGetPatch(paths, testState, options);
 
-        handleErrors(err, paths);
+            handleErrors(err, paths);
 
-        storeStats(stats, testState, paths);
-        cleanHashFromOutput(stats, paths.actualOutput);
+            storeStats(stats, testState, paths);
+            cleanHashFromOutput(stats, paths.actualOutput);
 
-        compareFiles(paths, test, patch);
+            compareFiles(paths, test, patch);
+        } catch (error) {
+            // Thrown out of webpack's watch callback, a failed assertion would
+            // leave the watcher open - keeping the process alive so mocha never
+            // exits - so close it and fail the test explicitly instead.
+            testState.doneHasBeenCalled = true;
+            testState.watcher.close(() => done(error));
+            return;
+        }
 
         copyPatchOrEndTest(paths.testStagingPath, testState.watcher, testState, done);
     }
@@ -329,6 +341,19 @@ function compareFiles(paths, test, patch) {
     }
 }
 
+/**
+ * A patch file named `<file>.__deleted__` deletes `<file>` from the staged
+ * test, since copying a patch over it can otherwise only add or overwrite
+ * files.
+ */
+function applyPatchDeletions(patchPath, testStagingPath) {
+    const deletedSuffix = '.__deleted__';
+    for (const marker of glob.sync('**/*' + deletedSuffix, { cwd: patchPath, nodir: true, dot: true })) {
+        fs.rmSync(path.join(testStagingPath, marker.slice(0, -deletedSuffix.length)), { force: true });
+        fs.rmSync(path.join(testStagingPath, marker), { force: true });
+    }
+}
+
 function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
     // check for new files to copy in
     const patchPath = path.join(testStagingPath, 'patch' + testState.iteration);
@@ -338,6 +363,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
         // Probably due to the reaons in PR 1109: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(function () {
             copySync(patchPath, testStagingPath);
+            applyPatchDeletions(patchPath, testStagingPath);
         }, 1000);
     }
     else {
