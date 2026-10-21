@@ -910,13 +910,19 @@ function ensureSyntheticProgramForFile(
     };
   }
 
-  let removePrograms: SyntheticProjectId[] | undefined;
   if (syntheticPrograms.size >= maxOrphanFileProjects) {
     const oldestEntry = syntheticPrograms.entries().next().value;
     if (oldestEntry) {
       const [evictedFileName, evicted] = oldestEntry;
       syntheticPrograms.delete(evictedFileName);
-      removePrograms = [evicted.id];
+      // A request of its own: removing one synthetic program in the same
+      // request that creates another crashes tsgo (7.1.0-beta - a nil
+      // dereference in ProjectCollectionBuilder.HandleAPIRequest).
+      const previousSnapshot = typeScriptInstance.snapshot!;
+      typeScriptInstance.snapshot = previousSnapshot.update({
+        removePrograms: [evicted.id],
+      });
+      previousSnapshot.dispose();
     }
   }
 
@@ -924,7 +930,7 @@ function ensureSyntheticProgramForFile(
     typeScriptInstance,
     resolvedFilePathCache,
     fileName,
-    { createPrograms: [program], removePrograms },
+    { createPrograms: [program] },
   );
   const syntheticProgramId = snapshot.operation.createdPrograms![0].id;
   syntheticPrograms.set(canonicalFileName, {

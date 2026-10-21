@@ -1,0 +1,17 @@
+asset bundle.js 12.2 KiB [emitted] (name: main)
+./src/app.ts 1.29 KiB [built] [code generated]
+./src/m0.ts 114 bytes [built] [code generated]
+./src/m1.ts 114 bytes [built] [code generated]
+./src/m2.ts 114 bytes [built] [code generated]
+./src/m3.ts 114 bytes [built] [code generated]
+./src/m4.ts 114 bytes [built] [code generated]
+./src/m5.ts 114 bytes [built] [code generated]
+./src/m6.ts 114 bytes [built] [code generated]
+./src/m7.ts 114 bytes [built] [code generated]
+./src/m8.ts 114 bytes [built] [code generated]
+./src/m9.ts 114 bytes [built] [code generated]
+./src/m10.ts 117 bytes [built] [code generated]
+./src/m11.ts 117 bytes [built] [code generated]
+./src/m12.ts 117 bytes [built] [code generated]
++ 12 modules
+webpack compiled successfully

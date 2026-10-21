@@ -1,0 +1,7 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"strict": true
+	},
+	"files": ["src/globals.d.ts"]
+}
