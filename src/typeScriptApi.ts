@@ -13,8 +13,7 @@ import type {
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
-import type { FileSystemCallbacks } from 'typescript/fs';
-import { serverFS } from 'typescript/fs';
+import { createFileSystemLayer } from 'typescript/fs';
 
 import * as constants from './constants';
 import {
@@ -40,55 +39,13 @@ interface TypeScriptApiModule {
 export function createTypeScriptInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
-  files: TSInstance['files'],
   resolvedFilePathCache: ResolvedFilePathCache,
 ): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
-
-  /**
-   * Tries `fileName` as-is, then falls back to its pre-alias form (see
-   * `toRealFacingFileName`) - shared by the fs.fileExists/readFile overrides below.
-   *
-   * @param fileName The name of the file to look up.
-   * @returns The content of the file if it exists, otherwise `undefined`.
-   */
-  const contentFor = (fileName: string) =>
-    files.get(resolvedFilePathCache(fileName))?.text;
-
-  /**
-   * Looks up the content of a virtual file, trying the API-facing name first,
-   * then falling back to the real-facing name if necessary.
-   *
-   * @param fileName The name of the file to look up.
-   * @returns The content of the file if it exists, otherwise `undefined`.
-   */
-  const lookupVirtualFile = (fileName: string): string | undefined => {
-    const content = contentFor(fileName);
-    if (content !== undefined) {
-      return content;
-    }
-    const realFileName = toRealFacingFileName(fileName);
-    return realFileName === undefined ? undefined : contentFor(realFileName);
-  };
-
-  // Only fileExists/readFile are overridden - everything else defers to the
-  // real OS filesystem via the serverFS.useOS sentinel (see FileSystemCallbacks).
-  // Not needed at all in transpileOnly mode, which never touches the API's fs.
-  const fs: FileSystemCallbacks | undefined = loaderOptions.transpileOnly
-    ? undefined
-    : {
-        directoryExists: serverFS.useOS,
-        fileExists: fileName =>
-          lookupVirtualFile(fileName) !== undefined ? true : serverFS.useOS,
-        getAccessibleEntries: serverFS.useOS,
-        readFile: fileName => lookupVirtualFile(fileName) ?? serverFS.useOS,
-        realpath: serverFS.useOS,
-        stat: serverFS.useOS,
-        writeFile: serverFS.useOS,
-        removeFile: serverFS.useOS,
-      };
-
-  const api = new typeScriptApiModule.API(fs ? { fs } : undefined);
+  // No `fs` callbacks: the API reads the host filesystem directly, and the
+  // content webpack hands the loader is layered over it per file instead -
+  // see layerFileContents.
+  const api = new typeScriptApiModule.API();
 
   return {
     api,
@@ -140,147 +97,134 @@ export function getTypeScriptEmit(
     typeScriptInstance,
     instance.resolvedFilePathCache,
     apiFileName,
+    contents,
     forceSyntheticRoot,
   );
   // Keys the per-project caches - see getProjectFileNames.
   const projectKey = syntheticProgramId ?? typeScriptInstance.configFilePath;
-  let outputText: string | undefined;
-  let sourceMapText: string | undefined;
-  // Captured here rather than thrown so index.ts's `loader` can reconstruct
-  // the Error in its own stack frame, matching classic ts-loader's
-  // single-frame stack trace for this failure.
-  let configParseErrorMessage: string | undefined;
 
-  typeScriptInstance.api.runWithTemporaryFileUpdate(
-    snapshot,
-    apiFileName,
-    contents,
-    temporarySnapshot => {
-      // Prefer the project ts-loader explicitly resolved over the API's own
-      // nearest-tsconfig auto-discovery, which can pick an unrelated
-      // tsconfig.json that happens to sit closer to `fileName` on disk.
-      const configuredProject = syntheticProgramId
-        ? temporarySnapshot.getProject(syntheticProgramId)
-        : temporarySnapshot.getConfiguredProject(
-            typeScriptInstance.configFilePath,
-          );
-      // A configured project that failed to parse at all is a hard failure
-      // to surface as-is, not a reason to silently fall back to a different
-      // project that happens to resolve `fileName`.
-      const configuredProjectFailedToParse =
-        configuredProject !== undefined &&
-        configuredProject.program.getConfigFileParsingDiagnostics().length > 0;
-      const project = configuredProjectFailedToParse
-        ? configuredProject
-        : configuredProject?.program.getSourceFile(apiFileName)
-          ? configuredProject
-          : (temporarySnapshot.getDefaultProjectForFile(apiFileName) ??
-            configuredProject);
+  // Prefer the project ts-loader explicitly resolved over the API's own
+  // nearest-tsconfig auto-discovery, which can pick an unrelated
+  // tsconfig.json that happens to sit closer to `fileName` on disk.
+  const configuredProject = syntheticProgramId
+    ? snapshot.getProject(syntheticProgramId)
+    : snapshot.getConfiguredProject(typeScriptInstance.configFilePath);
+  // A configured project that failed to parse at all is a hard failure
+  // to surface as-is, not a reason to silently fall back to a different
+  // project that happens to resolve `fileName`.
+  const configuredProjectFailedToParse =
+    configuredProject !== undefined &&
+    configuredProject.program.getConfigFileParsingDiagnostics().length > 0;
+  const project = configuredProjectFailedToParse
+    ? configuredProject
+    : configuredProject?.program.getSourceFile(apiFileName)
+      ? configuredProject
+      : (snapshot.getDefaultProjectForFile(apiFileName) ?? configuredProject);
 
-      if (!project) {
-        throw new Error(
-          `TypeScript TypeScript mode could not resolve project for ${fileName}.`,
-        );
-      }
+  if (!project) {
+    throw new Error(
+      `TypeScript TypeScript mode could not resolve project for ${fileName}.`,
+    );
+  }
 
-      const program = project.program;
+  const program = project.program;
 
-      const configFileParsingDiagnostics =
-        program.getConfigFileParsingDiagnostics();
-      if (configFileParsingDiagnostics.length > 0) {
-        // A broken tsconfig is a hard failure in classic ts-loader too:
-        // there's nothing left to compile, so report the diagnostic(s) then
-        // throw, which webpack surfaces as a "Module build failed" error.
-        configParseErrorMessage = reportConfigFileParsingErrors(
-          instance,
-          loaderContext,
-          configFileParsingDiagnostics,
-          typeScriptInstance.configFilePath,
-        );
-        return;
-      }
-
-      const emitResult = program.getJavaScriptEmit([apiFileName]);
-      const perFileDiagnostics = dedupeDiagnostics([
-        ...program.getSyntacticDiagnostics(apiFileName),
-        ...emitResult.diagnostics,
-        ...program.getSemanticDiagnostics(apiFileName),
-      ]);
-
-      ({ outputText, sourceMapText } =
-        getOutputAndSourceMapFromTypeScriptEmit(emitResult));
-
-      // A synthetic program has no config files of its own - it's built from
-      // the primary project's, which are what can invalidate it.
-      const configFileNames = (
-        syntheticProgramId
-          ? (temporarySnapshot.getConfiguredProject(
-              typeScriptInstance.configFilePath,
-            )?.program ?? program)
-          : program
-      ).getConfigFileNames();
-      registerTypeScriptDependencies(
+  const configFileParsingDiagnostics =
+    program.getConfigFileParsingDiagnostics();
+  if (configFileParsingDiagnostics.length > 0) {
+    // A broken tsconfig is a hard failure in classic ts-loader too:
+    // there's nothing left to compile, so report the diagnostic(s) then
+    // throw, which webpack surfaces as a "Module build failed" error.
+    // Returned rather than thrown so index.ts's `loader` can reconstruct
+    // the Error in its own stack frame, matching classic ts-loader's
+    // single-frame stack trace for this failure.
+    return {
+      outputText: undefined,
+      sourceMapText: undefined,
+      configParseErrorMessage: reportConfigFileParsingErrors(
+        instance,
         loaderContext,
-        program,
-        fileName,
-        apiFileName,
-        projectKey,
-        configFileNames,
-        instance,
-      );
+        configFileParsingDiagnostics,
+        typeScriptInstance.configFilePath,
+      ),
+    };
+  }
 
-      const errors = filterDiagnosticsForReporting(
-        instance,
-        loaderContext.context,
-        perFileDiagnostics,
-      ).map(diagnostic =>
-        buildTypeScriptError(
-          instance,
-          diagnostic,
-          loaderContext.context,
-          loaderContext._module,
-          '',
-          fileName,
-        ),
-      );
+  const emitResult = program.getJavaScriptEmit([apiFileName]);
+  const perFileDiagnostics = dedupeDiagnostics([
+    ...program.getSyntacticDiagnostics(apiFileName),
+    ...emitResult.diagnostics,
+    ...program.getSemanticDiagnostics(apiFileName),
+  ]);
 
-      // Deferred to processAssets (see reportPendingTypeScriptDiagnostics in
-      // index.ts) so we can tell whether webpack already recorded its own
-      // error for this module and avoid double-counting.
-      instance.pendingDiagnostics.set(
-        instance.resolvedFilePathCache(fileName),
-        {
-          fileName,
-          errors,
-        },
-      );
+  const { outputText, sourceMapText } =
+    getOutputAndSourceMapFromTypeScriptEmit(emitResult);
 
-      // A dependant's diagnostics can change without its own module
-      // rebuilding, and webpack has no reason to re-invoke ts-loader for it -
-      // recorded here and rechecked once for the whole build by
-      // recheckAllTransitiveDependants (see index.ts's postCompile hook),
-      // matching classic's afterCompile re-check. Only meaningful against the
-      // primary project: a synthetic one-off program uses the wrong import
-      // graph for any other file.
-      if (syntheticProgramId === undefined) {
-        typeScriptInstance.changedFilesThisBuild.add(apiFileName);
-      }
-
-      // Read out synchronously for the same reason as `errors` above;
-      // emitted as webpack assets later by emitPendingDeclarationFiles.
-      if (
-        program.getCompilerOptions().declaration ||
-        program.getCompilerOptions().composite
-      ) {
-        // Scans the whole project (e.g. an allowJs .js file never passes
-        // through ts-loader's own webpack rule), matching classic's
-        // provideDeclarationFilesToWebpack.
-        recordProjectDeclarationFiles(instance, program);
-      }
-    },
+  // A synthetic program has no config files of its own - it's built from
+  // the primary project's, which are what can invalidate it.
+  const configFileNames = (
+    syntheticProgramId
+      ? (snapshot.getConfiguredProject(typeScriptInstance.configFilePath)
+          ?.program ?? program)
+      : program
+  ).getConfigFileNames();
+  registerTypeScriptDependencies(
+    loaderContext,
+    program,
+    fileName,
+    apiFileName,
+    projectKey,
+    configFileNames,
+    instance,
   );
 
-  return { outputText, sourceMapText, configParseErrorMessage };
+  const errors = filterDiagnosticsForReporting(
+    instance,
+    loaderContext.context,
+    perFileDiagnostics,
+  ).map(diagnostic =>
+    buildTypeScriptError(
+      instance,
+      diagnostic,
+      loaderContext.context,
+      loaderContext._module,
+      '',
+      fileName,
+    ),
+  );
+
+  // Deferred to processAssets (see reportPendingTypeScriptDiagnostics in
+  // index.ts) so we can tell whether webpack already recorded its own
+  // error for this module and avoid double-counting.
+  instance.pendingDiagnostics.set(instance.resolvedFilePathCache(fileName), {
+    fileName,
+    errors,
+  });
+
+  // A dependant's diagnostics can change without its own module
+  // rebuilding, and webpack has no reason to re-invoke ts-loader for it -
+  // recorded here and rechecked once for the whole build by
+  // recheckAllTransitiveDependants (see index.ts's postCompile hook),
+  // matching classic's afterCompile re-check. Only meaningful against the
+  // primary project: a synthetic one-off program uses the wrong import
+  // graph for any other file.
+  if (syntheticProgramId === undefined) {
+    typeScriptInstance.changedFilesThisBuild.add(apiFileName);
+  }
+
+  // Read out synchronously for the same reason as `errors` above;
+  // emitted as webpack assets later by emitPendingDeclarationFiles.
+  if (
+    program.getCompilerOptions().declaration ||
+    program.getCompilerOptions().composite
+  ) {
+    // Scans the whole project (e.g. an allowJs .js file never passes
+    // through ts-loader's own webpack rule), matching classic's
+    // provideDeclarationFilesToWebpack.
+    recordProjectDeclarationFiles(instance, program);
+  }
+
+  return { outputText, sourceMapText, configParseErrorMessage: undefined };
 }
 
 /**
@@ -607,16 +551,21 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   }
 }
 
-type ProjectChanges = Pick<
+type SnapshotChanges = Pick<
   CreateSnapshotParams,
-  'openProjects' | 'createPrograms' | 'reconfigurePrograms' | 'removePrograms'
+  | 'openProjects'
+  | 'createPrograms'
+  | 'reconfigurePrograms'
+  | 'removePrograms'
+  | 'fileSystem'
+  | 'ensurePrograms'
 >;
 
 function updateSnapshot(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
-  projectChanges?: ProjectChanges,
+  changes?: SnapshotChanges,
   // Api-facing names of specific files known to have just changed (see
   // `changedFilesThisBuild`) - passed only by recheckAllTransitiveDependants's
   // own snapshot refresh. Tells the API to re-read exactly these files rather
@@ -694,7 +643,7 @@ function updateSnapshot(
   // Windows - see https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
   const apiFacingFileName = resolvedFilePathCache(fileName);
   const params: CreateSnapshotParams = {
-    ...projectChanges,
+    ...changes,
     openFiles: [apiFacingFileName],
     fileNotifications,
   };
@@ -741,6 +690,7 @@ function openPrimaryProject(
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   changedFileNames?: ReadonlySet<string>,
+  changes?: SnapshotChanges,
 ) {
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const snapshot = updateSnapshot(
@@ -748,8 +698,8 @@ function openPrimaryProject(
     resolvedFilePathCache,
     fileName,
     typeScriptInstance.primaryProjectOpened
-      ? undefined
-      : { openProjects: [primaryProjectPath] },
+      ? changes
+      : { ...changes, openProjects: [primaryProjectPath] },
     changedFileNames,
   );
   typeScriptInstance.primaryProjectOpened = true;
@@ -762,47 +712,68 @@ function openPrimaryProject(
 }
 
 /**
- * The primary project's snapshot for the current build, established once and
- * reused for every file compiled against it via runWithTemporaryFileUpdate,
- * instead of calling updateSnapshot per file - see
- * https://github.com/microsoft/TypeScript/issues/63875#issuecomment-5513828692.
- * Refreshed only when `pendingInvalidation`/`pendingChangedFiles`/
- * `pendingRemovedFiles` indicate something may be stale since it was last
- * captured (same gate as getTranspileConfig).
+ * Layers `contents` - what webpack handed the loader, which can differ from
+ * disk (another loader ran first) or not exist there at all (a `.vue.ts`
+ * alias) - over the instance's snapshot for the rest of its life, so every
+ * later snapshot and program sees it too, not just this file's own compile.
+ *
+ * The primary project's snapshot is otherwise refreshed only once per build,
+ * not per file - see
+ * https://github.com/microsoft/TypeScript/issues/63875#issuecomment-5513828692 -
+ * when `pendingInvalidation`/`pendingChangedFiles`/`pendingRemovedFiles`
+ * indicate something may be stale (same gate as getTranspileConfig). That
+ * refresh opens `fileName`, so it carries the layer too: opening a file that
+ * exists only in a layer fails if the layer arrives in a later request.
  */
-function getSnapshot(
+function layerFileContents(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
-) {
+  contents: string,
+): Snapshot {
+  const fileLayer: SnapshotChanges = {
+    fileSystem: createFileSystemLayer([[fileName, contents]]),
+    ensurePrograms: true,
+  };
   if (
     typeScriptInstance.snapshot === undefined ||
     typeScriptInstance.pendingInvalidation ||
     typeScriptInstance.pendingChangedFiles !== undefined ||
     typeScriptInstance.pendingRemovedFiles !== undefined
   ) {
-    openPrimaryProject(typeScriptInstance, resolvedFilePathCache, fileName);
+    return openPrimaryProject(
+      typeScriptInstance,
+      resolvedFilePathCache,
+      fileName,
+      undefined,
+      fileLayer,
+    ).snapshot;
   }
-  const primaryProjectPath = typeScriptInstance.configFilePath;
-  const snapshot = typeScriptInstance.snapshot!;
-  return {
-    snapshot,
-    primaryProjectPath,
-    primaryProject: snapshot.getConfiguredProject(primaryProjectPath),
-  };
+  const previousSnapshot = typeScriptInstance.snapshot;
+  const snapshot = previousSnapshot.update(fileLayer);
+  typeScriptInstance.snapshot = snapshot;
+  previousSnapshot.dispose();
+  return snapshot;
 }
 
 function prepareSnapshotForFile(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
+  contents: string,
   forceSyntheticRoot: boolean,
 ): { snapshot: Snapshot; syntheticProgramId?: SyntheticProjectId } {
-  const { snapshot, primaryProjectPath, primaryProject } = getSnapshot(
+  // Layered before the primary project is consulted below - a layered file
+  // also shows up in directory listings, so it can change which files the
+  // project's `include` globs match (e.g. a virtual `.vue.ts` alias).
+  const snapshot = layerFileContents(
     typeScriptInstance,
     resolvedFilePathCache,
     fileName,
+    contents,
   );
+  const primaryProjectPath = typeScriptInstance.configFilePath;
+  const primaryProject = snapshot.getConfiguredProject(primaryProjectPath);
 
   if (!forceSyntheticRoot && primaryProject?.program.getSourceFile(fileName)) {
     return { snapshot };
@@ -918,8 +889,8 @@ function ensureSyntheticProgramForFile(
  * block) has no inferrable ScriptKind and this API rejects it outright,
  * unlike classic ts-loader's `ts.LanguageService` (which defaults to TS).
  * With no host-level way to set ScriptKind, alias to a virtual
- * `.ts`-suffixed name instead (served via the same `readFile` override as
- * the synthetic config) - appended, not replacing, so relative imports still
+ * `.ts`-suffixed name instead (layered under that name - see
+ * layerFileContents) - appended, not replacing, so relative imports still
  * resolve from the real directory. A no-op for any recognized extension.
  */
 function toApiFacingFileName(fileName: string) {
@@ -927,26 +898,6 @@ function toApiFacingFileName(fileName: string) {
     constants.jsonRegex.test(fileName)
     ? fileName
     : `${fileName}.ts`;
-}
-
-/**
- * Reverses toApiFacingFileName's `.ts` alias, so the `fs.fileExists`/
- * `readFile` overrides below can find a virtual file's content, which is
- * stored under its real name (e.g. `component.vue`), not the alias the
- * TypeScript API round-trips back into the host (e.g. `component.vue.ts`).
- * Returns `undefined` for anything toApiFacingFileName wouldn't have aliased
- * in the first place - a real `.ts`/`.tsx`/`.js`/`.jsx`/`.json` file, which
- * already resolves via its own name and never needs this fallback.
- */
-function toRealFacingFileName(fileName: string): string | undefined {
-  if (!fileName.endsWith('.ts')) {
-    return undefined;
-  }
-  const withoutAlias = fileName.slice(0, -'.ts'.length);
-  return constants.tsTsxJsJsxRegex.test(withoutAlias) ||
-    constants.jsonRegex.test(withoutAlias)
-    ? undefined
-    : withoutAlias;
 }
 
 function getOutputAndSourceMapFromTypeScriptEmit(emitResult: EmitOutput) {

@@ -138,7 +138,6 @@ function getTypeScriptInstance(
     typeScriptApiInstance: createTypeScriptInstance(
       loaderOptions,
       configFilePath,
-      files,
       resolvedFilePathCache,
     ),
     pendingDiagnostics: new Map(),
