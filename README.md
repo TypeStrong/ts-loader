@@ -689,7 +689,7 @@ And in your `tsconfig.json`:
 | --------- | ------------- |
 | `boolean` | `false`       |
 
-> **Note:** Project references are not yet supported in v10, which is built on TypeScript's native API. The option is still accepted, but the rest of this section describes v9 behaviour. Support will be added once the native API makes it possible.
+> **Note:** In v10, project references in `tsconfig.json` are followed by TypeScript's native API. The `projectReferences` loader option is accepted but has no effect, and v10 doesn't build referenced projects to disk the way `tsc --build` does. The rest of this section describes v9 behaviour.
 
 ts-loader has opt-in support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html). With this configuration option enabled, `ts-loader` will incrementally rebuild upstream projects the same way `tsc --build` does. Otherwise, source files in referenced projects will be treated as if they’re part of the root project.
 
