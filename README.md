@@ -114,14 +114,7 @@ build system using the [Node.js API](https://webpack.js.org/api/node/).
 
 ### Examples
 
-We have a number of example setups to accommodate different workflows. Our examples can be found [here](examples/).
-
-> **Note:** The examples have not yet been updated for v10 and still use `ts-loader` v9 or earlier with older versions of TypeScript.
-
-We probably have more examples than we need. That said, here's a good way to get started:
-
-- I want the simplest setup going. Use "[vanilla](examples/vanilla)" `ts-loader`
-- I want the fastest compilation that's available. Use [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin). It performs type checking in a separate process with `ts-loader` just handling transpilation.
+For a minimal webpack 5 setup using `ts-loader` v10 with TypeScript 7, see [examples/simple](examples/simple/).
 
 ### Faster Builds
 
@@ -130,8 +123,6 @@ The simple solution is to disable it by using the `transpileOnly: true` option, 
 
 You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin).
 It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking.
-
-If you'd like to see a simple setup take a look at [our example](examples/fork-ts-checker-webpack-plugin/).
 
 > **Note:** fork-ts-checker-webpack-plugin may not support TypeScript 7 yet. Check its documentation before relying on it with `ts-loader` v10.
 
@@ -332,7 +323,7 @@ module.exports = {
 If you want to speed up compilation significantly you can set this flag.
 However, many of the benefits you get from static type checking between different dependencies in your application will be lost.
 
-It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. To see what this looks like in practice then either take a look at [our example](examples/fork-ts-checker-webpack-plugin). (Note that fork-ts-checker-webpack-plugin may not support TypeScript 7 yet - see [Faster Builds](#faster-builds).)
+It's advisable to use `transpileOnly` alongside the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to get full type checking again. (Note that fork-ts-checker-webpack-plugin may not support TypeScript 7 yet - see [Faster Builds](#faster-builds).)
 
 > Tip: When you add the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin) to your webpack config, the `transpileOnly` will default to `true`, so you can skip that option.
 
@@ -702,7 +693,7 @@ And in your `tsconfig.json`:
 
 ts-loader has opt-in support for [project references](https://www.typescriptlang.org/docs/handbook/project-references.html). With this configuration option enabled, `ts-loader` will incrementally rebuild upstream projects the same way `tsc --build` does. Otherwise, source files in referenced projects will be treated as if they’re part of the root project.
 
-In order to make use of this option your project needs to be correctly configured to build the project references and then to use them as part of the build. See the [Project References Guide](REFERENCES.md) and the example code in the examples which can be found [here](examples/project-references-example/).
+In order to make use of this option your project needs to be correctly configured to build the project references and then to use them as part of the build. See the [Project References Guide](REFERENCES.md).
 
 ### Usage with webpack watch
 
