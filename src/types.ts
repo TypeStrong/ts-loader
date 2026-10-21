@@ -72,7 +72,7 @@ export interface TSFile {
   version: number;
 }
 
-export interface SyntheticProgram {
+interface SyntheticProgram {
   id: SyntheticProjectId;
   /**
    * The root files/options it was last (re)configured with, serialized - a
