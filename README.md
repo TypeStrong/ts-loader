@@ -81,6 +81,8 @@ or
 npm install ts-loader --save-dev
 ```
 
+v10 is currently in beta and published under the `next` dist-tag; to try it, install `ts-loader@next` instead. The command above installs v9, which supports the classic TypeScript compiler API.
+
 You will also need to install TypeScript 7.1+ if you have not already. `ts-loader` compiles through TypeScript's native `typescript/sync` API, which older versions of TypeScript do not provide. Until TypeScript 7.1 has a stable release, install the beta:
 
 ```

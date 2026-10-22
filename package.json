@@ -1,9 +1,14 @@
 {
   "name": "ts-loader",
-  "version": "10.0.0",
+  "version": "10.0.0-beta.0",
   "description": "TypeScript loader for webpack",
   "main": "index.js",
   "types": "dist",
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "index.js"
+  ],
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
     "format": "prettier --write \"src/**/*.*\" \"*.md\"",
@@ -93,7 +98,7 @@
   },
   "peerDependencies": {
     "loader-utils": "*",
-    "typescript": "*",
+    "typescript": ">=7.1.0-beta",
     "webpack": "^4.0.0 || ^5.0.0"
   },
   "peerDependenciesMeta": {

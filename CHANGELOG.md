@@ -1,6 +1,6 @@
 # Changelog
 
-## 10.0.0
+## 10.0.0-beta.0
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
 
