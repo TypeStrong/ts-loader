@@ -1,0 +1,25 @@
+asset bundle.js 12.2 KiB [emitted] (name: main)
+./src/app.ts 1.29 KiB [built] [code generated]
+./src/m0.ts 114 bytes [built] [code generated]
+./src/m1.ts 114 bytes [built] [code generated]
+./src/m2.ts 114 bytes [built] [code generated]
+./src/m3.ts 114 bytes [built] [code generated]
+./src/m4.ts 114 bytes [built] [code generated]
+./src/m5.ts 114 bytes [built] [code generated]
+./src/m6.ts 114 bytes [built] [code generated]
+./src/m7.ts 114 bytes [built] [code generated]
+./src/m8.ts 114 bytes [built] [code generated]
+./src/m9.ts 114 bytes [built] [code generated]
+./src/m10.ts 117 bytes [built] [code generated]
+./src/m11.ts 117 bytes [built] [code generated]
+./src/m12.ts 117 bytes [built] [code generated]
++ 12 modules
+
+ERROR in src/m24.ts
+./src/m24.ts 1:13-16
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36msrc/m24.ts(1,14)[39m[22m
+[1m[31m      TS2322: Type 'string' is not assignable to type 'number'.[39m[22m
+ts-loader-default_db83fb66e6d4c667
+ @ ./src/app.ts 28:14-30
+
+webpack compiled with 1 error

@@ -1,0 +1,19 @@
+{
+  "name": "typescript-7",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "webpack --mode production",
+    "start": "webpack serve --mode development",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "html-webpack-plugin": "^5.6.8",
+    "ts-loader": "file:../..",
+    "typescript": "7.1.0-beta",
+    "webpack": "^5.112.0",
+    "webpack-cli": "^7.2.3",
+    "webpack-dev-server": "^6.1.0"
+  }
+}

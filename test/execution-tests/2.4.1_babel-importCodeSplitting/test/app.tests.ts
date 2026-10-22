@@ -25,20 +25,16 @@ describe("app", () => {
     });
   });
 
-  it("await import results in a module with a default export", async done => {
+  it("await import results in a module with a default export", async () => {
     const c = await import("../src/c");
 
     // .default is the default export
     expect(c.default).toBe("c");
-
-    done();
   });
 
-  it("await import results in a module with an export", async done => {
+  it("await import results in a module with an export", async () => {
     const d = await import("../src/d");
 
     expect(d.d).toBe("d");
-
-    done();
   });
 });

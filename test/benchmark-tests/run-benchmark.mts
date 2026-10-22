@@ -337,6 +337,48 @@ async function main(): Promise<void> {
     );
   }
 
+  // The same fixture with a tsconfig that lists only a .d.ts, so every module
+  // is an orphan file (see generateFixture's `orphanFiles`). typeCheck only:
+  // transpileOnly never builds a program, so it can't differ from above.
+  const orphanFixtureMetaA = generateFixture({
+    fixtureDir: path.join(args.benchmarkDir, 'fixture-a-orphans'),
+    fileCount: args.fileCount,
+    orphanFiles: true,
+  });
+  const orphanFixtureMetaB = generateFixture({
+    fixtureDir: path.join(args.benchmarkDir, 'fixture-b-orphans'),
+    fileCount: args.fileCount,
+    orphanFiles: true,
+  });
+
+  console.log('Running cold build (typeCheck, all orphan files)...');
+  results.push(
+    await runScenario({
+      id: 'cold-typeCheck-orphans',
+      label: 'Cold build (all orphan files)',
+      transpileOnly: false,
+      scenarioType: 'cold',
+      fixtureMetaA: orphanFixtureMetaA,
+      fixtureMetaB: orphanFixtureMetaB,
+      args,
+      outRoot,
+    })
+  );
+
+  console.log('Running incremental rebuild, hub touch (typeCheck, all orphan files)...');
+  results.push(
+    await runScenario({
+      id: 'incremental-hub-typeCheck-orphans',
+      label: 'Incremental rebuild (hub touch, all orphan files)',
+      transpileOnly: false,
+      scenarioType: 'hub',
+      fixtureMetaA: orphanFixtureMetaA,
+      fixtureMetaB: orphanFixtureMetaB,
+      args,
+      outRoot,
+    })
+  );
+
   const json = {
     generatedAt: new Date().toISOString(),
     rootA: args.rootA,

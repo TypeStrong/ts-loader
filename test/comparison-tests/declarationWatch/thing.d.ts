@@ -1,3 +1,3 @@
-declare module Thing {
-	function doSomething();
+declare namespace Thing {
+	function doSomething(): void;
 }

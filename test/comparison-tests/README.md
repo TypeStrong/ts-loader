@@ -72,6 +72,8 @@ patch0 is applied:
 - test/someFeature/expectedOutput/patch0/bundle.js - *bundle after applying patch*
 - test/someFeature/expectedOutput/patch0/output.txt - *output after applying patch*
 
+A patch can also delete a file: an empty file named `<file>.__deleted__` (e.g. `patch0/dep.ts.__deleted__`) deletes `<file>` when that patch is applied. See `deletedFileWatch` for an example.
+
 ## Flaky tests
 
 Some of the tests in the pack are flaky.  For the most part the failures they occasionally experience are not significant.  If you want a test to be allowed to fail without failing the overall build whilst still seeing the output then place a file with the name `_FLAKY_` in the root of that particular test.

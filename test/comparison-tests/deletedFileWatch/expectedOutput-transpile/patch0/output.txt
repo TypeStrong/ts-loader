@@ -1,0 +1,22 @@
+asset bundle.js 2.43 KiB [emitted] (name: main)
+./src/app.ts 160 bytes [code generated]
+
+ERROR in ./src/app.ts 4:14-30
+Module not found: Error: Can't resolve './dep' in 'src'
+resolve './dep' in 'src'
+  using description file: package.json (relative path: ./.test/deletedFileWatch/src)
+    Field 'browser' doesn't contain a valid alias configuration
+    using description file: package.json (relative path: ./.test/deletedFileWatch/src/dep)
+      no extension
+        Field 'browser' doesn't contain a valid alias configuration
+        src/dep doesn't exist
+      .ts
+        Field 'browser' doesn't contain a valid alias configuration
+        src/dep.ts doesn't exist
+      .js
+        Field 'browser' doesn't contain a valid alias configuration
+        src/dep.js doesn't exist
+      as directory
+        src/dep doesn't exist
+
+webpack compiled with 1 error

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "lib": ["es2022", "dom", "dom.iterable"],
+    "types": [],
+    "strict": true,
+    "verbatimModuleSyntax": true,
+    "isolatedModules": true,
+    "sourceMap": true
+  },
+  "include": ["src"]
+}

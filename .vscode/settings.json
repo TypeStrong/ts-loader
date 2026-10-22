@@ -8,5 +8,6 @@
     "sed": true,
     "npm": true,
     "git check-ignore": true
-  }
+  },
+  "editor.formatOnSave": true
 }

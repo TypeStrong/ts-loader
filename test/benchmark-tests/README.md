@@ -10,7 +10,7 @@ Their fixtures are tiny (a handful of files, 1-2 watch patches) and built for ou
 
 ## How it works
 
-1. `generate-fixture.mts` writes a synthetic TypeScript project: a `hub` module imported by most other files, many independent `leaf` modules (imported by only a couple of files each), `mid` modules that combine a few leaves, and an entry point that imports every `mid`. Two identical copies are generated (`.benchmark/fixture-a`, `.benchmark/fixture-b`) so the two sides' watch sessions never see each other's file changes.
+1. `generate-fixture.mts` writes a synthetic TypeScript project: a `hub` module imported by most other files, many independent `leaf` modules (imported by only a couple of files each), `mid` modules that combine a few leaves, and an entry point that imports every `mid`. Two identical copies are generated (`.benchmark/fixture-a`, `.benchmark/fixture-b`) so the two sides' watch sessions never see each other's file changes. A second pair (`fixture-a-orphans`, `fixture-b-orphans`) has the same modules but a tsconfig whose `files` lists only a `.d.ts`, so every module is an "orphan" outside the configured project - a common older ts-loader setup that takes a different code path (the synthetic orphan program). It's used for two extra typeCheck scenarios: a cold build and a hub-touch rebuild.
 2. `scenarios.mts` provides the primitives: a cold (non-watch) build, and a watch session with a `nextCompile()` you can await after touching a file.
 3. `run-side.mts` runs every iteration of one scenario for *one side* in its own Node process, so the two TypeScript + webpack instances never share a V8 heap (shared-heap GC pressure was a real source of measurement bias). It's invoked as a subprocess by `run-benchmark.mts`, never run directly.
 4. `run-benchmark.mts` is the CLI entry point, run directly by Node's native TypeScript support (Node 24+, no build step). The `.mts` extension marks these as ES modules regardless of the package's own CommonJS `type`, matching how `import`/`export` is authored elsewhere in this repo. For both `transpileOnly: true` and `transpileOnly: false`, it runs:
@@ -41,6 +41,17 @@ Other flags: `--files <n>` (default 300, the fixture's module count), `--warmup 
 Results are written to `.benchmark/benchmark-results.json` (raw samples) and `.benchmark/benchmark-results.md` (summary table), and also printed to stdout.
 
 In CI, `.github/workflows/benchmark.yml` runs this on Ubuntu, macOS and Windows (one matrix job per OS), building the PR branch with the shared `.github/actions/build-ts-loader` action and the base branch in a sibling git worktree. On Windows that action copies the checkout to `C:\source\ts-loader`, so the benchmark runs from there (base branch at `C:\source\ts-loader-main`).
+
+## Cleaning up
+
+Nothing here cleans up after itself automatically:
+
+```bash
+rm -rf .benchmark                                      # gitignored fixture + results, safe to delete any time
+git worktree remove ../ts-loader-main                  # drop the comparison checkout
+```
+
+If `git worktree remove` refuses because of untracked/modified files left behind by `npm install`/`npm run build`, either clean those up first or pass `--force`. Once the worktree directory is gone, `git worktree list` may still show a stale entry until you run `git worktree prune`.
 
 ## Interpreting deltas
 

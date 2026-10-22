@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"baseUrl": ".",
+		"paths": {
+			"@lib/*": ["lib/*"]
+		}
+	},
+	"include": ["src"]
+}
