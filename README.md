@@ -28,11 +28,9 @@
 
 - [Getting Started](#getting-started)
   - [Installation](#installation)
-  - [Upgrading to v10](#upgrading-to-v10)
   - [Running](#running)
   - [Examples](#examples)
   - [Faster Builds](#faster-builds)
-  - [Yarn Plug’n’Play](#yarn-plugnplay)
   - [Babel](#babel)
   - [Compatibility](#compatibility)
   - [Configuration](#configuration)
@@ -95,18 +93,6 @@ or
 npm install typescript@beta --save-dev
 ```
 
-### Upgrading to v10
-
-v10 is a rewrite of `ts-loader` on top of TypeScript's native (`tsgo`-powered) API. Before upgrading, note that:
-
-- TypeScript 7.1+ and Node.js 22+ are required.
-- The `compilerOptions`, `context`, `happyPackMode`, `onlyCompileBundledFiles`, `experimentalWatchApi` and `experimentalFileCaching` loader options have been removed. Supplying any of them fails the build with an "unexpected loader option" error. Set compiler options in your `tsconfig.json` instead.
-- `getCustomTransformers`, `resolveModuleName`, `resolveTypeReferenceDirective` and `projectReferences` are still accepted but currently have no effect. See [projectReferences](#projectreferences) for the state of project references support.
-- The [`compiler`](#compiler) option must resolve to a package that exposes a `<compiler>/sync` entry point.
-- `errorFormatter`'s `colors` argument is now a small `picocolors`-backed helper rather than a `chalk` instance.
-
-See the [changelog](CHANGELOG.md) for full details.
-
 ### Running
 
 Use webpack like normal, including `webpack --watch` and `webpack-dev-server`, or through another
@@ -125,12 +111,6 @@ You probably don't want to give up type checking; that's rather the point of Typ
 It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking.
 
 > **Note:** fork-ts-checker-webpack-plugin may not support TypeScript 7 yet. Check its documentation before relying on it with `ts-loader` v10.
-
-### Yarn Plug’n’Play
-
-> **Note:** Yarn Plug’n’Play integration is not currently supported in v10. The [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration) integration relies on the [`resolveModuleName`](#resolvemodulename-and-resolvetypereferencedirective) option, which TypeScript's native API does not currently support.
-
-`ts-loader` v9 and earlier support [Yarn Plug’n’Play](https://yarnpkg.com/en/docs/pnp). The recommended way to integrate is using the [pnp-webpack-plugin](https://github.com/arcanis/pnp-webpack-plugin#ts-loader-integration).
 
 ### Babel
 
