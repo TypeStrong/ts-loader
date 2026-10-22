@@ -4,17 +4,11 @@
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
 
-This is a ground-up rewrite of ts-loader's compilation engine. Instead of driving TypeScript's classic `LanguageService` / `Program` / watch APIs, ts-loader now compiles exclusively through TypeScript's new native `typescript/sync` API (the [tsgo](https://github.com/microsoft/typescript-go)-powered engine) - the legacy compiler API integration has been removed entirely.
-
-### Not supported yet
-
-- `getCustomTransformers` is still accepted for backwards compatibility but are now inert. The native API doesn't expose equivalent extension points for custom transformes. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
-- `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert. Support for custom resolvers is available: https://github.com/microsoft/TypeScript/pull/64299 - however it is not clear this is a feature generally used by ts-loader users and so has not been implemented at present.
-- Project references in `tsconfig.json` are followed by the native API. The `projectReferences` loader option is accepted but has no effect, and v10 doesn't build referenced projects to disk the way `tsc --build` does.
+This is a ground-up rewrite of ts-loader's compilation engine. Instead of driving TypeScript's classic `LanguageService` / `Program` / watch APIs, ts-loader now compiles exclusively through TypeScript's new native `typescript/sync` API (https://devblogs.microsoft.com/typescript/announcing-typescript-7-1-beta/#typescript-7.1-api) - the legacy compiler API integration has been removed entirely.
 
 ### Breaking changes:
 
-- Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). Until TypeScript 7.1 has a stable release, that means the 7.1 beta (`typescript@beta`) or later.
+- Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). Until TypeScript 7.1 has a stable release, that means the 7.1 beta or later.
 - Minimum supported Node.js version is now 22.x+ (up from 12.x+).
 - The `compiler` option must now resolve to a package exposing a `<compiler>/sync` entry point (the TypeScript native API). Drop-in classic-API compilers (e.g. `ttypescript`) are no longer supported.
 - Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
@@ -25,6 +19,12 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 - Removed the `onlyCompileBundledFiles` loader option; the native API always resolves a project's own root files and offers no hook to restrict them to what webpack actually bundles.
 - Info-level log messages are now written to stderr by default, as documented; previously they always went to stdout regardless of `logInfoToStdOut`. Set `logInfoToStdOut: true` to keep them on stdout.
 - `errorFormatter`'s `colors` argument is now a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper object instead of a `chalk` instance; `chalk` has been dropped as a runtime dependency in favour of `picocolors`.
+
+### Not supported yet
+
+- `getCustomTransformers` is still accepted for backwards compatibility but are now inert. The native API doesn't expose equivalent extension points for custom transformes. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+- `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert. Support for custom resolvers is available: https://github.com/microsoft/TypeScript/pull/64299 - however it is not clear this is a feature generally used by ts-loader users and so has not been implemented at present.
+- Project references in `tsconfig.json` are followed by the native API. The `projectReferences` loader option is accepted but has no effect, and v10 doesn't build referenced projects to disk the way `tsc --build` does.
 
 ## 9.6.2
 
