@@ -14,6 +14,7 @@ import type {
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
+import type { StringLiteralLikeNode } from 'typescript/ast';
 import { createFileSystemLayer } from 'typescript/fs';
 
 import * as constants from './constants';
@@ -1197,12 +1198,11 @@ function getDependencyVersionTag(
 }
 
 /**
- * Makes `fileName` dependent on other project source files it actually
- * imports via a relative specifier (e.g. `./dep1`), matching classic
- * ts-loader's dependency-graph tracking. Bare/absolute specifiers are left
- * alone: webpack's own module graph already tracks genuinely bundled ones,
- * and an unresolved specifier shouldn't force a rebuild on some unrelated
- * file's change (see the aliasResolution test).
+ * Makes `fileName` dependent on the other project source files it imports
+ * (see getDirectResolvedImports), matching classic ts-loader's
+ * dependency-graph tracking. A type-only import is erased before webpack sees
+ * it, so this is the only thing that rebuilds `fileName` when such a file
+ * changes.
  *
  * Always recomputed fresh rather than read from `directImportsCache` -
  * `fileName` may have just been live-edited, so a cached entry (populated by
@@ -1218,10 +1218,11 @@ function registerResolvedImportDependencies(
   comparableSourceFileNames: ReadonlySet<string>,
   addDependency: (dependencyFileName: string) => void,
 ) {
-  const resolvedImports = getDirectResolvedImports(
+  const [resolvedImports] = getDirectResolvedImports(
+    typeScriptInstance,
     resolvedFilePathCache,
     program,
-    fileName,
+    [fileName],
     comparableSourceFileNames,
   );
   typeScriptInstance.directImportsCache.set(
@@ -1240,7 +1241,8 @@ function registerResolvedImportDependencies(
  * instead of recomputing every project file's imports from scratch on every
  * single compile. Only safe for files *other* than the one currently being
  * compiled - see `registerResolvedImportDependencies`, which always computes
- * fresh for that one and writes the result back here.
+ * fresh for that one and writes the result back here. Every uncached file is
+ * resolved in the same batch.
  *
  * Keyed via `resolvedPathCache` rather than `fileName` itself, since
  * `fileName` here is forward-slash-normalized (from `program.getSourceFileNames()`
@@ -1252,75 +1254,92 @@ function getCachedDirectResolvedImports(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   program: Program,
-  fileName: string,
+  fileNames: readonly string[],
   comparableSourceFileNames: ReadonlySet<string>,
-): readonly string[] {
-  const cachedFilePath = resolvedFilePathCache(fileName);
-  const cachedDirectResolvedImports =
-    typeScriptInstance.directImportsCache.get(cachedFilePath);
-  if (cachedDirectResolvedImports) {
-    return cachedDirectResolvedImports;
+): (readonly string[])[] {
+  const { directImportsCache } = typeScriptInstance;
+  const uncachedFileNames = fileNames.filter(
+    fileName => !directImportsCache.has(resolvedFilePathCache(fileName)),
+  );
+  if (uncachedFileNames.length > 0) {
+    const resolvedImports = getDirectResolvedImports(
+      typeScriptInstance,
+      resolvedFilePathCache,
+      program,
+      uncachedFileNames,
+      comparableSourceFileNames,
+    );
+    uncachedFileNames.forEach((fileName, index) =>
+      directImportsCache.set(
+        resolvedFilePathCache(fileName),
+        resolvedImports[index],
+      ),
+    );
   }
-
-  const directResolvedImports = getDirectResolvedImports(
-    resolvedFilePathCache,
-    program,
-    fileName,
-    comparableSourceFileNames,
+  return fileNames.map(fileName =>
+    directImportsCache.get(resolvedFilePathCache(fileName))!,
   );
-  typeScriptInstance.directImportsCache.set(
-    cachedFilePath,
-    directResolvedImports,
-  );
-  return directResolvedImports;
 }
 
 /**
- * The other project files `fileName` actually imports via a relative
- * specifier (e.g. `./dep1`) - see registerResolvedImportDependencies for
- * why bare/unresolved specifiers are excluded. `comparableSourceFileNames`
- * (the project's source file names, forward-slash-normalized) is a caller
- * concern - see its call sites - since it's the same for every file checked
- * in a given pass and rebuilding it per file is itself an O(n) cost.
+ * The other project files each of `fileNames` imports (OS-native names), as
+ * resolved by the program itself - so `paths`, `baseUrl`, package `exports`
+ * and the like all count, not just relative specifiers. Unresolved imports
+ * and ones resolving outside the project (e.g. node_modules) are left out:
+ * neither should make a file rebuild on some unrelated file's change (see the
+ * aliasResolution test). `comparableSourceFileNames` (the project's source
+ * file names, forward-slash-normalized) is a caller concern - see its call
+ * sites - since it's the same for every file checked in a given pass and
+ * rebuilding it per file is itself an O(n) cost.
+ *
+ * Resolution is one API request per import, so all of them are sent as a
+ * single batch rather than one round trip each.
  */
 function getDirectResolvedImports(
+  typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   program: Program,
-  fileName: string,
+  fileNames: readonly string[],
   comparableSourceFileNames: ReadonlySet<string>,
-): string[] {
-  const sourceFile = program.getSourceFile(fileName);
-  if (!sourceFile) {
-    return [];
-  }
+): string[][] {
+  const { api } = typeScriptInstance;
+  const sourceFiles = api.batch(
+    ...fileNames.map(fileName => program.getSourceFile.gen(fileName)),
+  );
 
-  // resolveRelativeSpecifier builds its candidate via Node's OS-native
-  // `path` module - compared via toComparablePath for membership only, the
-  // returned candidate itself stays OS-native.
-  const fromDir = path.dirname(fileName);
-  const resolvedImports: string[] = [];
+  const importingFileIndexes: number[] = [];
+  const resolutionRequests = sourceFiles.flatMap((sourceFile, index) =>
+    (sourceFile?.imports ?? []).map(specifierNode => {
+      importingFileIndexes.push(index);
+      return program.getResolvedModuleFromModuleSpecifier.gen(
+        specifierNode as StringLiteralLikeNode,
+        fileNames[index],
+      );
+    }),
+  );
+  const resolvedModules =
+    resolutionRequests.length > 0 ? api.batch(...resolutionRequests) : [];
 
-  for (const specifierNode of sourceFile.imports) {
-    // `imports` is a module specifier expression - a string literal in
-    // practice - but the API types it as a generic `Node`, which has no
-    // `.text`.
-    const specifier = (specifierNode as unknown as { text: string }).text;
-    if (typeof specifier !== 'string' || !specifier.startsWith('.')) {
-      continue;
+  const resolvedImports = fileNames.map((): string[] => []);
+  resolvedModules.forEach((resolvedModule, requestIndex) => {
+    if (!resolvedModule || resolvedModule.isExternalLibraryImport) {
+      return;
     }
-
-    const resolvedFileName = resolveRelativeSpecifier(
+    const fileIndex = importingFileIndexes[requestIndex];
+    const comparableResolvedFileName = toComparablePath(
       resolvedFilePathCache,
-      fromDir,
-      specifier,
-      comparableSourceFileNames,
+      resolvedModule.resolvedFileName,
     );
-
-    if (resolvedFileName && resolvedFileName !== fileName) {
-      resolvedImports.push(resolvedFileName);
+    if (
+      comparableSourceFileNames.has(comparableResolvedFileName) &&
+      comparableResolvedFileName !==
+        toComparablePath(resolvedFilePathCache, fileNames[fileIndex])
+    ) {
+      resolvedImports[fileIndex].push(
+        path.normalize(resolvedModule.resolvedFileName),
+      );
     }
-  }
-
+  });
   return resolvedImports;
 }
 
@@ -1586,16 +1605,19 @@ function findTransitiveDependants(
   // `projectFileNames` is forward-slash-normalized; getCachedDirectResolvedImports
   // is OS-native, so both need normalizing before comparison - otherwise a
   // multi-hop dependant would never match on Windows past the first hop.
+  const directImports = getCachedDirectResolvedImports(
+    typeScriptInstance,
+    resolvedPathCache,
+    program,
+    projectFileNames,
+    comparableSourceFileNames,
+  );
   const directImportsByFile = new Map(
-    projectFileNames.map(candidateFileName => [
+    projectFileNames.map((candidateFileName, index) => [
       candidateFileName,
-      getCachedDirectResolvedImports(
-        typeScriptInstance,
-        resolvedPathCache,
-        program,
-        candidateFileName,
-        comparableSourceFileNames,
-      ).map(fileName => toComparablePath(resolvedPathCache, fileName)),
+      directImports[index].map(fileName =>
+        toComparablePath(resolvedPathCache, fileName),
+      ),
     ]),
   );
 
@@ -1636,52 +1658,6 @@ function findTransitiveDependants(
   }
 
   return dependants;
-}
-
-const relativeSpecifierExtensions = [
-  '',
-  '.ts',
-  '.tsx',
-  '.d.ts',
-  '.mts',
-  '.d.mts',
-  '.cts',
-  '.d.cts',
-  '.js',
-  '.jsx',
-];
-
-function resolveRelativeSpecifier(
-  resolvedFilePathCache: ResolvedFilePathCache,
-  fromDir: string,
-  specifier: string,
-  comparableSourceFileNames: ReadonlySet<string>,
-): string | undefined {
-  const resolvedBase = path.resolve(fromDir, specifier);
-
-  for (const extension of relativeSpecifierExtensions) {
-    const candidate = resolvedBase + extension;
-    if (
-      comparableSourceFileNames.has(
-        toComparablePath(resolvedFilePathCache, candidate),
-      )
-    ) {
-      return candidate;
-    }
-  }
-
-  for (const extension of relativeSpecifierExtensions) {
-    const candidate = path.join(resolvedBase, `index${extension}`);
-    if (
-      comparableSourceFileNames.has(
-        toComparablePath(resolvedFilePathCache, candidate),
-      )
-    ) {
-      return candidate;
-    }
-  }
-
-  return undefined;
 }
 
 /** Forward-slash-normalized form of a file name - the API's own separator. */

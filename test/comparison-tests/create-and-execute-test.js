@@ -52,8 +52,9 @@ if (fs.statSync(testPath).isDirectory() &&
             testToRun === 'declarationWatch' ||
             testToRun === 'issue71' ||
             testToRun === 'appendSuffixToWatch' ||
-            // transpileOnly never watches unbundled files, so its patches trigger no rebuild
-            testToRun === 'unbundledFileErrorsWatch') { return; }
+            // transpileOnly never watches unbundled files (or files only reached via a type-only import), so their patches trigger no rebuild
+            testToRun === 'unbundledFileErrorsWatch' ||
+            testToRun === 'pathsAliasWatch') { return; }
 
         // @ts-ignore
         it('should work with transpileOnly', createTest(testToRun, testPath, { transpileOnly: true }));
