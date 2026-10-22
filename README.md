@@ -105,7 +105,7 @@ For a minimal webpack 5 setup using `ts-loader` v10 with TypeScript 7, see [exam
 ### Faster Builds
 
 As your project becomes bigger, compilation time increases linearly. It's because typescript's semantic checker has to inspect all files on every rebuild.
-The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking and _will not output declaration files_.
+The simple solution is to disable it by using the `transpileOnly: true` option, but doing so leaves you without type checking, and without declaration files unless your project uses [`isolatedDeclarations`](#declaration-files-dts).
 
 You probably don't want to give up type checking; that's rather the point of TypeScript. So what you can do is use the [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin).
 It runs the type checker on a separate process, so your build remains fast thanks to `transpileOnly: true` but you still have the type checking.
@@ -212,7 +212,7 @@ TypeScript also supports ECMAScript's `import()` calls, which import a module an
 
 ### Declaration Files (.d.ts)
 
-To output declaration files (.d.ts), you can set "declaration": true in your tsconfig and set "transpileOnly" to false.
+To output declaration files (.d.ts), set `"declaration": true` in your tsconfig. With `transpileOnly: false` (the default) they are emitted from the type-checked program. With `transpileOnly: true` they are only emitted if you also set [`"isolatedDeclarations": true`](https://www.typescriptlang.org/tsconfig/#isolatedDeclarations), which lets each file's declarations be generated without type-checking the whole project.
 
 If you use ts-loader with "transpileOnly": true along with [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin), you will need to configure fork-ts-checker-webpack-plugin to output definition files, you can learn more on the plugin's documentation page: https://github.com/TypeStrong/fork-ts-checker-webpack-plugin#typescript-options
 
@@ -335,13 +335,13 @@ These options should be functions which will be used to resolve the import state
 
 #### getCustomTransformers
 
-| Type                                                                                                                                                                                              |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `(program: Program, getProgram: () => Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; afterDeclarations?: TransformerFactory<SourceFile>[]; }` |
+| Type                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `string \| ((program: Program, getProgram: () => Program) => { before?: TransformerFactory<SourceFile>[]; after?: TransformerFactory<SourceFile>[]; afterDeclarations?: TransformerFactory<SourceFile>[]; })` |
 
 > **Note:** This option is accepted for backwards compatibility but currently has no effect. TypeScript's native API does not expose custom transformers. If it gains support, this option will work again; if it never does, it will be removed.
 
-Provide custom transformers. For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
+Provide custom transformers, either as a function or as the path to a module exporting one. For example usage take a look at [typescript-plugin-styled-components](https://github.com/Igorbek/typescript-plugin-styled-components) or our [test](test/comparison-tests/customTransformer).
 
 #### logInfoToStdOut
 
@@ -349,8 +349,7 @@ Provide custom transformers. For example usage take a look at [typescript-plugin
 | --------- | ------------- |
 | `boolean` | `false`       |
 
-This is important if you read from stdout or stderr and for proper error handling.
-The default value ensures that you can read from stdout e.g. via pipes or you use webpack -j to generate json output.
+Writes `ts-loader`'s own info messages (see [`logLevel`](#loglevel)) to stdout instead of stderr. The default keeps stdout clean, so you can read webpack's own output from it, e.g. via pipes or `webpack --json`.
 
 #### logLevel
 
@@ -358,8 +357,9 @@ The default value ensures that you can read from stdout e.g. via pipes or you us
 | -------- | ------------- |
 | `string` | `warn`        |
 
-Can be `info`, `warn` or `error` which limits the log output to the specified log level.
-Beware of the fact that errors are always written to stderr, and everything else is written to stderr too unless `logInfoToStdOut` is true, in which case it goes to stdout.
+Can be `info`, `warn` or `error`. `ts-loader`'s only console output is a couple of info messages (which TypeScript API and `tsconfig.json` it is using, and a notice if the compiler process fails to shut down cleanly): `info` shows them, while `warn` and `error` both hide them. They go to stderr unless [`logInfoToStdOut`](#loginfotostdout) is `true`.
+
+TypeScript errors and warnings are not affected by this option - they are always reported through webpack.
 
 #### silent
 
@@ -428,7 +428,7 @@ The package must expose TypeScript's native API at a `<compiler>/sync` entry poi
 | --------- | ------------- |
 | `boolean` | `true`        |
 
-If `false`, disables built-in colors in logger messages.
+If `false`, disables colors in `ts-loader`'s logger messages and in the TypeScript errors and warnings it reports (including the `colors` helper passed to a custom [`errorFormatter`](#errorformatter)). Colors are also disabled automatically when the terminal doesn't support them.
 
 #### errorFormatter
 
@@ -443,7 +443,7 @@ By default `ts-loader` formats TypeScript compiler output for an error or a warn
       TS4711: you did something very wrong
 ```
 
-If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter. Please note that the `colors` parameter is a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper object which you can use to color your output. (It will respect the `colors` option.)
+If that format is not to your taste you can supply your own formatter using the `errorFormatter` option. Below is a template for a custom error formatter. The `colors` parameter is a small [`picocolors`](https://github.com/alexeyraspopov/picocolors)-backed helper you can use to color your output; it respects the [`colors`](#colors) option.
 
 ```javascript
 function customErrorFormatter(error, colors) {
@@ -462,17 +462,20 @@ If the above formatter received an error like this:
 {
   "code": 2307,
   "severity": "error",
-  "content": "Cannot find module 'components/myComponent2'.",
-  "file": "/.test/errorFormatter/app.ts",
+  "content": "Cannot find module 'components/myComponent2' or its corresponding type declarations.",
+  "file": "/path/to/project/app.ts",
   "line": 2,
-  "character": 31
+  "character": 31,
+  "context": "/path/to/project"
 }
 ```
+
+`file` is the absolute path of the file the diagnostic is in (empty for a diagnostic that isn't tied to a file), and `context` is the directory of the module being compiled.
 
 It would produce an error message that said:
 
 ```
-Does not compute.... code: 2307,severity: error,content: Cannot find module 'components/myComponent2'.,file: /.test/errorFormatter/app.ts,line: 2,character: 31
+Does not compute.... code: 2307,severity: error,content: Cannot find module 'components/myComponent2' or its corresponding type declarations.,file: /path/to/project/app.ts,line: 2,character: 31,context: /path/to/project
 ```
 
 And the bit after "Does not compute.... " would be red.
@@ -500,26 +503,13 @@ instance and rules with different options get separate ones.
 | ---------------------- | ------------- |
 | `(RegExp \| string)[]` | `[]`          |
 
-A list of regular expressions to be matched against filename. If filename matches one of the regular expressions, a `.ts` or `.tsx` suffix will be appended to that filename.
+Patterns (regular expressions, or strings that are treated as regular expressions) matched against each file name. If a file name matches one, a `.ts` or `.tsx` suffix is appended to it, so TypeScript treats the file as TypeScript (or TSX) whatever its extension.
 
-```js
-// change this:
-{
-  appendTsSuffixTo: [/\.vue$/];
-}
-// to:
-{
-  appendTsSuffixTo: ['\\.vue$'];
-}
-```
-
-This is useful for `*.vue` [file format](https://vuejs.org/v2/guide/single-file-components.html) for now. (Probably will benefit from the new single file format in the future.)
-
-Example:
-
-webpack.config.js:
+This is useful for single-file component formats such as [Vue](https://vuejs.org/guide/scaling-up/sfc.html), whose `<script lang="ts">` blocks reach `ts-loader` under the component's own `.vue` file name:
 
 ```javascript
+const { VueLoaderPlugin } = require('vue-loader');
+
 module.exports = {
   entry: './index.vue',
   output: { filename: 'bundle.js' },
@@ -536,93 +526,11 @@ module.exports = {
       },
     ],
   },
+  plugins: [new VueLoaderPlugin()],
 };
 ```
 
-index.vue
-
-```vue
-<template>
-  <p>hello {{ msg }}</p>
-</template>
-<script lang="ts">
-export default {
-  data(): Object {
-    return {
-      msg: 'world',
-    };
-  },
-};
-</script>
-```
-
-We can handle `.tsx` by quite similar way:
-
-webpack.config.js:
-
-```javascript
-module.exports = {
-  entry: './index.vue',
-  output: { filename: 'bundle.js' },
-  resolve: {
-    extensions: ['.ts', '.tsx', '.vue', '.vuex'],
-  },
-  module: {
-    rules: [
-      {
-        test: /\.vue$/,
-        loader: 'vue-loader',
-        options: {
-          loaders: {
-            ts: 'ts-loader',
-            tsx: 'babel-loader!ts-loader',
-          },
-        },
-      },
-      {
-        test: /\.ts$/,
-        loader: 'ts-loader',
-        options: { appendTsSuffixTo: [/TS\.vue$/] },
-      },
-      {
-        test: /\.tsx$/,
-        loader: 'babel-loader!ts-loader',
-        options: { appendTsxSuffixTo: [/TSX\.vue$/] },
-      },
-    ],
-  },
-};
-```
-
-tsconfig.json (set `jsx` option to `preserve` to let babel handle jsx)
-
-```json
-{
-  "compilerOptions": {
-    "jsx": "preserve"
-  }
-}
-```
-
-index.vue
-
-```vue
-<script lang="tsx">
-export default {
-  functional: true,
-  render(h, c) {
-    return <div>Content</div>;
-  },
-};
-</script>
-```
-
-Or if you want to use only tsx, just use the `appendTsxSuffixTo` option only:
-
-```javascript
-            { test: /\.ts$/, loader: 'ts-loader' },
-            { test: /\.tsx$/, loader: 'babel-loader!ts-loader', options: { appendTsxSuffixTo: [/\.vue$/] } }
-```
+`appendTsxSuffixTo` works the same way for `<script lang="tsx">` blocks, with a `.tsx` rule.
 
 #### useCaseSensitiveFileNames
 
@@ -640,8 +548,7 @@ Controls whether file paths are treated as case-sensitive. By default `ts-loader
 
 By default, `ts-loader` will not compile `.ts` files in `node_modules`.
 You should not need to recompile `.ts` files there, but if you really want to, use this option.
-Note that this option acts as a _whitelist_ - any modules you desire to import must be included in
-the `"files"` or `"include"` block of your project's `tsconfig.json`.
+Any `.ts` file in `node_modules` that webpack passes to `ts-loader` is then compiled, whether or not your `tsconfig.json`'s `"files"` or `"include"` lists it (unlike v9, where only the files listed there were compiled). To limit which packages are compiled, narrow the webpack rule instead, e.g. with `include`.
 
 See: [https://github.com/Microsoft/TypeScript/issues/12358](https://github.com/Microsoft/TypeScript/issues/12358)
 
@@ -649,18 +556,10 @@ See: [https://github.com/Microsoft/TypeScript/issues/12358](https://github.com/M
   // in webpack.config.js
   {
     test: /\.ts$/,
+    include: [path.resolve(__dirname, 'src'), path.resolve(__dirname, 'node_modules/my_module')],
     loader: 'ts-loader',
     options: { allowTsInNodeModules: true }
   }
-```
-
-And in your `tsconfig.json`:
-
-```json
-{
-  "include": ["node_modules/whitelisted_module.ts"],
-  "files": ["node_modules/my_module/whitelisted_file.ts"]
-}
 ```
 
 #### projectReferences
