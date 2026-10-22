@@ -51,7 +51,9 @@ if (fs.statSync(testPath).isDirectory() &&
             testToRun === 'importsWatch' ||
             testToRun === 'declarationWatch' ||
             testToRun === 'issue71' ||
-            testToRun === 'appendSuffixToWatch') { return; }
+            testToRun === 'appendSuffixToWatch' ||
+            // transpileOnly never watches unbundled files, so its patches trigger no rebuild
+            testToRun === 'unbundledFileErrorsWatch') { return; }
 
         // @ts-ignore
         it('should work with transpileOnly', createTest(testToRun, testPath, { transpileOnly: true }));
@@ -227,9 +229,7 @@ function handleErrors(err, paths) {
 }
 
 function storeStats(stats, testState, paths) {
-    if (stats && stats.hash !== testState.lastHash) {
-        testState.lastHash = stats.hash;
-
+    if (stats) {
         const statsFileName = 'output.txt';
 
         // do a little magic to normalize `\` to `/` for asset output
@@ -265,7 +265,13 @@ function storeStats(stats, testState, paths) {
             .replaceAll(rootPathWithIncorrectWindowsSeparator, '')
             .replace(/\.transpile/g, '');
 
-        fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
+        // A rebuild whose only change is its diagnostics (e.g. an unbundled
+        // file's error being fixed) keeps the same hash, so compare the text too.
+        if (stats.hash !== testState.lastHash || statsString !== testState.lastStatsString) {
+            testState.lastHash = stats.hash;
+            testState.lastStatsString = statsString;
+            fs.writeFileSync(path.join(paths.actualOutput, statsFileName), statsString);
+        }
     }
 }
 

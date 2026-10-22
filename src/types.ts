@@ -180,6 +180,15 @@ export interface TypeScriptInstance {
    * recheckAllTransitiveDependants's comment.
    */
   changedFilesThisBuild: Set<string>;
+  /**
+   * Every file webpack's watcher reported changed or removed since the last
+   * recheckAllTransitiveDependants - unlike `pendingChangedFiles`/
+   * `pendingRemovedFiles`, not consumed by the first compile of a build, so
+   * the end-of-build recheck can see files no loader call ever touches.
+   * `undefined` when webpack can't say (the first build, or webpack 4): every
+   * unbundled project file is rechecked then.
+   */
+  watcherChangedFiles: Set<string> | undefined;
 }
 
 interface PendingTypeScriptDiagnostics {

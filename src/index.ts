@@ -197,8 +197,18 @@ function getTypeScriptInstance(
       compiler.removedFiles?.forEach(fileName => changedFiles.delete(fileName));
       typeScriptInstance.pendingChangedFiles = changedFiles;
       typeScriptInstance.pendingRemovedFiles = removedFiles;
+      // Left `undefined` if a full recheck is still owed from an earlier build.
+      if (typeScriptInstance.watcherChangedFiles) {
+        for (const fileName of [
+          ...(compiler.modifiedFiles ?? []),
+          ...(compiler.removedFiles ?? []),
+        ]) {
+          typeScriptInstance.watcherChangedFiles.add(fileName);
+        }
+      }
     } else {
       instance.typeScriptApiInstance.pendingInvalidation = true;
+      instance.typeScriptApiInstance.watcherChangedFiles = undefined;
     }
   });
 

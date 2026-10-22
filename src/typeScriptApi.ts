@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import * as fs from 'fs';
 import * as path from 'path';
 import type * as webpack from 'webpack';
 import type {
@@ -60,6 +61,7 @@ export function createTypeScriptInstance(
     directImportsCache: new Map(),
     projectFileNamesCache: new Map(),
     changedFilesThisBuild: new Set(),
+    watcherChangedFiles: undefined,
   };
 }
 
@@ -1323,24 +1325,34 @@ function getDirectResolvedImports(
 }
 
 /**
- * Recomputes and stores fresh diagnostics for every project file that
- * (directly or transitively) imports any file compiled so far in the current
- * build (see `changedFilesThisBuild`), so a dependant's type-check is
- * reported even when webpack has no reason to rebuild its own module - e.g.
- * a `mid` file that only imports a `leaf` gets no webpack-level rebuild when
- * a `hub` file both `leaf` and `mid` transitively depend on changes, since
- * `mid` never registered `hub` as one of its own webpack dependencies (see
- * registerResolvedImportDependencies). Matches classic ts-loader's
- * afterCompile re-check.
+ * The end-of-build type-check pass, matching classic ts-loader's afterCompile
+ * re-check. Recomputes and stores fresh diagnostics for:
+ *
+ * - every project file that (directly or transitively) imports any file
+ *   changed in the current build (see `changedFilesThisBuild` and
+ *   `watcherChangedFiles`), so a dependant's type-check is reported even when
+ *   webpack has no reason to rebuild its own module - e.g. a `mid` file that
+ *   only imports a `leaf` gets no webpack-level rebuild when a `hub` file
+ *   both `leaf` and `mid` transitively depend on changes, since `mid` never
+ *   registered `hub` as one of its own webpack dependencies (see
+ *   registerResolvedImportDependencies).
+ * - every project file webpack doesn't bundle (one the tsconfig includes, or
+ *   only reached via a type-only import): all of them when webpack can't say
+ *   what changed, otherwise just the changed ones. Classic ts-loader checked
+ *   these too unless `onlyCompileBundledFiles` was set.
+ *
+ * It also drops stored diagnostics and declaration files for files that are
+ * neither in the program nor a webpack module any more (e.g. deleted), which
+ * would otherwise be re-reported forever.
  *
  * Called once per build from index.ts's postCompile hook rather than once
  * per compiled file: each call already does an O(project size) scan (the
  * dependant search below, plus two diagnostic calls per dependant found), so
  * calling it per file - as an earlier version of this function did - turns a
- * single build into O(files compiled Ă— dependants per file) redundant work.
+ * single build into O(files compiled × dependants per file) redundant work.
  * For a wide-fanout change (a file most of the project depends on, directly
  * or transitively) that's most of the project rechecked once per file
- * webpack recompiles, i.e. close to O(nÂ˛) - measured at over 80% of total
+ * webpack recompiles, i.e. close to O(n²) - measured at over 80% of total
  * build time on a synthetic 300-file fixture. Batching the whole build's
  * changed-file set into a single dependant search and diagnostic pass fixes
  * that without changing what gets reported.
@@ -1351,12 +1363,30 @@ export function recheckAllTransitiveDependants(
 ) {
   const typeScriptInstance = instance.typeScriptApiInstance;
   const changedFileNames = typeScriptInstance.changedFilesThisBuild;
-  if (changedFileNames.size === 0) {
+  const watcherChangedFiles = typeScriptInstance.watcherChangedFiles;
+  if (
+    instance.loaderOptions.transpileOnly ||
+    typeScriptInstance.snapshot === undefined ||
+    (changedFileNames.size === 0 && watcherChangedFiles?.size === 0)
+  ) {
     return;
   }
   // Consumed up front so a later throw here can't replay the same recheck
   // (with a now-stale program) on the next build.
   typeScriptInstance.changedFilesThisBuild = new Set();
+  typeScriptInstance.watcherChangedFiles = new Set();
+
+  // Any already-open, real project file works as the anchor for this
+  // snapshot refresh - the whole point is just to get the primary project's
+  // current program, not to focus on one particular file. A build that
+  // compiled nothing through ts-loader (e.g. one that only edited or deleted
+  // an unbundled file) falls back to any project file still on disk.
+  const anchorFileName =
+    changedFileNames.values().next().value ??
+    findExistingProjectFile(typeScriptInstance, instance.resolvedFilePathCache);
+  if (anchorFileName === undefined) {
+    return;
+  }
 
   // Tells the upcoming updateSnapshot exactly which files may still be stale
   // in its view, rather than forcing a full project rescan. Without this, the
@@ -1374,11 +1404,6 @@ export function recheckAllTransitiveDependants(
   // those entries were invalidated by this build's changes, since only
   // `changedFileNames`' content differs from what they were computed
   // against.
-  //
-  // Any already-open, real project file works as the anchor for this
-  // snapshot refresh - the whole point is just to get the primary project's
-  // current program, not to focus on one particular file.
-  const anchorFileName = changedFileNames.values().next().value as string;
   const { snapshot, primaryProject } = openPrimaryProject(
     typeScriptInstance,
     instance.resolvedFilePathCache,
@@ -1418,26 +1443,57 @@ export function recheckAllTransitiveDependants(
       ),
   );
 
+  const comparableWatcherChangedFiles = watcherChangedFiles
+    ? new Set(
+        [...watcherChangedFiles].map(fileName =>
+          toComparablePath(instance.resolvedFilePathCache, fileName),
+        ),
+      )
+    : undefined;
+
   const dependants = findTransitiveDependants(
     typeScriptInstance,
     instance.resolvedFilePathCache,
     graphProgram,
-    changedFileNames,
+    new Set([...changedFileNames, ...(comparableWatcherChangedFiles ?? [])]),
     projectFileNames,
     comparableSourceFileNames,
   );
 
-  if (dependants.size === 0) {
-    return;
+  const modulesByFile = determineModulesByFile(compilation, instance);
+
+  const filesToCheck = new Map<string, string>();
+  for (const dependantFileName of dependants) {
+    filesToCheck.set(
+      toComparablePath(instance.resolvedFilePathCache, dependantFileName),
+      dependantFileName,
+    );
+  }
+  for (const projectFileName of projectFileNames) {
+    if (modulesByFile.has(instance.resolvedFilePathCache(projectFileName))) {
+      continue;
+    }
+    // No loader call ever registers an unbundled file with webpack's
+    // watcher, so its edits would otherwise never trigger a rebuild.
+    compilation.fileDependencies.add(path.normalize(projectFileName));
+    const comparableFileName = toComparablePath(
+      instance.resolvedFilePathCache,
+      projectFileName,
+    );
+    if (
+      !comparableWatcherChangedFiles ||
+      comparableWatcherChangedFiles.has(comparableFileName)
+    ) {
+      filesToCheck.set(comparableFileName, projectFileName);
+    }
   }
 
-  const modulesByFile = determineModulesByFile(compilation, instance);
   // No single file's own loaderContext applies to a whole-build recheck;
   // the compiler's own context is the natural stand-in for reportFiles glob
   // matching (see filterDiagnosticsForReporting) and error display.
   const context = compilation.compiler.context;
 
-  // Each dependant is checked in the program it's compiled in (see
+  // Each file is checked in the program it's compiled in (see
   // prepareSnapshotForFile), so its diagnostics match a direct compile's.
   const primaryFileNames =
     graphProgram === primaryProgram
@@ -1450,19 +1506,17 @@ export function recheckAllTransitiveDependants(
             ),
         );
 
-  for (const dependantFileName of dependants) {
-    const program = primaryFileNames.has(
-      toComparablePath(instance.resolvedFilePathCache, dependantFileName),
-    )
+  for (const [comparableFileName, fileName] of filesToCheck) {
+    const program = primaryFileNames.has(comparableFileName)
       ? primaryProgram
       : graphProgram;
     const diagnostics = dedupeDiagnostics([
-      ...program.getSyntacticDiagnostics(dependantFileName),
-      ...program.getSemanticDiagnostics(dependantFileName),
+      ...program.getSyntacticDiagnostics(fileName),
+      ...program.getSemanticDiagnostics(fileName),
     ]);
 
-    const dependantModule = modulesByFile.get(
-      instance.resolvedFilePathCache(dependantFileName),
+    const fileModule = modulesByFile.get(
+      instance.resolvedFilePathCache(fileName),
     )?.[0];
 
     const errors = filterDiagnosticsForReporting(
@@ -1470,14 +1524,50 @@ export function recheckAllTransitiveDependants(
       context,
       diagnostics,
     ).map(diagnostic =>
-      buildTypeScriptError(instance, diagnostic, context, dependantModule),
+      buildTypeScriptError(instance, diagnostic, context, fileModule),
     );
 
-    instance.pendingDiagnostics.set(
-      instance.resolvedFilePathCache(dependantFileName),
-      { fileName: dependantFileName, errors },
-    );
+    instance.pendingDiagnostics.set(instance.resolvedFilePathCache(fileName), {
+      fileName,
+      errors,
+    });
   }
+
+  for (const pendingByFile of [
+    instance.pendingDiagnostics,
+    instance.pendingDeclarationFiles,
+  ]) {
+    for (const filePath of pendingByFile.keys()) {
+      if (
+        !modulesByFile.has(filePath) &&
+        !comparableSourceFileNames.has(toForwardSlashPath(filePath))
+      ) {
+        pendingByFile.delete(filePath);
+      }
+    }
+  }
+}
+
+/**
+ * A project file (api-facing name) that still exists on disk, taken from the
+ * instance's current, pre-refresh snapshot - see recheckAllTransitiveDependants.
+ */
+function findExistingProjectFile(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): string | undefined {
+  const program = typeScriptInstance.snapshot?.getConfiguredProject(
+    typeScriptInstance.configFilePath,
+  )?.program;
+  if (!program) {
+    return undefined;
+  }
+  return getProjectFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+    typeScriptInstance.configFilePath,
+    program,
+  ).find(fileName => fs.existsSync(fileName));
 }
 
 /**

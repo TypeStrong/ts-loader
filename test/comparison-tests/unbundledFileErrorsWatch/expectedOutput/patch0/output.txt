@@ -1,0 +1,3 @@
+assets by status 1.35 KiB [cached] 1 asset
+cached modules 120 bytes [cached] 1 module
+webpack compiled successfully
