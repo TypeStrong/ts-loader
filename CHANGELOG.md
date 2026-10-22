@@ -8,7 +8,8 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 
 ### Not supported yet
 
-- `getCustomTransformers`, `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert - the native API doesn't expose equivalent extension points, so custom transformers and custom module/type-reference resolution are no longer applied. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+- `getCustomTransformers` is still accepted for backwards compatibility but are now inert. The native API doesn't expose equivalent extension points for custom transformes. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+- `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert. Support for custom resolvers is available: https://github.com/microsoft/TypeScript/pull/64299 - however it is not clear this is a feature generally used by ts-loader users and so has not been implemented at present.
 - Project references in `tsconfig.json` are followed by the native API. The `projectReferences` loader option is accepted but has no effect, and v10 doesn't build referenced projects to disk the way `tsc --build` does.
 
 ### Breaking changes:
