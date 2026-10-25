@@ -73,7 +73,7 @@ export interface ParentModuleResolver {
  * right directory (the API doesn't say which file is importing), and there's
  * no `compilerHost`.
  */
-export interface CustomResolveModuleName {
+interface CustomResolveModuleName {
   (
     moduleName: string,
     containingFile: string,
