@@ -24,10 +24,9 @@ export interface FileLocation {
 }
 
 /**
- * FilePathKey is a branded type for file paths, ensuring that they are treated
- * as unique keys in maps and caches. This helps prevent accidental mixing of
- * different types of strings and provides better type safety when working with
- * file paths in the TypeScript loader context.
+ * A canonical map key from `resolvedFilePathCache`: resolved, and lowercased
+ * on case-insensitive filesystems. Not for passing to the API (see
+ * `TypeScriptInstance.configFilePath`).
  */
 export type FilePath = string & { __filePathBrandedType: unknown };
 
@@ -102,82 +101,32 @@ export interface TypeScriptInstance {
   orphanRootFileNames: Map<FilePath, string>;
   primaryProjectOpened: boolean;
   /**
-   * Set on creation and by webpack's `compile` hook (once per build/watch
-   * rebuild) - see `updateSnapshot`. Consumed (and cleared) by the first
-   * `updateSnapshot` call of that build, so only that call forces the API to
-   * discard its caches and rescan disk; every other file compiled within the
-   * same build reuses the now-fresh snapshot instead of rescanning again.
+   * Forces a full rescan (`invalidateAll`) on the first updateSnapshot of a
+   * build. Set on creation and by the `compile` hook when webpack can't say
+   * what changed (first build, webpack 4).
    */
   pendingInvalidation: boolean;
   /**
-   * Set by webpack's `compile` hook (once per build/watch rebuild) from
-   * `compiler.modifiedFiles`/`removedFiles` (webpack 5 only, and only once
-   * watching has actually started - both are `undefined` for the first
-   * build) - see `updateSnapshot`. A targeted alternative to
-   * `pendingInvalidation`: webpack's own watcher already knows exactly which
-   * files changed since the last build, so listing them is both sufficient
-   * (matches what `pendingInvalidation`'s full `invalidateAll` was
-   * conservatively guessing at) and far cheaper - it lets `directImportsCache`
-   * survive across builds instead of being discarded and rebuilt from
-   * scratch every single time. Consumed (and cleared) by the first
-   * `updateSnapshot` call of the build, same as `pendingInvalidation`; when
-   * neither this nor `pendingRemovedFiles` is set (webpack 4, or the very
-   * first build), `pendingInvalidation` is used instead.
+   * Webpack 5 watcher's changed files since the last build, set by the
+   * `compile` hook - a cheaper, targeted alternative to `pendingInvalidation`
+   * that lets `directImportsCache` survive. Consumed by the first
+   * updateSnapshot of a build.
    */
   pendingChangedFiles?: ReadonlySet<string>;
-  /** Removed-file counterpart to `pendingChangedFiles` - see there. */
   pendingRemovedFiles?: ReadonlySet<string>;
   /**
-   * Memoizes each project file's direct resolved relative imports (see
-   * getDirectResolvedImports) across every file compiled in the same build -
-   * findTransitiveDependants's dependant search otherwise recomputes this
-   * from scratch for every project file on every single compile. Cleared
-   * whenever `pendingInvalidation` forces a real rescan (see updateSnapshot),
-   * since only then could another file's content have changed on disk.
-   *
-   * Keyed by `FilePathKey` (via `ResolvedPathCache`), not a raw file name -
-   * the API returns forward-slash-normalized names while webpack/loader
-   * paths are OS-native, so two spellings of the same file would otherwise
-   * never share a cache entry.
+   * Each project file's direct resolved imports (see getDirectResolvedImports),
+   * kept across builds and pruned by updateSnapshot.
    */
   directImportsCache: Map<FilePath, readonly string[]>;
-  /**
-   * Self-validating memo of each project's non-default-lib,
-   * non-external-library source file names (see `getProjectFileNames`,
-   * `getProjectDtsFileNames`, `registerTypeScriptDependencies`, and
-   * `recheckAllTransitiveDependants`), keyed by project config path.
-   * Classifying every file in the program via
-   * `isSourceFileDefaultLibrary`/`isSourceFileFromExternalLibrary` is a round
-   * trip per file per call, so recomputing this on every compile/recheck (as
-   * an earlier version did) turns a whole-project scan into two extra round
-   * trips per file, every single time. Unlike `directImportsCache` (cleared
-   * whenever content might have changed - see `pendingInvalidation`), this
-   * cache stores the exact `program.getSourceFileNames()` list it was
-   * computed against and is safe to keep across builds indefinitely: a
-   * content-only edit never changes that list, so the vast majority of
-   * lookups are a free comparison against an unchanged list; a genuine
-   * project file addition/removal changes the list, which
-   * `getProjectFileNames` detects itself (no external invalidation signal
-   * needed) and reclassifies. Keyed by project (primary vs a synthetic
-   * program shared by orphan files - see ensureOrphanProgram)
-   * rather than a single shared list, since their file sets are unrelated.
-   * Keyed via `FilePathKey` (like `directImportsCache`) for consistency,
-   * though project config paths are already stable, single-sourced strings
-   * in practice.
-   */
+  /** Keyed by project (primary or orphan program) - see getProjectFileNames. */
   projectFileNamesCache: Map<
     FilePath,
     { sourceFileNames: readonly string[]; result: readonly string[] }
   >;
   /**
-   * Api-facing names (see toApiFacingFileName) of every primary-project file
-   * compiled so far in the current build/watch rebuild - accumulated by
-   * getTypeScriptEmit, consumed once (and cleared) by
-   * recheckAllTransitiveDependants at the end of the build. Batches the
-   * transitive-dependant recheck into a single pass over the whole changed
-   * set instead of one pass per compiled file, which otherwise turns into
-   * O(files compiled Ă— dependants per file) redundant work - see
-   * recheckAllTransitiveDependants's comment.
+   * Api-facing names of files compiled this build, consumed by
+   * recheckAllTransitiveDependants at the end of the build.
    */
   changedFilesThisBuild: Set<string>;
   /**
