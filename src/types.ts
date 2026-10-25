@@ -1,8 +1,11 @@
 import type { Colors } from './colors';
 import type {
   API,
+  CompilerOptions,
   Diagnostic,
+  ModuleResolver,
   ParsedCommandLine,
+  ResolveModuleNameResult,
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
@@ -56,9 +59,28 @@ export interface LoaderOptions {
     string | ((program: unknown, getProgram: () => unknown) => unknown);
   allowTsInNodeModules: boolean;
   projectReferences?: boolean;
-  resolveModuleName?: (...args: unknown[]) => unknown;
+  resolveModuleName?: CustomResolveModuleName;
   resolveTypeReferenceDirective?: (...args: unknown[]) => unknown;
   useCaseSensitiveFileNames?: boolean;
+}
+
+export interface ParentModuleResolver {
+  (moduleName: string, containingFile: string): ResolveModuleNameResult;
+}
+
+/**
+ * Classic ts-loader's signature. `containingFile` is a placeholder in the
+ * right directory (the API doesn't say which file is importing), and there's
+ * no `compilerHost`.
+ */
+export interface CustomResolveModuleName {
+  (
+    moduleName: string,
+    containingFile: string,
+    compilerOptions: CompilerOptions,
+    compilerHost: undefined,
+    parentResolver: ParentModuleResolver,
+  ): ResolveModuleNameResult | undefined;
 }
 
 export interface LoaderOptionsCache {
@@ -138,6 +160,9 @@ export interface TypeScriptInstance {
    * unbundled project file is rechecked then.
    */
   watcherChangedFiles: Set<string> | undefined;
+  customResolveModuleName?: CustomResolveModuleName;
+  /** See getCustomModuleResolver. */
+  customModuleResolver?: { resolver: ModuleResolver; configuration: string };
 }
 
 interface PendingTypeScriptDiagnostics {

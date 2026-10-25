@@ -374,9 +374,9 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'allowTsInNodeModules',
   'projectReferences',
-  // Accepted for backwards compatibility but inert: the TypeScript 7 API has
-  // no custom resolver hook. See test/execution-tests/3.0.1_resolveModuleName.
   'resolveModuleName',
+  // Accepted for backwards compatibility but inert: the TypeScript 7 API has
+  // no type-reference-directive resolver hook.
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
 ];
