@@ -39,11 +39,7 @@ function buildColors(base: PicocolorsInstance): Colors {
   };
 }
 
-// `pc` is itself the default picocolors instance, already built once (at
-// module load, using auto-detected `isColorSupported`) rather than
-// recomputed - reusing it here avoids rebuilding all ~26 of its formatter
-// functions on every call when the requested state happens to match it,
-// which is the common case (colors enabled on a color-capable terminal).
+// Both variants are built once and shared.
 const colorsEnabled = buildColors(pc);
 let colorsDisabled: Colors | undefined;
 
@@ -51,8 +47,5 @@ export function createColors(loaderOptionsColors: boolean): Colors {
   if (loaderOptionsColors && pc.isColorSupported) {
     return colorsEnabled;
   }
-  // Only ever one "disabled" variant needed, so build it once and reuse it -
-  // there's no `enabled`-dependent state in `LoaderOptions` beyond this
-  // boolean, so a single memoized instance covers every disabled call.
   return (colorsDisabled ??= buildColors(pc.createColors(false)));
 }

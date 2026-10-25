@@ -155,24 +155,15 @@ function getTypeScriptInstance(
     loader.addDependency(configFilePath);
   }
 
-  // Captured now rather than read as `loader._compiler` from inside the hook
-  // callback below: `loader` is this one loader invocation's short-lived
-  // context, torn down well before a later rebuild's `compile` fires, but
-  // the `Compiler` it currently points to is the same long-lived instance
-  // for the whole watch session - only the reference needs capturing early,
-  // its `modifiedFiles`/`removedFiles` are still read fresh on every fire.
+  // Captured here: `loader` is short-lived, but the Compiler lives for the
+  // whole watch session.
   const compiler = loader._compiler!;
 
-  // Only the first file compiled in a given build needs to tell the API
-  // which files might be stale in its view (see `pendingInvalidation`/
-  // `pendingChangedFiles`/`pendingRemovedFiles` in typeScriptApi.ts);
-  // `compile` fires once per build/watch rebuild in both webpack 4 and 5, so
-  // tap it to re-arm that ahead of every rebuild.
+  // Fires once per build/rebuild: tells the next build's first compile what
+  // may be stale (see `pendingInvalidation`/`pendingChangedFiles` in types.ts).
   compiler.hooks.compile.tap('ts-loader', () => {
-    // Webpack 5's watcher already knows exactly which files changed/were
-    // removed since the last build - both are `undefined` only for the very
-    // first build (nothing to compare against yet) or on webpack 4 (no
-    // equivalent API), which is when a full rescan is genuinely needed.
+    // `modifiedFiles`/`removedFiles` are undefined on the first build and on
+    // webpack 4 - only then is a full rescan needed.
     if (
       loaderUtils.isWebpack5 &&
       (compiler.modifiedFiles !== undefined ||
@@ -212,24 +203,15 @@ function getTypeScriptInstance(
     }
   });
 
-  // The typeScript API instance holds a live `tsgo` child process (see
-  // typeScriptApi.ts's createTypeScriptInstance) that nothing else kills:
-  // it's spawned per instance, not per file, and the instance cache is a
-  // WeakMap keyed on the compiler, so leaving this untapped leaks one native
-  // process per compiler for as long as the Node process runs. `watchClose`
-  // covers a watcher's own teardown; `shutdown` (webpack 5 only - webpack 4
-  // has no `compiler.close()`/`shutdown` hook) covers the one-shot
-  // run/close pattern.
+  // Each instance holds a live `tsgo` child process that nothing else kills,
+  // leaking one per compiler otherwise. `watchClose` covers watch mode;
+  // `shutdown` (webpack 5 only) covers run/close.
   const disposeTypeScriptApiInstance = () => {
     try {
       instance.typeScriptApiInstance.api.close();
     } catch {
-      // The child process may already be gone (crashed, OOM-killed, or
-      // otherwise reaped) - close() talks to it one last time to shut it
-      // down cleanly, and that call throws like any other request does once
-      // the pipe is dead (see updateSnapshot's own callers). There's nothing
-      // left to preserve at this point; letting this escape would crash the
-      // whole webpack process on an otherwise-unrelated watcher teardown.
+      // close() throws if the child process is already dead; don't let that
+      // crash webpack during teardown.
       log.logInfo(
         'failed to close TypeScript API child process, it may have already been closed',
       );
@@ -245,9 +227,7 @@ function getTypeScriptInstance(
   }
 
   setTSInstanceInCache(compiler, loaderOptions.instance, instance);
-  log.logInfo(
-    `Using ${loaderOptions.compiler} typeScript API with ${configFilePath}`,
-  );
+  log.logInfo(`Using ${loaderOptions.compiler} API with ${configFilePath}`);
   return instance;
 }
 
@@ -394,10 +374,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'allowTsInNodeModules',
   'projectReferences',
-  // Accepted for backwards compatibility but currently inert: the
-  // `typescript/sync` (tsgo) API this loader now runs on only
-  // exposes filesystem-level hooks, not a resolveModuleName-style custom
-  // resolver hook. See test/execution-tests/3.0.1_resolveModuleName.
+  // Accepted for backwards compatibility but inert: the TypeScript 7 API has
+  // no custom resolver hook. See test/execution-tests/3.0.1_resolveModuleName.
   'resolveModuleName',
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
@@ -495,10 +473,6 @@ function updateFileInCache(
   let file: TSFile | undefined = instance.files.get(resolvedPath);
 
   if (file === undefined) {
-    // No "don't compile this" step needed for a disallowed node_modules
-    // file here: the API already skips emit for files it considers part of
-    // an external library, surfaced instead as makeSourceMapAndFinish's
-    // "TypeScript emitted no output" error below.
     file = { fileName: filePath, version: 0 };
     instance.files.set(resolvedPath, file);
     instance.version++;
@@ -554,9 +528,8 @@ function makeSourceMapAndFinish(
 ) {
   if (outputText === null || outputText === undefined) {
     setModuleMeta(loaderContext, fileVersion);
-    // A file under node_modules is the most common cause: the API skips
-    // emit for a source file it considers part of an external library,
-    // matching classic ts-loader's guidance for the same situation.
+    // Most commonly a node_modules file: the API skips emit for external
+    // library files.
     const additionalGuidance =
       !allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
         ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +

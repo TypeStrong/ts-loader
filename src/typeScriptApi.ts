@@ -45,11 +45,9 @@ export function createTypeScriptInstance(
   useCaseSensitiveFileNames: boolean,
 ): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
-  // No `fs` callbacks: the API reads the host filesystem directly, and the
-  // content webpack hands the loader is layered over it per file instead -
-  // see layerFileContents. Case sensitivity is passed explicitly so the API
-  // always agrees with `resolvedFilePathCache` about which paths are the
-  // same file.
+  // No `fs` callbacks: the API reads disk directly, with webpack's content
+  // layered on top per file (see layerFileContents). Case sensitivity is
+  // passed explicitly so the API agrees with `resolvedFilePathCache`.
   const api = new typeScriptApiModule.API({ useCaseSensitiveFileNames });
 
   return {
@@ -72,15 +70,9 @@ export function getTypeScriptEmit(
   instance: TSInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
 ) {
-  // See toApiFacingFileName - used for every call into the TypeScript API
-  // below; `fileName` itself is reserved for what's reported back to webpack
-  // or shown to the user.
+  // `apiFileName` for API calls; `fileName` for anything shown to webpack/the user.
   const apiFileName = toApiFacingFileName(fileName);
 
-  // transpileModule/transpileDeclaration are program-less, single-file
-  // transforms (matching classic ts-loader's transpileOnly behaviour), so
-  // none of the synthetic-root machinery below - needed only to satisfy
-  // program.getJavaScriptEmit's root-file requirement - applies here.
   if (instance.loaderOptions.transpileOnly) {
     return getTranspileOnlyEmit(
       fileName,
@@ -128,9 +120,7 @@ export function getTypeScriptEmit(
       : (snapshot.getDefaultProjectForFile(apiFileName) ?? configuredProject);
 
   if (!project) {
-    throw new Error(
-      `TypeScript TypeScript mode could not resolve project for ${fileName}.`,
-    );
+    throw new Error(`TypeScript could not resolve a project for ${fileName}.`);
   }
 
   const program = project.program;
@@ -138,12 +128,8 @@ export function getTypeScriptEmit(
   const configFileParsingDiagnostics =
     program.getConfigFileParsingDiagnostics();
   if (configFileParsingDiagnostics.length > 0) {
-    // A broken tsconfig is a hard failure in classic ts-loader too:
-    // there's nothing left to compile, so report the diagnostic(s) then
-    // throw, which webpack surfaces as a "Module build failed" error.
-    // Returned rather than thrown so index.ts's `loader` can reconstruct
-    // the Error in its own stack frame, matching classic ts-loader's
-    // single-frame stack trace for this failure.
+    // Returned rather than thrown so index.ts's `loader` can create the
+    // Error in its own frame, matching classic ts-loader's stack trace.
     return {
       outputText: undefined,
       sourceMapText: undefined,
@@ -199,30 +185,20 @@ export function getTypeScriptEmit(
     ),
   );
 
-  // Deferred to processAssets (see reportPendingTypeScriptDiagnostics in
-  // index.ts) so we can tell whether webpack already recorded its own
-  // error for this module and avoid double-counting.
+  // Reported at end of build (reportPendingTypeScriptDiagnostics), once we
+  // can tell whether webpack already recorded its own error for the module.
   instance.pendingDiagnostics.set(instance.resolvedFilePathCache(fileName), {
     fileName,
     errors,
   });
 
-  // A dependant's diagnostics can change without its own module
-  // rebuilding, and webpack has no reason to re-invoke ts-loader for it -
-  // recorded here and rechecked once for the whole build by
-  // recheckAllTransitiveDependants (see index.ts's postCompile hook),
-  // matching classic's afterCompile re-check.
+  // Its dependants are rechecked once per build by recheckAllTransitiveDependants.
   typeScriptInstance.changedFilesThisBuild.add(apiFileName);
 
-  // Read out synchronously for the same reason as `errors` above;
-  // emitted as webpack assets later by emitPendingDeclarationFiles.
   if (
     program.getCompilerOptions().declaration ||
     program.getCompilerOptions().composite
   ) {
-    // Scans the whole project (e.g. an allowJs .js file never passes
-    // through ts-loader's own webpack rule), matching classic's
-    // provideDeclarationFilesToWebpack.
     recordProjectDeclarationFiles(instance, program);
   }
 
@@ -230,11 +206,9 @@ export function getTypeScriptEmit(
 }
 
 /**
- * transpileOnly's emit path, built on `api.transpileModule` (and, for
- * `isolatedDeclarations` projects, `api.transpileDeclaration`) rather than
- * `getTypeScriptEmit`'s program-based `program.getJavaScriptEmit`. Both are
- * program-less single-file transforms, so only the project's resolved
- * compiler options are needed, not its root files.
+ * transpileOnly's emit path: `api.transpileModule` (plus
+ * `api.transpileDeclaration` for `isolatedDeclarations`) - program-less
+ * single-file transforms that need only the project's compiler options.
  */
 function getTranspileOnlyEmit(
   fileName: string,
@@ -261,12 +235,9 @@ function getTranspileOnlyEmit(
     };
   }
 
-  // Unlike every other API call in this file, transpileModule/
-  // transpileDeclaration build their own virtual filesystem from `fileName`
-  // verbatim rather than resolving it through a `Project` - an OS-native
-  // path panics on Windows ("mixed posix and windows paths") once combined
-  // with the API's forward-slash-normalized internal paths. See
-  // toForwardSlashPath.
+  // transpileModule/transpileDeclaration use `fileName` verbatim in their own
+  // virtual filesystem; an OS-native path panics there on Windows ("mixed
+  // posix and windows paths").
   const transpileFileName = toForwardSlashPath(apiFileName);
 
   const compilerOptions = config.options;
@@ -313,13 +284,9 @@ function getTranspileOnlyEmit(
     typeScriptInstance.transpileConfigDiagnosticsReported = true;
   }
 
-  // No type-checking to wait for in transpileOnly mode, so report
-  // immediately, matching classic ts-loader.
+  // No type-check to wait for, so report immediately, matching classic.
   reportTypeScriptErrors(loaderContext, errors);
 
-  // transpileDeclaration is the only way transpileOnly can produce .d.ts
-  // output: the full, type-checked program.getDeclarationEmit path needs a
-  // checker transpileOnly never runs.
   if (
     (compilerOptions.declaration || compilerOptions.composite) &&
     compilerOptions.isolatedDeclarations
@@ -399,10 +366,9 @@ function requiresRootFileDiagnostics(config: ParsedCommandLine): boolean {
 }
 
 /**
- * Reports a broken tsconfig's diagnostics - a hard failure in classic
- * ts-loader too: there's nothing left to compile, so report the
- * diagnostic(s) then throw, which webpack surfaces as a "Module build
- * failed" error. Shared by getTypeScriptEmit and getTranspileOnlyEmit.
+ * Reports a broken tsconfig's diagnostics and returns the message for the
+ * "Module build failed" error the caller raises - a hard failure, as in
+ * classic ts-loader.
  */
 function reportConfigFileParsingErrors(
   instance: TSInstance,
@@ -430,20 +396,15 @@ function reportConfigFileParsingErrors(
 }
 
 /**
- * Emits a single file's declaration output via `api.transpileDeclaration`.
- * Unlike `program.getDeclarationEmit`, this returns raw text rather than a
- * named output file, so the output path is computed here. Emitted directly
- * via `loaderContext.emitFile` rather than `instance.pendingDeclarationFiles`,
- * since transpileOnly instances never register addPostCompileHooks (their
- * diagnostics are reported immediately, not deferred).
+ * transpileDeclaration returns raw text, not a named output file, so the
+ * output path is computed here. Emitted directly rather than via
+ * `pendingDeclarationFiles`: transpileOnly never registers addPostCompileHooks.
  */
 function recordTranspileOnlyDeclarationFile(
   instance: TSInstance,
   typeScriptInstance: TypeScriptInstance,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileName: string,
-  // Forward-slash-normalized (see transpileFileName's own comment at the
-  // call site in getTranspileOnlyEmit).
   transpileFileName: string,
   contents: string,
   compilerOptions: CompilerOptions,
@@ -546,7 +507,7 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
     return require(specifier) as TypeScriptApiModule;
   } catch (error) {
     throw new Error(
-      `Could not load TypeScript typeScript API from "${specifier}": ${
+      `Could not load the TypeScript API from "${specifier}": ${
         error instanceof Error ? error.message : String(error)
       }`,
     );
@@ -568,25 +529,16 @@ function updateSnapshot(
   resolvedFilePathCache: ResolvedFilePathCache,
   fileName: string,
   changes?: SnapshotChanges,
-  // Api-facing names of specific files known to have just changed (see
-  // `changedFilesThisBuild`) - passed only by recheckAllTransitiveDependants's
-  // own snapshot refresh. Tells the API to re-read exactly these files rather
-  // than every file in the project, unlike `pendingInvalidation`'s full
-  // `invalidateAll` below - see its call site for why a targeted list is both
-  // sufficient and far cheaper there.
+  // Only from recheckAllTransitiveDependants: files compiled this build,
+  // for the API to re-read.
   changedFileNames?: ReadonlySet<string>,
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
-  // Priority, highest first: (1) `pendingInvalidation`'s full `invalidateAll` -
-  // ts-loader has no idea what changed (webpack 4, or the very first build),
-  // so it has to assume anything could have. (2) `pendingChangedFiles`/
-  // `pendingRemovedFiles` - webpack 5's watcher already knows exactly which
-  // files changed since the last build (see its `compile`-hook wiring in
-  // index.ts), so listing them is just as sufficient as (1) but far cheaper.
-  // (3) `changedFileNames` - see its own doc comment above. Only ever one of
-  // these three is live for a given call: (1) and (2) are set (and consumed
-  // here) once per build, before any file compiles; (3) is passed explicitly
-  // by the one caller that needs it, once that's no longer true.
+  // Which files the API should re-read, most conservative first:
+  // 1. `pendingInvalidation` - nothing known (first build, webpack 4): rescan all.
+  // 2. `pendingChangedFiles`/`pendingRemovedFiles` - webpack 5's watcher list.
+  // 3. `changedFileNames`.
+  // At most one applies: 1 and 2 are consumed by the first call of a build.
   const pendingChangedOrRemovedFiles =
     typeScriptInstance.pendingChangedFiles ??
     typeScriptInstance.pendingRemovedFiles;
@@ -618,27 +570,15 @@ function updateSnapshot(
             ),
           }
         : undefined;
+  // directImportsCache: a full rescan could change any file, and a created
+  // file can satisfy imports that previously failed to resolve, so clear it
+  // all. Otherwise only the listed files' own entries can be stale (for
+  // `changedFileNames` they were already rewritten by their own compile -
+  // see registerResolvedImportDependencies). projectFileNamesCache
+  // self-validates, so it's never cleared.
   if (typeScriptInstance.pendingInvalidation || createdFiles.size > 0) {
-    // A created file can also satisfy imports that other files previously
-    // failed to resolve, leaving their own entries stale too.
-    //
-    // A real rescan can change any file's content, so directImportsCache
-    // entries (derived from a file's own imports - see
-    // findTransitiveDependants) can no longer be trusted. A targeted
-    // `changed`/`deleted` list (either branch below) needs no such clear:
-    // every *other* file's own entry is unaffected by files it doesn't
-    // import, and the listed files' own entries are handled explicitly below
-    // (`pendingChangedFiles`/`pendingRemovedFiles`) or are already fresh,
-    // written by their own compile earlier this build (`changedFileNames` -
-    // see registerResolvedImportDependencies). projectFileNamesCache isn't
-    // cleared here at all - it validates itself against the program's own
-    // file list on every read (see getProjectFileNames), so it's safe to
-    // keep across every case here, including a full rescan.
     typeScriptInstance.directImportsCache.clear();
   } else if (pendingChangedOrRemovedFiles) {
-    // Only these specific files' own direct-imports could have changed (a
-    // content edit) or stopped mattering (a removal) - every other project
-    // file's own entry is still derived from its own, unaffected content.
     for (const rawFileName of [
       ...(typeScriptInstance.pendingChangedFiles ?? []),
       ...(typeScriptInstance.pendingRemovedFiles ?? []),
@@ -651,24 +591,20 @@ function updateSnapshot(
   typeScriptInstance.pendingInvalidation = false;
   typeScriptInstance.pendingChangedFiles = undefined;
   typeScriptInstance.pendingRemovedFiles = undefined;
-  // Every path in a request keeps its real casing, the same as `openProjects`
-  // (see `configFilePath`): a mismatch - e.g. a lowercased drive letter in
-  // one and not the other - is enough on its own to make the API unable to
-  // find a project for the opened file on Windows - see
+  // Real casing, not resolvedFilePathCache's canonical form: a casing
+  // mismatch with `openProjects` (e.g. a lowercased drive letter) stops the
+  // API finding the file's project on Windows - see
   // https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
-  // resolvedFilePathCache's canonical form is only for ts-loader's own keys:
-  // the API echoes back whatever casing it's given, into diagnostics too.
+  // The API also echoes this casing back into diagnostics.
   const apiFacingFileName = path.resolve(fileName);
   const params: CreateSnapshotParams = {
     ...changes,
     openFiles: [apiFacingFileName],
     fileNotifications,
   };
-  // The API no longer tracks a "latest snapshot" of its own (see
-  // https://github.com/microsoft/TypeScript/pull/64204) - ts-loader must
-  // explicitly layer each new snapshot over the previous one via
-  // `snapshot.update` to retain its cache, falling back to a fresh
-  // `createSnapshot` only for the very first snapshot of the instance.
+  // The API keeps no "latest snapshot" of its own, so each one must be built
+  // via `update` on the previous to keep its cache
+  // (https://github.com/microsoft/TypeScript/pull/64204).
   const snapshot = previousSnapshot
     ? previousSnapshot.update(params)
     : typeScriptInstance.api.createSnapshot(params);
@@ -718,12 +654,7 @@ function findCreatedFiles(
   );
 }
 
-/**
- * Api-facing names (see `toApiFacingFileName`) of a raw webpack file-path
- * set, or `undefined` for an absent/empty set - so an unpopulated
- * `pendingRemovedFiles` (say) omits `deleted` from `FileNotifications` entirely
- * rather than sending an empty array.
- */
+/** `undefined` for an empty set, so the field is omitted from the request. */
 function mapApiFacingFileNames(
   fileNames: ReadonlySet<string> | undefined,
 ): string[] | undefined {
@@ -735,11 +666,7 @@ function mapApiFacingFileNames(
   );
 }
 
-/**
- * Opens (or reuses) the primary project - the one configured project
- * ts-loader resolved via `configFilePath`. Shared by `prepareSnapshotForFile`
- * (which may fall back to a synthetic project) and `getTranspileOnlyEmit`.
- */
+/** Opens (or reuses) the project for `configFilePath`. */
 function openPrimaryProject(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
@@ -769,16 +696,12 @@ function openPrimaryProject(
 /**
  * Layers `contents` - what webpack handed the loader, which can differ from
  * disk (another loader ran first) or not exist there at all (a `.vue.ts`
- * alias) - over the instance's snapshot for the rest of its life, so every
- * later snapshot and program sees it too, not just this file's own compile.
+ * alias) - over the snapshot, so every later snapshot and program sees it.
  *
- * The primary project's snapshot is otherwise refreshed only once per build,
- * not per file - see
- * https://github.com/microsoft/TypeScript/issues/63875#issuecomment-5513828692 -
- * when `pendingInvalidation`/`pendingChangedFiles`/`pendingRemovedFiles`
- * indicate something may be stale (same gate as getTranspileConfig). That
- * refresh opens `fileName`, so it carries the layer too: opening a file that
- * exists only in a layer fails if the layer arrives in a later request.
+ * The primary project is refreshed only on the first call of a build (see
+ * https://github.com/microsoft/TypeScript/issues/63875#issuecomment-5513828692).
+ * That refresh carries the layer in the same request because opening a
+ * layer-only file fails if the layer arrives later.
  */
 function layerFileContents(
   typeScriptInstance: TypeScriptInstance,
@@ -818,9 +741,8 @@ function prepareSnapshotForFile(
   contents: string,
   forceSyntheticRoot: boolean,
 ): { snapshot: Snapshot; syntheticProgramId?: SyntheticProjectId } {
-  // Layered before the primary project is consulted below - a layered file
-  // also shows up in directory listings, so it can change which files the
-  // project's `include` globs match (e.g. a virtual `.vue.ts` alias).
+  // Layered first: a layered file appears in directory listings, so it can
+  // change what the project's `include` globs match.
   const snapshot = layerFileContents(
     typeScriptInstance,
     resolvedFilePathCache,
@@ -834,9 +756,7 @@ function prepareSnapshotForFile(
     return { snapshot };
   }
 
-  // A tsconfig that fails to parse is a hard failure classic ts-loader
-  // surfaces directly - falling back to a synthetic program would silently
-  // paper over it by explicitly listing `fileName`.
+  // A broken tsconfig must surface; a synthetic program would hide it.
   if (
     primaryProject &&
     primaryProject.program.getConfigFileParsingDiagnostics().length > 0
@@ -855,16 +775,13 @@ function prepareSnapshotForFile(
 }
 
 /**
- * The one synthetic program (the API's `createPrograms`) shared by every
- * file the primary project doesn't include - matching classic ts-loader's
- * single program, whose roots were the tsconfig's files plus every file
- * webpack handed it. Its roots are the primary project's own root files plus
- * just the orphan files that need to be roots: one is added only when the
- * program doesn't already contain it (most orphans arrive via an import), or
- * always under `forceRoot` (the API skips emit for a node_modules file that
- * isn't one). Being a superset of the primary project, it also gives the
- * transitive-dependant recheck the full import graph - see
- * recheckAllTransitiveDependants.
+ * The one synthetic program shared by every "orphan" file the primary
+ * project doesn't include - like classic ts-loader's single program, whose
+ * roots were the tsconfig's files plus every file webpack handed it. Roots:
+ * the primary project's roots, plus each orphan the program doesn't already
+ * contain via an import (or always, under `forceRoot` - the API skips emit
+ * for a node_modules file that isn't a root). As a superset of the primary
+ * project it's also the full import graph for recheckAllTransitiveDependants.
  */
 function ensureOrphanProgram(
   typeScriptInstance: TypeScriptInstance,
@@ -967,15 +884,12 @@ function orphanProgramParams(
 }
 
 /**
- * The identity used for every TypeScript-API-facing call, as opposed to
- * `fileName` itself, which is what's reported to webpack/the user. A file
- * with an unrecognized extension (e.g. a Vue SFC's extracted `<script>`
- * block) has no inferrable ScriptKind and this API rejects it outright,
- * unlike classic ts-loader's `ts.LanguageService` (which defaults to TS).
- * With no host-level way to set ScriptKind, alias to a virtual
- * `.ts`-suffixed name instead (layered under that name - see
- * layerFileContents) - appended, not replacing, so relative imports still
- * resolve from the real directory. A no-op for any recognized extension.
+ * The name used for API calls. The API rejects a file with an unrecognized
+ * extension (e.g. a Vue SFC's `<script>` block) since it can't infer a
+ * ScriptKind, and offers no way to set one - unlike classic ts-loader's
+ * LanguageService, which defaulted to TS. So such files get a virtual `.ts`
+ * suffix (appended, so relative imports still resolve from the real
+ * directory) and are layered under that name - see layerFileContents.
  */
 function toApiFacingFileName(fileName: string) {
   return constants.tsTsxJsJsxRegex.test(fileName) ||
@@ -1011,20 +925,16 @@ function registerTypeScriptDependencies(
   loaderContext.clearDependencies();
   loaderContext.addDependency(fileName);
 
-  // Every *other* file this one is made dependent on below, tracked
-  // separately so their versions can be baked into this module's buildMeta
-  // afterwards (see getDependencyVersionTag below).
+  // Tracked so their versions can go into buildMeta below.
   const dependencies: string[] = [];
   const addDependency = (dependencyFileName: string) => {
     loaderContext.addDependency(dependencyFileName);
     dependencies.push(dependencyFileName);
   };
 
-  // Every .d.ts in the program is added as a dependency, since it can
-  // affect type-checking without necessarily being in webpack's own module
-  // graph. Regular source files are scoped to this file's own resolved
-  // imports instead (see registerResolvedImportDependencies below) - adding
-  // every source file here would make every file depend on every other one.
+  // Every .d.ts can affect type-checking without being in webpack's module
+  // graph. Source files are limited to this file's own imports, or every
+  // file would depend on every other.
   for (const otherFileName of getProjectDtsFileNames(
     instance.typeScriptApiInstance,
     instance.resolvedFilePathCache,
@@ -1035,9 +945,8 @@ function registerTypeScriptDependencies(
       continue;
     }
 
-    // `otherFileName` is forward-slash-normalized; webpack's addDependency
-    // requires an OS-native absolute path or it rejects the dependency
-    // outright on Windows.
+    // API names are forward-slashed; webpack's addDependency rejects
+    // non-native absolute paths on Windows.
     addDependency(path.normalize(otherFileName));
   }
 
@@ -1061,8 +970,7 @@ function registerTypeScriptDependencies(
     );
   }
 
-  // `getConfigFileNames` is forward-slash-normalized like
-  // `getSourceFileNames` above - same Windows requirement applies.
+  // Forward-slashed too - same Windows requirement as above.
   for (const configFileName of configFileNames) {
     const normalizedConfigFileName = path.normalize(configFileName);
     if (isWebpack5) {
@@ -1072,10 +980,9 @@ function registerTypeScriptDependencies(
     }
   }
 
-  // A dependency's content can change this file's diagnostics without
-  // changing its own emitted JS - without tagging buildMeta, webpack could
-  // reuse a cached result and drop/keep stale diagnostics. Matches classic
-  // ts-loader's `buildMeta.tsLoaderDefinitionFileVersions`.
+  // A dependency can change this file's diagnostics without changing its
+  // JS; without this, webpack could reuse a cached result with stale
+  // diagnostics. Same buildMeta key as classic ts-loader.
   if (loaderContext._module?.buildMeta !== undefined) {
     loaderContext._module.buildMeta.tsLoaderDefinitionFileVersions =
       dependencies.map(dependencyFileName =>
@@ -1085,25 +992,13 @@ function registerTypeScriptDependencies(
 }
 
 /**
- * Self-validating memoized list of a project's non-default-lib,
- * non-external-library source file names (see `recheckAllTransitiveDependants`
- * and `getProjectDtsFileNames`) - reused across every file compiled against
- * the same project, in this build and every subsequent one, instead of
- * reclassifying every file in the program (two extra API round trips each -
- * see `isSourceFileDefaultLibrary`/`isSourceFileFromExternalLibrary`) on
- * every single call.
- *
- * `program.getSourceFileNames()` is one cheap round trip that returns every
- * name up front, so it's always fetched fresh and compared (in plain JS, no
- * API calls) against the exact list the cached result was computed from - a
- * content-only edit to an already-known file never changes that list, so the
- * overwhelming majority of calls hit cache; a genuine project file
- * addition/removal changes it, which this detects and reclassifies on its
- * own. That self-check is what makes it safe to keep this cache across
- * builds indefinitely (see `TypeScriptInstance.projectFileNamesCache`),
- * unlike `directImportsCache`, which has no equally cheap way to detect a
- * known file's *content* changing and so still relies on an explicit
- * invalidation signal.
+ * A project's source file names, excluding default-lib and external-library
+ * files. Classifying a file costs two API round trips, so the result is
+ * cached per project. `getSourceFileNames()` is a single round trip, so it's
+ * fetched every time and compared against the list the cached result came
+ * from: content-only edits leave it unchanged (cache hit), adding/removing a
+ * file changes it (reclassify). That self-check means the cache never needs
+ * invalidating, unlike `directImportsCache`.
  */
 function getProjectFileNames(
   typeScriptInstance: TypeScriptInstance,
@@ -1134,7 +1029,7 @@ function getProjectFileNames(
   return result;
 }
 
-/** Order-insensitive equality check for two file-name lists - no API calls. */
+/** Order-insensitive. */
 function sameFileNames(a: readonly string[], b: readonly string[]): boolean {
   if (a.length !== b.length) {
     return false;
@@ -1143,12 +1038,6 @@ function sameFileNames(a: readonly string[], b: readonly string[]): boolean {
   return a.every(name => bSet.has(name));
 }
 
-/**
- * Every non-default-lib, non-external-library `.d.ts` in the program,
- * matching registerTypeScriptDependencies's own filter - a name-only filter
- * over getProjectFileNames's own (self-validating, cross-build) result, so
- * it costs no API calls beyond what that already pays for.
- */
 function getProjectDtsFileNames(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
@@ -1166,11 +1055,8 @@ function getProjectDtsFileNames(
 }
 
 /**
- * A `"<file>@<version>"` tag for `buildMeta.tsLoaderDefinitionFileVersions`
- * that changes whenever `dependencyFileName`'s content genuinely changes.
- * Falls back to hashing the program's view of the file when it has no
- * tracked version in `instance.files` (e.g. an ambient .d.ts never
- * imported by anything, so never passed through ts-loader's own loader).
+ * `"<file>@<version>"`. Files that never went through the loader (e.g. an
+ * ambient .d.ts) have no tracked version, so their content is hashed instead.
  */
 function getDependencyVersionTag(
   instance: TSInstance,
@@ -1198,17 +1084,12 @@ function getDependencyVersionTag(
 }
 
 /**
- * Makes `fileName` dependent on the other project source files it imports
- * (see getDirectResolvedImports), matching classic ts-loader's
- * dependency-graph tracking. A type-only import is erased before webpack sees
- * it, so this is the only thing that rebuilds `fileName` when such a file
- * changes.
+ * Makes `fileName` depend on the project files it imports. A type-only
+ * import is erased before webpack sees it, so this is the only thing that
+ * rebuilds `fileName` when such a file changes.
  *
- * Always recomputed fresh rather than read from `directImportsCache` -
- * `fileName` may have just been live-edited, so a cached entry (populated by
- * findTransitiveDependants for some other file's dependant search) could be
- * stale. Written back so any other file's search this build sees the
- * up-to-date result too.
+ * Always computed fresh, since `fileName` may have just been edited, and
+ * written back to `directImportsCache` for findTransitiveDependants.
  */
 function registerResolvedImportDependencies(
   typeScriptInstance: TypeScriptInstance,
@@ -1236,19 +1117,11 @@ function registerResolvedImportDependencies(
 }
 
 /**
- * Memoized wrapper around `getDirectResolvedImports`, reused across every
- * file compiled in the same build (see `TypeScriptInstance.directImportsCache`)
- * instead of recomputing every project file's imports from scratch on every
- * single compile. Only safe for files *other* than the one currently being
- * compiled - see `registerResolvedImportDependencies`, which always computes
- * fresh for that one and writes the result back here. Every uncached file is
- * resolved in the same batch.
- *
- * Keyed via `resolvedPathCache` rather than `fileName` itself, since
- * `fileName` here is forward-slash-normalized (from `program.getSourceFileNames()`
- * - see findTransitiveDependants) while registerResolvedImportDependencies's
- * `fileName` is OS-native (from webpack) - without canonicalizing both to the
- * same key, a cache entry it writes could never be found here on Windows.
+ * `getDirectResolvedImports` through `directImportsCache`, with all uncached
+ * files resolved in one batch. Keys go through `resolvedFilePathCache`
+ * because names here are forward-slashed (from the API) while
+ * registerResolvedImportDependencies writes OS-native ones (from webpack);
+ * without that, its entries would never be found on Windows.
  */
 function getCachedDirectResolvedImports(
   typeScriptInstance: TypeScriptInstance,
@@ -1283,17 +1156,11 @@ function getCachedDirectResolvedImports(
 
 /**
  * The other project files each of `fileNames` imports (OS-native names), as
- * resolved by the program itself - so `paths`, `baseUrl`, package `exports`
- * and the like all count, not just relative specifiers. Unresolved imports
- * and ones resolving outside the project (e.g. node_modules) are left out:
- * neither should make a file rebuild on some unrelated file's change (see the
- * aliasResolution test). `comparableSourceFileNames` (the project's source
- * file names, forward-slash-normalized) is a caller concern - see its call
- * sites - since it's the same for every file checked in a given pass and
- * rebuilding it per file is itself an O(n) cost.
- *
- * Resolution is one API request per import, so all of them are sent as a
- * single batch rather than one round trip each.
+ * resolved by the program - so `paths`, `baseUrl`, package `exports` etc.
+ * count. Unresolved imports and ones outside the project (e.g.
+ * node_modules) are left out (see the aliasResolution test).
+ * `comparableSourceFileNames` is passed in because building it is O(n) and
+ * it's the same for every file in a pass. All requests go in one batch.
  */
 function getDirectResolvedImports(
   typeScriptInstance: TypeScriptInstance,
@@ -1364,17 +1231,9 @@ function getDirectResolvedImports(
  * neither in the program nor a webpack module any more (e.g. deleted), which
  * would otherwise be re-reported forever.
  *
- * Called once per build from index.ts's postCompile hook rather than once
- * per compiled file: each call already does an O(project size) scan (the
- * dependant search below, plus two diagnostic calls per dependant found), so
- * calling it per file - as an earlier version of this function did - turns a
- * single build into O(files compiled × dependants per file) redundant work.
- * For a wide-fanout change (a file most of the project depends on, directly
- * or transitively) that's most of the project rechecked once per file
- * webpack recompiles, i.e. close to O(n²) - measured at over 80% of total
- * build time on a synthetic 300-file fixture. Batching the whole build's
- * changed-file set into a single dependant search and diagnostic pass fixes
- * that without changing what gets reported.
+ * Runs once per build (from addPostCompileHooks), not per compiled file:
+ * each call is an O(project) scan, and running it per file was measured at
+ * over 80% of build time for a wide-fanout change on a 300-file project.
  */
 export function recheckAllTransitiveDependants(
   instance: TSInstance,
@@ -1395,11 +1254,9 @@ export function recheckAllTransitiveDependants(
   typeScriptInstance.changedFilesThisBuild = new Set();
   typeScriptInstance.watcherChangedFiles = new Set();
 
-  // Any already-open, real project file works as the anchor for this
-  // snapshot refresh - the whole point is just to get the primary project's
-  // current program, not to focus on one particular file. A build that
-  // compiled nothing through ts-loader (e.g. one that only edited or deleted
-  // an unbundled file) falls back to any project file still on disk.
+  // Any real project file can anchor the refresh below - it's only needed to
+  // get the current program. A build that compiled nothing through ts-loader
+  // (e.g. only an unbundled file changed) falls back to one still on disk.
   const anchorFileName =
     changedFileNames.values().next().value ??
     findExistingProjectFile(typeScriptInstance, instance.resolvedFilePathCache);
@@ -1407,22 +1264,9 @@ export function recheckAllTransitiveDependants(
     return;
   }
 
-  // Tells the upcoming updateSnapshot exactly which files may still be stale
-  // in its view, rather than forcing a full project rescan. Without this, the
-  // snapshot below can still reflect an earlier changed file's stale view of
-  // a *later*-compiled changed file - e.g. fileA imports fileB, both changed
-  // in this build, fileA compiles first: its own rescan reads fileB before
-  // fileB's own loader call has updated the shared file cache (see the `fs`
-  // override in createTypeScriptInstance), so a recheck that reuses that
-  // view still sees fileB's old content. By now (this only runs once per
-  // build, from the post-compile hook) every file webpack compiled this
-  // build has already updated that cache, so listing all of them here is
-  // guaranteed to pick up their current content - without discarding
-  // directImportsCache for every *other* project file too, unlike
-  // `pendingInvalidation`'s `invalidateAll` (see updateSnapshot): none of
-  // those entries were invalidated by this build's changes, since only
-  // `changedFileNames`' content differs from what they were computed
-  // against.
+  // Re-read every file compiled this build: if fileA imports fileB and both
+  // changed, fileA's compile may have seen fileB's old content. A targeted
+  // list rather than a full rescan, so directImportsCache survives.
   const { snapshot, primaryProject } = openPrimaryProject(
     typeScriptInstance,
     instance.resolvedFilePathCache,
@@ -1507,9 +1351,7 @@ export function recheckAllTransitiveDependants(
     }
   }
 
-  // No single file's own loaderContext applies to a whole-build recheck;
-  // the compiler's own context is the natural stand-in for reportFiles glob
-  // matching (see filterDiagnosticsForReporting) and error display.
+  // No per-file loaderContext here; used for reportFiles matching and display.
   const context = compilation.compiler.context;
 
   // Each file is checked in the program it's compiled in (see
@@ -1602,9 +1444,9 @@ function findTransitiveDependants(
   projectFileNames: readonly string[],
   comparableSourceFileNames: ReadonlySet<string>,
 ): Set<string> {
-  // `projectFileNames` is forward-slash-normalized; getCachedDirectResolvedImports
-  // is OS-native, so both need normalizing before comparison - otherwise a
-  // multi-hop dependant would never match on Windows past the first hop.
+  // `projectFileNames` are forward-slashed but resolved imports are
+  // OS-native; everything is compared via toComparablePath, or multi-hop
+  // dependants are missed on Windows.
   const directImports = getCachedDirectResolvedImports(
     typeScriptInstance,
     resolvedPathCache,
@@ -1621,13 +1463,8 @@ function findTransitiveDependants(
     ]),
   );
 
-  // Seeds the search frontier - NOT excluded from being found as a dependant
-  // below. A changed file can itself import another changed file (e.g. an
-  // entry file and the dependency it just changed both recompile in the same
-  // build): its own direct compile may have already run - and computed its
-  // diagnostics - before that other file's compile updated the shared file
-  // cache the API's readFile override serves from, leaving it stale unless
-  // it's rechecked here too, against every changed file's final state.
+  // Changed files can also be found as dependants: one that imports another
+  // changed file may have been checked against its old content.
   const comparableChangedFileNames = new Set(
     [...changedFileNames].map(fileName =>
       toComparablePath(resolvedPathCache, fileName),
@@ -1660,17 +1497,14 @@ function findTransitiveDependants(
   return dependants;
 }
 
-/** Forward-slash-normalized form of a file name - the API's own separator. */
 function toForwardSlashPath(fileName: string): string {
   return fileName.replace(/\\/g, '/');
 }
 
 /**
- * A file name in the form every path comparison against the API's source
- * file names must use: forward-slashed, and canonicalized the same way as
- * `resolvedFilePathCache`. The API echoes back whatever casing it was given
- * (and ts-loader hands it canonicalized paths), so on a case-insensitive
- * filesystem its names can differ in case from webpack's for the same file.
+ * The form to use when comparing against API file names: forward-slashed and
+ * case-canonicalized, since API and webpack names for the same file can
+ * differ in both on Windows / case-insensitive filesystems.
  */
 function toComparablePath(
   resolvedFilePathCache: ResolvedFilePathCache,
@@ -1680,9 +1514,9 @@ function toComparablePath(
 }
 
 /**
- * Emits declarations for every source file in the project matching the
- * given compiler options' allowJs setting, not just the file currently
- * being compiled - matching classic ts-loader's `provideDeclarationFilesToWebpack`.
+ * Records declarations for the whole project, not just the current file
+ * (e.g. an allowJs .js file never reaches the loader) - matching classic's
+ * `provideDeclarationFilesToWebpack`.
  */
 function recordProjectDeclarationFiles(instance: TSInstance, program: Program) {
   const filePathRegex = program.getCompilerOptions().allowJs
