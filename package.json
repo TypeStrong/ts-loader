@@ -24,17 +24,6 @@
     "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\"",
     "knip": "knip"
   },
-  "lint-staged": {
-    "src/**/*.*": [
-      "npm run format",
-      "npm run lint",
-      "git add"
-    ],
-    "*.md": [
-      "npm run format",
-      "git add"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TypeStrong/ts-loader.git"
@@ -81,7 +70,6 @@
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.0",
     "knip": "^6.30.0",
-    "lint-staged": "^17.3.0",
     "loader-utils": "^1.4.2",
     "markdown-toc": "^1.2.0",
     "mocha": "^6.0.0",
