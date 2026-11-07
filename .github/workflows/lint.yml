@@ -19,3 +19,9 @@ jobs:
 
       - name: lint
         run: npm run lint
+
+      - name: type-check comparison test harness
+        run: npm run check:comparison-tests
+
+      - name: type-check execution test harness
+        run: npm run check:execution-tests
