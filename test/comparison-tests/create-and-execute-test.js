@@ -25,7 +25,9 @@ const { values: args } = parseArgs({
 const saveOutputMode = args['save-output'] === true;
 
 const testToRun = args['test-to-run'];
-if (typeof testToRun !== 'string') {
+// An empty name would make the whole comparison-tests folder "the test"; a name starting
+// with `-` means parseArgs took the next flag (e.g. --save-output) as the value.
+if (typeof testToRun !== 'string' || testToRun === '' || testToRun.startsWith('-')) {
     throw new Error('Pass the test to run with --test-to-run=<name>');
 }
 
@@ -358,7 +360,9 @@ function compareFiles(paths, test, patch) {
 
 /**
  * Lists every file under a directory, recursively. Replaces the `glob` package's
- * `glob.sync` with `{ nodir: true }`, and gives the same results and order.
+ * `glob.sync` with `{ nodir: true }`, and gives the same results and order, except
+ * that symlinked folders aren't followed: a link back to a parent folder would
+ * otherwise list the same files again and again.
  *
  * @example
  * listFiles(paths.actualOutput); // ['bundle.js', 'output.txt', 'sub/.hidden.js']
@@ -376,25 +380,43 @@ function listFiles(dir, { includeDotFiles = true } = {}) {
     if (!pathExists(dir)) {
         return [];
     }
-    return fs.readdirSync(dir, { recursive: true })
-        .map((file) => file.split(path.sep).join('/'))
-        .filter((file) => includeDotFiles || !file.split('/').some((part) => part.startsWith('.')))
-        .filter((file) => isFile(path.join(dir, file)))
-        .sort((a, b) => a.localeCompare(b, 'en'));
+    /** @type {string[]} */
+    const files = [];
+    walk('');
+    return files.sort((a, b) => a.localeCompare(b, 'en'));
+
+    /** @param {string} relativeDir */
+    function walk(relativeDir) {
+        for (const entry of fs.readdirSync(path.join(dir, relativeDir), { withFileTypes: true })) {
+            if (!includeDotFiles && entry.name.startsWith('.')) {
+                continue;
+            }
+            const relativePath = relativeDir ? relativeDir + '/' + entry.name : entry.name;
+            if (entry.isDirectory()) {
+                walk(relativePath);
+            } else if (entry.isFile() || (entry.isSymbolicLink() && isSymlinkToFile(path.join(dir, relativePath)))) {
+                files.push(relativePath);
+            }
+        }
+    }
 }
 
 /**
- * statSync follows symlinks, so a symlinked file counts as a file. A broken
- * symlink, or a file deleted mid-listing, is skipped rather than crashing the run.
+ * statSync follows the link. A broken link, or a loop of links, isn't a file. Any
+ * other error (e.g. permissions) is thrown, so --save-output can't mistake an
+ * unreadable file for a missing one and delete its snapshot.
  *
- * @param {string} filePath
+ * @param {string} linkPath
  * @returns {boolean}
  */
-function isFile(filePath) {
+function isSymlinkToFile(linkPath) {
     try {
-        return fs.statSync(filePath).isFile();
-    } catch {
-        return false;
+        return fs.statSync(linkPath).isFile();
+    } catch (error) {
+        if (error.code === 'ENOENT' || error.code === 'ELOOP') {
+            return false;
+        }
+        throw error;
     }
 }
 
