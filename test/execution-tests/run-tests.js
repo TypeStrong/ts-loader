@@ -4,6 +4,7 @@
 var fs = require('fs');
 var path = require('path');
 var execSync = require('child_process').execSync;
+var execFileSync = require('child_process').execFileSync;
 var typescript = require('typescript');
 var webpack = require('webpack');
 var pathExists = require('../pathExists');
@@ -174,9 +175,8 @@ function runTests(testName) {
             passingTests.push(testName);
         } else {
             console.log('running webpack compilation');
-            var runWebpackPath = path.join(__dirname, 'run-webpack.js');
-            var program = debug ? 'node --inspect-brk=5858 ' : 'node ';
-            execSync(program + JSON.stringify(runWebpackPath), { cwd: testPath, stdio: 'inherit' });
+            var nodeArgs = debug ? ['--inspect-brk=5858'] : [];
+            execFileSync(process.execPath, nodeArgs.concat(path.join(__dirname, 'run-webpack.js')), { cwd: testPath, stdio: 'inherit' });
             passingTests.push(testName);
         }
     }

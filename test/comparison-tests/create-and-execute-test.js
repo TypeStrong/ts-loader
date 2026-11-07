@@ -378,7 +378,7 @@ function compareFiles(paths, test, patch) {
  *   are included.
  */
 function listFiles(dir, { includeDotFiles = true } = {}) {
-    if (!fs.existsSync(dir)) {
+    if (!pathExists(dir)) {
         return [];
     }
     return fs.readdirSync(dir, { recursive: true })
@@ -386,9 +386,23 @@ function listFiles(dir, { includeDotFiles = true } = {}) {
         .filter(function (file) {
             return includeDotFiles || !file.split('/').some(function (part) { return part.startsWith('.'); });
         })
-        // statSync follows symlinks, so a symlinked file still counts as a file
-        .filter(function (file) { return fs.statSync(path.join(dir, file)).isFile(); })
+        .filter(function (file) { return isFile(path.join(dir, file)); })
         .sort(function (a, b) { return a.localeCompare(b, 'en'); });
+}
+
+/**
+ * statSync follows symlinks, so a symlinked file counts as a file. A broken
+ * symlink, or a file deleted mid-listing, is skipped rather than crashing the run.
+ *
+ * @param {string} filePath
+ * @returns {boolean}
+ */
+function isFile(filePath) {
+    try {
+        return fs.statSync(filePath).isFile();
+    } catch {
+        return false;
+    }
 }
 
 /**
