@@ -3,7 +3,6 @@ const fs = require('fs');
 const execSync = require('child_process').execSync;
 const path = require('path');
 const webpack = require('webpack');
-const glob = require('glob');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
 const copySync = require('./copySync');
@@ -278,8 +277,8 @@ function storeStats(stats, testState, paths) {
 
 function compareFiles(paths, test, patch) {
     if (saveOutputMode) {
-        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true });
-        const expectedFiles = glob.sync('**/*', { cwd: paths.originalExpectedOutput, nodir: true, dot: true })
+        const actualFiles = listFiles(paths.actualOutput);
+        const expectedFiles = listFiles(paths.originalExpectedOutput)
                 .filter(function (file) { return !file.startsWith('patch'); });
         const allFiles = {};
 
@@ -301,8 +300,8 @@ function compareFiles(paths, test, patch) {
     }
     else {
         // compare actual to expected
-        const actualFiles = glob.sync('**/*', { cwd: paths.actualOutput, nodir: true, dot: true }),
-            expectedFiles = glob.sync('**/*', { cwd: paths.expectedOutput, nodir: true, dot: true })
+        const actualFiles = listFiles(paths.actualOutput),
+            expectedFiles = listFiles(paths.expectedOutput)
                 .filter(function (file) { return !file.startsWith('patch'); }),
             allFiles = {};
 
@@ -348,13 +347,43 @@ function compareFiles(paths, test, patch) {
 }
 
 /**
+ * Lists every file under a directory, recursively. Replaces the `glob` package's
+ * `glob.sync` with `{ nodir: true }`, and gives the same results and order.
+ *
+ * @example
+ * listFiles(paths.actualOutput); // ['bundle.js', 'output.txt', 'sub/.hidden.js']
+ * listFiles(paths.actualOutput, { includeDotFiles: false }); // ['bundle.js', 'output.txt']
+ *
+ * @param {string} dir - The directory to search. If it doesn't exist, the result is empty.
+ * @param {object} [options]
+ * @param {boolean} [options.includeDotFiles=true] - Include files and folders whose name
+ *   starts with `.` (glob's `dot` option).
+ * @returns {string[]} File paths relative to `dir`, always `/`-separated (also on
+ *   Windows), sorted like glob sorts them. Directories are left out; symlinked files
+ *   are included.
+ */
+function listFiles(dir, { includeDotFiles = true } = {}) {
+    if (!fs.existsSync(dir)) {
+        return [];
+    }
+    return fs.readdirSync(dir, { recursive: true })
+        .map(function (file) { return file.split(path.sep).join('/'); })
+        .filter(function (file) {
+            return includeDotFiles || !file.split('/').some(function (part) { return part.startsWith('.'); });
+        })
+        // statSync follows symlinks, so a symlinked file still counts as a file
+        .filter(function (file) { return fs.statSync(path.join(dir, file)).isFile(); })
+        .sort(function (a, b) { return a.localeCompare(b, 'en'); });
+}
+
+/**
  * A patch file named `<file>.__deleted__` deletes `<file>` from the staged
  * test, since copying a patch over it can otherwise only add or overwrite
  * files.
  */
 function applyPatchDeletions(patchPath, testStagingPath) {
     const deletedSuffix = '.__deleted__';
-    for (const marker of glob.sync('**/*' + deletedSuffix, { cwd: patchPath, nodir: true, dot: true })) {
+    for (const marker of listFiles(patchPath).filter(function (file) { return file.endsWith(deletedSuffix); })) {
         fs.rmSync(path.join(testStagingPath, marker.slice(0, -deletedSuffix.length)), { force: true });
         fs.rmSync(path.join(testStagingPath, marker), { force: true });
     }
@@ -392,7 +421,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
 function cleanHashFromOutput(stats, webpackOutput) {
     const escapedStagingPath = stagingPath.replaceAll('\\', '\\\\');
     if (stats) {
-        glob.sync('**/*', { cwd: webpackOutput, nodir: true }).forEach(function (file) {
+        listFiles(webpackOutput, { includeDotFiles: false }).forEach(function (file) {
             const content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
                 .split(stats.hash).join('[hash]')
                 .replace(/\r\n/g, '\n')
