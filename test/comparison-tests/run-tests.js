@@ -194,7 +194,7 @@ function runTestAsChildProcess(testName) {
       { stdio: 'inherit' }
     );
     return true;
-  } catch (err) {
+  } catch (_err) {
     return false;
   }
 }

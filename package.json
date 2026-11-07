@@ -11,6 +11,8 @@
   ],
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
+    "check:comparison-tests": "tsc --version && tsc --project \"./test/comparison-tests\"",
+    "check:execution-tests": "tsc --version && tsc --project \"./test/execution-tests\"",
     "format": "prettier --write \"src/**/*.*\" \"*.md\"",
     "format:check": "prettier --check \"src/**/*.*\" \"*.md\"",
     "lint": "tsc --project \"./src\" --noEmit && oxlint src",
