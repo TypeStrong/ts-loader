@@ -7,12 +7,9 @@
     "src/**/*.ts"
   ],
   "ignoreDependencies": [
-    "babel",
     "babel-core",
     "babel-loader",
-    "babel-polyfill",
     "babel-preset-es2015",
-    "babel-preset-es2016",
     "babel-preset-react",
     "glob",
     "jasmine-core",
