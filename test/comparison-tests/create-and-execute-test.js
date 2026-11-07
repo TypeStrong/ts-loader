@@ -54,7 +54,7 @@ if (fs.statSync(testPath).isDirectory() &&
     !testIsIgnored) {
 
     // @ts-ignore
-    describe(testToRun, function () {
+    describe(testToRun, () => {
         // @ts-ignore
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
@@ -185,7 +185,7 @@ function createWebpackConfig(paths, optionsOriginal) {
 }
 
 function createWebpackWatchHandler(done, paths, testState, options, test) {
-    return function (err, stats) {
+    return (err, stats) => {
         if (testState.doneHasBeenCalled) {
             return;
         }
@@ -246,7 +246,7 @@ function storeStats(stats, testState, paths) {
 
         // do a little magic to normalize `\` to `/` for asset output
         const newAssets = {};
-        Object.keys(stats.compilation.assets).forEach(function (asset) {
+        Object.keys(stats.compilation.assets).forEach((asset) => {
             if (stats.compilation.assets[asset].size()) {
                 const diskAssetPath = path.join(paths.outputPath, asset);
                 const newPath = path.join(paths.actualOutput, path.relative(paths.testStagingPath, diskAssetPath));
@@ -291,16 +291,16 @@ function compareFiles(paths, test, patch) {
     if (saveOutputMode) {
         const actualFiles = listFiles(paths.actualOutput);
         const expectedFiles = listFiles(paths.originalExpectedOutput)
-                .filter(function (file) { return !file.startsWith('patch'); });
+                .filter((file) => !file.startsWith('patch'));
         const allFiles = {};
 
-        actualFiles.forEach(function (file) { allFiles[file] = true });
-        expectedFiles.forEach(function (file) {
+        actualFiles.forEach((file) => { allFiles[file] = true; });
+        expectedFiles.forEach((file) => {
             if (!allFiles.hasOwnProperty(file)) {
                 fs.rmSync(path.join(paths.originalExpectedOutput, file), { recursive: true, force: true });
             }
          });
-        Object.keys(allFiles).forEach(function (file) {
+        Object.keys(allFiles).forEach((file) => {
             // const actual = getNormalisedFileContent(file, paths.actualOutput);
             // const expected = getNormalisedFileContent(file, paths.expectedOutput);
 
@@ -314,12 +314,12 @@ function compareFiles(paths, test, patch) {
         // compare actual to expected
         const actualFiles = listFiles(paths.actualOutput),
             expectedFiles = listFiles(paths.expectedOutput)
-                .filter(function (file) { return !file.startsWith('patch'); }),
+                .filter((file) => !file.startsWith('patch')),
             allFiles = {};
 
-        actualFiles.forEach(function (file) { allFiles[file] = true });
-        expectedFiles.forEach(function (file) { allFiles[file] = true });
-        Object.keys(allFiles).forEach(function (file) {
+        actualFiles.forEach((file) => { allFiles[file] = true; });
+        expectedFiles.forEach((file) => { allFiles[file] = true; });
+        Object.keys(allFiles).forEach((file) => {
             // vue-loader's webpack5 pitching mechanism re-requests each SFC
             // block (script/template) through the full loader chain, and
             // which of the resulting "pitching" vs "final" modules webpack
@@ -379,12 +379,10 @@ function listFiles(dir, { includeDotFiles = true } = {}) {
         return [];
     }
     return fs.readdirSync(dir, { recursive: true })
-        .map(function (file) { return file.split(path.sep).join('/'); })
-        .filter(function (file) {
-            return includeDotFiles || !file.split('/').some(function (part) { return part.startsWith('.'); });
-        })
-        .filter(function (file) { return isFile(path.join(dir, file)); })
-        .sort(function (a, b) { return a.localeCompare(b, 'en'); });
+        .map((file) => file.split(path.sep).join('/'))
+        .filter((file) => includeDotFiles || !file.split('/').some((part) => part.startsWith('.')))
+        .filter((file) => isFile(path.join(dir, file)))
+        .sort((a, b) => a.localeCompare(b, 'en'));
 }
 
 /**
@@ -409,7 +407,7 @@ function isFile(filePath) {
  */
 function applyPatchDeletions(patchPath, testStagingPath) {
     const deletedSuffix = '.__deleted__';
-    for (const marker of listFiles(patchPath).filter(function (file) { return file.endsWith(deletedSuffix); })) {
+    for (const marker of listFiles(patchPath).filter((file) => file.endsWith(deletedSuffix))) {
         fs.rmSync(path.join(testStagingPath, marker.slice(0, -deletedSuffix.length)), { force: true });
         fs.rmSync(path.join(testStagingPath, marker), { force: true });
     }
@@ -422,13 +420,13 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
         testState.iteration++;
         // can get inconsistent results if copying right away
         // Probably due to the reaons in PR 1109: https://github.com/TypeStrong/ts-loader/pull/1109
-        setTimeout(function () {
+        setTimeout(() => {
             copySync(patchPath, testStagingPath);
             applyPatchDeletions(patchPath, testStagingPath);
         }, 1000);
     }
     else {
-        watcher.close(function () {
+        watcher.close(() => {
             // done is occasionally called twice for no known reason
             // when this happens the build fails with "Error: done() called multiple times" - not a meaningful failure
             if (!testState.doneHasBeenCalled) {
@@ -447,7 +445,7 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
 function cleanHashFromOutput(stats, webpackOutput) {
     const escapedStagingPath = stagingPath.replaceAll('\\', '\\\\');
     if (stats) {
-        listFiles(webpackOutput, { includeDotFiles: false }).forEach(function (file) {
+        listFiles(webpackOutput, { includeDotFiles: false }).forEach((file) => {
             const content = fs.readFileSync(path.join(webpackOutput, file), 'utf-8')
                 .split(stats.hash).join('[hash]')
                 .replace(/\r\n/g, '\n')
@@ -479,7 +477,7 @@ function getNormalisedFileContent(file, location) {
                 json.version = "FakeTsVersion";
                 const fileInfos = json.program && json.program.fileInfos;
                 if (fileInfos) {
-                    Object.keys(fileInfos).forEach(fileInfoName => {
+                    Object.keys(fileInfos).forEach((fileInfoName) => {
                         if (fileInfoName.indexOf("typescript") !== -1) {
                             fileInfos[fileInfoName] = { version: fileInfoName, signature: fileInfoName, affectsGlobalScope: fileInfos[fileInfoName].affectsGlobalScope };
                         }
@@ -506,25 +504,21 @@ function getNormalisedFileContent(file, location) {
                 .replace(/\s+Asset\s+Size\s+Chunks\s+Chunk Names/, '    Asset     Size  Chunks             Chunk Names')
                 .replace(/ test\/comparison-tests\//,' /test/comparison-tests/')
                 // Ignore 'at Object.loader (dist\index.js:32:15)' style row number / column number differences
-                .replace(/(\(dist[/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, function(_match, openingBracketPathAndColon, _lineNumber, colon, _columnNumber, closingBracket){
-                    return openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket;
-                })
+                .replace(/(\(dist[/|\\]\w*.js:)(\d*)(:)(\d*)(\))/g, (_match, openingBracketPathAndColon, _lineNumber, colon, _columnNumber, closingBracket) =>
+                    openingBracketPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number' + closingBracket)
                 // Ignore path differences in TS error output
-                .replace(/(TS6305:[^']+')([^']+?)([^\\/']+')([^']+')([^']+?)([^\\/']+'.*)$/gm, function(_match, messageStart, _outputFileBaseDir, outputFileName, messageMiddle, _sourceFileBaseDir, sourceFileName) {
-                    return messageStart + outputFileName + messageMiddle + sourceFileName;
-                })
+                .replace(/(TS6305:[^']+')([^']+?)([^\\/']+')([^']+')([^']+?)([^\\/']+'.*)$/gm, (_match, messageStart, _outputFileBaseDir, outputFileName, messageMiddle, _sourceFileBaseDir, sourceFileName) =>
+                    messageStart + outputFileName + messageMiddle + sourceFileName)
                 // TS18003's "No inputs were found in config file '...'" embeds
                 // whatever config file identifier the compiler was opened
                 // with, which can differ in path depth between platforms;
                 // only the file name itself is meaningful for the test.
-                .replace(/(TS18003: No inputs were found in config file ')([^']*?)([^\\/']+')/g, function(_match, messageStart, _baseDir, fileNameAndQuote) {
-                    return messageStart + fileNameAndQuote;
-                })
+                .replace(/(TS18003: No inputs were found in config file ')([^']*?)([^\\/']+')/g, (_match, messageStart, _baseDir, fileNameAndQuote) =>
+                    messageStart + fileNameAndQuote)
             : normaliseString(originalContent))
             // Ignore 'at C:/source/ts-loader/dist/index.js:90:19' style row number / column number differences
-            .replace(/at (.*)(dist[/|\\]\w*.js:)(\d*)(:)(\d*)/g, function(_match, _spaceAndStartOfPath, remainingPathAndColon, _lineNumber, colon, _columnNumber){
-                return 'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number';
-            })
+            .replace(/at (.*)(dist[/|\\]\w*.js:)(\d*)(:)(\d*)/g, (_match, _spaceAndStartOfPath, remainingPathAndColon, _lineNumber, colon, _columnNumber) =>
+                'at ' + remainingPathAndColon + 'irrelevant-line-number' + colon + 'irrelevant-column-number')
             // strip C:/projects/ts-loader/.test/
             .replace(/([a-zA-Z]:\/)?[\w|/]*\/(ts-(loader)?|workspace)\/\.test/ig, '')
             // Some diagnostics (TS5055, TS6059) embed a path relative to a
