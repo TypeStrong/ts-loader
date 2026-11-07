@@ -22,7 +22,6 @@
     "karma-mocha-reporter",
     "karma-sourcemap-loader",
     "karma-webpack",
-    "lint-staged",
     "loader-utils",
     "mocha",
     "webpack-cli"
