@@ -18,7 +18,13 @@ Promise.resolve(typeof exported === 'function' ? exported(env, { env: env }) : e
                 process.exitCode = 1;
                 return;
             }
-            console.log(stats.toString({ colors: true }));
+            var options = stats.stats
+                ? { children: stats.stats.map(function (s) { return statsOptions(s.compilation); }) }
+                : statsOptions(stats.compilation);
+            var output = stats.toString(options);
+            if (output) {
+                console.log(output);
+            }
             if (stats.hasErrors()) {
                 process.exitCode = 1;
             }
@@ -28,3 +34,16 @@ Promise.resolve(typeof exported === 'function' ? exported(env, { env: env }) : e
         console.error(err);
         process.exitCode = 1;
     });
+
+/**
+ * The config's own `stats` setting, as webpack-cli uses it: colors only when
+ * stdout is a terminal, unless the config says otherwise.
+ */
+function statsOptions(compilation) {
+    var stats = compilation.compiler.options.stats;
+    // webpack 4 keeps presets like 'errors-only' as strings; webpack 5 normalises them to objects
+    if (typeof stats !== 'object' || stats === null) {
+        return stats;
+    }
+    return Object.assign({ colors: !!process.stdout.isTTY }, stats);
+}
