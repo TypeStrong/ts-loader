@@ -21,13 +21,18 @@ Keep comments in `src/` sparse: only the non-obvious _why_ (a Windows-only path 
 Note: test scripts clean test directories first using `git clean -xfd`.
 
 ```bash
-npm run build            # compile src/ → dist/ (tsc --project "./src")
-npm run lint             # type-check + oxlint (no separate typecheck script)
-npm test                 # full test suite (comparison + execution tests)
-npm run comparison-tests # fast subset: compare webpack output against snapshots
-npm run execution-tests  # run compiled code via Karma/Jasmine
-npm run benchmark        # compare this build's compile speed against another ts-loader checkout
+npm run build                  # compile src/ → dist/ (tsc --project "./src")
+npm run lint                   # type-check src/ + oxlint
+npm run check:comparison-tests # type-check the comparison test harness scripts
+npm run check:execution-tests  # type-check the execution test harness scripts (and test/run-tests.js)
+npm run check:benchmark-tests  # type-check the benchmark scripts
+npm test                       # full test suite (comparison + execution tests)
+npm run comparison-tests       # fast subset: compare webpack output against snapshots
+npm run execution-tests        # run compiled code via Karma/Jasmine
+npm run benchmark              # compare this build's compile speed against another ts-loader checkout
 ```
+
+The lint workflow runs `npm run lint` and all three `check:` scripts.
 
 To run a single test:
 
