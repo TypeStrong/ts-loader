@@ -174,9 +174,9 @@ function runTests(testName) {
             passingTests.push(testName);
         } else {
             console.log('running webpack compilation');
-            var webpackPath = path.resolve(__dirname, '../../node_modules/webpack/bin/webpack.js');
-            var program = debug ? 'node --inspect-brk=5858 ' + webpackPath : 'webpack';
-            execSync(`${program} --bail`, { cwd: testPath, stdio: 'inherit' });
+            var runWebpackPath = path.join(__dirname, 'run-webpack.js');
+            var program = debug ? 'node --inspect-brk=5858 ' : 'node ';
+            execSync(program + JSON.stringify(runWebpackPath), { cwd: testPath, stdio: 'inherit' });
             passingTests.push(testName);
         }
     }

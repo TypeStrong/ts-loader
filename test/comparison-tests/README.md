@@ -26,7 +26,7 @@ module.exports = {
 
 ```
 
-You can run all the tests in the Comparison Test Pack with `npm run comparison-tests`. You can also go into an individual test directory and manually build a project using `webpack` or `webpack --watch`. This can be useful both when developing the test and also when fixing an issue or adding a feature.
+You can run all the tests in the Comparison Test Pack with `npm run comparison-tests`. You can also go into an individual test directory and manually build a project using `npx webpack-cli` or `npx webpack-cli --watch` (webpack-cli is no longer a devDependency, so `npx` fetches it). This can be useful both when developing the test and also when fixing an issue or adding a feature.
 
 Each test should have an `expectedOutput` directory which contains any webpack filesystem output (typically `bundle.js` and possibly `bundle.js.map`) and any console output. stdout should go in `output.txt` and stderr should go in `err.txt`.
 

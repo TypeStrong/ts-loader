@@ -21,7 +21,6 @@
     "karma-sourcemap-loader",
     "karma-webpack",
     "loader-utils",
-    "mocha",
-    "webpack-cli"
+    "mocha"
   ]
 }
