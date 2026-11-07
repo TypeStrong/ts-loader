@@ -53,9 +53,7 @@ if (fs.statSync(testPath).isDirectory() &&
     testToRun !== 'testLib' &&
     !testIsIgnored) {
 
-    // @ts-ignore
     describe(testToRun, () => {
-        // @ts-ignore
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
         if (testToRun === 'declarationOutput' ||
@@ -68,7 +66,6 @@ if (fs.statSync(testPath).isDirectory() &&
             testToRun === 'unbundledFileErrorsWatch' ||
             testToRun === 'pathsAliasWatch') { return; }
 
-        // @ts-ignore
         it('should work with transpileOnly', createTest(testToRun, testPath, { transpileOnly: true }));
     });
 }
@@ -115,11 +112,12 @@ function createTest(test, testPath, options) {
         // Need to wait > FS_ACCURACY as defined in watchpack.
         // See PR 1109 for details: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(() => {
-            // execute webpack
-            // @ts-ignore - webpack will not be null at runtime
-            testState.watcher = webpack(
-                createWebpackConfig(paths, options)
-            ).watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
+            const compiler = webpack(createWebpackConfig(paths, options));
+            if (!compiler) {
+                done(new Error('webpack did not return a compiler'));
+                return;
+            }
+            testState.watcher = compiler.watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
         }, 200);
 
     };
