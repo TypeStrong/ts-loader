@@ -6,7 +6,6 @@ var path = require('path');
 var execSync = require('child_process').execSync;
 var typescript = require('typescript');
 var webpack = require('webpack');
-var semver = require('semver');
 var pathExists = require('../pathExists');
 
 process.env.NODE_ENV = 'test';
@@ -72,23 +71,35 @@ function isHighEnoughTypeScriptVersion (testName) {
     var minTsVersionAndTestName = testName.split('_');
     if (minTsVersionAndTestName.length === 2) {
         var minTsVersion = minTsVersionAndTestName[0];
-        if (semver.lt(typescript.version, minTsVersion)) {
+        if (isLowerVersion(typescript.version, minTsVersion)) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
             return false;
         }
     } else if (minTsVersionAndTestName.length === 3) {
         var minTsVersion = minTsVersionAndTestName[0];
-        if (semver.lt(typescript.version, minTsVersion)) {
+        if (isLowerVersion(typescript.version, minTsVersion)) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
             return false;
         }
         var minWebpackVersion = minTsVersionAndTestName[1];
-        if (semver.lt(webpack.version, minWebpackVersion)) {
+        if (isLowerVersion(webpack.version, minWebpackVersion)) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minWebpackVersion + ' is greater than our current version of webpack: ' + webpack.version);
             return false;
         }
     }
     return true;
+}
+
+/** Compares major.minor.patch only; prerelease tags like `-beta` are ignored. */
+function isLowerVersion (version, minVersion) {
+    var actual = version.split('-')[0].split('.').map(Number);
+    var minimum = minVersion.split('.').map(Number);
+    for (var i = 0; i < 3; i++) {
+        if ((actual[i] || 0) !== (minimum[i] || 0)) {
+            return (actual[i] || 0) < (minimum[i] || 0);
+        }
+    }
+    return false;
 }
 
 /** Temporarily exclude loaderOptions until custom transformers work with the default native API path */
