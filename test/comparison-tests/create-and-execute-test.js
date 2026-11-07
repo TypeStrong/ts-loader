@@ -6,15 +6,30 @@ const webpack = require('webpack');
 const pathExists = require('../pathExists');
 const aliasLoader = require('../aliasLoader');
 const copySync = require('./copySync');
+const { parseArgs } = require('util');
 const getProgram = require('./getProgram');
 
-const saveOutputMode = process.argv.indexOf('--save-output') !== -1;
+// Not strict: process.argv also holds mocha's own arguments (e.g. --reporter spec).
+// run-tests.js passes `--test-to-run=<name>`, because mocha treats a separate
+// value as a spec file.
+const { values: args } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+        'test-to-run': { type: 'string' },
+        'extra-option': { type: 'string' },
+        'save-output': { type: 'boolean' },
+    },
+    strict: false,
+    allowPositionals: true,
+});
 
-const indexOfTestToRun = process.argv.indexOf('--test-to-run');
-const testToRun = process.argv[indexOfTestToRun + 1];
+const saveOutputMode = args['save-output'] === true;
 
-const indexOfExtraOption = process.argv.indexOf('--extra-option');
-const extraOption = indexOfExtraOption === -1 ? undefined : process.argv[indexOfExtraOption + 1];
+const testToRun = args['test-to-run'];
+if (typeof testToRun !== 'string') {
+    throw new Error('Pass the test to run with --test-to-run=<name>');
+}
+const extraOption = typeof args['extra-option'] === 'string' ? args['extra-option'] : undefined;
 
 if (saveOutputMode) {
     console.log('Will save output as --save-output was supplied...');
