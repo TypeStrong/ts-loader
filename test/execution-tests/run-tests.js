@@ -1,31 +1,30 @@
 'use strict';
 
-// var Server = require('karma').Server;
-var fs = require('fs');
-var path = require('path');
-var execSync = require('child_process').execSync;
-var execFileSync = require('child_process').execFileSync;
-var typescript = require('typescript');
-var webpack = require('webpack');
-var pathExists = require('../pathExists');
+const fs = require('fs');
+const path = require('path');
+const execSync = require('child_process').execSync;
+const execFileSync = require('child_process').execFileSync;
+const typescript = require('typescript');
+const webpack = require('webpack');
+const pathExists = require('../pathExists');
 
 process.env.NODE_ENV = 'test';
 
 // Parse command line arguments
-var indexOfSingleTest = process.argv.indexOf('--single-test');
-var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
-var watch = process.argv.indexOf('--watch') !== -1 && !!singleTestToRun;
+const indexOfSingleTest = process.argv.indexOf('--single-test');
+const singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
+const watch = process.argv.indexOf('--watch') !== -1 && !!singleTestToRun;
 const indexOfTestCriteria = process.argv.indexOf('--match-test');
 const testCriteria =
   indexOfTestCriteria !== -1 && new RegExp(process.argv[indexOfTestCriteria + 1]);
 
-var passingTests = [];
-var failingTests = [];
+const passingTests = [];
+const failingTests = [];
 
-var start = new Date().getTime();
+const start = new Date().getTime();
 console.log('Starting to run test suites...\n');
 
-var testDir = __dirname;
+const testDir = __dirname;
 
 if (singleTestToRun) {
     runTests(singleTestToRun);
@@ -46,7 +45,7 @@ else {
         .forEach(runTests);
 }
 
-var end = new Date().getTime();
+const end = new Date().getTime();
 console.log('\n-------------------------------------------------------------------------\n');
 console.log((passingTests.length + failingTests.length) + ' test suites took ' + ((end - start) / 1000) + ' seconds to run.\n');
 if (passingTests.length > 0) {
@@ -64,25 +63,25 @@ else {
 // --------------------------------------------------------------
 
 function isTestDirectory (testName) {
-    var testPath = path.join(testDir, testName);
+    const testPath = path.join(testDir, testName);
     return fs.statSync(testPath).isDirectory();
 }
 
 function isHighEnoughTypeScriptVersion (testName) {
-    var minTsVersionAndTestName = testName.split('_');
+    const minTsVersionAndTestName = testName.split('_');
     if (minTsVersionAndTestName.length === 2) {
-        var minTsVersion = minTsVersionAndTestName[0];
+        const minTsVersion = minTsVersionAndTestName[0];
         if (isLowerVersion(typescript.version, minTsVersion)) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
             return false;
         }
     } else if (minTsVersionAndTestName.length === 3) {
-        var minTsVersion = minTsVersionAndTestName[0];
+        const minTsVersion = minTsVersionAndTestName[0];
         if (isLowerVersion(typescript.version, minTsVersion)) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
             return false;
         }
-        var minWebpackVersion = minTsVersionAndTestName[1];
+        const minWebpackVersion = minTsVersionAndTestName[1];
         if (isLowerVersion(webpack.version, minWebpackVersion)) {
             console.log('Skipping test ' + testName + ' as its minimum version of ' + minWebpackVersion + ' is greater than our current version of webpack: ' + webpack.version);
             return false;
@@ -93,9 +92,9 @@ function isHighEnoughTypeScriptVersion (testName) {
 
 /** Compares major.minor.patch only; prerelease tags like `-beta` are ignored. */
 function isLowerVersion (version, minVersion) {
-    var actual = version.split('-')[0].split('.').map(Number);
-    var minimum = minVersion.split('.').map(Number);
-    for (var i = 0; i < 3; i++) {
+    const actual = version.split('-')[0].split('.').map(Number);
+    const minimum = minVersion.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
         if ((actual[i] || 0) !== (minimum[i] || 0)) {
             return (actual[i] || 0) < (minimum[i] || 0);
         }
@@ -105,7 +104,7 @@ function isLowerVersion (version, minVersion) {
 
 /** Temporarily exclude loaderOptions until custom transformers work with the default native API path */
 function isNotLoaderOptionsTest (testName) {
-    var isLoaderOptionsTest = testName === 'loaderOptions';
+    const isLoaderOptionsTest = testName === 'loaderOptions';
     if (isLoaderOptionsTest) {
         console.log('Skipping test ' + testName + ' while the default native API path does not yet support its custom transformer coverage.');
         return false;
@@ -115,7 +114,7 @@ function isNotLoaderOptionsTest (testName) {
 
 /** Temporarily exclude Babel dependent tests */
 function isNotBabelTest (testName) {
-    var isBabelTest = testName.includes('babel');
+    const isBabelTest = testName.includes('babel');
     if (isBabelTest) {
         console.log('Skipping test ' + testName + ' as it requires babel.  Dropping these tests until babel-loader support for webpack for is in place.');
         return false;
@@ -124,16 +123,16 @@ function isNotBabelTest (testName) {
 }
 
 function getTestNameFromPath (testNameOrPath) {
-    var tsLoaderPath = path.resolve(__dirname, '../..');
-    var tsLoaderBasename = path.basename(tsLoaderPath);
-    var executionTestsRelativeRoot = path.relative(tsLoaderPath, __dirname);
-    var executionTestsAbsoluteRoot = path.join(tsLoaderPath, executionTestsRelativeRoot);
+    const tsLoaderPath = path.resolve(__dirname, '../..');
+    const tsLoaderBasename = path.basename(tsLoaderPath);
+    const executionTestsRelativeRoot = path.relative(tsLoaderPath, __dirname);
+    const executionTestsAbsoluteRoot = path.join(tsLoaderPath, executionTestsRelativeRoot);
     // It wasn’t a path in execution-tests; assume it was a test name
     if (testNameOrPath.indexOf(path.join(tsLoaderBasename, executionTestsRelativeRoot)) === -1) {
         return testNameOrPath;
     }
     // E.g. 3.0.1_projectReferences/lib/index.ts
-    var testPathRelativeToExecutionTests = path.relative(executionTestsAbsoluteRoot, testNameOrPath);
+    const testPathRelativeToExecutionTests = path.relative(executionTestsAbsoluteRoot, testNameOrPath);
     return testPathRelativeToExecutionTests.split(path.sep)[0];
 }
 
@@ -142,7 +141,7 @@ function runTests(testName) {
     console.log('\n-------------------------------------------------------------------------\n');
     console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
 
-    var testPath = path.join(testDir, testName);
+    const testPath = path.join(testDir, testName);
 
     if (!pathExists(testPath)) {
         console.log('TEST DOES NOT EXIST AT THIS LOCATION: ' + testPath);
@@ -150,8 +149,8 @@ function runTests(testName) {
         return;
     }
 
-    var karmaConfPath = path.join(testPath, 'karma.conf.js');
-    var debug = process.argv.indexOf('--debug') > -1;
+    const karmaConfPath = path.join(testPath, 'karma.conf.js');
+    const debug = process.argv.indexOf('--debug') > -1;
 
     if (pathExists(path.join(testPath, 'pnpm-lock.yaml'))) {
         console.log('npm install -g pnpm into ' + testPath);
@@ -167,20 +166,20 @@ function runTests(testName) {
 
     try {
         if (pathExists(karmaConfPath)) {
-            var karmaPath = path.resolve(__dirname, '../../node_modules/karma/bin/karma');
-            var singleRunOrWatch = watch ? '' : ' --single-run';
-            var program = debug ? 'node --inspect-brk=5858 ' + karmaPath : 'karma';
+            const karmaPath = path.resolve(__dirname, '../../node_modules/karma/bin/karma');
+            const singleRunOrWatch = watch ? '' : ' --single-run';
+            const program = debug ? 'node --inspect-brk=5858 ' + karmaPath : 'karma';
             execSync(program + ' start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox', { cwd: testPath, stdio: 'inherit' });
 
             passingTests.push(testName);
         } else {
             console.log('running webpack compilation');
-            var nodeArgs = debug ? ['--inspect-brk=5858'] : [];
+            const nodeArgs = debug ? ['--inspect-brk=5858'] : [];
             execFileSync(process.execPath, nodeArgs.concat(path.join(__dirname, 'run-webpack.js')), { cwd: testPath, stdio: 'inherit' });
             passingTests.push(testName);
         }
     }
-    catch (err) {
+    catch (_err) {
         failingTests.push(testName);
     }
 }
