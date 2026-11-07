@@ -1,17 +1,4 @@
 {
-    "compilerOptions": {
-        "strictNullChecks": true,
-        "allowJs": true,
-        "checkJs": true,
-        "module": "commonjs",
-        "noEmit": true,
-        "skipLibCheck": true,
-        "lib": ["es2021"],
-        "types": ["node"],
-        "strict": false
-    },
-    "files": [
-        "run-webpack.js",
-        "run-tests.js"
-    ]
+  "extends": "../tsconfig.base.json",
+  "files": ["../run-tests.js", "../karmaConfig.js", "run-tests.js", "run-webpack.js"]
 }

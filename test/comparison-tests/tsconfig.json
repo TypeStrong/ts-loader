@@ -1,21 +1,11 @@
 {
-    "compilerOptions": {
-        "strictNullChecks": true,
-        "allowJs": true,
-        "checkJs": true,
-        "module": "commonjs",
-        "noEmit": true,
-        "skipLibCheck": true,
-        "lib": ["es2021"],
-        "types": ["node"],
-        "strict": false
-    },
-    "files": [
-        "copySync.js",         
-        "create-and-execute-test.js",
-        "getProgram.js",
-        "link-test-lib.js",
-        "newline.loader.js",
-        "run-tests.js"
-    ]
+  "extends": "../tsconfig.base.json",
+  "files": [
+    "copySync.js",
+    "create-and-execute-test.js",
+    "getProgram.js",
+    "link-test-lib.js",
+    "newline.loader.js",
+    "run-tests.js"
+  ]
 }
