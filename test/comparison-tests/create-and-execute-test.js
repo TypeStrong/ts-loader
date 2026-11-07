@@ -16,7 +16,6 @@ const { values: args } = parseArgs({
     args: process.argv.slice(2),
     options: {
         'test-to-run': { type: 'string' },
-        'extra-option': { type: 'string' },
         'save-output': { type: 'boolean' },
     },
     strict: false,
@@ -29,7 +28,6 @@ const testToRun = args['test-to-run'];
 if (typeof testToRun !== 'string') {
     throw new Error('Pass the test to run with --test-to-run=<name>');
 }
-const extraOption = typeof args['extra-option'] === 'string' ? args['extra-option'] : undefined;
 
 if (saveOutputMode) {
     console.log('Will save output as --save-output was supplied...');
@@ -56,7 +54,7 @@ if (fs.statSync(testPath).isDirectory() &&
     !testIsIgnored) {
 
     // @ts-ignore
-    describe(`${testToRun}${extraOption ? ` - ${extraOption}: true` : ''}`, function () {
+    describe(testToRun, function () {
         // @ts-ignore
         it('should have the correct output', createTest(testToRun, testPath, {}));
 
@@ -166,11 +164,10 @@ function createWebpackConfig(paths, optionsOriginal) {
         paths.outputPath = path.join(paths.testStagingPath, subFolder);
     }
 
-    const extraOptionMaybe = extraOption ? { [extraOption]: true } : {};
     const options = Object.assign({
         // colors: false,
         silent: true
-    }, optionsOriginal, extraOptionMaybe);
+    }, optionsOriginal);
 
     const tsLoaderPath = path.join(__dirname, "../../index.js");
     aliasLoader(config, tsLoaderPath, options);
