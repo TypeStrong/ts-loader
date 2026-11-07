@@ -25,3 +25,6 @@ jobs:
 
       - name: type-check execution test harness
         run: npm run check:execution-tests
+
+      - name: type-check benchmark tests
+        run: npm run check:benchmark-tests

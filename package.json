@@ -11,6 +11,7 @@
   ],
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
+    "check:benchmark-tests": "tsc --version && tsc --project \"./test/benchmark-tests\"",
     "check:comparison-tests": "tsc --version && tsc --project \"./test/comparison-tests\"",
     "check:execution-tests": "tsc --version && tsc --project \"./test/execution-tests\"",
     "format": "prettier --write \"src/**/*.*\" \"*.md\"",
