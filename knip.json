@@ -10,10 +10,7 @@
     "@babel/core",
     "@babel/preset-env",
     "@babel/preset-react",
-    "@types/jasmine",
     "babel-loader",
-    "jasmine",
-    "loader-utils",
-    "mocha"
+    "loader-utils"
   ]
 }

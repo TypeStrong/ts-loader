@@ -1,7 +1,7 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const execSync = require('child_process').execSync;
+const execFileSync = require('child_process').execFileSync;
 const getProgram = require('./getProgram');
 
 // Build
@@ -90,7 +90,12 @@ function runTests() {
           }
 
           const testPath = path.join(testDir, testName);
-          const isATest = fs.statSync(testPath).isDirectory();
+          // testLib is the library the npmLink test links to, not a test
+          const isATest = fs.statSync(testPath).isDirectory() && testName !== 'testLib';
+          if (isATest && fs.existsSync(path.join(testPath, '_IGNORE_'))) {
+            console.log(`Skipping test ${testName} as it has an _IGNORE_ file`);
+            return false;
+          }
           return isATest;
         }
       )
@@ -180,19 +185,22 @@ function getTestNameFromPath(testNameOrPath) {
  * @param {string} testName
  */
 function runTestAsChildProcess(testName) {
-  const testToRun = ' --test-to-run=' + testName;
   const debug = process.argv.indexOf('--debug') > -1;
-  const testCommand =
-    'mocha --color --reporter spec ' +
-    (debug ? '--inspect-brk=5858 ' : '') +
-    'test/comparison-tests/create-and-execute-test.js ' +
-    testToRun;
+  const nodeArgs = debug ? ['--inspect-brk=5858'] : [];
+  const jasminePath = path.resolve(__dirname, '../../node_modules/jasmine/bin/jasmine.js');
+  const jasmineArgs = [
+    // keeps the transpileOnly run after the normal one
+    '--random=false',
+    // also tells picocolors to colour webpack's output, which the snapshots expect
+    '--color',
+    path.join(__dirname, 'create-and-execute-test.js'),
+    // the rest are create-and-execute-test.js's own arguments
+    '--',
+    '--test-to-run=' + testName,
+  ].concat(saveOutputMode ? ['--save-output'] : []);
 
   try {
-    const _testOutput = execSync(
-      testCommand + (saveOutputMode ? ' --save-output' : ''),
-      { stdio: 'inherit' }
-    );
+    execFileSync(process.execPath, nodeArgs.concat(jasminePath, jasmineArgs), { stdio: 'inherit' });
     return true;
   } catch (_err) {
     return false;

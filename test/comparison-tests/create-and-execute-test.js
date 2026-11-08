@@ -9,17 +9,15 @@ const copySync = require('./copySync');
 const { parseArgs } = require('util');
 const getProgram = require('./getProgram');
 
-// Not strict: process.argv also holds mocha's own arguments (e.g. --reporter spec).
-// run-tests.js passes `--test-to-run=<name>`, because mocha treats a separate
-// value as a spec file.
+// run-tests.js runs this spec file with Jasmine, passing its own arguments after
+// Jasmine's `--` marker: `-- --test-to-run=<name> [--save-output]`.
+const argsMarker = process.argv.indexOf('--');
 const { values: args } = parseArgs({
-    args: process.argv.slice(2),
+    args: argsMarker === -1 ? [] : process.argv.slice(argsMarker + 1),
     options: {
         'test-to-run': { type: 'string' },
         'save-output': { type: 'boolean' },
     },
-    strict: false,
-    allowPositionals: true,
 });
 
 const saveOutputMode = args['save-output'] === true;
@@ -36,7 +34,6 @@ if (saveOutputMode) {
 }
 
 const FLAKY = '_FLAKY_';
-const IGNORE = '_IGNORE_';
 
 // set up new paths
 const rootPath = path.resolve(__dirname, '../../');
@@ -45,32 +42,25 @@ const stagingPath = path.resolve(rootPath, '.test');
 
 const testPath = path.join(__dirname, testToRun);
 const testIsFlaky = pathExists(path.join(testPath, FLAKY));
-const testIsIgnored = pathExists(path.join(testPath, IGNORE));
 
-if (testIsIgnored) {
-    console.log(testPath + ' is ignored... Not running test.');
-}
+// Generous, as a watch test can take several rebuilds
+const TEST_TIMEOUT = 90000;
 
-if (fs.statSync(testPath).isDirectory() &&
-    testToRun !== 'testLib' &&
-    !testIsIgnored) {
+describe(testToRun, () => {
+    it('should have the correct output', createTest(testToRun, testPath, {}), TEST_TIMEOUT);
 
-    describe(testToRun, () => {
-        it('should have the correct output', createTest(testToRun, testPath, {}));
+    if (testToRun === 'declarationOutput' ||
+        testToRun === 'declarationOutputWithMaps' ||
+        testToRun === 'importsWatch' ||
+        testToRun === 'declarationWatch' ||
+        testToRun === 'issue71' ||
+        testToRun === 'appendSuffixToWatch' ||
+        // transpileOnly never watches unbundled files (or files only reached via a type-only import), so their patches trigger no rebuild
+        testToRun === 'unbundledFileErrorsWatch' ||
+        testToRun === 'pathsAliasWatch') { return; }
 
-        if (testToRun === 'declarationOutput' ||
-            testToRun === 'declarationOutputWithMaps' ||
-            testToRun === 'importsWatch' ||
-            testToRun === 'declarationWatch' ||
-            testToRun === 'issue71' ||
-            testToRun === 'appendSuffixToWatch' ||
-            // transpileOnly never watches unbundled files (or files only reached via a type-only import), so their patches trigger no rebuild
-            testToRun === 'unbundledFileErrorsWatch' ||
-            testToRun === 'pathsAliasWatch') { return; }
-
-        it('should work with transpileOnly', createTest(testToRun, testPath, { transpileOnly: true }));
-    });
-}
+    it('should work with transpileOnly', createTest(testToRun, testPath, { transpileOnly: true }), TEST_TIMEOUT);
+});
 
 
 /**
@@ -80,8 +70,7 @@ if (fs.statSync(testPath).isDirectory() &&
  * @param {any} options
  */
 function createTest(test, testPath, options) {
-    return function (done) {
-        this.timeout(90000); // sometimes it just takes awhile
+    return (done) => {
         const testState = createTestState();
         const paths = createPaths(stagingPath, test, options);
         if (saveOutputMode) {
@@ -200,7 +189,7 @@ function createWebpackWatchHandler(done, paths, testState, options, test) {
             compareFiles(paths, test, patch);
         } catch (error) {
             // Thrown out of webpack's watch callback, a failed assertion would
-            // leave the watcher open - keeping the process alive so mocha never
+            // leave the watcher open - keeping the process alive so Jasmine never
             // exits - so close it and fail the test explicitly instead.
             testState.doneHasBeenCalled = true;
             testState.watcher.close(() => done(error));

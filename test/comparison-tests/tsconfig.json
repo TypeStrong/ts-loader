@@ -1,10 +1,15 @@
 {
   "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "jasmine"
+    ]
+  },
   "files": [
     "copySync.js",
     "create-and-execute-test.js",
     "getProgram.js",
-    "globals.d.ts",
     "link-test-lib.js",
     "newline.loader.js",
     "run-tests.js"
