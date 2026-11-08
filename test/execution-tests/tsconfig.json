@@ -1,4 +1,4 @@
 {
   "extends": "../tsconfig.base.json",
-  "files": ["../run-tests.js", "../karmaConfig.js", "run-tests.js", "run-webpack.js"]
+  "files": ["../run-tests.js", "run-tests.js", "run-specs.js", "run-webpack.js"]
 }

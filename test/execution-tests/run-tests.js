@@ -25,6 +25,15 @@ console.log('Starting to run test suites...\n');
 
 const testDir = __dirname;
 
+/**
+ * Tests of loader options that the TypeScript 7 API makes inert, skipped until the
+ * native API supports them again
+ */
+const unsupportedTests = {
+    loaderOptions: 'custom transformers (getCustomTransformers)',
+    resolveModuleName: 'custom module resolution (resolveModuleName)',
+};
+
 if (singleTestToRun) {
     runTests(singleTestToRun);
 }
@@ -33,7 +42,7 @@ else {
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
         .filter(isHighEnoughWebpackVersion)
-        .filter(isNotLoaderOptionsTest)
+        .filter(isSupportedTest)
         .filter(
             /**
              * @param {string} testName
@@ -84,11 +93,11 @@ function isHighEnoughWebpackVersion (testName) {
     return true;
 }
 
-/** Temporarily exclude loaderOptions until custom transformers work with the default native API path */
-function isNotLoaderOptionsTest (testName) {
-    const isLoaderOptionsTest = testName === 'loaderOptions';
-    if (isLoaderOptionsTest) {
-        console.log('Skipping test ' + testName + ' while the default native API path does not yet support its custom transformer coverage.');
+/** @param {string} testName */
+function isSupportedTest (testName) {
+    const unsupported = unsupportedTests[testName];
+    if (unsupported) {
+        console.log('Skipping test ' + testName + ' as the TypeScript 7 API does not yet support ' + unsupported + '.');
         return false;
     }
     return true;
@@ -122,7 +131,7 @@ function runTests(testName) {
         return;
     }
 
-    const karmaConfPath = path.join(testPath, 'karma.conf.js');
+    const hasSpecs = pathExists(path.join(testPath, 'main.js'));
     const debug = process.argv.indexOf('--debug') > -1;
 
     if (pathExists(path.join(testPath, 'pnpm-lock.yaml'))) {
@@ -138,19 +147,15 @@ function runTests(testName) {
     }
 
     try {
-        if (pathExists(karmaConfPath)) {
-            const karmaPath = path.resolve(__dirname, '../../node_modules/karma/bin/karma');
-            const singleRunOrWatch = watch ? '' : ' --single-run';
-            const program = debug ? 'node --inspect-brk=5858 ' + karmaPath : 'karma';
-            execSync(program + ' start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox', { cwd: testPath, stdio: 'inherit' });
-
-            passingTests.push(testName);
+        const nodeArgs = debug ? ['--inspect-brk=5858'] : [];
+        if (hasSpecs) {
+            const watchArgs = watch ? ['--watch'] : [];
+            execFileSync(process.execPath, nodeArgs.concat(path.join(__dirname, 'run-specs.js'), watchArgs), { cwd: testPath, stdio: 'inherit' });
         } else {
             console.log('running webpack compilation');
-            const nodeArgs = debug ? ['--inspect-brk=5858'] : [];
             execFileSync(process.execPath, nodeArgs.concat(path.join(__dirname, 'run-webpack.js')), { cwd: testPath, stdio: 'inherit' });
-            passingTests.push(testName);
         }
+        passingTests.push(testName);
     }
     catch (_err) {
         failingTests.push(testName);

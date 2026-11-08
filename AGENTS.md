@@ -28,7 +28,7 @@ npm run check:execution-tests  # type-check the execution test harness scripts (
 npm run check:benchmark-tests  # type-check the benchmark scripts
 npm test                       # full test suite (comparison + execution tests)
 npm run comparison-tests       # fast subset: compare webpack output against snapshots
-npm run execution-tests        # run compiled code via Karma/Jasmine
+npm run execution-tests        # build each test for Node and run its Jasmine specs
 npm run benchmark              # compare this build's compile speed against another ts-loader checkout
 ```
 
@@ -88,11 +88,11 @@ gh run view <run-id> --repo TypeStrong/ts-loader --log-failed    # full failure 
 
 ## Execution tests (`test/execution-tests/`)
 
-Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. The harness compiles the project and **runs the compiled code** — useful for asserting correct runtime behaviour. These are matrix-tested in CI across multiple Node and TypeScript versions (see `.github/workflows/execution-tests.yml` for the current matrix).
+Each sub-directory is a mini webpack project with a Jasmine test suite. The harness builds the project's `main.js` (which loads its `*.tests.ts` specs) for Node and **runs the compiled code** with Jasmine — useful for asserting correct runtime behaviour. These are matrix-tested in CI across multiple Node and TypeScript versions (see `.github/workflows/execution-tests.yml` for the current matrix).
 
 Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 
-A test that needs a minimum webpack version declares it in a `test.json` in its directory (e.g. `{ "minWebpack": 5 }`); it is skipped on older webpack. Shared test dependencies (`@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
+A test that needs a minimum webpack version declares it in a `test.json` in its directory (e.g. `{ "minWebpack": 5 }`); it is skipped on older webpack. Shared test dependencies (`jasmine`, `@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
 
 Every `webpack.config.js` in this pack must include this alias so the local ts-loader is resolved:
 
@@ -106,7 +106,7 @@ module.exports.resolveLoader = {
 ```bash
 npm run execution-tests                                 # all tests
 npm run execution-tests -- --single-test <name>         # one test
-npm run execution-tests -- --single-test <name> --watch # watch mode (open http://localhost:9876/)
+npm run execution-tests -- --single-test <name> --watch # rebuild and re-run on changes
 ```
 
 ## Testing on Windows CI

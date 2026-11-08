@@ -12,12 +12,7 @@
     "@babel/preset-react",
     "@types/jasmine",
     "babel-loader",
-    "karma",
-    "karma-chrome-launcher",
-    "karma-jasmine",
-    "karma-mocha-reporter",
-    "karma-sourcemap-loader",
-    "karma-webpack",
+    "jasmine",
     "loader-utils",
     "mocha"
   ]
