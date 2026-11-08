@@ -4,7 +4,6 @@ const fs = require('fs');
 const path = require('path');
 const execSync = require('child_process').execSync;
 const execFileSync = require('child_process').execFileSync;
-const typescript = require('typescript');
 const webpack = require('webpack');
 const pathExists = require('../pathExists');
 
@@ -33,7 +32,7 @@ else {
     // loop through each test directory triggering a test run as child process
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
-        .filter(isHighEnoughTypeScriptVersion)
+        .filter(isHighEnoughWebpackVersion)
         .filter(isNotLoaderOptionsTest)
         .filter(
             /**
@@ -41,7 +40,6 @@ else {
              */ testName =>
                 testCriteria ? !!testName.match(testCriteria) : true
         )
-        // .filter(isNotBabelTest)
         .forEach(runTests);
 }
 
@@ -67,39 +65,23 @@ function isTestDirectory (testName) {
     return fs.statSync(testPath).isDirectory();
 }
 
-function isHighEnoughTypeScriptVersion (testName) {
-    const minTsVersionAndTestName = testName.split('_');
-    if (minTsVersionAndTestName.length === 2) {
-        const minTsVersion = minTsVersionAndTestName[0];
-        if (isLowerVersion(typescript.version, minTsVersion)) {
-            console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
-            return false;
-        }
-    } else if (minTsVersionAndTestName.length === 3) {
-        const minTsVersion = minTsVersionAndTestName[0];
-        if (isLowerVersion(typescript.version, minTsVersion)) {
-            console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
-            return false;
-        }
-        const minWebpackVersion = minTsVersionAndTestName[1];
-        if (isLowerVersion(webpack.version, minWebpackVersion)) {
-            console.log('Skipping test ' + testName + ' as its minimum version of ' + minWebpackVersion + ' is greater than our current version of webpack: ' + webpack.version);
-            return false;
-        }
+/**
+ * A test can declare the webpack major version it needs in a `test.json`,
+ * e.g. `{ "minWebpack": 5 }`; it is skipped on older webpack.
+ * @param {string} testName
+ */
+function isHighEnoughWebpackVersion (testName) {
+    const testConfigPath = path.join(testDir, testName, 'test.json');
+    if (!pathExists(testConfigPath)) {
+        return true;
+    }
+    const minWebpack = JSON.parse(fs.readFileSync(testConfigPath, 'utf8')).minWebpack;
+    const webpackMajor = Number(webpack.version.split('.')[0]);
+    if (minWebpack !== undefined && webpackMajor < minWebpack) {
+        console.log('Skipping test ' + testName + ' as it needs webpack ' + minWebpack + ' or later; the installed version is ' + webpack.version);
+        return false;
     }
     return true;
-}
-
-/** Compares major.minor.patch only; prerelease tags like `-beta` are ignored. */
-function isLowerVersion (version, minVersion) {
-    const actual = version.split('-')[0].split('.').map(Number);
-    const minimum = minVersion.split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
-        if ((actual[i] || 0) !== (minimum[i] || 0)) {
-            return (actual[i] || 0) < (minimum[i] || 0);
-        }
-    }
-    return false;
 }
 
 /** Temporarily exclude loaderOptions until custom transformers work with the default native API path */
@@ -112,15 +94,6 @@ function isNotLoaderOptionsTest (testName) {
     return true;
 }
 
-/** Temporarily exclude Babel dependent tests */
-function isNotBabelTest (testName) {
-    const isBabelTest = testName.includes('babel');
-    if (isBabelTest) {
-        console.log('Skipping test ' + testName + ' as it requires babel.  Dropping these tests until babel-loader support for webpack for is in place.');
-        return false;
-    }
-    return true;
-}
 
 function getTestNameFromPath (testNameOrPath) {
     const tsLoaderPath = path.resolve(__dirname, '../..');
@@ -131,7 +104,7 @@ function getTestNameFromPath (testNameOrPath) {
     if (testNameOrPath.indexOf(path.join(tsLoaderBasename, executionTestsRelativeRoot)) === -1) {
         return testNameOrPath;
     }
-    // E.g. 3.0.1_projectReferences/lib/index.ts
+    // E.g. projectReferences/lib/index.ts
     const testPathRelativeToExecutionTests = path.relative(executionTestsAbsoluteRoot, testNameOrPath);
     return testPathRelativeToExecutionTests.split(path.sep)[0];
 }

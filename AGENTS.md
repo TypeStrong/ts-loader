@@ -92,7 +92,7 @@ Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. Th
 
 Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 
-Tests prefixed with a TypeScript version (e.g. `2.0.3_es2016`) are skipped when the installed TypeScript is older than that prefix.
+A test that needs a minimum webpack version declares it in a `test.json` in its directory (e.g. `{ "minWebpack": 5 }`); it is skipped on older webpack. Shared test dependencies (`@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
 
 Every `webpack.config.js` in this pack must include this alias so the local ts-loader is resolved:
 

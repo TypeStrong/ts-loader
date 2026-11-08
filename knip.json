@@ -7,13 +7,11 @@
     "src/**/*.ts"
   ],
   "ignoreDependencies": [
-    "babel-core",
+    "@babel/core",
+    "@babel/preset-env",
+    "@babel/preset-react",
+    "@types/jasmine",
     "babel-loader",
-    "babel-polyfill",
-    "babel-preset-es2015",
-    "babel-preset-es2016",
-    "babel-preset-react",
-    "jasmine-core",
     "karma",
     "karma-chrome-launcher",
     "karma-jasmine",

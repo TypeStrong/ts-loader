@@ -7,41 +7,55 @@ These tests are executed more widely that the comparison tests; we aim to run th
 
 ## Structure
 
-The execution test pack can be found under `/test/execution-tests`. Like the comparison test pack, the execution test pack uses certain conventions. All tests have their own directory under `/test/execution-tests`, eg `/test/execution-tests/someFeature`. Each test is expected to have a `karma.conf.js` file and a `webpack.config.js` file.
+The execution test pack can be found under `/test/execution-tests`. Like the comparison test pack, the execution test pack uses certain conventions. All tests have their own directory under `/test/execution-tests`, eg `/test/execution-tests/someFeature`, named after the feature being tested. Each test has a `webpack.config.js` file and usually a `karma.conf.js` file. A test without a `karma.conf.js` is just built with webpack, and passes if the build has no errors.
 
-If a test requires a minimum version of TypeScript then the test directory should be prefixed with the minimum TypeScript version.  For example, the `2.0.3_es2016` test requires a minimum TypeScript version of 2.0.3; if the installed version is lower than the test needs then the test will be skipped.
+If a test requires a minimum version of webpack, add a `test.json` file to its directory:
+
+```json
+{
+  "minWebpack": 5
+}
+```
+
+The test is skipped when the installed webpack major version is lower than that.
 
 **IMPORTANT**
 
 In order that the local version of ts-loader is resolved for tests a `webpack.config.js` file will need to include this line:
 
-```
+```js
 // for test harness purposes only, you would not need this in a normal project
 module.exports.resolveLoader = { alias: { 'ts-loader': path.join(__dirname, "../../../index.js") } }
 // note that there are 3 ../ here as compared with only 2 for the comparison tests
 ```
 
-And likewise the `karma.conf.js` will need to reuse this like so:
+And the `karma.conf.js` should build its config with the shared helper in [`test/karmaConfig.js`](../karmaConfig.js), which passes the webpack config's `module`, `resolve` and `resolveLoader` on to Karma:
 
-```
-    webpack: {
-      devtool: 'inline-source-map',
-      debug: true,
-      module: {
-          loaders: webpackConfig.module.loaders
-      },
-      resolve: webpackConfig.resolve,
+```js
+var webpackConfig = require('./webpack.config.js');
+var makeKarmaConfig = require('../../karmaConfig');
 
-      // for test harness purposes only, you would not need this in a normal project
-      resolveLoader: webpackConfig.resolveLoader
-    },
+module.exports = function(config) {
+  config.set(
+    makeKarmaConfig({
+      config,
+      webpackConfig,
+      files: [
+        // This loads all the tests
+        'main.js'
+      ]
+    })
+  );
+};
 ```
 
 Without this, the test won't be able to resolve ts-loader and webpack won't find your TypeScript tests.
 
 ## What sort of tests can be included?
 
-It's pretty much your choice what goes in testwise.  At present there are only Jasmine tests in place; it should be possible to put any test in place that Karma is compatible with. You can specify dependencies (include @types dependencies) using `package.json`.  As a first step before tests are executed, `npm install` is called to install dependencies.
+It's pretty much your choice what goes in testwise. At present there are only Jasmine tests in place; it should be possible to put any test in place that Karma is compatible with.
+
+Dependencies that most tests share are installed once, in the root `package.json`: `@types/jasmine` (Jasmine itself comes with `karma-jasmine`), and Babel 7 (`@babel/core`, `@babel/preset-env`, `@babel/preset-react`) with `babel-loader` 8, which supports both webpack 4 and 5. A test only needs its own `package.json` for anything else; when it has one, `npm install` is run in its directory before the test.
 
 ## Running / debugging the tests
 

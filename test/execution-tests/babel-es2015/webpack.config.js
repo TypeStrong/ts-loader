@@ -7,7 +7,7 @@ var webpack = require('webpack');
 var babelOptions = {
   "presets": [
     [
-      "es2015",
+      "@babel/preset-env",
       {
         "modules": false
       }

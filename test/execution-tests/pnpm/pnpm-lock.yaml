@@ -8,18 +8,12 @@ importers:
 
   .:
     dependencies:
-      '@types/jasmine':
-        specifier: ^2.5.35
-        version: 2.5.35
       '@types/react':
         specifier: 16.3.12
         version: 16.3.12
       '@types/react-dom':
         specifier: 16.0.5
         version: 16.0.5
-      jasmine-core:
-        specifier: ^2.3.4
-        version: 2.3.4
       react:
         specifier: 16.3.2
         version: 16.3.2
@@ -28,9 +22,6 @@ importers:
         version: 16.3.2(react@16.3.2)
 
 packages:
-
-  '@types/jasmine@2.5.35':
-    resolution: {integrity: sha512-DBseBO+tTFQY3yAC7QZNpH59TtwS7u93g6moA1NYWkGBGF1loOYA5uZ5R6wnA7nH6vj0kN1k1RcLo8uAGL5VfA==}
 
   '@types/node@18.15.11':
     resolution: {integrity: sha512-E5Kwq2n4SbMzQOn6wnmBjuK9ouqlURrcZDVfbo9ftDDTFt3nk7ZKK4GMOzoYgnpQJKcxwQw+lGaBvvlMo0qN/Q==}
@@ -67,9 +58,6 @@ packages:
 
   isomorphic-fetch@2.2.1:
     resolution: {integrity: sha512-9c4TNAKYXM5PRyVcwUZrF3W09nQ+sO7+jydgs4ZGW9dhsLG2VOlISJABombdQqQRXCwuYG3sYV/puGf5rp0qmA==}
-
-  jasmine-core@2.3.4:
-    resolution: {integrity: sha512-aYZdnbyg7AZ5aqxyVn2fR8OAtm2SbnnQKOVIcQFowT3MpB5DiNsPLXHSzQMBOEL2+a9CvPp1/yY2Z4s4eg5YBw==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -118,8 +106,6 @@ packages:
 
 snapshots:
 
-  '@types/jasmine@2.5.35': {}
-
   '@types/node@18.15.11': {}
 
   '@types/react-dom@16.0.5':
@@ -161,8 +147,6 @@ snapshots:
     dependencies:
       node-fetch: 1.7.3
       whatwg-fetch: 3.6.2
-
-  jasmine-core@2.3.4: {}
 
   js-tokens@4.0.0: {}
 
