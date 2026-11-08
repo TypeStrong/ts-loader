@@ -95,6 +95,17 @@ function build(compiler) {
 function watch(compiler, bundlePath) {
     /** @type {import('child_process').ChildProcess | undefined} */
     let specProcess;
+    function stopSpecs() {
+        if (specProcess) {
+            specProcess.kill();
+            specProcess = undefined;
+        }
+    }
+    // Stop the previous run as soon as a file changes, so its output can't be
+    // mistaken for the result of the new edit (even if the rebuild then fails)
+    compiler.hooks.invalid.tap('run-specs', stopSpecs);
+    // Before the temp folder is deleted on exit, as the specs load from it
+    process.prependListener('exit', stopSpecs);
     compiler.watch({}, (err, stats) => {
         if (err || !stats) {
             reportError(err || new Error('webpack returned no stats'));
@@ -102,9 +113,6 @@ function watch(compiler, bundlePath) {
         }
         if (!reportBuild(stats)) {
             return;
-        }
-        if (specProcess) {
-            specProcess.kill();
         }
         // A fresh process each time, so Jasmine's globals and Node's module cache start clean
         specProcess = childProcess.spawn(process.execPath, [__filename, '--run', bundlePath], { stdio: 'inherit' });

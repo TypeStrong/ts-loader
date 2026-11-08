@@ -25,19 +25,10 @@ console.log('Starting to run test suites...\n');
 
 const testDir = __dirname;
 
-/**
- * Tests of loader options that the TypeScript 7 API makes inert, skipped until the
- * native API supports them again
- */
-const unsupportedTests = {
-    loaderOptions: 'custom transformers (getCustomTransformers)',
-    resolveModuleName: 'custom module resolution (resolveModuleName)',
-};
-
 if (singleTestToRun) {
     // The same skips as a full run, so --watch, --debug and the VS Code launch config respect them too
     const testName = getTestNameFromPath(singleTestToRun);
-    if (isHighEnoughWebpackVersion(testName) && isSupportedTest(testName)) {
+    if (isRunnableTest(testName)) {
         runTests(testName);
     }
 }
@@ -45,8 +36,7 @@ else {
     // loop through each test directory triggering a test run as child process
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
-        .filter(isHighEnoughWebpackVersion)
-        .filter(isSupportedTest)
+        .filter(isRunnableTest)
         .filter(
             /**
              * @param {string} testName
@@ -79,45 +69,43 @@ function isTestDirectory (testName) {
 }
 
 /**
- * A test can declare the webpack major version it needs in a `test.json`,
- * e.g. `{ "minWebpack": 5 }`; it is skipped on older webpack. An invalid
- * test.json fails that test rather than stopping the whole run.
+ * A test can have a `test.json` with rules for when it runs:
+ * - `"minWebpack": 5`: skipped on older webpack
+ * - `"skip": "<reason>"`: always skipped, with that reason
+ * An invalid test.json fails that test rather than stopping the whole run.
  * @param {string} testName
  */
-function isHighEnoughWebpackVersion (testName) {
+function isRunnableTest (testName) {
     const testConfigPath = path.join(testDir, testName, 'test.json');
     if (!pathExists(testConfigPath)) {
         return true;
     }
-    let minWebpack;
+    let testConfig;
     try {
-        minWebpack = JSON.parse(fs.readFileSync(testConfigPath, 'utf8')).minWebpack;
+        testConfig = JSON.parse(fs.readFileSync(testConfigPath, 'utf8'));
+        const { minWebpack, skip } = testConfig;
         if (minWebpack !== undefined && !(Number.isInteger(minWebpack) && minWebpack > 0)) {
             throw new Error('"minWebpack" must be a webpack major version number, e.g. 5');
+        }
+        if (skip !== undefined && !(typeof skip === 'string' && skip !== '')) {
+            throw new Error('"skip" must be the reason the test is skipped');
         }
     } catch (err) {
         console.log('Failing test ' + testName + ' as its test.json is invalid: ' + (err instanceof Error ? err.message : err));
         failingTests.push(testName);
         return false;
     }
+    if (testConfig.skip !== undefined) {
+        console.log('Skipping test ' + testName + ': ' + testConfig.skip);
+        return false;
+    }
     const webpackMajor = Number(webpack.version.split('.')[0]);
-    if (minWebpack !== undefined && webpackMajor < minWebpack) {
-        console.log('Skipping test ' + testName + ' as it needs webpack ' + minWebpack + ' or later; the installed version is ' + webpack.version);
+    if (testConfig.minWebpack !== undefined && webpackMajor < testConfig.minWebpack) {
+        console.log('Skipping test ' + testName + ' as it needs webpack ' + testConfig.minWebpack + ' or later; the installed version is ' + webpack.version);
         return false;
     }
     return true;
 }
-
-/** @param {string} testName */
-function isSupportedTest (testName) {
-    const unsupported = unsupportedTests[testName];
-    if (unsupported) {
-        console.log('Skipping test ' + testName + ' as the TypeScript 7 API does not yet support ' + unsupported + '.');
-        return false;
-    }
-    return true;
-}
-
 
 function getTestNameFromPath (testNameOrPath) {
     const tsLoaderPath = path.resolve(__dirname, '../..');
@@ -133,8 +121,8 @@ function getTestNameFromPath (testNameOrPath) {
     return testPathRelativeToExecutionTests.split(path.sep)[0];
 }
 
+/** @param {string} testName a test folder's name (not a path) */
 function runTests(testName) {
-    testName = getTestNameFromPath(testName);
     console.log('\n-------------------------------------------------------------------------\n');
     console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
 

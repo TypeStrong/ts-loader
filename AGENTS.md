@@ -92,7 +92,7 @@ Each sub-directory is a mini webpack project with a Jasmine test suite. The harn
 
 Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 
-A test that needs a minimum webpack version declares it in a `test.json` in its directory (e.g. `{ "minWebpack": 5 }`); it is skipped on older webpack. Shared test dependencies (`jasmine`, `@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
+A test's `test.json` sets when it runs: `"minWebpack": 5` skips it on older webpack, and `"skip": "<reason>"` always skips it. Shared test dependencies (`jasmine`, `@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
 
 Every `webpack.config.js` in this pack must include this alias so the local ts-loader is resolved:
 

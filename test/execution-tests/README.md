@@ -17,7 +17,7 @@ For each test, [`run-specs.js`](run-specs.js) builds `main.js` for Node (`target
 
 A test without a `main.js` is just built with its own `webpack.config.js`, and passes if the build has no errors.
 
-If a test requires a minimum version of webpack, add a `test.json` file to its directory:
+A test can have a `test.json` file in its directory, with rules for when it runs:
 
 ```json
 {
@@ -25,7 +25,10 @@ If a test requires a minimum version of webpack, add a `test.json` file to its d
 }
 ```
 
-The test is skipped when the installed webpack major version is lower than that.
+- `"minWebpack"`: the test is skipped when the installed webpack major version is lower than this.
+- `"skip"`: the test is always skipped, and this reason is printed. For example, tests of loader options that the TypeScript 7 API makes inert have `"skip": "the TypeScript 7 API does not yet support ..."`.
+
+An invalid `test.json` fails that test.
 
 **IMPORTANT**
 
@@ -61,6 +64,6 @@ To rebuild and re-run a single test whenever you change a file, use watch mode:
 
 Adding `--debug` starts the test paused, waiting for a debugger on port 5858. The build and the specs run in the same Node process, so you can set breakpoints in both ts-loader's `src` and the test's specs. In VS Code, open a file in the test and use the "Run open execution test" launch configuration. (With `--watch`, the specs run in a fresh process after each build, so breakpoints in the specs aren't hit; ones in `src` still are.)
 
-`--single-test` applies the same skips as a full run: a test is skipped if its `test.json` needs a newer webpack, or if it covers a loader option the TypeScript 7 API doesn't support yet.
+`--single-test` applies the same `test.json` rules as a full run.
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md#debugging) for more information on debugging.
