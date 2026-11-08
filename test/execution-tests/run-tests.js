@@ -35,7 +35,11 @@ const unsupportedTests = {
 };
 
 if (singleTestToRun) {
-    runTests(singleTestToRun);
+    // The same skips as a full run, so --watch, --debug and the VS Code launch config respect them too
+    const testName = getTestNameFromPath(singleTestToRun);
+    if (isHighEnoughWebpackVersion(testName) && isSupportedTest(testName)) {
+        runTests(testName);
+    }
 }
 else {
     // loop through each test directory triggering a test run as child process
@@ -76,7 +80,8 @@ function isTestDirectory (testName) {
 
 /**
  * A test can declare the webpack major version it needs in a `test.json`,
- * e.g. `{ "minWebpack": 5 }`; it is skipped on older webpack.
+ * e.g. `{ "minWebpack": 5 }`; it is skipped on older webpack. An invalid
+ * test.json fails that test rather than stopping the whole run.
  * @param {string} testName
  */
 function isHighEnoughWebpackVersion (testName) {
@@ -84,7 +89,17 @@ function isHighEnoughWebpackVersion (testName) {
     if (!pathExists(testConfigPath)) {
         return true;
     }
-    const minWebpack = JSON.parse(fs.readFileSync(testConfigPath, 'utf8')).minWebpack;
+    let minWebpack;
+    try {
+        minWebpack = JSON.parse(fs.readFileSync(testConfigPath, 'utf8')).minWebpack;
+        if (minWebpack !== undefined && !(Number.isInteger(minWebpack) && minWebpack > 0)) {
+            throw new Error('"minWebpack" must be a webpack major version number, e.g. 5');
+        }
+    } catch (err) {
+        console.log('Failing test ' + testName + ' as its test.json is invalid: ' + (err instanceof Error ? err.message : err));
+        failingTests.push(testName);
+        return false;
+    }
     const webpackMajor = Number(webpack.version.split('.')[0]);
     if (minWebpack !== undefined && webpackMajor < minWebpack) {
         console.log('Skipping test ' + testName + ' as it needs webpack ' + minWebpack + ' or later; the installed version is ' + webpack.version);

@@ -57,10 +57,13 @@ function runTests() {
   const testDir = __dirname;
 
   if (singleTestToRun) {
-    if (runTestAsChildProcess(getTestNameFromPath(singleTestToRun))) {
-      passingTests.push(singleTestToRun);
-    } else {
-      failingTests.push(singleTestToRun);
+    const testName = getTestNameFromPath(singleTestToRun);
+    if (isRunnableTest(testName)) {
+      if (runTestAsChildProcess(testName)) {
+        passingTests.push(singleTestToRun);
+      } else {
+        failingTests.push(singleTestToRun);
+      }
     }
   } else {
     // loop through each test directory triggering a test run as child process
@@ -89,14 +92,7 @@ function runTests() {
             return false;
           }
 
-          const testPath = path.join(testDir, testName);
-          // testLib is the library the npmLink test links to, not a test
-          const isATest = fs.statSync(testPath).isDirectory() && testName !== 'testLib';
-          if (isATest && fs.existsSync(path.join(testPath, '_IGNORE_'))) {
-            console.log(`Skipping test ${testName} as it has an _IGNORE_ file`);
-            return false;
-          }
-          return isATest;
+          return isRunnableTest(testName);
         }
       )
       .filter(
@@ -152,6 +148,27 @@ function runTests() {
   } else {
     console.log('No tests failed; congratulations!');
   }
+}
+
+/**
+ * Whether a folder is a test to run; logs why an ignored test is skipped.
+ * A name that doesn't exist counts as runnable, so the run reports it as failing.
+ * @param {string} testName
+ */
+function isRunnableTest(testName) {
+  const testPath = path.join(__dirname, testName);
+  if (!fs.existsSync(testPath)) {
+    return true;
+  }
+  // testLib is the library the npmLink test links to, not a test
+  if (!fs.statSync(testPath).isDirectory() || testName === 'testLib') {
+    return false;
+  }
+  if (fs.existsSync(path.join(testPath, '_IGNORE_'))) {
+    console.log(`Skipping test ${testName} as it has an _IGNORE_ file`);
+    return false;
+  }
+  return true;
 }
 
 /** @param {string} testNameOrPath */

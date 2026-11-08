@@ -59,6 +59,8 @@ To rebuild and re-run a single test whenever you change a file, use watch mode:
 
 `npm run execution-tests -- --single-test nameOfTest --watch`
 
-Adding `--debug` starts the test paused, waiting for a debugger on port 5858. The build and the specs run in the same Node process, so you can set breakpoints in both ts-loader's `src` and the test's specs. In VS Code, open a file in the test and use the "Run open execution test" launch configuration.
+Adding `--debug` starts the test paused, waiting for a debugger on port 5858. The build and the specs run in the same Node process, so you can set breakpoints in both ts-loader's `src` and the test's specs. In VS Code, open a file in the test and use the "Run open execution test" launch configuration. (With `--watch`, the specs run in a fresh process after each build, so breakpoints in the specs aren't hit; ones in `src` still are.)
+
+`--single-test` applies the same skips as a full run: a test is skipped if its `test.json` needs a newer webpack, or if it covers a loader option the TypeScript 7 API doesn't support yet.
 
 See [CONTRIBUTING.md](../../CONTRIBUTING.md#debugging) for more information on debugging.

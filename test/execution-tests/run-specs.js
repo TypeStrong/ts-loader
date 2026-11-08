@@ -7,6 +7,7 @@
 //
 //   node run-specs.js           build once and run the specs in this process
 //   node run-specs.js --watch   rebuild on changes; run the specs in a fresh process each time
+//                               (so a debugger attached to this process won't stop in the specs)
 const childProcess = require('child_process');
 const fs = require('fs');
 const os = require('os');
@@ -26,18 +27,23 @@ if (values.run) {
     runSpecs(values.run).then(setExitCode, reportError);
 } else {
     const outputPath = fs.mkdtempSync(path.join(os.tmpdir(), 'ts-loader-execution-test-'));
+    // 'exit' also fires after an uncaught error, such as a webpack.config.js that throws.
+    // These signals don't fire it by themselves, so exit explicitly on them.
+    process.on('exit', () => fs.rmSync(outputPath, { recursive: true, force: true }));
+    for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+        process.on(signal, () => process.exit(1));
+    }
     const bundlePath = path.join(outputPath, 'main.js');
     const compiler = webpack(makeConfig(require(path.resolve('webpack.config.js')), outputPath));
     if (!compiler) {
         throw new Error('webpack returned no compiler');
     }
     if (values.watch) {
-        watch(compiler, bundlePath, outputPath);
+        watch(compiler, bundlePath);
     } else {
         build(compiler)
             .then((built) => (built ? runSpecs(bundlePath) : false))
-            .then(setExitCode, reportError)
-            .finally(() => fs.rmSync(outputPath, { recursive: true, force: true }));
+            .then(setExitCode, reportError);
     }
 }
 
@@ -85,9 +91,8 @@ function build(compiler) {
 /**
  * @param {import('webpack').Compiler} compiler
  * @param {string} bundlePath
- * @param {string} outputPath
  */
-function watch(compiler, bundlePath, outputPath) {
+function watch(compiler, bundlePath) {
     /** @type {import('child_process').ChildProcess | undefined} */
     let specProcess;
     compiler.watch({}, (err, stats) => {
@@ -103,10 +108,6 @@ function watch(compiler, bundlePath, outputPath) {
         }
         // A fresh process each time, so Jasmine's globals and Node's module cache start clean
         specProcess = childProcess.spawn(process.execPath, [__filename, '--run', bundlePath], { stdio: 'inherit' });
-    });
-    process.on('SIGINT', () => {
-        fs.rmSync(outputPath, { recursive: true, force: true });
-        process.exit(130);
     });
 }
 
