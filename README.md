@@ -36,7 +36,7 @@
   - [Configuration](#configuration)
     - [`devtool` / sourcemaps](#devtool--sourcemaps)
   - [Code Splitting and Loading Other Resources](#code-splitting-and-loading-other-resources)
-  - [Declarations (.d.ts)](#declaration-files-dts)
+  - [Declaration Files (.d.ts)](#declaration-files-dts)
   - [Failing the build on TypeScript compilation error](#failing-the-build-on-typescript-compilation-error)
   - [`paths` module resolution](#paths-module-resolution)
   - [Options](#options)

@@ -11,6 +11,9 @@
   ],
   "scripts": {
     "build": "tsc --version && tsc --project \"./src\"",
+    "check:benchmark-tests": "tsc --version && tsc --project \"./test/benchmark-tests\"",
+    "check:comparison-tests": "tsc --version && tsc --project \"./test/comparison-tests\"",
+    "check:execution-tests": "tsc --version && tsc --project \"./test/execution-tests\"",
     "format": "prettier --write \"src/**/*.*\" \"*.md\"",
     "format:check": "prettier --check \"src/**/*.*\" \"*.md\"",
     "lint": "tsc --project \"./src\" --noEmit && oxlint src",
@@ -19,21 +22,7 @@
     "test": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests && node test/run-tests.js",
     "benchmark": "node test/benchmark-tests/run-benchmark.mts",
     "clean": "git clean -xfd test/comparison-tests && git clean -xfd test/execution-tests",
-    "docker:build": "docker build -t ts-loader .",
-    "postdocker:build": "docker run -it ts-loader npm test",
-    "generate-toc": "markdown-toc -i ./README.md && git add README.md && git commit -m \"chore: update docs\"",
     "knip": "knip"
-  },
-  "lint-staged": {
-    "src/**/*.*": [
-      "npm run format",
-      "npm run lint",
-      "git add"
-    ],
-    "*.md": [
-      "npm run format",
-      "git add"
-    ]
   },
   "repository": {
     "type": "git",
@@ -68,14 +57,12 @@
   "devDependencies": {
     "@types/node": "^26.1.2",
     "@types/picomatch": "^4.0.0",
-    "babel": "^6.0.0",
     "babel-core": "^6.0.0",
     "babel-loader": "^7.0.0",
     "babel-polyfill": "^6.16.0",
     "babel-preset-es2015": "^6.0.0",
     "babel-preset-es2016": "6.24.1",
     "babel-preset-react": "^6.0.0",
-    "glob": "^7.1.1",
     "jasmine-core": "^6.0.0",
     "karma": "^6.0.0",
     "karma-chrome-launcher": "^3.1.0",
@@ -84,17 +71,13 @@
     "karma-sourcemap-loader": "^0.4.0",
     "karma-webpack": "^5.0.0",
     "knip": "^6.30.0",
-    "lint-staged": "^17.3.0",
     "loader-utils": "^1.4.2",
-    "markdown-toc": "^1.2.0",
-    "mocha": "^6.0.0",
+    "mocha": "^12.0.3",
     "oxlint": "^1.79.0",
     "oxlint-tsgolint": "^7.0.2001",
     "prettier": "^3.9.6",
-    "semver": "^7.8.5",
     "typescript": "^7.1.0-beta",
-    "webpack": "^5.74.0",
-    "webpack-cli": "^4.10.0"
+    "webpack": "^5.74.0"
   },
   "peerDependencies": {
     "loader-utils": "*",

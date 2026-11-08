@@ -1,12 +1,11 @@
 {
-    "compilerOptions": {
-        "module": "nodenext",
-        "noEmit": true,
-        "allowImportingTsExtensions": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "lib": ["es2022"],
-        "types": ["node"],
-        "strict": true
-    }
+  "compilerOptions": {
+    "module": "nodenext",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "lib": ["es2022"],
+    "types": ["node"],
+    "strict": true
+  }
 }
