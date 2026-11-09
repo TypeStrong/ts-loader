@@ -6,7 +6,7 @@ var webpack = require('webpack');
 
 var babelOptions = {
   "presets": [
-    "@babel/preset-react",
+    ["@babel/preset-react", { "runtime": "automatic" }],
     [
       "@babel/preset-env",
       {
