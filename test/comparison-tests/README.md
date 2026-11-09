@@ -74,6 +74,18 @@ patch0 is applied:
 
 A patch can also delete a file: an empty file named `<file>.__deleted__` (e.g. `patch0/dep.ts.__deleted__`) deletes `<file>` when that patch is applied. See `deletedFileWatch` for an example.
 
+## Skipped tests
+
+To skip a test, add a `test.json` file to its directory with the reason, which is printed when the test is skipped:
+
+```json
+{
+  "skip": "the TypeScript 7 API does not yet support custom transformers (getCustomTransformers)"
+}
+```
+
+A `"minWebpack": 5` field skips the test on older webpack instead. These are the same rules the execution tests use (see [`test/testConfig.js`](../testConfig.js)), and `--single-test` applies them too. An invalid `test.json` fails that test.
+
 ## Flaky tests
 
 Some of the tests in the pack are flaky.  For the most part the failures they occasionally experience are not significant.  If you want a test to be allowed to fail without failing the overall build whilst still seeing the output then place a file with the name `_FLAKY_` in the root of that particular test.

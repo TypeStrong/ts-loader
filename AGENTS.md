@@ -49,6 +49,8 @@ Full docs: [`test/comparison-tests/README.md`](test/comparison-tests/README.md)
 
 **Watch-mode tests** apply a series of patches (`patch0/`, `patch1/`, …) after the initial build, re-compiling and re-comparing after each one.
 
+**Skipped tests**: a `test.json` in the test directory with `"skip": "<reason>"` skips it (the same rules as the execution tests, from `test/testConfig.js`).
+
 **Flaky tests**: place an empty `_FLAKY_` file in the test directory to allow occasional failures without blocking the build.
 
 ```bash
@@ -92,7 +94,7 @@ Each sub-directory is a mini webpack project with a Jasmine test suite. The harn
 
 Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 
-A test's `test.json` sets when it runs: `"minWebpack": 5` skips it on older webpack, and `"skip": "<reason>"` always skips it. Shared test dependencies (`jasmine`, `@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
+A test's `test.json` sets when it runs (see `test/testConfig.js`, shared with the comparison tests): `"minWebpack": 5` skips it on older webpack, and `"skip": "<reason>"` always skips it. Shared test dependencies (`jasmine`, `@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
 
 Every `webpack.config.js` in this pack must include this alias so the local ts-loader is resolved:
 

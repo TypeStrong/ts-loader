@@ -6,6 +6,7 @@ const execSync = require('child_process').execSync;
 const execFileSync = require('child_process').execFileSync;
 const webpack = require('webpack');
 const pathExists = require('../pathExists');
+const { getSkipReason } = require('../testConfig');
 
 process.env.NODE_ENV = 'test';
 
@@ -70,39 +71,21 @@ function isTestDirectory (testName) {
 }
 
 /**
- * A test can have a `test.json` with rules for when it runs:
- * - `"minWebpack": 5`: skipped on older webpack
- * - `"skip": "<reason>"`: always skipped, with that reason
- * An invalid test.json fails that test rather than stopping the whole run.
+ * Applies the rules in a test's `test.json` (see test/testConfig.js). An invalid
+ * test.json fails that test rather than stopping the whole run.
  * @param {string} testName
  */
 function isRunnableTest (testName) {
-    const testConfigPath = path.join(testDir, testName, 'test.json');
-    if (!pathExists(testConfigPath)) {
-        return true;
-    }
-    let testConfig;
+    let skipReason;
     try {
-        testConfig = JSON.parse(fs.readFileSync(testConfigPath, 'utf8'));
-        const { minWebpack, skip } = testConfig;
-        if (minWebpack !== undefined && !(Number.isInteger(minWebpack) && minWebpack > 0)) {
-            throw new Error('"minWebpack" must be a webpack major version number, e.g. 5');
-        }
-        if (skip !== undefined && !(typeof skip === 'string' && skip !== '')) {
-            throw new Error('"skip" must be the reason the test is skipped');
-        }
+        skipReason = getSkipReason(path.join(testDir, testName), webpack.version);
     } catch (err) {
         console.log('Failing test ' + testName + ' as its test.json is invalid: ' + (err instanceof Error ? err.message : err));
         failingTests.push(testName);
         return false;
     }
-    if (testConfig.skip !== undefined) {
-        console.log('Skipping test ' + testName + ': ' + testConfig.skip);
-        return false;
-    }
-    const webpackMajor = Number(webpack.version.split('.')[0]);
-    if (testConfig.minWebpack !== undefined && webpackMajor < testConfig.minWebpack) {
-        console.log('Skipping test ' + testName + ' as it needs webpack ' + testConfig.minWebpack + ' or later; the installed version is ' + webpack.version);
+    if (skipReason) {
+        console.log('Skipping test ' + testName + ': ' + skipReason);
         return false;
     }
     return true;

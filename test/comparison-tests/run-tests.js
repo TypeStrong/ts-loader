@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const execFileSync = require('child_process').execFileSync;
 const getProgram = require('./getProgram');
+const { getSkipReason } = require('../testConfig');
 
 // Build
 const program = getProgram.getProgram(path.resolve(__dirname, 'tsconfig.json'));
@@ -34,6 +35,8 @@ const testCriteria =
 let passingTests = [];
 /** @type {string[]} */
 let failingTests = [];
+/** Tests failed because their test.json is invalid. @type {string[]} */
+const invalidTests = [];
 
 // set up new empty staging area
 const stagingPath = path.resolve(__dirname, '../../.test');
@@ -85,19 +88,6 @@ function runTests() {
             return false;
           }
 
-          
-          // skip project references / custom transformer tests for now as they are not supported yet
-          if (testName.startsWith('projectReferences') || 
-            testName.startsWith('customTransformer') || 
-            testName.startsWith('nolib') || // nolib does not seem worth supporting at all, as it is a very niche use case
-            testName.startsWith('tsconfigInvalidFile') // not sure how useful this is
-          ) {
-            console.log(
-              `Skipping test ${testName} as project references / custom transformer tests are not supported yet`
-            );
-            return false;
-          }
-
           return isRunnableTest(testName);
         }
       );
@@ -122,6 +112,8 @@ function runTests() {
       testName => !passingTests.includes(testName)
     );
   }
+
+  failingTests = failingTests.concat(invalidTests);
 
   const end = new Date().getTime();
   console.log(
@@ -152,8 +144,10 @@ function runTests() {
 }
 
 /**
- * Whether a folder is a test to run; logs why an ignored test is skipped.
- * A name that doesn't exist counts as runnable, so the run reports it as failing.
+ * Whether a folder is a test to run, applying the rules in its `test.json`
+ * (see test/testConfig.js) and logging why a test is skipped. An invalid
+ * test.json fails that test. A name that doesn't exist counts as runnable,
+ * so the run reports it as failing.
  * @param {string} testName
  */
 function isRunnableTest(testName) {
@@ -165,8 +159,16 @@ function isRunnableTest(testName) {
   if (!fs.statSync(testPath).isDirectory() || testName === 'testLib') {
     return false;
   }
-  if (fs.existsSync(path.join(testPath, '_IGNORE_'))) {
-    console.log(`Skipping test ${testName} as it has an _IGNORE_ file`);
+  let skipReason;
+  try {
+    skipReason = getSkipReason(testPath, require('webpack').version);
+  } catch (err) {
+    console.log(`Failing test ${testName} as its test.json is invalid: ${err instanceof Error ? err.message : err}`);
+    invalidTests.push(testName);
+    return false;
+  }
+  if (skipReason) {
+    console.log(`Skipping test ${testName}: ${skipReason}`);
     return false;
   }
   return true;
