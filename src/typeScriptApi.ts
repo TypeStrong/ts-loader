@@ -9,6 +9,7 @@ import type {
   CreateSnapshotParams,
   Diagnostic,
   EmitOutput,
+  ModuleResolver,
   ParsedCommandLine,
   Program,
   Snapshot,
@@ -27,6 +28,7 @@ import {
 } from './diagnostics';
 import type {
   LoaderOptions,
+  ParentModuleResolver,
   PendingDeclarationFile,
   SyntheticProgram,
   TypeScriptInstance,
@@ -61,6 +63,7 @@ export function createTypeScriptInstance(
     projectFileNamesCache: new Map(),
     changedFilesThisBuild: new Set(),
     watcherChangedFiles: undefined,
+    customResolveModuleName: loaderOptions.resolveModuleName,
   };
 }
 
@@ -752,7 +755,11 @@ function prepareSnapshotForFile(
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const primaryProject = snapshot.getConfiguredProject(primaryProjectPath);
 
-  if (!forceSyntheticRoot && primaryProject?.program.getSourceFile(fileName)) {
+  if (
+    !forceSyntheticRoot &&
+    !typeScriptInstance.customResolveModuleName &&
+    primaryProject?.program.getSourceFile(fileName)
+  ) {
     return { snapshot };
   }
 
@@ -811,7 +818,7 @@ function ensureOrphanProgram(
 
   orphanRootFileNames.set(canonicalFileName, fileName);
   const program = orphanProgramParams(typeScriptInstance, primaryConfig);
-  const configuration = JSON.stringify(program);
+  const configuration = serializeOrphanProgramParams(program);
   if (orphanProgram) {
     orphanProgram.configuration = configuration;
     return {
@@ -848,7 +855,7 @@ function reconfigureOrphanProgramIfStale(
   orphanProgram: SyntheticProgram,
 ): { snapshot: Snapshot; syntheticProgramId: SyntheticProjectId } {
   const program = orphanProgramParams(typeScriptInstance, primaryConfig);
-  const configuration = JSON.stringify(program);
+  const configuration = serializeOrphanProgramParams(program);
   if (orphanProgram.configuration === configuration) {
     return {
       snapshot: typeScriptInstance.snapshot!,
@@ -879,8 +886,95 @@ function orphanProgramParams(
       ]),
     ].sort(),
     compilerOptions: primaryConfig.options,
-    options: { projectReferences: primaryConfig.projectReferences },
+    options: {
+      projectReferences: primaryConfig.projectReferences,
+      moduleResolver: getCustomModuleResolver(
+        typeScriptInstance,
+        primaryConfig.options,
+      ),
+    },
   };
+}
+
+/** `ModuleResolver` holds the API client, so it's serialized by id. */
+function serializeOrphanProgramParams(
+  program: ReturnType<typeof orphanProgramParams>,
+): string {
+  return JSON.stringify({
+    ...program,
+    options: {
+      ...program.options,
+      moduleResolver: program.options.moduleResolver?.id,
+    },
+  });
+}
+
+/**
+ * Adapts the `resolveModuleName` loader option (classic ts-loader's
+ * signature) to the API's resolver callback. Only synthetic programs accept
+ * a resolver, so with this option set every file compiles in the orphan
+ * program (see prepareSnapshotForFile). Recreated when compiler options
+ * change, since the default resolution behind `parentResolver` depends on them.
+ */
+function getCustomModuleResolver(
+  typeScriptInstance: TypeScriptInstance,
+  compilerOptions: CompilerOptions,
+): ModuleResolver | undefined {
+  const customResolveModuleName = typeScriptInstance.customResolveModuleName;
+  if (!customResolveModuleName) {
+    return undefined;
+  }
+  const configuration = JSON.stringify(compilerOptions);
+  if (
+    typeScriptInstance.customModuleResolver?.configuration === configuration
+  ) {
+    return typeScriptInstance.customModuleResolver.resolver;
+  }
+
+  // A resolver replaced here may still back the current snapshot's program,
+  // so it isn't disposed; api.close() releases it.
+  const { api } = typeScriptInstance;
+  const defaultResolver = api.createModuleResolver(compilerOptions);
+  const resolver = api.createModuleResolver(compilerOptions, {
+    resolveModuleName(
+      moduleName,
+      containingDirectory,
+      resolutionMode,
+      options,
+    ) {
+      const parentResolver: ParentModuleResolver = (
+        parentModuleName,
+        containingFile,
+      ) =>
+        defaultResolver.resolveModuleName(
+          parentModuleName,
+          path.dirname(containingFile),
+          resolutionMode,
+          { snapshot: options.snapshot },
+        );
+      // The API only says which directory the import is in, not which file.
+      const containingFile = path.join(
+        containingDirectory,
+        constants.unknownContainingFileName,
+      );
+      const resolvedModule = customResolveModuleName(
+        moduleName,
+        containingFile,
+        compilerOptions,
+        undefined,
+        parentResolver,
+      )?.resolvedModule;
+      return resolvedModule
+        ? {
+            resolvedFileName: resolvedModule.resolvedFileName,
+            originalPath: resolvedModule.originalPath,
+            packageId: resolvedModule.packageId,
+          }
+        : undefined;
+    },
+  });
+  typeScriptInstance.customModuleResolver = { resolver, configuration };
+  return resolver;
 }
 
 /**
@@ -1368,9 +1462,12 @@ export function recheckAllTransitiveDependants(
         );
 
   for (const [comparableFileName, fileName] of filesToCheck) {
-    const program = primaryFileNames.has(comparableFileName)
-      ? primaryProgram
-      : graphProgram;
+    // With a custom resolver, only the orphan program resolves imports correctly.
+    const program =
+      primaryFileNames.has(comparableFileName) &&
+      !typeScriptInstance.customResolveModuleName
+        ? primaryProgram
+        : graphProgram;
     const diagnostics = dedupeDiagnostics([
       ...program.getSyntacticDiagnostics(fileName),
       ...program.getSemanticDiagnostics(fileName),

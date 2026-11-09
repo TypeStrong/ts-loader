@@ -1,0 +1,12 @@
+asset bundle.js 3.34 KiB [emitted] (name: main)
+./app.ts 482 bytes [built] [code generated] [1 error]
+./baz-pkg/index.js 90 bytes [built] [code generated]
+./greeting.ts 132 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 9:13-18
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(9,14)[39m[22m
+[1m[31m      TS2322: Type 'number' is not assignable to type 'string'.[39m[22m
+ts-loader-default_eeec513dbe97e166
+
+webpack compiled with 1 error

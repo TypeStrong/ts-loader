@@ -8,3 +8,6 @@ export const tsTsxJsJsxRegex = /\.([cm]?[tj]s|[tj]sx)$/i;
 export const jsJsx = /\.([cm]?js|jsx)$/i;
 export const jsJsxMap = /\.([cm]?js|jsx)\.map$/i;
 export const jsonRegex = /\.json$/i;
+
+/** Stands in for `containingFile` in a custom `resolveModuleName` call. */
+export const unknownContainingFileName = '__ts-loader-unknown-file__.ts';
