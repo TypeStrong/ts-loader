@@ -46,7 +46,7 @@ export default {
 };
 ```
 
-This writes the bundle to `dist/main.js`. If you use `.mts` or `.cts` files, or write imports with a `.js` extension, see [ESM-style imports](#esm-style-imports).
+This writes the bundle to `dist/main.js` and makes `dist/index.html` that references it. If you use `.mts` or `.cts` files, or write imports with a `.js` extension, see [ESM-style imports](#esm-style-imports).
 
 ### 3. Add a `tsconfig.json`
 
