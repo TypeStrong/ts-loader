@@ -1,1 +1,0 @@
-This test shows how to do simple code splitting with TypeScript, Babel and webpack using the dynamic `import` syntax.  Support for this shipped with TypeScript 2.4 and is, at time of writing, at stage 3 on the TC39 proposals list.  See details [here](https://github.com/tc39/proposal-dynamic-import).

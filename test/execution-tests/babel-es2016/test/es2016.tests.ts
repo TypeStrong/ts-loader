@@ -1,6 +1,6 @@
 import { adder } from "../src/simple";
 
-describe("simple", () => {
+describe("ES2016 features", () => {
   it("adder can add 2 numbers", () => {
     expect(adder(1, 4)).toBe(5);
   });

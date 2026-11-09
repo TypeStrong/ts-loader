@@ -1,6 +1,6 @@
 import exportedValue, { adder } from "../src/simple";
 
-describe("simple", () => {
+describe("ES2015 features", () => {
   it("import destructuring works as expected", () => {
     expect(adder(1, 4)).toBe(5);
   });
