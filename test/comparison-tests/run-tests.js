@@ -1,8 +1,9 @@
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const execSync = require('child_process').execSync;
+const execFileSync = require('child_process').execFileSync;
 const getProgram = require('./getProgram');
+const { getSkipReason } = require('../testConfig');
 
 // Build
 const program = getProgram.getProgram(path.resolve(__dirname, 'tsconfig.json'));
@@ -34,6 +35,8 @@ const testCriteria =
 let passingTests = [];
 /** @type {string[]} */
 let failingTests = [];
+/** Tests failed because their test.json is invalid. @type {string[]} */
+const invalidTests = [];
 
 // set up new empty staging area
 const stagingPath = path.resolve(__dirname, '../../.test');
@@ -57,10 +60,13 @@ function runTests() {
   const testDir = __dirname;
 
   if (singleTestToRun) {
-    if (runTestAsChildProcess(getTestNameFromPath(singleTestToRun))) {
-      passingTests.push(singleTestToRun);
-    } else {
-      failingTests.push(singleTestToRun);
+    const testName = getTestNameFromPath(singleTestToRun);
+    if (isRunnableTest(testName)) {
+      if (runTestAsChildProcess(testName)) {
+        passingTests.push(singleTestToRun);
+      } else {
+        failingTests.push(singleTestToRun);
+      }
     }
   } else {
     // loop through each test directory triggering a test run as child process
@@ -68,6 +74,12 @@ function runTests() {
     /** @type {string[]} */
     const availableTests = fs
       .readdirSync(testDir)
+      // First, so skip messages are only logged for the selected tests
+      .filter(
+        /**
+         * @param {string} testName
+         */ testName => (testCriteria ? !!testName.match(testCriteria) : true)
+      )
       .filter(
         /**
          * @param {string} testName
@@ -76,28 +88,8 @@ function runTests() {
             return false;
           }
 
-          
-          // skip project references / custom transformer tests for now as they are not supported yet
-          if (testName.startsWith('projectReferences') || 
-            testName.startsWith('customTransformer') || 
-            testName.startsWith('nolib') || // nolib does not seem worth supporting at all, as it is a very niche use case
-            testName.startsWith('tsconfigInvalidFile') // not sure how useful this is
-          ) {
-            console.log(
-              `Skipping test ${testName} as project references / custom transformer tests are not supported yet`
-            );
-            return false;
-          }
-
-          const testPath = path.join(testDir, testName);
-          const isATest = fs.statSync(testPath).isDirectory();
-          return isATest;
+          return isRunnableTest(testName);
         }
-      )
-      .filter(
-        /**
-         * @param {string} testName
-         */ testName => (testCriteria ? !!testName.match(testCriteria) : true)
       );
 
     // Allow multiple attempts to pass tests as they're flaky
@@ -120,6 +112,8 @@ function runTests() {
       testName => !passingTests.includes(testName)
     );
   }
+
+  failingTests = failingTests.concat(invalidTests);
 
   const end = new Date().getTime();
   console.log(
@@ -147,6 +141,37 @@ function runTests() {
   } else {
     console.log('No tests failed; congratulations!');
   }
+}
+
+/**
+ * Whether a folder is a test to run, applying the rules in its `test.json`
+ * (see test/testConfig.js) and logging why a test is skipped. An invalid
+ * test.json fails that test. A name that doesn't exist counts as runnable,
+ * so the run reports it as failing.
+ * @param {string} testName
+ */
+function isRunnableTest(testName) {
+  const testPath = path.join(__dirname, testName);
+  if (!fs.existsSync(testPath)) {
+    return true;
+  }
+  // testLib is the library the npmLink test links to, not a test
+  if (!fs.statSync(testPath).isDirectory() || testName === 'testLib') {
+    return false;
+  }
+  let skipReason;
+  try {
+    skipReason = getSkipReason(testPath, require('webpack').version);
+  } catch (err) {
+    console.log(`Failing test ${testName} as its test.json is invalid: ${err instanceof Error ? err.message : err}`);
+    invalidTests.push(testName);
+    return false;
+  }
+  if (skipReason) {
+    console.log(`Skipping test ${testName}: ${skipReason}`);
+    return false;
+  }
+  return true;
 }
 
 /** @param {string} testNameOrPath */
@@ -180,19 +205,23 @@ function getTestNameFromPath(testNameOrPath) {
  * @param {string} testName
  */
 function runTestAsChildProcess(testName) {
-  const testToRun = ' --test-to-run=' + testName;
   const debug = process.argv.indexOf('--debug') > -1;
-  const testCommand =
-    'mocha --color --reporter spec ' +
-    (debug ? '--inspect-brk=5858 ' : '') +
-    'test/comparison-tests/create-and-execute-test.js ' +
-    testToRun;
+  const nodeArgs = debug ? ['--inspect-brk=5858'] : [];
+  const jasminePath = path.resolve(__dirname, '../../node_modules/jasmine/bin/jasmine.js');
+  const jasmineArgs = [
+    // keeps the transpileOnly run after the normal one
+    '--random=false',
+    // also tells picocolors to colour webpack's output, which the snapshots expect
+    '--color',
+    // Relative, as Jasmine treats spec paths as globs: a checkout path with `[` or `{` wouldn't match
+    path.relative(process.cwd(), path.join(__dirname, 'create-and-execute-test.js')),
+    // the rest are create-and-execute-test.js's own arguments
+    '--',
+    '--test-to-run=' + testName,
+  ].concat(saveOutputMode ? ['--save-output'] : []);
 
   try {
-    const _testOutput = execSync(
-      testCommand + (saveOutputMode ? ' --save-output' : ''),
-      { stdio: 'inherit' }
-    );
+    execFileSync(process.execPath, nodeArgs.concat(jasminePath, jasmineArgs), { stdio: 'inherit' });
     return true;
   } catch (_err) {
     return false;

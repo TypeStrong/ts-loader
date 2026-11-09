@@ -17,7 +17,7 @@ module.exports = {
                     options: {
                         "presets": [
                             [
-                                "es2015",
+                                "@babel/preset-env",
                                 {
                                     "modules": false
                                 }

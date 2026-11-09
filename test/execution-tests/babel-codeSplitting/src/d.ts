@@ -1,1 +1,1 @@
-export default 'd';
+export const d = 'd';

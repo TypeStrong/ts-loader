@@ -28,7 +28,7 @@ npm run check:execution-tests  # type-check the execution test harness scripts (
 npm run check:benchmark-tests  # type-check the benchmark scripts
 npm test                       # full test suite (comparison + execution tests)
 npm run comparison-tests       # fast subset: compare webpack output against snapshots
-npm run execution-tests        # run compiled code via Karma/Jasmine
+npm run execution-tests        # build each test for Node and run its Jasmine specs
 npm run benchmark              # compare this build's compile speed against another ts-loader checkout
 ```
 
@@ -48,6 +48,8 @@ Each sub-directory is a mini webpack project. The harness compiles it and diffs 
 Full docs: [`test/comparison-tests/README.md`](test/comparison-tests/README.md)
 
 **Watch-mode tests** apply a series of patches (`patch0/`, `patch1/`, …) after the initial build, re-compiling and re-comparing after each one.
+
+**Skipped tests**: a `test.json` in the test directory with `"skip": "<reason>"` skips it (the same rules as the execution tests, from `test/testConfig.js`).
 
 **Flaky tests**: place an empty `_FLAKY_` file in the test directory to allow occasional failures without blocking the build.
 
@@ -88,11 +90,11 @@ gh run view <run-id> --repo TypeStrong/ts-loader --log-failed    # full failure 
 
 ## Execution tests (`test/execution-tests/`)
 
-Each sub-directory is a mini webpack project with a Karma/Jasmine test suite. The harness compiles the project and **runs the compiled code** — useful for asserting correct runtime behaviour. These are matrix-tested in CI across multiple Node and TypeScript versions (see `.github/workflows/execution-tests.yml` for the current matrix).
+Each sub-directory is a mini webpack project with a Jasmine test suite. The harness builds the project's `main.js` (which loads its `*.tests.ts` specs) for Node and **runs the compiled code** with Jasmine — useful for asserting correct runtime behaviour. These are matrix-tested in CI across multiple Node and TypeScript versions (see `.github/workflows/execution-tests.yml` for the current matrix).
 
 Full docs: [`test/execution-tests/README.md`](test/execution-tests/README.md)
 
-Tests prefixed with a TypeScript version (e.g. `2.0.3_es2016`) are skipped when the installed TypeScript is older than that prefix.
+A test's `test.json` sets when it runs (see `test/testConfig.js`, shared with the comparison tests): `"minWebpack": 5` skips it on older webpack, and `"skip": "<reason>"` always skips it. Shared test dependencies (`jasmine`, `@types/jasmine`, Babel 7, `babel-loader` 8) live in the root `package.json`; a test only has its own `package.json` for anything else.
 
 Every `webpack.config.js` in this pack must include this alias so the local ts-loader is resolved:
 
@@ -106,7 +108,7 @@ module.exports.resolveLoader = {
 ```bash
 npm run execution-tests                                 # all tests
 npm run execution-tests -- --single-test <name>         # one test
-npm run execution-tests -- --single-test <name> --watch # watch mode (open http://localhost:9876/)
+npm run execution-tests -- --single-test <name> --watch # rebuild and re-run on changes
 ```
 
 ## Testing on Windows CI

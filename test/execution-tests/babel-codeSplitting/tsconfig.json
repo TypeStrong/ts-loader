@@ -6,9 +6,14 @@
 			"es2015"
 		],
 		"target": "es2015",
+		"module": "esnext",
 		"moduleResolution": "bundler",
+		"noImplicitAny": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
 		"noEmitOnError": true,
 		"removeComments": false,
+		"preserveConstEnums": true,
 		"sourceMap": true,
 		"skipLibCheck": true,
 		"types": [

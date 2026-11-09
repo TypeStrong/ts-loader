@@ -26,12 +26,11 @@
       "Bash(node *)",
       "Bash(node_modules/.bin/tsc *)",
       "Bash(npx tsc *)",
-      "Bash(npx mocha *)",
+      "Bash(npx jasmine *)",
       "Bash(grep *)",
       "Read(//usr/local/lib/node_modules/**)",
       "Bash(rm -rf .test)",
-      "Bash(FORCE_COLOR=1 node node_modules/mocha/bin/mocha.js test/comparison-tests/create-and-execute-test.js --reporter spec --test-to-run=* --timeout 25000)",
-      "Bash(node node_modules/mocha/bin/mocha.js test/comparison-tests/create-and-execute-test.js --reporter spec --test-to-run=* --timeout 25000)",
+      "Bash(node node_modules/jasmine/bin/jasmine.js --random=false --color test/comparison-tests/create-and-execute-test.js -- --test-to-run=*)",
       "Bash(echo \"PID $!\")"
     ]
   }

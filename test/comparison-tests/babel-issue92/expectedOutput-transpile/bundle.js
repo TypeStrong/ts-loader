@@ -16,7 +16,7 @@
   \****************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
-eval("{\n\nvar __importDefault = this && this.__importDefault || function (mod) {\n    return mod && mod.__esModule ? mod : { \"default\": mod };\n};\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nvar submodule_1 = __importDefault(__webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.tsx\"));\nexports[\"default\"] = submodule_1.default;\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\n\nvar __importDefault = this && this.__importDefault || function (mod) {\n  return mod && mod.__esModule ? mod : {\n    \"default\": mod\n  };\n};\nObject.defineProperty(exports, \"__esModule\", ({\n  value: true\n}));\nvar submodule_1 = __importDefault(__webpack_require__(/*! ./submodule/submodule */ \"./submodule/submodule.tsx\"));\nexports[\"default\"] = submodule_1[\"default\"];\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
@@ -26,7 +26,7 @@ eval("{\n\nvar __importDefault = this && this.__importDefault || function (mod) 
   \*********************************/
 /***/ ((__unused_webpack_module, exports) => {
 
-eval("{\n\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports[\"default\"] = \"Hello from submodule\";\n\n//# sourceURL=webpack:///./submodule/submodule.tsx?\n}");
+eval("{\n\nObject.defineProperty(exports, \"__esModule\", ({\n  value: true\n}));\nexports[\"default\"] = \"Hello from submodule\";\n\n//# sourceURL=webpack:///./submodule/submodule.tsx?\n}");
 
 /***/ })
 

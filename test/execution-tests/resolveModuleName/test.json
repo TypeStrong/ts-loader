@@ -1,0 +1,3 @@
+{
+  "skip": "the TypeScript 7 API does not yet support custom module resolution (resolveModuleName)"
+}
