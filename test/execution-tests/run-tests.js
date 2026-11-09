@@ -36,13 +36,14 @@ else {
     // loop through each test directory triggering a test run as child process
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
-        .filter(isRunnableTest)
         .filter(
             /**
              * @param {string} testName
              */ testName =>
                 testCriteria ? !!testName.match(testCriteria) : true
         )
+        // After --match-test, so only the selected tests' test.json can skip or fail them
+        .filter(isRunnableTest)
         .forEach(runTests);
 }
 

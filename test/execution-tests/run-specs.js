@@ -24,12 +24,18 @@ const { values } = parseArgs({
 });
 
 if (values.run) {
-    runSpecs(values.run).then(setExitCode, reportError);
+    runSpecs(values.run).then(setExitCode, reportError).then(exit);
 } else {
     const outputPath = fs.mkdtempSync(path.join(os.tmpdir(), 'ts-loader-execution-test-'));
     // 'exit' also fires after an uncaught error, such as a webpack.config.js that throws.
     // These signals don't fire it by themselves, so exit explicitly on them.
-    process.on('exit', () => fs.rmSync(outputPath, { recursive: true, force: true }));
+    process.on('exit', () => {
+        try {
+            fs.rmSync(outputPath, { recursive: true, force: true });
+        } catch {
+            // e.g. on Windows, if a spec process stopped on Ctrl+C still has the bundle open
+        }
+    });
     for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
         process.on(signal, () => process.exit(1));
     }
@@ -43,7 +49,8 @@ if (values.run) {
     } else {
         build(compiler)
             .then((built) => (built ? runSpecs(bundlePath) : false))
-            .then(setExitCode, reportError);
+            .then(setExitCode, reportError)
+            .then(exit);
     }
 }
 
@@ -152,6 +159,14 @@ function setExitCode(passed) {
     if (!passed) {
         process.exitCode = 1;
     }
+}
+
+/**
+ * Exits once the specs have finished, even if one left a timer or socket open,
+ * so a run can't hang (as Karma's single run couldn't).
+ */
+function exit() {
+    process.exit();
 }
 
 /** @param {unknown} err */
