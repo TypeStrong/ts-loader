@@ -149,7 +149,10 @@ async function runSpecs(bundlePath) {
     const Jasmine = require('jasmine');
     const runner = new Jasmine();
     runner.exitOnCompletion = false;
-    const result = await runner.execute([bundlePath]);
+    // addSpecFile takes the path as it is; execute([path]) would treat it as a glob,
+    // which fails to match if the temp directory's path contains `[` or `{`
+    runner.addSpecFile(bundlePath);
+    const result = await runner.execute();
     // 'incomplete' means no specs ran, or a focused spec (fit/fdescribe) skipped the rest
     return result.overallStatus === 'passed';
 }

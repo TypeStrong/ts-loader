@@ -71,6 +71,12 @@ function runTests() {
     /** @type {string[]} */
     const availableTests = fs
       .readdirSync(testDir)
+      // First, so skip messages are only logged for the selected tests
+      .filter(
+        /**
+         * @param {string} testName
+         */ testName => (testCriteria ? !!testName.match(testCriteria) : true)
+      )
       .filter(
         /**
          * @param {string} testName
@@ -94,11 +100,6 @@ function runTests() {
 
           return isRunnableTest(testName);
         }
-      )
-      .filter(
-        /**
-         * @param {string} testName
-         */ testName => (testCriteria ? !!testName.match(testCriteria) : true)
       );
 
     // Allow multiple attempts to pass tests as they're flaky
@@ -210,7 +211,8 @@ function runTestAsChildProcess(testName) {
     '--random=false',
     // also tells picocolors to colour webpack's output, which the snapshots expect
     '--color',
-    path.join(__dirname, 'create-and-execute-test.js'),
+    // Relative, as Jasmine treats spec paths as globs: a checkout path with `[` or `{` wouldn't match
+    path.relative(process.cwd(), path.join(__dirname, 'create-and-execute-test.js')),
     // the rest are create-and-execute-test.js's own arguments
     '--',
     '--test-to-run=' + testName,
