@@ -15,38 +15,40 @@ This README covers **v10**, which is in beta. v10 uses TypeScript 7's native com
 ### 1. Install
 
 ```
-npm install --save-dev ts-loader@next typescript@beta
+npm install --save-dev ts-loader@next typescript@beta webpack webpack-cli html-webpack-plugin
 ```
 
 or
 
 ```
-pnpm add --save-dev ts-loader@next typescript@beta
+pnpm add --save-dev ts-loader@next typescript@beta webpack webpack-cli html-webpack-plugin
 ```
 
 `ts-loader` v10 needs TypeScript 7.1 or later. Until TypeScript 7.1 and `ts-loader` v10 have stable releases, install them from the `beta` and `next` tags as above.
 
 ### 2. Configure webpack
 
-Create or update `webpack.config.js`:
+Create a `webpack.config.js`:
 
 ```javascript
-import HtmlWebpackPlugin from 'html-webpack-plugin';
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 /** @type {import('webpack').Configuration} */
-export default {
+module.exports = {
+  mode: 'development',
   entry: './src/index.ts',
   module: {
-    rules: [{ test: /\.ts$/, loader: 'ts-loader' }],
+    rules: [{ test: /\.tsx?$/, loader: 'ts-loader' }],
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '...'],
+    // Let imports without an extension find .ts and .tsx files
+    extensions: ['.ts', '.tsx', '.js'],
   },
   plugins: [new HtmlWebpackPlugin()],
 };
 ```
 
-This writes the bundle to `dist/main.js` and makes `dist/index.html` that references it. If you use `.mts` or `.cts` files, or write imports with a `.js` extension, see [ESM-style imports](#esm-style-imports).
+If your `package.json` has `"type": "module"`, name this file `webpack.config.cjs`, or write it as an ES module as [examples/simple](examples/simple/webpack.config.js) does. If you use `.mts` or `.cts` files, or write imports with a `.js` extension, see [ESM-style imports](#esm-style-imports).
 
 ### 3. Add a `tsconfig.json`
 
@@ -62,7 +64,15 @@ This writes the bundle to `dist/main.js` and makes `dist/index.html` that refere
 
 ### 4. Run webpack
 
-Run webpack as usual: `webpack`, `webpack --watch`, `webpack-dev-server`, or the [Node.js API](https://webpack.js.org/api/node/). If your code has a TypeScript error, webpack reports it and the build fails.
+Put your code in `src/index.ts`, then run:
+
+```
+npx webpack
+```
+
+(or `pnpm webpack`). This writes the bundle to `dist/main.js` and creates `dist/index.html`, which loads it. Open `dist/index.html` in a browser to run your code. If your code has a TypeScript error, webpack reports it and the build fails.
+
+Add `--watch` to rebuild when files change. `ts-loader` also works with [webpack-dev-server](https://webpack.js.org/configuration/dev-server/) and webpack's [Node.js API](https://webpack.js.org/api/node/).
 
 For a complete working setup, see [examples/simple](examples/simple/).
 
@@ -103,18 +113,19 @@ To debug your original TypeScript in the browser:
 If you write imports the way Node.js ESM needs them, with a `.js` extension (`import { foo } from './foo.js'` for a file called `foo.ts`), tell webpack to look for the TypeScript file too. If you use `.mts` or `.cts` files, also widen the rule's `test` so they reach `ts-loader`:
 
 ```javascript
-import HtmlWebpackPlugin from 'html-webpack-plugin';
-
-/** @type {import('webpack').Configuration} */
-export default {
-  entry: './src/index.ts',
+module.exports = {
+  // ...
   module: {
-    rules: [{ test: /\.ts$/, loader: 'ts-loader' }],
+    rules: [{ test: /\.([cm]?ts|tsx)$/, loader: 'ts-loader' }],
   },
   resolve: {
-    extensions: ['.ts', '...'],
+    extensions: ['.ts', '.tsx', '.js'],
+    extensionAlias: {
+      '.js': ['.js', '.ts', '.tsx'],
+      '.cjs': ['.cjs', '.cts'],
+      '.mjs': ['.mjs', '.mts'],
+    },
   },
-  plugins: [new HtmlWebpackPlugin()],
 };
 ```
 
@@ -214,7 +225,7 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.([cm]?ts|tsx)$/,
+        test: /\.tsx?$/,
         loader: 'ts-loader',
         options: {
           transpileOnly: true,
@@ -280,8 +291,10 @@ TypeScript error codes to ignore, e.g. `[2307]`.
 Only report errors in files matching these glob patterns. Useful when some type definitions have errors that don't affect your app.
 
 ```javascript
-options: {
-  reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'];
+{
+  test: /\.tsx?$/,
+  loader: 'ts-loader',
+  options: { reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'] },
 }
 ```
 
@@ -428,7 +441,7 @@ By default, `ts-loader` won't compile `.ts` files in `node_modules`. You shouldn
 
 ```javascript
 {
-  test: /\.ts$/,
+  test: /\.tsx?$/,
   include: [path.resolve(__dirname, 'src'), path.resolve(__dirname, 'node_modules/my_module')],
   loader: 'ts-loader',
   options: { allowTsInNodeModules: true },
