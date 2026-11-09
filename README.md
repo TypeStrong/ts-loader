@@ -31,38 +31,29 @@ pnpm add --save-dev ts-loader@next typescript@beta
 Create or update `webpack.config.js`:
 
 ```javascript
-module.exports = {
-  mode: 'development',
-  devtool: 'inline-source-map',
-  entry: './app.ts',
-  output: {
-    filename: 'bundle.js',
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+
+/** @type {import('webpack').Configuration} */
+export default {
+  entry: './src/index.ts',
+  module: {
+    rules: [{ test: /\.ts$/, loader: 'ts-loader' }],
   },
   resolve: {
-    // Let webpack resolve imports without an extension to .ts and .tsx files
-    extensions: ['.ts', '.tsx', '.js'],
-    // Let `import './foo.js'` find `foo.ts` (TypeScript's ESM import style)
-    extensionAlias: {
-      '.js': ['.js', '.ts'],
-      '.cjs': ['.cjs', '.cts'],
-      '.mjs': ['.mjs', '.mts'],
-    },
+    extensions: ['.ts', '.tsx', '...'],
   },
-  module: {
-    rules: [
-      // Send .ts, .cts, .mts and .tsx files through ts-loader
-      { test: /\.([cm]?ts|tsx)$/, loader: 'ts-loader' },
-    ],
-  },
+  plugins: [new HtmlWebpackPlugin()],
 };
 ```
+
+This writes the bundle to `dist/main.js`. If you use `.mts` or `.cts` files, or write imports with a `.js` extension, see [ESM-style imports](#esm-style-imports).
 
 ### 3. Add a `tsconfig.json`
 
 ```json
 {
   "compilerOptions": {
-    "sourceMap": true
+    "strict": true
   }
 }
 ```
@@ -106,6 +97,26 @@ To debug your original TypeScript in the browser:
 ### Using with Babel
 
 `ts-loader` works well with [babel-loader](https://github.com/babel/babel-loader). Chain them so that `ts-loader` runs first: `use: ['babel-loader', 'ts-loader']` (webpack applies loaders from right to left).
+
+### ESM-style imports
+
+If you write imports the way Node.js ESM needs them, with a `.js` extension (`import { foo } from './foo.js'` for a file called `foo.ts`), tell webpack to look for the TypeScript file too. If you use `.mts` or `.cts` files, also widen the rule's `test` so they reach `ts-loader`:
+
+```javascript
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+
+/** @type {import('webpack').Configuration} */
+export default {
+  entry: './src/index.ts',
+  module: {
+    rules: [{ test: /\.ts$/, loader: 'ts-loader' }],
+  },
+  resolve: {
+    extensions: ['.ts', '...'],
+  },
+  plugins: [new HtmlWebpackPlugin()],
+};
+```
 
 ### `paths` module resolution
 
