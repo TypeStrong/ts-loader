@@ -39,61 +39,79 @@ const canUseSourceMapConsumer =
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
-function loader(
+async function loader(
   this: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   inputSourceMap?: Record<string, unknown>,
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
+  // Still needed despite `async`: webpack only takes `content` from a
+  // returned promise, so the source map has to go through the callback.
   const callback = this.async();
-  const configParseErrorMessage = successLoader(
-    this,
-    contents,
-    inputSourceMap,
-    callback,
-  );
-  if (configParseErrorMessage !== undefined) {
-    // Reconstructed here, in `loader`'s own frame, so the stack trace
-    // matches classic ts-loader's single `at Object.loader (...)` frame.
-    callback(new Error(configParseErrorMessage));
+  let result: { output: string; sourceMap: RawSourceMap | undefined };
+  try {
+    result = await compile(this, contents, inputSourceMap);
+  } catch (error) {
+    callback(error instanceof Error ? error : new Error(String(error)));
+    return;
   }
+  callback(null, result.output, result.sourceMap);
 }
 
-function successLoader(
+async function compile(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   inputSourceMap: Record<string, unknown> | undefined,
-  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-): string | undefined {
-  try {
-    const options = getLoaderOptions(loaderContext);
-    const instance = getTypeScriptInstance(options, loaderContext);
-    const rawFilePath = path.normalize(loaderContext.resourcePath);
-    const filePath = appendSuffixesIfRequired(rawFilePath, options);
-    const fileVersion = updateFileInCache(filePath, contents, instance);
-    const { outputText, sourceMapText, configParseErrorMessage } =
-      getTypeScriptEmit(filePath, contents, instance, loaderContext);
+) {
+  const options = getLoaderOptions(loaderContext);
+  const instance = getTypeScriptInstance(options, loaderContext);
+  const rawFilePath = path.normalize(loaderContext.resourcePath);
+  const filePath = appendSuffixesIfRequired(rawFilePath, options);
+  const fileVersion = updateFileInCache(filePath, contents, instance);
+  const { outputText, sourceMapText, configParseErrorMessage } =
+    getTypeScriptEmit(filePath, contents, instance, loaderContext);
 
-    if (configParseErrorMessage !== undefined) {
-      return configParseErrorMessage;
-    }
-
-    makeSourceMapAndFinish(
-      sourceMapText,
-      outputText,
-      filePath,
-      contents,
-      loaderContext,
-      fileVersion,
-      callback,
-      options.allowTsInNodeModules,
-      inputSourceMap,
-    );
-  } catch (error) {
-    callback(error instanceof Error ? error : new Error(String(error)));
+  if (configParseErrorMessage !== undefined) {
+    throw new Error(configParseErrorMessage);
   }
-  return undefined;
+
+  setModuleMeta(loaderContext, fileVersion);
+
+  if (outputText === null || outputText === undefined) {
+    // Most commonly a node_modules file: the API skips emit for external
+    // library files.
+    const additionalGuidance =
+      !options.allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
+        ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
+          'You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n' +
+          'See: https://github.com/Microsoft/TypeScript/issues/12358'
+        : '';
+    throw new Error(
+      `TypeScript emitted no output for ${filePath}.${additionalGuidance}`,
+    );
+  }
+
+  const { sourceMap, output } = makeSourceMap(
+    sourceMapText,
+    outputText,
+    filePath,
+    contents,
+    loaderContext,
+  );
+
+  if (sourceMap === undefined || !inputSourceMap || !canUseSourceMapConsumer) {
+    return { output, sourceMap };
+  }
+
+  return {
+    output,
+    sourceMap: await mapToInputSourceMap(
+      sourceMap,
+      loaderContext,
+      inputSourceMap as unknown as RawSourceMap,
+    ),
+  };
 }
 
 function getTypeScriptInstance(
@@ -515,65 +533,6 @@ function arrify<T>(value: T | T[] | undefined) {
   return value === undefined ? [] : Array.isArray(value) ? value : [value];
 }
 
-function makeSourceMapAndFinish(
-  sourceMapText: string | undefined,
-  outputText: string | undefined,
-  filePath: string,
-  contents: string,
-  loaderContext: webpack.LoaderContext<LoaderOptions>,
-  fileVersion: number,
-  callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
-  allowTsInNodeModules: boolean,
-  inputSourceMap?: Record<string, unknown>,
-) {
-  if (outputText === null || outputText === undefined) {
-    setModuleMeta(loaderContext, fileVersion);
-    // Most commonly a node_modules file: the API skips emit for external
-    // library files.
-    const additionalGuidance =
-      !allowTsInNodeModules && filePath.indexOf('node_modules') !== -1
-        ? ' By default, ts-loader will not compile .ts files in node_modules.\n' +
-          'You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.\n' +
-          'See: https://github.com/Microsoft/TypeScript/issues/12358'
-        : '';
-    callback(
-      new Error(
-        `TypeScript emitted no output for ${filePath}.${additionalGuidance}`,
-      ),
-      outputText,
-      undefined,
-    );
-    return;
-  }
-
-  const { sourceMap, output } = makeSourceMap(
-    sourceMapText,
-    outputText,
-    filePath,
-    contents,
-    loaderContext,
-  );
-
-  setModuleMeta(loaderContext, fileVersion);
-
-  if (sourceMap === undefined || !inputSourceMap || !canUseSourceMapConsumer) {
-    callback(null, output, sourceMap);
-    return;
-  }
-
-  mapToInputSourceMap(
-    sourceMap,
-    loaderContext,
-    inputSourceMap as unknown as RawSourceMap,
-  )
-    .then(mappedSourceMap => {
-      callback(null, output, mappedSourceMap);
-    })
-    .catch((e: Error) => {
-      callback(e);
-    });
-}
-
 function setModuleMeta(
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   fileVersion: number,
@@ -604,46 +563,32 @@ function makeSourceMap(
   };
 }
 
-function mapToInputSourceMap(
+async function mapToInputSourceMap(
   sourceMap: RawSourceMap,
   loaderContext: webpack.LoaderContext<LoaderOptions>,
   inputSourceMap: RawSourceMap,
 ): Promise<RawSourceMap> {
-  return new Promise<RawSourceMap>((resolve, reject) => {
-    const inMap: RawSourceMap = {
-      file: loaderContext.remainingRequest,
-      mappings: inputSourceMap.mappings,
-      names: inputSourceMap.names,
-      sources: inputSourceMap.sources,
-      sourceRoot: inputSourceMap.sourceRoot,
-      sourcesContent: inputSourceMap.sourcesContent,
-      version: inputSourceMap.version,
-    };
-    Promise.all([
-      new SourceMapConsumer(inMap),
-      new SourceMapConsumer(sourceMap),
-    ])
-      .then(sourceMapConsumers => {
-        try {
-          const generator = SourceMapGenerator.fromSourceMap(
-            sourceMapConsumers[1],
-          );
-          generator.applySourceMap(sourceMapConsumers[0]);
-          const mappedSourceMap = generator.toJSON();
-
-          sourceMapConsumers.forEach(sourceMapConsumer =>
-            sourceMapConsumer.destroy(),
-          );
-          resolve(mappedSourceMap);
-        } catch (e) {
-          sourceMapConsumers.forEach(sourceMapConsumer =>
-            sourceMapConsumer.destroy(),
-          );
-          reject(e);
-        }
-      })
-      .catch(reject);
-  });
+  const inMap: RawSourceMap = {
+    file: loaderContext.remainingRequest,
+    mappings: inputSourceMap.mappings,
+    names: inputSourceMap.names,
+    sources: inputSourceMap.sources,
+    sourceRoot: inputSourceMap.sourceRoot,
+    sourcesContent: inputSourceMap.sourcesContent,
+    version: inputSourceMap.version,
+  };
+  const [inputConsumer, outputConsumer] = await Promise.all([
+    new SourceMapConsumer(inMap),
+    new SourceMapConsumer(sourceMap),
+  ]);
+  try {
+    const generator = SourceMapGenerator.fromSourceMap(outputConsumer);
+    generator.applySourceMap(inputConsumer);
+    return generator.toJSON();
+  } finally {
+    inputConsumer.destroy();
+    outputConsumer.destroy();
+  }
 }
 
 export = loader;

@@ -1,4 +1,4 @@
-asset bundle.js 3.22 KiB [emitted] (name: main)
+asset bundle.js 3.12 KiB [emitted] (name: main)
 ./app.ts 117 bytes [built] [code generated]
 ./node_modules/a/index.ts 39 bytes [built] [code generated] [1 error]
 
@@ -7,9 +7,8 @@ Module build failed (from ../../index.js):
 Error: TypeScript emitted no output for node_modules/a/index.ts. By default, ts-loader will not compile .ts files in node_modules.
 You should not need to recompile .ts files there, but if you really want to, use the allowTsInNodeModules option.
 See: https://github.com/Microsoft/TypeScript/issues/12358
-    at makeSourceMapAndFinish (dist/index.js:336:18)
-    at successLoader (dist/index.js:75:9)
-    at Object.loader (dist/index.js:57:37)
+    at compile (dist/index.js:89:15)
+    at Object.loader (dist/index.js:62:24)
  @ ./app.ts 3:10-22
 
 webpack compiled with 1 error
