@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- [Lower the minimum Node.js version to 16.20, matching TypeScript 7.1](https://github.com/TypeStrong/ts-loader/issues/1721) - ts-loader now loads TypeScript with `import()` rather than `require()`, so it no longer needs a Node.js version with `require(esm)` support.
+
 ## 10.0.0-beta.0
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly

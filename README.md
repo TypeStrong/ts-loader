@@ -80,9 +80,9 @@ For a complete working setup, see [examples/simple](examples/simple/).
 
 - TypeScript: 7.1+
 - webpack: 4.x and 5.x
-- Node.js: 22+
+- Node.js: 16.20+ (the same minimum as TypeScript 7.1)
 
-The test suite runs on every pull request on Linux, macOS and Windows, against TypeScript 7.1 and TypeScript@next, on Node.js 22, 24 and 26. If you find a problem the tests don't catch, please [open an issue](https://github.com/TypeStrong/ts-loader/issues), or better yet, send a PR with a test.
+The test suite runs on every pull request on Linux, macOS and Windows, against TypeScript 7.1 and TypeScript@next, on Node.js 22, 24 and 26, plus a smoke test on Node.js 16.20. If you find a problem the tests don't catch, please [open an issue](https://github.com/TypeStrong/ts-loader/issues), or better yet, send a PR with a test.
 
 ## Guides
 

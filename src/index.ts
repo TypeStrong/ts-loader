@@ -11,6 +11,7 @@ import {
 import {
   createTypeScriptInstance,
   getTypeScriptEmit,
+  loadTypeScriptModules,
   recheckAllTransitiveDependants,
 } from './typeScriptApi';
 import type {
@@ -21,6 +22,7 @@ import type {
   ResolvedFilePathCache,
   TSFile,
   TSInstance,
+  TypeScriptModules,
 } from './types';
 import * as loaderUtils from './loaderUtils';
 import { getTSInstanceFromCache, setTSInstanceInCache } from './instance-cache';
@@ -39,7 +41,7 @@ const canUseSourceMapConsumer =
 
 const loaderOptionsCache: LoaderOptionsCache = {};
 
-function loader(
+async function loader(
   this: webpack.LoaderContext<LoaderOptions>,
   contents: string,
   inputSourceMap?: Record<string, unknown>,
@@ -47,11 +49,21 @@ function loader(
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   this.cacheable && this.cacheable();
   const callback = this.async();
+  let typeScriptModules: TypeScriptModules;
+  try {
+    typeScriptModules = await loadTypeScriptModules(
+      loaderUtils.getOptions(this).compiler ?? 'typescript',
+    );
+  } catch (error) {
+    callback(error instanceof Error ? error : new Error(String(error)));
+    return;
+  }
   const configParseErrorMessage = successLoader(
     this,
     contents,
     inputSourceMap,
     callback,
+    typeScriptModules,
   );
   if (configParseErrorMessage !== undefined) {
     // Reconstructed here, in `loader`'s own frame, so the stack trace
@@ -65,10 +77,15 @@ function successLoader(
   contents: string,
   inputSourceMap: Record<string, unknown> | undefined,
   callback: ReturnType<webpack.LoaderContext<LoaderOptions>['async']>,
+  typeScriptModules: TypeScriptModules,
 ): string | undefined {
   try {
     const options = getLoaderOptions(loaderContext);
-    const instance = getTypeScriptInstance(options, loaderContext);
+    const instance = getTypeScriptInstance(
+      options,
+      loaderContext,
+      typeScriptModules,
+    );
     const rawFilePath = path.normalize(loaderContext.resourcePath);
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
     const fileVersion = updateFileInCache(filePath, contents, instance);
@@ -99,6 +116,7 @@ function successLoader(
 function getTypeScriptInstance(
   loaderOptions: LoaderOptions,
   loader: webpack.LoaderContext<LoaderOptions>,
+  typeScriptModules: TypeScriptModules,
 ) {
   const existing = getTSInstanceFromCache(
     loader._compiler!,
@@ -141,7 +159,7 @@ function getTypeScriptInstance(
     files,
     resolvedFilePathCache,
     typeScriptApiInstance: createTypeScriptInstance(
-      loaderOptions,
+      typeScriptModules,
       configFilePath,
       useCaseSensitiveFileNames,
     ),

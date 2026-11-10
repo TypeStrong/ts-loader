@@ -22,6 +22,10 @@ jobs:
     name: execution tests
     uses: ./.github/workflows/execution-tests.yml
 
+  minimum-node-tests:
+    name: minimum node tests
+    uses: ./.github/workflows/minimum-node-tests.yml
+
   lint:
     name: lint
     uses: ./.github/workflows/lint.yml

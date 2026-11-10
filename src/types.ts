@@ -1,11 +1,13 @@
 import type { Colors } from './colors';
 import type {
   API,
+  APIOptions,
   Diagnostic,
   ParsedCommandLine,
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
+import type { createFileSystemLayer } from 'typescript/fs';
 import type * as webpack from 'webpack';
 
 export interface ErrorInfo {
@@ -80,8 +82,15 @@ export interface SyntheticProgram {
   configuration: string;
 }
 
+/** The parts of the TypeScript package ts-loader uses at runtime. */
+export interface TypeScriptModules {
+  API: new (options?: APIOptions) => API;
+  createFileSystemLayer: typeof createFileSystemLayer;
+}
+
 export interface TypeScriptInstance {
   api: API;
+  createFileSystemLayer: TypeScriptModules['createFileSystemLayer'];
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
   transpileConfig?: ParsedCommandLine;

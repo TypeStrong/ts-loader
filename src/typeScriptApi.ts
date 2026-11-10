@@ -1,10 +1,9 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import type * as webpack from 'webpack';
 import type {
-  API,
-  APIOptions,
   CompilerOptions,
   CreateSnapshotParams,
   Diagnostic,
@@ -15,7 +14,6 @@ import type {
   SyntheticProjectId,
 } from 'typescript/sync';
 import type { StringLiteralLikeNode } from 'typescript/ast';
-import { createFileSystemLayer } from 'typescript/fs';
 
 import * as constants from './constants';
 import {
@@ -30,28 +28,76 @@ import type {
   PendingDeclarationFile,
   SyntheticProgram,
   TypeScriptInstance,
+  TypeScriptModules,
   TSInstance,
   ResolvedFilePathCache,
 } from './types';
 import { isWebpack5 } from './loaderUtils';
 
-interface TypeScriptApiModule {
-  API: new (options?: APIOptions) => API;
+const typeScriptModulesCache = new Map<string, Promise<TypeScriptModules>>();
+
+export function loadTypeScriptModules(
+  compilerPackage: string,
+): Promise<TypeScriptModules> {
+  let typeScriptModules = typeScriptModulesCache.get(compilerPackage);
+  if (typeScriptModules === undefined) {
+    typeScriptModules = importTypeScriptModules(compilerPackage);
+    typeScriptModulesCache.set(compilerPackage, typeScriptModules);
+    typeScriptModules.catch(() =>
+      typeScriptModulesCache.delete(compilerPackage),
+    );
+  }
+  return typeScriptModules;
+}
+
+async function importTypeScriptModules(
+  compilerPackage: string,
+): Promise<TypeScriptModules> {
+  const [syncModule, fsModule] = await Promise.all([
+    importCompilerEntryPoint<Pick<TypeScriptModules, 'API'>>(
+      `${compilerPackage}/sync`,
+    ),
+    importCompilerEntryPoint<Pick<TypeScriptModules, 'createFileSystemLayer'>>(
+      `${compilerPackage}/fs`,
+    ),
+  ]);
+  return {
+    API: syncModule.API,
+    createFileSystemLayer: fsModule.createFileSystemLayer,
+  };
+}
+
+/**
+ * TypeScript 7 is ESM-only; `import()` rather than `require()` lets Node
+ * versions without `require(esm)` (< 20.19) load it. Resolved via
+ * `require.resolve` first so `compiler` resolves exactly as it always has,
+ * Windows absolute paths included.
+ */
+async function importCompilerEntryPoint<T>(specifier: string): Promise<T> {
+  try {
+    return (await import(pathToFileURL(require.resolve(specifier)).href)) as T;
+  } catch (error) {
+    throw new Error(
+      `Could not load the TypeScript API from "${specifier}": ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
 }
 
 export function createTypeScriptInstance(
-  loaderOptions: LoaderOptions,
+  typeScriptModules: TypeScriptModules,
   configFilePath: string,
   useCaseSensitiveFileNames: boolean,
 ): TypeScriptInstance {
-  const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
   // No `fs` callbacks: the API reads disk directly, with webpack's content
   // layered on top per file (see layerFileContents). Case sensitivity is
   // passed explicitly so the API agrees with `resolvedFilePathCache`.
-  const api = new typeScriptApiModule.API({ useCaseSensitiveFileNames });
+  const api = new typeScriptModules.API({ useCaseSensitiveFileNames });
 
   return {
     api,
+    createFileSystemLayer: typeScriptModules.createFileSystemLayer,
     configFilePath: path.resolve(configFilePath),
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
@@ -500,20 +546,6 @@ function computeDeclarationFilePath(
   return path.join(outDirLikeOption, relativeToRoot);
 }
 
-function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
-  const specifier = `${compilerPackage}/sync`;
-
-  try {
-    return require(specifier) as TypeScriptApiModule;
-  } catch (error) {
-    throw new Error(
-      `Could not load the TypeScript API from "${specifier}": ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-  }
-}
-
 type SnapshotChanges = Pick<
   CreateSnapshotParams,
   | 'openProjects'
@@ -710,7 +742,9 @@ function layerFileContents(
   contents: string,
 ): Snapshot {
   const fileLayer: SnapshotChanges = {
-    fileSystem: createFileSystemLayer([[fileName, contents]]),
+    fileSystem: typeScriptInstance.createFileSystemLayer([
+      [fileName, contents],
+    ]),
     ensurePrograms: true,
   };
   if (

@@ -29,6 +29,7 @@ npm run check:benchmark-tests  # type-check the benchmark scripts
 npm test                       # full test suite (comparison + execution tests)
 npm run comparison-tests       # fast subset: compare webpack output against snapshots
 npm run execution-tests        # build each test for Node and run its Jasmine specs
+npm run minimum-node-tests     # smoke test meant to run on the minimum Node in `engines`
 npm run benchmark              # compare this build's compile speed against another ts-loader checkout
 ```
 
@@ -110,6 +111,12 @@ npm run execution-tests                                 # all tests
 npm run execution-tests -- --single-test <name>         # one test
 npm run execution-tests -- --single-test <name> --watch # rebuild and re-run on changes
 ```
+
+## Minimum Node tests (`test/minimum-node-tests/`)
+
+`package.json` `engines` matches TypeScript 7.1's minimum (Node 16.20), but the comparison/execution harnesses need newer Node (Jasmine needs `structuredClone`; the comparison harness `require`s the ESM-only `typescript/sync`). This smoke test builds two tiny projects with webpack + ts-loader, runs the clean bundle and checks a type error is reported - with no test framework, so it runs on the minimum Node. `.github/workflows/minimum-node-tests.yml` installs and builds on Node 26, then runs it on Node 16.20.0.
+
+This is also why `src/` loads TypeScript via `import()`, not `require()`: Node < 20.19 can't `require()` an ES module.
 
 ## Testing on Windows CI
 
