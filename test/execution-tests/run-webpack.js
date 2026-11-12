@@ -1,20 +1,33 @@
 'use strict';
 
-// Builds the webpack.config.js in the current directory once, like `webpack --bail`,
+// Builds the webpack config in the current directory once, like `webpack --bail`,
 // so the execution tests don't need webpack-cli. Exits with 1 if the build has errors.
 // Like webpack-cli, the config can export an object, a function or a Promise, or an
-// array of them.
+// array of them. ESM configs can use webpack.config.mjs.
+const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const webpack = require('webpack');
 
-const exported = require(path.resolve('webpack.config.js'));
+async function loadWebpackConfig() {
+    const jsConfigPath = path.resolve('webpack.config.js');
+    if (fs.existsSync(jsConfigPath)) {
+        return require(jsConfigPath);
+    }
+
+    const { default: config } = await import(
+        pathToFileURL(path.resolve('webpack.config.mjs')).href
+    );
+    return config;
+}
+
 const env = { WEBPACK_BUNDLE: true, WEBPACK_BUILD: true };
 // What webpack-cli passes a config function for `webpack --bail`
 const argv = { env, bail: true };
 
 // Starting from Promise.resolve() means a config function that throws is caught below
 Promise.resolve()
-    .then(() => resolveConfig(exported))
+    .then(() => resolveConfig(loadWebpackConfig()))
     .then((config) => (Array.isArray(config) ? Promise.all(config.map(resolveConfig)) : config))
     .then((config) => {
         (Array.isArray(config) ? config : [config]).forEach((c) => { c.bail = true; });

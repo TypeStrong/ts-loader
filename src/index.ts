@@ -227,7 +227,13 @@ function getTypeScriptInstance(
   }
 
   setTSInstanceInCache(compiler, loaderOptions.instance, instance);
-  log.logInfo(`Using ${loaderOptions.compiler} API with ${configFilePath}`);
+  log.logInfo(
+    `Using ${
+      typeof loaderOptions.compiler === 'object'
+        ? 'supplied compiler'
+        : (loaderOptions.compiler ?? 'typescript')
+    } API with ${configFilePath}`,
+  );
   return instance;
 }
 
@@ -442,7 +448,6 @@ function getLoaderOptions(loaderContext: webpack.LoaderContext<LoaderOptions>) {
       silent: false,
       logLevel: 'WARN' as keyof typeof LogLevel,
       logInfoToStdOut: false,
-      compiler: 'typescript',
       transpileOnly: hasForkTsCheckerWebpackPlugin,
       appendTsSuffixTo: [],
       appendTsxSuffixTo: [],

@@ -6,7 +6,7 @@ These tests are executed more widely that the comparison tests; we aim to run th
 
 ## Structure
 
-The execution test pack can be found under `/test/execution-tests`. Like the comparison test pack, the execution test pack uses certain conventions. All tests have their own directory under `/test/execution-tests`, eg `/test/execution-tests/someFeature`, named after the feature being tested. Each test has a `webpack.config.js` file and usually a `main.js` file that loads its specs:
+The execution test pack can be found under `/test/execution-tests`. Like the comparison test pack, the execution test pack uses certain conventions. All tests have their own directory under `/test/execution-tests`, eg `/test/execution-tests/someFeature`, named after the feature being tested. Each test has a `webpack.config.js` file; build-only tests may use `webpack.config.mjs` for an ESM config. Tests with specs usually also have a `main.js` file that loads them:
 
 ```js
 const testsContext = require.context('./', true, /\.tests\.ts(x?)$/);

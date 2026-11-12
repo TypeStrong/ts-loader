@@ -295,8 +295,7 @@ function removeCompilationTSLoaderErrors(
   loaderOptions: LoaderOptions,
 ) {
   compilation.errors = compilation.errors.filter(
-    error =>
-      !isTSLoaderModuleError(error as webpack.WebpackError, loaderOptions),
+    error => !isTSLoaderModuleError(error, loaderOptions),
   );
 }
 
@@ -328,11 +327,10 @@ function removeModuleTSLoaderError(
   }
 }
 
-function isTSLoaderModuleError(
-  error: webpack.WebpackError,
-  loaderOptions: LoaderOptions,
-) {
-  return error?.details === tsLoaderSource(loaderOptions);
+function isTSLoaderModuleError(error: Error, loaderOptions: LoaderOptions) {
+  return (
+    (error as webpack.WebpackError)?.details === tsLoaderSource(loaderOptions)
+  );
 }
 
 function moduleHasWebpackErrors(module: webpack.Module) {

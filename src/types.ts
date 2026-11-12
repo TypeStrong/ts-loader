@@ -1,11 +1,13 @@
 import type { Colors } from './colors';
 import type {
   API,
+  APIOptions,
   Diagnostic,
   ParsedCommandLine,
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
+import type { createFileSystemLayer } from 'typescript/fs';
 import type * as webpack from 'webpack';
 
 export interface ErrorInfo {
@@ -38,12 +40,22 @@ export const LogLevel = {
   ERROR: 3,
 } as const;
 
+/** `API` from `typescript/sync` and `createFileSystemLayer` from `typescript/fs`. */
+export interface TypeScriptCompilerModules {
+  API: new (options?: APIOptions) => API;
+  createFileSystemLayer: typeof createFileSystemLayer;
+}
+
 export interface LoaderOptions {
   silent: boolean;
   logLevel: keyof typeof LogLevel;
   logInfoToStdOut: boolean;
   instance: string;
-  compiler: string;
+  /**
+   * A package name (loaded with `require()`, needs Node 20.19+ / 22.12+), or
+   * the already-imported modules. Defaults to `'typescript'`.
+   */
+  compiler?: string | TypeScriptCompilerModules;
   configFile: string;
   transpileOnly: boolean;
   ignoreDiagnostics: number[];
@@ -82,6 +94,7 @@ export interface SyntheticProgram {
 
 export interface TypeScriptInstance {
   api: API;
+  compiler: TypeScriptCompilerModules;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
   transpileConfig?: ParsedCommandLine;

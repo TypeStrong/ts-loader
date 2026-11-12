@@ -409,11 +409,31 @@ If `true`, `ts-loader` writes nothing to the console. Errors reported through we
 
 #### compiler
 
-| Type     | Default Value  |
-| -------- | -------------- |
-| `string` | `'typescript'` |
+| Type                                       | Default Value  |
+| ------------------------------------------ | -------------- |
+| `string \| { API, createFileSystemLayer }` | `'typescript'` |
 
-Use a TypeScript package other than the one installed as `typescript`, such as a fork or a prerelease installed under an alias. The package must provide TypeScript's native API at `<compiler>/sync` (for example `typescript/sync`). Packages that only provide the classic compiler API, such as `ttypescript`, are not supported.
+Use a TypeScript package other than the one installed as `typescript`, such as a fork or a prerelease installed under an alias. The package must provide TypeScript's native API at `<compiler>/sync` and `<compiler>/fs`. Packages that only provide the classic compiler API, such as `ttypescript`, are not supported.
+
+A package name is loaded with `require()`, which needs Node.js 20.19+ / 22.12+ because TypeScript 7 is ESM-only. On older Node.js (16.20+), import the modules in your webpack config and pass them instead. If two rules pass different `compiler` modules, give them different `instance` names.
+
+```js
+// webpack.config.mjs
+import { API } from 'typescript/sync';
+import { createFileSystemLayer } from 'typescript/fs';
+
+export default {
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        loader: 'ts-loader',
+        options: { compiler: { API, createFileSystemLayer } },
+      },
+    ],
+  },
+};
+```
 
 #### instance
 

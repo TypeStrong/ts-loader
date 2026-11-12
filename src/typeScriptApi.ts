@@ -3,8 +3,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type * as webpack from 'webpack';
 import type {
-  API,
-  APIOptions,
   CompilerOptions,
   CreateSnapshotParams,
   Diagnostic,
@@ -15,7 +13,6 @@ import type {
   SyntheticProjectId,
 } from 'typescript/sync';
 import type { StringLiteralLikeNode } from 'typescript/ast';
-import { createFileSystemLayer } from 'typescript/fs';
 
 import * as constants from './constants';
 import {
@@ -29,29 +26,30 @@ import type {
   LoaderOptions,
   PendingDeclarationFile,
   SyntheticProgram,
+  TypeScriptCompilerModules,
   TypeScriptInstance,
   TSInstance,
   ResolvedFilePathCache,
 } from './types';
 import { isWebpack5 } from './loaderUtils';
 
-interface TypeScriptApiModule {
-  API: new (options?: APIOptions) => API;
-}
-
 export function createTypeScriptInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
   useCaseSensitiveFileNames: boolean,
 ): TypeScriptInstance {
-  const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
+  const compiler =
+    typeof loaderOptions.compiler === 'object'
+      ? loaderOptions.compiler
+      : requireCompiler(loaderOptions.compiler ?? 'typescript');
   // No `fs` callbacks: the API reads disk directly, with webpack's content
   // layered on top per file (see layerFileContents). Case sensitivity is
   // passed explicitly so the API agrees with `resolvedFilePathCache`.
-  const api = new typeScriptApiModule.API({ useCaseSensitiveFileNames });
+  const api = new compiler.API({ useCaseSensitiveFileNames });
 
   return {
     api,
+    compiler,
     configFilePath: path.resolve(configFilePath),
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
@@ -500,14 +498,19 @@ function computeDeclarationFilePath(
   return path.join(outDirLikeOption, relativeToRoot);
 }
 
-function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
-  const specifier = `${compilerPackage}/sync`;
-
+/**
+ * Used when `compiler` is a package name (or not passed). TypeScript 7 is
+ * ESM-only, so this needs require(esm) (Node 20.19+ / 22.12+); on older Node,
+ * pass `compiler: { API, createFileSystemLayer }` instead.
+ */
+function requireCompiler(compilerPackage: string): TypeScriptCompilerModules {
   try {
-    return require(specifier) as TypeScriptApiModule;
+    const { API } = require(`${compilerPackage}/sync`);
+    const { createFileSystemLayer } = require(`${compilerPackage}/fs`);
+    return { API, createFileSystemLayer };
   } catch (error) {
     throw new Error(
-      `Could not load the TypeScript API from "${specifier}": ${
+      `Could not load the TypeScript API from "${compilerPackage}": ${
         error instanceof Error ? error.message : String(error)
       }`,
     );
@@ -710,7 +713,9 @@ function layerFileContents(
   contents: string,
 ): Snapshot {
   const fileLayer: SnapshotChanges = {
-    fileSystem: createFileSystemLayer([[fileName, contents]]),
+    fileSystem: typeScriptInstance.compiler.createFileSystemLayer([
+      [fileName, contents],
+    ]),
     ensurePrograms: true,
   };
   if (
