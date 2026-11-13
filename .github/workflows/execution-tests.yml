@@ -33,6 +33,40 @@ jobs:
       - name: test
         run: npm run execution-tests
 
+  # Node 16 can only load TypeScript 7 through a `compiler` passed from an ESM
+  # webpack config. Install and build on Node 26 (Jasmine 7 and the dev tooling
+  # need it), then switch to Node 16 for suppliedCompiler: a build-only test,
+  # so it never loads Jasmine.
+  execution_test_node16:
+    name: ubuntu node 16
+    strategy:
+      matrix:
+        ts: [7.1.0-beta, next]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: install node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+
+      - uses: ./.github/actions/build-ts-loader
+
+      - name: install typescript
+        run: npm install -D typescript@${{ matrix.ts }}
+
+      - name: switch to node 16
+        uses: actions/setup-node@v7
+        with:
+          node-version: 16
+
+      - name: test
+        run: |
+          node --version
+          node test/execution-tests/run-tests.js --single-test suppliedCompiler
+
   execution_test_macos:
     name: macOS
     strategy:
