@@ -141,8 +141,12 @@ function removeOrphanedOptions(
       neededOptions.some(option => turnedOff.has(option)) &&
       !neededOptions.some(option => remaining[option])
     ) {
+      // Only an option that was set carries the chain on: an unset one
+      // wasn't turned off by anything.
+      if (dependentOption in remaining) {
+        turnedOff.add(dependentOption);
+      }
       delete remaining[dependentOption];
-      turnedOff.add(dependentOption);
     }
   }
   return remaining;

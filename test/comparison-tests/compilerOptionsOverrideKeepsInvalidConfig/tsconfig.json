@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"mapRoot": "maps"
+	},
+	"files": [
+		"app.ts"
+	]
+}
