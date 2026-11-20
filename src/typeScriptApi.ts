@@ -683,46 +683,46 @@ function updateSnapshot(
     typeScriptInstance,
     resolvedFilePathCache,
   );
-  const fileNotifications = typeScriptInstance.pendingInvalidation
-    ? ({ invalidateAll: true } as const)
-    : pendingChangedOrRemovedFiles
-      ? {
-          changed: [
-            ...(mapApiFacingFileNames(
-              typeScriptInstance.pendingChangedFiles &&
-                new Set(
-                  [...typeScriptInstance.pendingChangedFiles].filter(
-                    fileName => !createdFiles.has(fileName),
-                  ),
-                ),
-            ) ?? []),
-            // The config files are build dependencies, which webpack's
-            // watcher doesn't report, so the API would never re-read them.
-            // Naming an unchanged file costs nothing measurable.
-            // `configFileNames` is unset until a build gets past parsing the
-            // config, so the root config is always named too.
-            ...new Set(
-              [
-                typeScriptInstance.configFilePath,
-                ...(typeScriptInstance.configFileNames ?? []),
-              ].map(fileName => path.resolve(fileName)),
-            ),
-          ],
-          created: emptyToUndefined([
-            ...(mapApiFacingFileNames(createdFiles) ?? []),
-            ...newlyIncludedFileNames,
-          ]),
-          deleted: mapApiFacingFileNames(
-            typeScriptInstance.pendingRemovedFiles,
-          ),
-        }
-      : changedFileNames && changedFileNames.size > 0
+  // A newly included file needs the full rescan: naming it as created adds
+  // it to the project on Linux, but was seen to do nothing on Windows.
+  const fileNotifications =
+    typeScriptInstance.pendingInvalidation || newlyIncludedFileNames.length > 0
+      ? ({ invalidateAll: true } as const)
+      : pendingChangedOrRemovedFiles
         ? {
-            changed: [...changedFileNames].map(fileName =>
-              path.resolve(fileName),
+            changed: [
+              ...(mapApiFacingFileNames(
+                typeScriptInstance.pendingChangedFiles &&
+                  new Set(
+                    [...typeScriptInstance.pendingChangedFiles].filter(
+                      fileName => !createdFiles.has(fileName),
+                    ),
+                  ),
+              ) ?? []),
+              // The config files are build dependencies, which webpack's
+              // watcher doesn't report, so the API would never re-read them.
+              // Naming an unchanged file costs nothing measurable.
+              // `configFileNames` is unset until a build gets past parsing the
+              // config, so the root config is always named too.
+              ...new Set(
+                [
+                  typeScriptInstance.configFilePath,
+                  ...(typeScriptInstance.configFileNames ?? []),
+                ].map(fileName => path.resolve(fileName)),
+              ),
+            ],
+            created: mapApiFacingFileNames(createdFiles),
+            deleted: mapApiFacingFileNames(
+              typeScriptInstance.pendingRemovedFiles,
             ),
           }
-        : undefined;
+        : changedFileNames && changedFileNames.size > 0
+          ? {
+              changed: [...changedFileNames].map(fileName =>
+                path.resolve(fileName),
+              ),
+            }
+          : undefined;
   // directImportsCache: a full rescan could change any file, and a created
   // file can satisfy imports that previously failed to resolve, so clear it
   // all. Otherwise only the listed files' own entries can be stale (for
@@ -808,8 +808,7 @@ function findCreatedFiles(
  * The files the config includes that the primary program didn't contain
  * when its file list was last read. Nothing watches a file that webpack
  * doesn't bundle until it's in the program, so the watcher can't report its
- * creation, and the API only adds it to the project when told. Names are
- * kept exactly as the API spells them.
+ * creation, and the API doesn't look for new files by itself.
  */
 function findNewlyIncludedFileNames(
   typeScriptInstance: TypeScriptInstance,
@@ -851,10 +850,6 @@ function getLastKnownFileNames(
       ),
     )
   );
-}
-
-function emptyToUndefined(fileNames: string[]): string[] | undefined {
-  return fileNames.length === 0 ? undefined : fileNames;
 }
 
 /** `undefined` for an empty set, so the field is omitted from the request. */
