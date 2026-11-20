@@ -138,7 +138,7 @@ function getTypeScriptEmitRestartingDeadApi(
  */
 function withCause(error: Error, cause: unknown) {
   error.stack = `${error.message}\n${
-    cause instanceof Error ? cause.message : String(cause)
+    cause instanceof Error ? (cause.stack ?? cause.message) : String(cause)
   }`;
   return error;
 }

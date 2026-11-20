@@ -585,8 +585,13 @@ function updateSnapshot(
             // The config files are build dependencies, which webpack's
             // watcher doesn't report, so the API would never re-read them.
             // Naming an unchanged file costs nothing measurable.
-            ...(typeScriptInstance.configFileNames ?? []).map(fileName =>
-              path.resolve(fileName),
+            // `configFileNames` is unset until a build gets past parsing the
+            // config, so the root config is always named too.
+            ...new Set(
+              [
+                typeScriptInstance.configFilePath,
+                ...(typeScriptInstance.configFileNames ?? []),
+              ].map(fileName => path.resolve(fileName)),
             ),
           ],
           created: mapApiFacingFileNames(createdFiles),
