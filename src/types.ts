@@ -87,6 +87,12 @@ export interface ConfigOverrides {
   context?: string;
 }
 
+interface ProjectDirectories {
+  /** The file list the directories were derived from. */
+  fileNames: readonly string[];
+  modifiedTimes: Map<string, number | undefined>;
+}
+
 export interface TypeScriptInstance {
   api: API;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
@@ -136,6 +142,11 @@ export interface TypeScriptInstance {
    * kept across builds and pruned by updateSnapshot.
    */
   directImportsCache: Map<FilePath, readonly string[]>;
+  /**
+   * The directories new project files could appear in, with their modified
+   * times as last seen - see haveProjectDirectoriesChanged.
+   */
+  projectDirectories?: ProjectDirectories;
   /** Keyed by project (primary or orphan program) - see getProjectFileNames. */
   projectFileNamesCache: Map<
     FilePath,

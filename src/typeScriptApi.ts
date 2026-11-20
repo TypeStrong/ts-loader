@@ -680,13 +680,20 @@ function updateSnapshot(
   const pendingChangedOrRemovedFiles =
     typeScriptInstance.pendingChangedFiles ??
     typeScriptInstance.pendingRemovedFiles;
+  // Only the first snapshot update of a rebuild has pending changes, and so
+  // anything to compare with the file list.
+  const knownFileNames = typeScriptInstance.pendingChangedFiles
+    ? getLastKnownFileNames(typeScriptInstance, resolvedFilePathCache)
+    : undefined;
   const createdFiles = findCreatedFiles(
     typeScriptInstance,
     resolvedFilePathCache,
+    knownFileNames,
   );
   const newlyIncludedFileNames = findNewlyIncludedFileNames(
     typeScriptInstance,
     resolvedFilePathCache,
+    knownFileNames,
   );
   // A newly included file needs the full rescan: naming it as created adds
   // it to the project on Linux, but was seen to do nothing on Windows.
@@ -786,12 +793,9 @@ function updateSnapshot(
 function findCreatedFiles(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
+  knownFileNames: ReadonlySet<string> | undefined,
 ): ReadonlySet<string> {
   const changedFiles = typeScriptInstance.pendingChangedFiles;
-  const knownFileNames = getLastKnownFileNames(
-    typeScriptInstance,
-    resolvedFilePathCache,
-  );
   if (!changedFiles || !knownFileNames) {
     return new Set();
   }
@@ -818,17 +822,21 @@ function findCreatedFiles(
 function findNewlyIncludedFileNames(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
+  knownFileNames: ReadonlySet<string> | undefined,
 ): string[] {
-  const knownFileNames = getLastKnownFileNames(
-    typeScriptInstance,
-    resolvedFilePathCache,
-  );
-  // Only the first snapshot update of a rebuild has pending changes.
-  if (!typeScriptInstance.pendingChangedFiles || !knownFileNames) {
+  if (!knownFileNames) {
+    return [];
+  }
+  // With config overrides the config has been parsed for this build anyway.
+  const overriddenConfig = getOverriddenConfig(typeScriptInstance);
+  if (
+    overriddenConfig === undefined &&
+    !haveProjectDirectoriesChanged(typeScriptInstance, resolvedFilePathCache)
+  ) {
     return [];
   }
   return (
-    getOverriddenConfig(typeScriptInstance) ??
+    overriddenConfig ??
     typeScriptInstance.api.parseConfigFile(typeScriptInstance.configFilePath)
   ).fileNames.filter(
     fileName =>
@@ -837,6 +845,91 @@ function findNewlyIncludedFileNames(
       // would otherwise force the rescan on every rebuild.
       fs.existsSync(fileName),
   );
+}
+
+/**
+ * Whether a file may have been created since the last call: creating one
+ * changes the modified time of its directory. Parsing the config to look
+ * for new files lists every directory, which cost a few ms per rebuild on
+ * Windows; a stat per directory is cheaper, and almost always says no.
+ *
+ * Watched: each project file's directory and its parents up to the config
+ * file's directory, so a new folder is noticed through its parent.
+ */
+function haveProjectDirectoriesChanged(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): boolean {
+  const projectFileNames = typeScriptInstance.projectFileNamesCache.get(
+    resolvedFilePathCache(
+      typeScriptInstance.orphanProgram?.id ?? typeScriptInstance.configFilePath,
+    ),
+  )?.result;
+  if (!projectFileNames) {
+    return true;
+  }
+  const previous = typeScriptInstance.projectDirectories;
+  let directories = previous;
+  if (previous?.fileNames !== projectFileNames) {
+    // The first check, or files came or went. Times already seen are kept;
+    // a directory that is new here has none, and so counts as changed.
+    directories = {
+      fileNames: projectFileNames,
+      modifiedTimes: new Map(
+        [
+          ...getDirectoriesToWatch(
+            path.dirname(typeScriptInstance.configFilePath),
+            projectFileNames,
+          ),
+        ].map(directory => [directory, previous?.modifiedTimes.get(directory)]),
+      ),
+    };
+    typeScriptInstance.projectDirectories = directories;
+  }
+  let changed = false;
+  for (const [directory, previousModifiedTime] of directories!.modifiedTimes) {
+    const modifiedTime = getModifiedTime(directory);
+    if (modifiedTime !== previousModifiedTime) {
+      directories!.modifiedTimes.set(directory, modifiedTime);
+      changed = true;
+    }
+  }
+  return changed;
+}
+
+function getDirectoriesToWatch(
+  configDirectory: string,
+  fileNames: readonly string[],
+): Set<string> {
+  const directories = new Set([configDirectory]);
+  for (const fileName of fileNames) {
+    let directory = path.dirname(path.resolve(fileName));
+    // Up to the config's directory or, for a file outside it, to the
+    // directory they share. Stops early at a directory already walked.
+    const relativeToConfig = path.relative(configDirectory, directory);
+    const stopDirectory = path.resolve(
+      configDirectory,
+      ...relativeToConfig.split(path.sep).filter(part => part === '..'),
+    );
+    while (
+      !directories.has(directory) &&
+      path.relative(stopDirectory, directory) !== '' &&
+      path.dirname(directory) !== directory
+    ) {
+      directories.add(directory);
+      directory = path.dirname(directory);
+    }
+  }
+  return directories;
+}
+
+/** -1 for a directory that is gone. */
+function getModifiedTime(directory: string): number {
+  try {
+    return fs.statSync(directory).mtimeMs;
+  } catch {
+    return -1;
+  }
 }
 
 /** Comparable names; `undefined` before the file list has been read. */
