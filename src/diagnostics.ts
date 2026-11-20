@@ -62,7 +62,11 @@ export function reportPendingTypeScriptDiagnostics(
     return;
   }
 
-  removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
+  // transpileOnly reports a file's errors on its module straight away, and
+  // only the config's errors arrive here; there is nothing to replace.
+  if (!instance.loaderOptions.transpileOnly) {
+    removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
+  }
 
   const modulesByFile = determineModulesByFile(compilation, instance);
 
@@ -230,7 +234,7 @@ export function buildTypeScriptError(
     code: diagnostic.code,
     severity: (diagnosticCategoryNames[diagnostic.category] ??
       'error') as Severity,
-    content: diagnostic.text,
+    content: flattenDiagnosticMessageText(diagnostic),
     file: diagnosticFile,
     line: start === undefined ? 0 : start.line,
     character: start === undefined ? 0 : start.character,
@@ -357,6 +361,24 @@ function defaultErrorFormatter(error: ErrorInfo, colors: Colors) {
     constants.EOL +
     messageColor(`      TS${error.code}: ${error.content}`)
   );
+}
+
+/**
+ * The API keeps a message's elaboration in `messageChain`, not in `text`.
+ * Same layout as classic's `flattenDiagnosticMessageText`.
+ */
+function flattenDiagnosticMessageText(
+  diagnostic: Diagnostic,
+  indent = 0,
+): string {
+  let result =
+    indent === 0
+      ? diagnostic.text
+      : constants.EOL + '  '.repeat(indent) + diagnostic.text;
+  for (const chained of diagnostic.messageChain ?? []) {
+    result += flattenDiagnosticMessageText(chained, indent + 1);
+  }
+  return result;
 }
 
 export function dedupeDiagnostics(diagnostics: readonly Diagnostic[]) {

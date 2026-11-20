@@ -84,9 +84,11 @@ export interface TypeScriptInstance {
   api: API;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
+  useCaseSensitiveFileNames: boolean;
   transpileConfig?: ParsedCommandLine;
   transpileConfigDiagnostics?: readonly Diagnostic[];
-  transpileConfigDiagnosticsReported?: boolean;
+  /** The primary project's config files, as last read - see updateSnapshot. */
+  configFileNames?: readonly string[];
   /**
    * The current snapshot, refreshed by updateSnapshot and layered onto per
    * file by layerFileContents.
@@ -138,6 +140,9 @@ export interface TypeScriptInstance {
    * unbundled project file is rechecked then.
    */
   watcherChangedFiles: Set<string> | undefined;
+  /** What `programErrors` was read from - see recordProgramDiagnostics. */
+  programErrorsSource?: Snapshot | ParsedCommandLine;
+  programErrors?: webpack.WebpackError[];
 }
 
 interface PendingTypeScriptDiagnostics {
