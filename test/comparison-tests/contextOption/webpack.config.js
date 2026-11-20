@@ -15,6 +15,8 @@ module.exports = {
                 test: /\.ts$/,
                 loader: 'ts-loader',
                 options: {
+                    // the default instance name is a hash of the options, and these hold absolute paths
+                    instance: 'context',
                     // the config's "include": ["src"] means ./src here, not tsconfig-container/src
                     context: __dirname,
                     configFile: path.resolve(__dirname, 'tsconfig-container/tsconfig.json')
