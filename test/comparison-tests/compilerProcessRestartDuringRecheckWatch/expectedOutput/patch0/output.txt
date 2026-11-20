@@ -1,0 +1,9 @@
+asset bundle.js 3.85 KiB [emitted] (name: main)
+cached modules 556 bytes [cached] 3 modules
+javascript modules 276 bytes
+  ./mid.ts 156 bytes [built] [code generated]
+  ./hub.ts 120 bytes [built] [code generated]
+
+ERROR in ts-loader: the TypeScript compiler process stopped unexpectedly during type checking and was restarted, so this build's type errors may be incomplete.
+
+webpack compiled with 1 error

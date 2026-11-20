@@ -120,8 +120,11 @@ function getTypeScriptEmitRestartingDeadApi(
       throw error;
     }
     loaderContext.emitWarning(
-      new Error(
-        `The TypeScript compiler process stopped unexpectedly and was restarted: ${errorMessage(error)}`,
+      withCause(
+        new Error(
+          'The TypeScript compiler process stopped unexpectedly and was restarted.',
+        ),
+        error,
       ),
     );
     // If the file itself is what kills the compiler, this throws again.
@@ -129,8 +132,15 @@ function getTypeScriptEmitRestartingDeadApi(
   }
 }
 
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error);
+/**
+ * Puts the underlying error where webpack shows it as the error's details
+ * (`stats.errorDetails`), keeping TypeScript-internal text out of the message.
+ */
+function withCause(error: Error, cause: unknown) {
+  error.stack = `${error.message}\n${
+    cause instanceof Error ? cause.message : String(cause)
+  }`;
+  return error;
 }
 
 function getTypeScriptInstance(
@@ -259,9 +269,7 @@ function getTypeScriptInstance(
     compiler.hooks.shutdown.tap('ts-loader', disposeTypeScriptApiInstance);
   }
 
-  if (!loaderOptions.transpileOnly) {
-    addPostCompileHooks(loader, instance);
-  }
+  addPostCompileHooks(loader, instance);
 
   setTSInstanceInCache(compiler, loaderOptions.instance, instance);
   log.logInfo(`Using ${loaderOptions.compiler} API with ${configFilePath}`);
@@ -286,6 +294,8 @@ function addPostCompileHooks(
 ) {
   const report = (compilation: webpack.Compilation) => {
     if (!compilation.compiler.isChild()) {
+      // The recheck empties this set before it does any work.
+      const changedFiles = instance.typeScriptApiInstance.changedFilesThisBuild;
       try {
         recheckAllTransitiveDependants(instance, compilation);
         recordProgramDiagnostics(instance, compilation);
@@ -293,10 +303,16 @@ function addPostCompileHooks(
         if (!restartTypeScriptApiIfDead(instance)) {
           throw error;
         }
+        // Still owed: webpack won't rebuild these files' dependants itself,
+        // so the next build's recheck has to cover them.
+        instance.typeScriptApiInstance.changedFilesThisBuild = changedFiles;
         // A plain Error: webpack 4 has no WebpackError.
         compilation.errors.push(
-          new Error(
-            `ts-loader: the TypeScript compiler process stopped unexpectedly during type checking and was restarted, so this build's type errors may be incomplete: ${errorMessage(error)}`,
+          withCause(
+            new Error(
+              "ts-loader: the TypeScript compiler process stopped unexpectedly during type checking and was restarted, so this build's type errors may be incomplete.",
+            ),
+            error,
           ) as webpack.WebpackError,
         );
       }

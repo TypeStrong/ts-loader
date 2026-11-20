@@ -3,7 +3,7 @@ asset bundle.js 1.33 KiB [emitted] (name: main)
 
 WARNING in ./app.ts
 Module Warning (from ../../index.js):
-The TypeScript compiler process stopped unexpectedly and was restarted: SyncRpcChannel is closed
+The TypeScript compiler process stopped unexpectedly and was restarted.
 
 1 warning has detailed information that is not shown.
 Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.

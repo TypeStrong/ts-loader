@@ -62,7 +62,11 @@ export function reportPendingTypeScriptDiagnostics(
     return;
   }
 
-  removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
+  // transpileOnly reports a file's errors on its module straight away, and
+  // only the config's errors arrive here; there is nothing to replace.
+  if (!instance.loaderOptions.transpileOnly) {
+    removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
+  }
 
   const modulesByFile = determineModulesByFile(compilation, instance);
 
