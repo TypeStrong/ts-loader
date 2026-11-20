@@ -17,8 +17,8 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 - Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). Until TypeScript 7.1 has a stable release, that means the 7.1 beta or later.
 - Minimum supported Node.js version is now 22.x+ (up from 12.x+).
 - The `compiler` option must now resolve to a package exposing a `<compiler>/sync` entry point (the TypeScript native API). Drop-in classic-API compilers (e.g. `ttypescript`) are no longer supported.
-- Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
-- Removed the `context` loader option; the native API always resolves relative paths against the config file's own directory, with no basePath override exposed to let a tsconfig live outside the project root.
+- Removed the `compilerOptions` loader option. (Restored in 10.0.0-beta.1.)
+- Removed the `context` loader option. (Restored in 10.0.0-beta.1.)
 - Removed the `happyPackMode` loader option - HappyPack / thread-loader based parallelisation is no longer supported this way.
 - Removed the `experimentalFileCaching` loader option; there's no equivalent under the native API's own caching model.
 - Removed the `experimentalWatchApi` loader option, now that the native API supersedes TypeScript's classic watch API.

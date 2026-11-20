@@ -1535,6 +1535,12 @@ function findExistingProjectFile(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
 ): string | undefined {
+  // With config overrides the project opened from tsconfig.json isn't the
+  // one compiled, and under `context` it may hold no files at all.
+  const overriddenConfig = getOverriddenConfig(typeScriptInstance);
+  if (overriddenConfig !== undefined) {
+    return overriddenConfig.fileNames.find(fileName => fs.existsSync(fileName));
+  }
   const program = typeScriptInstance.snapshot?.getConfiguredProject(
     typeScriptInstance.configFilePath,
   )?.program;
