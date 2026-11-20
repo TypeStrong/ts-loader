@@ -1,5 +1,11 @@
 # Changelog
 
+## 10.0.0-beta.1
+
+- [Restore the `compilerOptions` and `context` loader options](https://github.com/TypeStrong/ts-loader/pull/1727) - thanks @johnnyreilly
+
+Both were removed in 10.0.0-beta.0 and work again as they did in v9. `compilerOptions` overrides compiler options from `tsconfig.json`. `context` is an absolute path that relative paths in the TypeScript config are resolved against; with it set, a relative `extends` in the root config is also resolved against it.
+
 ## 10.0.0-beta.0
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
