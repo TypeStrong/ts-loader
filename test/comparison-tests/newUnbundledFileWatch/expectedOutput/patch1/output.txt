@@ -7,9 +7,9 @@ ERROR in src/created.ts
 [1m[31m      TS2322: Type 'string' is not assignable to type 'number'.[39m[22m
 ts-loader-default_db83fb66e6d4c667
 
-ERROR in src/nested/created.ts
-2:13-19
-[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36msrc/nested/created.ts(2,14)[39m[22m
+ERROR in src/added/created.ts
+2:13-18
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36msrc/added/created.ts(2,14)[39m[22m
 [1m[31m      TS2322: Type 'number' is not assignable to type 'string'.[39m[22m
 ts-loader-default_db83fb66e6d4c667
 
