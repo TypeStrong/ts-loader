@@ -894,6 +894,16 @@ function haveProjectDirectoriesChanged(
       changed = true;
     }
   }
+  console.error(
+    'TSLDBG dirs',
+    JSON.stringify({
+      changed,
+      rebuilt: previous?.fileNames !== projectFileNames,
+      files: projectFileNames,
+      times: [...directories!.modifiedTimes],
+      before: previous && [...previous.modifiedTimes],
+    }),
+  );
   return changed;
 }
 
