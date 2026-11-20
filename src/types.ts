@@ -183,4 +183,6 @@ export interface TSInstance {
   typeScriptApiInstance: TypeScriptInstance;
   pendingDiagnostics: Map<FilePath, PendingTypeScriptDiagnostics>;
   pendingDeclarationFiles: Map<FilePath, PendingDeclarationFile[]>;
+  /** The compiler options `pendingDeclarationFiles` was emitted with, serialized. */
+  declarationOptions?: string;
 }

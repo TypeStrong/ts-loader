@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"declaration": true,
+		"declarationMap": true
+	},
+	"files": [
+		"app.ts"
+	]
+}

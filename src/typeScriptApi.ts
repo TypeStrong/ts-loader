@@ -103,48 +103,45 @@ function parseConfigWithOverrides(
   );
   return {
     ...parsedConfig,
-    options: removeOrphanedSourceMapOptions(
-      parsedConfig.options,
-      compilerOptions,
-    ),
+    options: removeOrphanedOptions(parsedConfig.options, compilerOptions),
     ...(error ? { errors: [error] } : {}),
   };
 }
 
 /**
- * tsconfig.json options that need a source map option the `compilerOptions`
- * loader option has turned off (TS5051, TS5069) are dropped with it, so one
- * override is enough. Options the override didn't orphan are left to error.
+ * Each option with the options it needs at least one of (TS5051, TS5069).
+ * Ordered so that an option dropped here is seen by the entries after it.
  */
-function removeOrphanedSourceMapOptions(
+const dependentOptions: readonly (readonly [string, ...string[]])[] = [
+  ['declarationMap', 'declaration', 'composite'],
+  ['declarationDir', 'declaration', 'composite'],
+  ['emitDeclarationOnly', 'declaration', 'composite'],
+  ['inlineSources', 'sourceMap', 'inlineSourceMap'],
+  ['sourceRoot', 'sourceMap', 'inlineSourceMap'],
+  ['mapRoot', 'sourceMap', 'declarationMap'],
+];
+
+/**
+ * When the `compilerOptions` loader option names an option and leaves it
+ * off, the options that then have nothing they need are dropped with it, so
+ * one override is enough. An option the override sets itself is kept, and
+ * so errors if it lacks what it needs.
+ */
+function removeOrphanedOptions(
   options: CompilerOptions,
   overrides: Record<string, unknown>,
 ): CompilerOptions {
-  const turnedOff = (
-    option: 'sourceMap' | 'inlineSourceMap' | 'declarationMap',
-  ) => option in overrides && !options[option];
-  if (
-    !turnedOff('sourceMap') &&
-    !turnedOff('inlineSourceMap') &&
-    !turnedOff('declarationMap')
-  ) {
-    return options;
+  const remaining: Record<string, unknown> = { ...options };
+  for (const [dependentOption, ...neededOptions] of dependentOptions) {
+    if (
+      !(dependentOption in overrides) &&
+      neededOptions.some(option => option in overrides) &&
+      !neededOptions.some(option => remaining[option])
+    ) {
+      delete remaining[dependentOption];
+    }
   }
-  const { inlineSources, sourceRoot, mapRoot, ...otherOptions } = options;
-  const keep = (option: 'inlineSources' | 'sourceRoot' | 'mapRoot') =>
-    option in overrides;
-  return {
-    ...otherOptions,
-    ...(options.sourceMap || options.inlineSourceMap || keep('inlineSources')
-      ? { inlineSources }
-      : {}),
-    ...(options.sourceMap || options.inlineSourceMap || keep('sourceRoot')
-      ? { sourceRoot }
-      : {}),
-    ...(options.sourceMap || options.declarationMap || keep('mapRoot')
-      ? { mapRoot }
-      : {}),
-  };
+  return remaining;
 }
 
 /** `undefined` unless `compilerOptions` or `context` is set. */
@@ -827,7 +824,10 @@ function findNewlyIncludedFileNames(
     typeScriptInstance.api.parseConfigFile(typeScriptInstance.configFilePath)
   ).fileNames.filter(
     fileName =>
-      !knownFileNames.has(toComparablePath(resolvedFilePathCache, fileName)),
+      !knownFileNames.has(toComparablePath(resolvedFilePathCache, fileName)) &&
+      // A `files` entry that doesn't exist can never join the program, and
+      // would otherwise force the rescan on every rebuild.
+      fs.existsSync(fileName),
   );
 }
 
@@ -1641,6 +1641,13 @@ export function recheckAllTransitiveDependants(
   }
 
   const compilerOptions = graphProgram.getCompilerOptions();
+  // Recorded declarations were emitted with the options of the time; a
+  // tsconfig.json change can move or reword all of them, or turn them off.
+  const declarationOptions = JSON.stringify(compilerOptions);
+  if (instance.declarationOptions !== declarationOptions) {
+    instance.pendingDeclarationFiles.clear();
+    instance.declarationOptions = declarationOptions;
+  }
   if (compilerOptions.declaration || compilerOptions.composite) {
     const declarationFilePathRegex = compilerOptions.allowJs
       ? constants.dtsTsTsxJsJsxRegex
@@ -1888,7 +1895,7 @@ function toComparablePath(
 }
 
 /**
- * Records the declarations of `fileNames`, in one request. Called from the
+ * Records the declarations of `fileNames`, in batched requests. Called from the
  * end-of-build recheck for the whole project, not per compiled file (e.g. an
  * allowJs .js file never reaches the loader) - matching classic's
  * `provideDeclarationFilesToWebpack`. Emitting every project file on each
@@ -1902,18 +1909,23 @@ function recordDeclarationFiles(
   if (fileNames.length === 0) {
     return;
   }
-  const declarationEmits = instance.typeScriptApiInstance.api.batch(
-    ...fileNames.map(fileName => program.getDeclarationEmit.gen([fileName])),
-  );
-  fileNames.forEach((fileName, index) => {
-    instance.pendingDeclarationFiles.set(
-      instance.resolvedFilePathCache(fileName),
-      [...declarationEmits[index].outputFiles].map(
-        ([declarationFileName, declarationOutputFile]) => ({
-          fileName: declarationFileName,
-          text: declarationOutputFile.text,
-        }),
-      ),
+  const { api } = instance.typeScriptApiInstance;
+  // In chunks, to bound the size of a request and of its response.
+  for (let start = 0; start < fileNames.length; start += 1000) {
+    const chunk = fileNames.slice(start, start + 1000);
+    const declarationEmits = api.batch(
+      ...chunk.map(fileName => program.getDeclarationEmit.gen([fileName])),
     );
-  });
+    chunk.forEach((fileName, index) => {
+      instance.pendingDeclarationFiles.set(
+        instance.resolvedFilePathCache(fileName),
+        [...declarationEmits[index].outputFiles].map(
+          ([declarationFileName, declarationOutputFile]) => ({
+            fileName: declarationFileName,
+            text: declarationOutputFile.text,
+          }),
+        ),
+      );
+    });
+  }
 }
