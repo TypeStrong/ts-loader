@@ -282,10 +282,21 @@ function getTranspileOnlyEmit(
     reportDiagnostics: true,
   });
 
+  // transpileModule repeats the project's option errors for every file;
+  // they're reported once, below.
+  const configDiagnostics = typeScriptInstance.transpileConfigDiagnostics ?? [];
   const errors = filterDiagnosticsForReporting(
     instance,
     loaderContext.context,
-    dedupeDiagnostics(diagnostics),
+    dedupeDiagnostics(diagnostics).filter(
+      diagnostic =>
+        diagnostic.fileName !== undefined ||
+        !configDiagnostics.some(
+          configDiagnostic =>
+            configDiagnostic.code === diagnostic.code &&
+            configDiagnostic.text === diagnostic.text,
+        ),
+    ),
   ).map(diagnostic =>
     buildTypeScriptError(
       instance,
@@ -301,7 +312,7 @@ function getTranspileOnlyEmit(
       ...filterDiagnosticsForReporting(
         instance,
         loaderContext.context,
-        typeScriptInstance.transpileConfigDiagnostics ?? [],
+        configDiagnostics,
       ).map(diagnostic =>
         buildTypeScriptError(
           instance,

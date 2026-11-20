@@ -1,10 +1,5 @@
 asset bundle.js 1.33 KiB [emitted] (name: main)
-./app.ts 123 bytes [built] [code generated] [2 errors]
-
-ERROR in ./app.ts
-[90m[tsl] [39m[1m[31mERROR[39m[22m
-[1m[31m      TS5102: Option 'baseUrl' has been removed. Please remove it from your configuration.[39m[22m
-ts-loader-default_dfd9021fe3d972f9
+./app.ts 123 bytes [built] [code generated] [1 error]
 
 ERROR in tsconfig.json
 ./app.ts tsconfig.json
@@ -12,4 +7,4 @@ ERROR in tsconfig.json
 [1m[31m      TS5102: Option 'baseUrl' has been removed. Please remove it from your configuration.[39m[22m
 ts-loader-default_dfd9021fe3d972f9
 
-webpack compiled with 2 errors
+webpack compiled with 1 error
