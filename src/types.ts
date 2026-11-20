@@ -45,6 +45,8 @@ export interface LoaderOptions {
   instance: string;
   compiler: string;
   configFile: string;
+  context?: string;
+  compilerOptions?: Record<string, unknown>;
   transpileOnly: boolean;
   ignoreDiagnostics: number[];
   reportFiles: string[];
@@ -80,10 +82,23 @@ export interface SyntheticProgram {
   configuration: string;
 }
 
+export interface ConfigOverrides {
+  compilerOptions: Record<string, unknown>;
+  context?: string;
+}
+
 export interface TypeScriptInstance {
   api: API;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
+  /**
+   * The `compilerOptions`/`context` loader options, when either is set. The
+   * project the API opens from tsconfig.json can't take them, so every file
+   * is then compiled in the synthetic program - see getOverriddenConfig.
+   */
+  configOverrides?: ConfigOverrides;
+  /** Parsed with `configOverrides` applied; cleared before each build. */
+  overriddenConfig?: ParsedCommandLine;
   transpileConfig?: ParsedCommandLine;
   transpileConfigDiagnostics?: readonly Diagnostic[];
   transpileConfigDiagnosticsReported?: boolean;

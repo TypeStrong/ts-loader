@@ -162,6 +162,7 @@ function getTypeScriptInstance(
   // Fires once per build/rebuild: tells the next build's first compile what
   // may be stale (see `pendingInvalidation`/`pendingChangedFiles` in types.ts).
   compiler.hooks.compile.tap('ts-loader', () => {
+    instance.typeScriptApiInstance.overriddenConfig = undefined;
     // `modifiedFiles`/`removedFiles` are undefined on the first build and on
     // webpack 4 - only then is a full rescan needed.
     if (
@@ -364,6 +365,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'instance',
   'compiler',
   'configFile',
+  'context',
+  'compilerOptions',
   'transpileOnly',
   'ignoreDiagnostics',
   'errorFormatter',
@@ -394,6 +397,15 @@ Please take a look at the options you are supplying; the following are valid opt
 ${validLoaderOptions.join(' / ')}
 `);
     }
+  }
+
+  if (
+    loaderOptions.context !== undefined &&
+    !path.isAbsolute(loaderOptions.context)
+  ) {
+    throw new Error(
+      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`,
+    );
   }
 }
 

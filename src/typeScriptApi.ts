@@ -26,6 +26,7 @@ import {
   reportTypeScriptErrors,
 } from './diagnostics';
 import type {
+  ConfigOverrides,
   LoaderOptions,
   PendingDeclarationFile,
   SyntheticProgram,
@@ -53,6 +54,7 @@ export function createTypeScriptInstance(
   return {
     api,
     configFilePath: path.resolve(configFilePath),
+    configOverrides: getConfigOverrides(loaderOptions),
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
     primaryProjectOpened: false,
@@ -62,6 +64,58 @@ export function createTypeScriptInstance(
     changedFilesThisBuild: new Set(),
     watcherChangedFiles: undefined,
   };
+}
+
+function getConfigOverrides(
+  loaderOptions: LoaderOptions,
+): ConfigOverrides | undefined {
+  const compilerOptions = loaderOptions.compilerOptions ?? {};
+  return loaderOptions.context === undefined &&
+    Object.keys(compilerOptions).length === 0
+    ? undefined
+    : { compilerOptions, context: loaderOptions.context };
+}
+
+/**
+ * The project's config with the `compilerOptions` loader option merged over
+ * tsconfig.json's own, and relative paths resolved against `context`.
+ */
+function parseConfigWithOverrides(
+  typeScriptInstance: TypeScriptInstance,
+  { compilerOptions, context }: ConfigOverrides,
+): ParsedCommandLine {
+  const { api, configFilePath } = typeScriptInstance;
+  const { config, error } = api.readConfigFile(configFilePath);
+  const rawConfig = (config ?? {}) as {
+    compilerOptions?: Record<string, unknown>;
+  };
+  const parsedConfig = api.parseJsonConfigFileContent(
+    {
+      ...rawConfig,
+      compilerOptions: { ...rawConfig.compilerOptions, ...compilerOptions },
+    },
+    // `configDirectory` also moves where a relative `extends` is resolved
+    // from, so it's only used when `context` really is another directory.
+    context === undefined ||
+      path.normalize(context) === path.dirname(configFilePath)
+      ? { configFileName: configFilePath }
+      : { configDirectory: context },
+  );
+  return error ? { ...parsedConfig, errors: [error] } : parsedConfig;
+}
+
+/** `undefined` unless `compilerOptions` or `context` is set. */
+function getOverriddenConfig(
+  typeScriptInstance: TypeScriptInstance,
+): ParsedCommandLine | undefined {
+  if (typeScriptInstance.configOverrides === undefined) {
+    return undefined;
+  }
+  typeScriptInstance.overriddenConfig ??= parseConfigWithOverrides(
+    typeScriptInstance,
+    typeScriptInstance.configOverrides,
+  );
+  return typeScriptInstance.overriddenConfig;
 }
 
 export function getTypeScriptEmit(
@@ -91,12 +145,27 @@ export function getTypeScriptEmit(
   const forceSyntheticRoot =
     instance.loaderOptions.allowTsInNodeModules &&
     fileName.indexOf('node_modules') !== -1;
+  const overriddenConfig = getOverriddenConfig(typeScriptInstance);
+  if (overriddenConfig !== undefined && overriddenConfig.errors.length > 0) {
+    // See the config-parsing check below.
+    return {
+      outputText: undefined,
+      sourceMapText: undefined,
+      configParseErrorMessage: reportConfigFileParsingErrors(
+        instance,
+        loaderContext,
+        overriddenConfig.errors,
+        typeScriptInstance.configFilePath,
+      ),
+    };
+  }
   const { snapshot, syntheticProgramId } = prepareSnapshotForFile(
     typeScriptInstance,
     instance.resolvedFilePathCache,
     apiFileName,
     contents,
     forceSyntheticRoot,
+    overriddenConfig,
   );
   // Keys the per-project caches - see getProjectFileNames.
   const projectKey = syntheticProgramId ?? typeScriptInstance.configFilePath;
@@ -314,9 +383,15 @@ function getTranspileConfig(
     typeScriptInstance.pendingChangedFiles !== undefined ||
     typeScriptInstance.pendingRemovedFiles !== undefined
   ) {
-    typeScriptInstance.transpileConfig = typeScriptInstance.api.parseConfigFile(
-      typeScriptInstance.configFilePath,
-    );
+    typeScriptInstance.transpileConfig =
+      typeScriptInstance.configOverrides === undefined
+        ? typeScriptInstance.api.parseConfigFile(
+            typeScriptInstance.configFilePath,
+          )
+        : parseConfigWithOverrides(
+            typeScriptInstance,
+            typeScriptInstance.configOverrides,
+          );
     const config = typeScriptInstance.transpileConfig;
     if (config.errors.length === 0) {
       // Match classic transpileOnly's empty program unless root files are
@@ -740,6 +815,7 @@ function prepareSnapshotForFile(
   fileName: string,
   contents: string,
   forceSyntheticRoot: boolean,
+  overriddenConfig: ParsedCommandLine | undefined,
 ): { snapshot: Snapshot; syntheticProgramId?: SyntheticProjectId } {
   // Layered first: a layered file appears in directory listings, so it can
   // change what the project's `include` globs match.
@@ -749,6 +825,16 @@ function prepareSnapshotForFile(
     fileName,
     contents,
   );
+  if (overriddenConfig !== undefined) {
+    return ensureOrphanProgram(
+      typeScriptInstance,
+      resolvedFilePathCache,
+      overriddenConfig,
+      fileName,
+      forceSyntheticRoot,
+    );
+  }
+
   const primaryProjectPath = typeScriptInstance.configFilePath;
   const primaryProject = snapshot.getConfiguredProject(primaryProjectPath);
 
@@ -809,7 +895,19 @@ function ensureOrphanProgram(
     );
   }
 
-  orphanRootFileNames.set(canonicalFileName, fileName);
+  // With config overrides this program holds every file, so the config's own
+  // roots arrive here too; they're roots already.
+  const comparableFileName = toComparablePath(resolvedFilePathCache, fileName);
+  if (
+    forceRoot ||
+    !primaryConfig.fileNames.some(
+      rootFileName =>
+        toComparablePath(resolvedFilePathCache, rootFileName) ===
+        comparableFileName,
+    )
+  ) {
+    orphanRootFileNames.set(canonicalFileName, fileName);
+  }
   const program = orphanProgramParams(typeScriptInstance, primaryConfig);
   const configuration = JSON.stringify(program);
   if (orphanProgram) {
@@ -1267,7 +1365,7 @@ export function recheckAllTransitiveDependants(
   // Re-read every file compiled this build: if fileA imports fileB and both
   // changed, fileA's compile may have seen fileB's old content. A targeted
   // list rather than a full rescan, so directImportsCache survives.
-  const { snapshot, primaryProject } = openPrimaryProject(
+  const { primaryProject } = openPrimaryProject(
     typeScriptInstance,
     instance.resolvedFilePathCache,
     anchorFileName,
@@ -1279,8 +1377,26 @@ export function recheckAllTransitiveDependants(
   if (!primaryProject) {
     return;
   }
-  const primaryProgram = primaryProject.program;
   const { orphanProgram } = typeScriptInstance;
+  const overriddenConfig = getOverriddenConfig(typeScriptInstance);
+  if (overriddenConfig !== undefined) {
+    if (!orphanProgram || overriddenConfig.errors.length > 0) {
+      return;
+    }
+    // No file may have been compiled this build to pick up a changed config.
+    reconfigureOrphanProgramIfStale(
+      typeScriptInstance,
+      instance.resolvedFilePathCache,
+      overriddenConfig,
+      anchorFileName,
+      orphanProgram,
+    );
+  }
+  // `primaryProject` may belong to a snapshot the reconfiguration replaced.
+  const snapshot = typeScriptInstance.snapshot!;
+  const primaryProgram = snapshot.getConfiguredProject(
+    typeScriptInstance.configFilePath,
+  )!.program;
   const orphanProjectProgram = orphanProgram
     ? snapshot.getProject(orphanProgram.id)?.program
     : undefined;
@@ -1357,15 +1473,17 @@ export function recheckAllTransitiveDependants(
   // Each file is checked in the program it's compiled in (see
   // prepareSnapshotForFile), so its diagnostics match a direct compile's.
   const primaryFileNames =
-    graphProgram === primaryProgram
-      ? comparableSourceFileNames
-      : new Set(
-          primaryProgram
-            .getSourceFileNames()
-            .map(fileName =>
-              toComparablePath(instance.resolvedFilePathCache, fileName),
-            ),
-        );
+    overriddenConfig !== undefined
+      ? new Set<string>()
+      : graphProgram === primaryProgram
+        ? comparableSourceFileNames
+        : new Set(
+            primaryProgram
+              .getSourceFileNames()
+              .map(fileName =>
+                toComparablePath(instance.resolvedFilePathCache, fileName),
+              ),
+          );
 
   for (const [comparableFileName, fileName] of filesToCheck) {
     const program = primaryFileNames.has(comparableFileName)

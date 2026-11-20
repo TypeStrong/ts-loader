@@ -274,6 +274,32 @@ Where to find your TypeScript config. This can be:
 - a relative path, resolved relative to the entry file.
 - an absolute path.
 
+#### compilerOptions
+
+| Type     | Default Value |
+| -------- | ------------- |
+| `object` | `{}`          |
+
+Overrides compiler options from your `tsconfig.json`. Use the same format as the `compilerOptions` property in `tsconfig.json`:
+
+```javascript
+{
+  test: /\.tsx?$/,
+  loader: 'ts-loader',
+  options: {
+    compilerOptions: { target: 'es2020' },
+  },
+}
+```
+
+#### context
+
+| Type     | Default Value                      |
+| -------- | ---------------------------------- |
+| `string` | the folder of your `tsconfig.json` |
+
+An **absolute path** that relative paths in your TypeScript config are resolved against, such as `include`, `files`, `paths` and a relative `extends`. Use it when `configFile` points outside your project, for example at a config shared from an npm package, and its paths should still mean your project's folders.
+
 #### ignoreDiagnostics
 
 | Type       | Default Value |
