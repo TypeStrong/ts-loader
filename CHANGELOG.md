@@ -1,5 +1,16 @@
 # Changelog
 
+## 10.0.0-beta.1
+
+- [Report full error messages and option errors, and survive a dead compiler process](https://github.com/TypeStrong/ts-loader/pull/1726) - thanks @johnnyreilly
+
+Fixes for the TypeScript 7.1 API integration:
+
+- Error messages include their elaboration again (the indented "Types of parameters ... are incompatible" lines), which 10.0.0-beta.0 dropped.
+- Compiler option errors, such as an option TypeScript 7 has removed, are reported when type checking and not only with `transpileOnly`.
+- With `transpileOnly`, a compiler option error is reported once, not once per file as well.
+- If the TypeScript compiler process dies, ts-loader starts a new one and adds a warning to the build. Before, every later build of a watch session failed.
+
 ## 10.0.0-beta.0
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
