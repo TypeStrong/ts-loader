@@ -12,6 +12,8 @@ import {
   createTypeScriptInstance,
   getTypeScriptEmit,
   recheckAllTransitiveDependants,
+  recordProgramDiagnostics,
+  restartTypeScriptApiIfDead,
 } from './typeScriptApi';
 import type {
   FilePath,
@@ -73,7 +75,12 @@ function successLoader(
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
     const fileVersion = updateFileInCache(filePath, contents, instance);
     const { outputText, sourceMapText, configParseErrorMessage } =
-      getTypeScriptEmit(filePath, contents, instance, loaderContext);
+      getTypeScriptEmitRestartingDeadApi(
+        filePath,
+        contents,
+        instance,
+        loaderContext,
+      );
 
     if (configParseErrorMessage !== undefined) {
       return configParseErrorMessage;
@@ -94,6 +101,36 @@ function successLoader(
     callback(error instanceof Error ? error : new Error(String(error)));
   }
   return undefined;
+}
+
+/**
+ * Without this, a `tsgo` process that died (crashed, or was killed) would
+ * fail every build for the rest of a watch session.
+ */
+function getTypeScriptEmitRestartingDeadApi(
+  filePath: string,
+  contents: string,
+  instance: TSInstance,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+) {
+  try {
+    return getTypeScriptEmit(filePath, contents, instance, loaderContext);
+  } catch (error) {
+    if (!restartTypeScriptApiIfDead(instance)) {
+      throw error;
+    }
+    loaderContext.emitWarning(
+      new Error(
+        `The TypeScript compiler process stopped unexpectedly and was restarted: ${errorMessage(error)}`,
+      ),
+    );
+    // If the file itself is what kills the compiler, this throws again.
+    return getTypeScriptEmit(filePath, contents, instance, loaderContext);
+  }
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function getTypeScriptInstance(
@@ -249,7 +286,20 @@ function addPostCompileHooks(
 ) {
   const report = (compilation: webpack.Compilation) => {
     if (!compilation.compiler.isChild()) {
-      recheckAllTransitiveDependants(instance, compilation);
+      try {
+        recheckAllTransitiveDependants(instance, compilation);
+        recordProgramDiagnostics(instance, compilation);
+      } catch (error) {
+        if (!restartTypeScriptApiIfDead(instance)) {
+          throw error;
+        }
+        // A plain Error: webpack 4 has no WebpackError.
+        compilation.errors.push(
+          new Error(
+            `ts-loader: the TypeScript compiler process stopped unexpectedly during type checking and was restarted, so this build's type errors may be incomplete: ${errorMessage(error)}`,
+          ) as webpack.WebpackError,
+        );
+      }
       reportPendingTypeScriptDiagnostics(instance, compilation);
       emitPendingDeclarationFiles(instance, compilation);
     }

@@ -53,6 +53,7 @@ export function createTypeScriptInstance(
   return {
     api,
     configFilePath: path.resolve(configFilePath),
+    useCaseSensitiveFileNames,
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
     primaryProjectOpened: false,
@@ -62,6 +63,36 @@ export function createTypeScriptInstance(
     changedFilesThisBuild: new Set(),
     watcherChangedFiles: undefined,
   };
+}
+
+/**
+ * A dead `tsgo` process fails every later call, so this replaces it with a
+ * new one, which starts with a full rescan. Returns whether it did.
+ */
+export function restartTypeScriptApiIfDead(instance: TSInstance): boolean {
+  const previous = instance.typeScriptApiInstance;
+  try {
+    // Needs no project or file, so it only throws if the process is gone.
+    previous.api.transpileModule('', {});
+    return false;
+  } catch {
+    // dead
+  }
+  try {
+    previous.api.close();
+  } catch {
+    // close() throws too once the process is gone
+  }
+  instance.typeScriptApiInstance = {
+    ...createTypeScriptInstance(
+      instance.loaderOptions,
+      previous.configFilePath,
+      previous.useCaseSensitiveFileNames,
+    ),
+    // Their dependants still need the end-of-build recheck.
+    changedFilesThisBuild: previous.changedFilesThisBuild,
+  };
+  return true;
 }
 
 export function getTypeScriptEmit(
@@ -1406,6 +1437,73 @@ export function recheckAllTransitiveDependants(
         pendingByFile.delete(filePath);
       }
     }
+  }
+}
+
+/**
+ * Errors about where `tsc` would write its output (TS5011, TS5055, TS5056,
+ * TS6059). ts-loader hands its output to webpack instead, and classic
+ * didn't report them when type checking.
+ */
+const emitLayoutDiagnosticCodes = [5011, 5055, 5056, 6059];
+
+/**
+ * Records compiler option errors (e.g. a removed option) and global
+ * diagnostics. They belong to no source file, so no per-file call returns
+ * them; classic reported them via `getCompilerOptionsDiagnostics`.
+ */
+export function recordProgramDiagnostics(
+  instance: TSInstance,
+  compilation: webpack.Compilation,
+) {
+  const typeScriptInstance = instance.typeScriptApiInstance;
+  const { snapshot, configFilePath } = typeScriptInstance;
+  if (instance.loaderOptions.transpileOnly || snapshot === undefined) {
+    return;
+  }
+
+  if (typeScriptInstance.programErrorsSnapshot !== snapshot) {
+    const program = snapshot.getConfiguredProject(configFilePath)?.program;
+    const context = compilation.compiler.context;
+    const toErrors = (
+      diagnostics: readonly Diagnostic[],
+      fallbackFile?: string,
+    ) =>
+      filterDiagnosticsForReporting(
+        instance,
+        context,
+        dedupeDiagnostics(diagnostics).filter(
+          diagnostic => !emitLayoutDiagnosticCodes.includes(diagnostic.code),
+        ),
+      ).map(diagnostic =>
+        buildTypeScriptError(
+          instance,
+          diagnostic,
+          context,
+          undefined,
+          fallbackFile,
+        ),
+      );
+    // A config that fails to parse is already reported as a hard failure.
+    typeScriptInstance.programErrors =
+      !program || program.getConfigFileParsingDiagnostics().length > 0
+        ? []
+        : [
+            // Shown without a position, like the transpileOnly path's.
+            ...toErrors(program.getProgramDiagnostics(), configFilePath),
+            ...toErrors(program.getGlobalDiagnostics()),
+          ];
+    typeScriptInstance.programErrorsSnapshot = snapshot;
+  }
+
+  // Set every build: recheckAllTransitiveDependants drops entries for files
+  // that are neither a module nor a source file.
+  const key = instance.resolvedFilePathCache(configFilePath);
+  const errors = typeScriptInstance.programErrors ?? [];
+  if (errors.length > 0) {
+    instance.pendingDiagnostics.set(key, { fileName: configFilePath, errors });
+  } else {
+    instance.pendingDiagnostics.delete(key);
   }
 }
 
