@@ -1,0 +1,11 @@
+asset bundle.js 3.47 KiB [emitted] (name: main)
+./app.ts 981 bytes [built] [code generated] [1 error]
+./dep.ts 121 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 8:38-42
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(8,39)[39m[22m
+[1m[31m      TS18047: 'name' is possibly 'null'.[39m[22m
+ts-loader-default_6a954ea0d0234935
+
+webpack compiled with 1 error
