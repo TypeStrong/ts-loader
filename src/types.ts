@@ -165,7 +165,7 @@ interface PendingTypeScriptDiagnostics {
   errors: webpack.WebpackError[];
 }
 
-export interface PendingDeclarationFile {
+interface PendingDeclarationFile {
   fileName: string;
   text: string;
 }

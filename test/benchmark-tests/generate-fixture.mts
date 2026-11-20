@@ -103,6 +103,8 @@ interface GenerateFixtureOptions {
    * through ts-loader's synthetic orphan program instead.
    */
   orphanFiles?: boolean;
+  /** Set `declaration` in the tsconfig, so ts-loader emits a .d.ts per module. */
+  declaration?: boolean;
 }
 
 interface TouchTarget {
@@ -128,7 +130,7 @@ export interface FixtureMeta {
  * modules (each imported by only a handful of `mid` modules), `mid` modules
  * that combine a few leaves, and a single entry point importing every mid.
  */
-export function generateFixture({ fixtureDir, fileCount = 300, seed = 42, orphanFiles = false }: GenerateFixtureOptions): FixtureMeta {
+export function generateFixture({ fixtureDir, fileCount = 300, seed = 42, orphanFiles = false, declaration = false }: GenerateFixtureOptions): FixtureMeta {
   fs.rmSync(fixtureDir, { recursive: true, force: true });
   const srcDir = path.join(fixtureDir, 'src');
   fs.mkdirSync(srcDir, { recursive: true });
@@ -175,7 +177,7 @@ export function generateFixture({ fixtureDir, fileCount = 300, seed = 42, orphan
           strict: true,
           esModuleInterop: true,
           skipLibCheck: true,
-          declaration: false,
+          declaration,
           sourceMap: false,
         },
         ...(orphanFiles ? { files: ['src/globals.d.ts'] } : { include: ['src/**/*.ts'] }),

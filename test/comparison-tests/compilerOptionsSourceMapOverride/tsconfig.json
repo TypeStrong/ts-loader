@@ -1,0 +1,10 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"sourceMap": true,
+		"inlineSources": true
+	},
+	"files": [
+		"app.ts"
+	]
+}

@@ -379,6 +379,47 @@ async function main(): Promise<void> {
     })
   );
 
+  // The same fixture with `declaration` on. typeCheck only: transpileOnly
+  // emits declarations only with `isolatedDeclarations`.
+  const declarationFixtureMetaA = generateFixture({
+    fixtureDir: path.join(args.benchmarkDir, 'fixture-a-declaration'),
+    fileCount: args.fileCount,
+    declaration: true,
+  });
+  const declarationFixtureMetaB = generateFixture({
+    fixtureDir: path.join(args.benchmarkDir, 'fixture-b-declaration'),
+    fileCount: args.fileCount,
+    declaration: true,
+  });
+
+  console.log('Running cold build (typeCheck, declaration)...');
+  results.push(
+    await runScenario({
+      id: 'cold-typeCheck-declaration',
+      label: 'Cold build (declaration)',
+      transpileOnly: false,
+      scenarioType: 'cold',
+      fixtureMetaA: declarationFixtureMetaA,
+      fixtureMetaB: declarationFixtureMetaB,
+      args,
+      outRoot,
+    })
+  );
+
+  console.log('Running incremental rebuild, leaf touch (typeCheck, declaration)...');
+  results.push(
+    await runScenario({
+      id: 'incremental-leaf-typeCheck-declaration',
+      label: 'Incremental rebuild (leaf touch, declaration)',
+      transpileOnly: false,
+      scenarioType: 'leaf',
+      fixtureMetaA: declarationFixtureMetaA,
+      fixtureMetaB: declarationFixtureMetaB,
+      args,
+      outRoot,
+    })
+  );
+
   const json = {
     generatedAt: new Date().toISOString(),
     rootA: args.rootA,
