@@ -1459,9 +1459,12 @@ export function recheckAllTransitiveDependants(
 const emitLayoutDiagnosticCodes = [5011, 5055, 5056, 6059];
 
 /**
- * Records compiler option errors (e.g. a removed option) and global
- * diagnostics. They belong to no source file, so no per-file call returns
- * them; classic reported them via `getCompilerOptionsDiagnostics`.
+ * Records compiler option errors (e.g. a removed option). They belong to no
+ * source file, so no per-file call returns them; classic reported them via
+ * `getCompilerOptionsDiagnostics`.
+ *
+ * `getGlobalDiagnostics()` is deliberately not called: it checks the whole
+ * program (about 200ms per rebuild of a 300-file project).
  */
 export function recordProgramDiagnostics(
   instance: TSInstance,
@@ -1476,34 +1479,26 @@ export function recordProgramDiagnostics(
   if (typeScriptInstance.programErrorsSnapshot !== snapshot) {
     const program = snapshot.getConfiguredProject(configFilePath)?.program;
     const context = compilation.compiler.context;
-    const toErrors = (
-      diagnostics: readonly Diagnostic[],
-      fallbackFile?: string,
-    ) =>
-      filterDiagnosticsForReporting(
-        instance,
-        context,
-        dedupeDiagnostics(diagnostics).filter(
-          diagnostic => !emitLayoutDiagnosticCodes.includes(diagnostic.code),
-        ),
-      ).map(diagnostic =>
-        buildTypeScriptError(
-          instance,
-          diagnostic,
-          context,
-          undefined,
-          fallbackFile,
-        ),
-      );
     // A config that fails to parse is already reported as a hard failure.
     typeScriptInstance.programErrors =
       !program || program.getConfigFileParsingDiagnostics().length > 0
         ? []
-        : [
-            // Shown without a position, like the transpileOnly path's.
-            ...toErrors(program.getProgramDiagnostics(), configFilePath),
-            ...toErrors(program.getGlobalDiagnostics()),
-          ];
+        : filterDiagnosticsForReporting(
+            instance,
+            context,
+            dedupeDiagnostics(program.getProgramDiagnostics()).filter(
+              diagnostic =>
+                !emitLayoutDiagnosticCodes.includes(diagnostic.code),
+            ),
+          ).map(diagnostic =>
+            buildTypeScriptError(
+              instance,
+              diagnostic,
+              context,
+              undefined,
+              configFilePath,
+            ),
+          );
     typeScriptInstance.programErrorsSnapshot = snapshot;
   }
 
