@@ -16,6 +16,14 @@ Fixes for the TypeScript 7.1 API integration:
 - In watch mode, a change to `tsconfig.json` is picked up on the next rebuild when type checking. Before, the TypeScript project kept the options it started with.
 - If the TypeScript compiler process dies, ts-loader starts a new one and adds a warning to the build. Before, every later build of a watch session failed.
 
+- [Emit declarations once per build, check new files, and drop orphaned source map options](https://github.com/TypeStrong/ts-loader/pull/1728) - thanks @johnnyreilly
+
+More fixes for the TypeScript 7.1 API integration:
+
+- With `declaration` or `composite`, builds are much faster: declarations are emitted once per build, not for every project file on every file compiled. A 300-file build went from 16s to 1.2s.
+- In watch mode, a file created under the tsconfig's `include` that webpack doesn't bundle is now type checked. Its errors appear on the next rebuild.
+- When the `compilerOptions` loader option turns `sourceMap`, `inlineSourceMap` or `declarationMap` off, the `tsconfig.json` options that depend on it (`inlineSources`, `sourceRoot`, `mapRoot`) are dropped too, so the override alone doesn't cause TS5051 or TS5069.
+
 ## 10.0.0-beta.0
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
