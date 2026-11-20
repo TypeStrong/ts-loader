@@ -55,6 +55,7 @@ export function createTypeScriptInstance(
     api,
     configFilePath: path.resolve(configFilePath),
     configOverrides: getConfigOverrides(loaderOptions),
+    useCaseSensitiveFileNames,
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
     primaryProjectOpened: false,
@@ -116,6 +117,36 @@ function getOverriddenConfig(
     typeScriptInstance.configOverrides,
   );
   return typeScriptInstance.overriddenConfig;
+}
+
+/**
+ * A dead `tsgo` process fails every later call, so this replaces it with a
+ * new one, which starts with a full rescan. Returns whether it did.
+ */
+export function restartTypeScriptApiIfDead(instance: TSInstance): boolean {
+  const previous = instance.typeScriptApiInstance;
+  try {
+    // Needs no project or file, so it only throws if the process is gone.
+    previous.api.transpileModule('', {});
+    return false;
+  } catch {
+    // dead
+  }
+  try {
+    previous.api.close();
+  } catch {
+    // close() throws too once the process is gone
+  }
+  instance.typeScriptApiInstance = {
+    ...createTypeScriptInstance(
+      instance.loaderOptions,
+      previous.configFilePath,
+      previous.useCaseSensitiveFileNames,
+    ),
+    // Their dependants still need the end-of-build recheck.
+    changedFilesThisBuild: previous.changedFilesThisBuild,
+  };
+  return true;
 }
 
 export function getTypeScriptEmit(
@@ -229,6 +260,7 @@ export function getTypeScriptEmit(
           ?.program ?? program)
       : program
   ).getConfigFileNames();
+  typeScriptInstance.configFileNames = configFileNames;
   registerTypeScriptDependencies(
     loaderContext,
     program,
@@ -320,10 +352,21 @@ function getTranspileOnlyEmit(
     reportDiagnostics: true,
   });
 
+  // transpileModule repeats the project's option errors for every file;
+  // they're reported once per build, by recordProgramDiagnostics.
+  const configDiagnostics = typeScriptInstance.transpileConfigDiagnostics ?? [];
   const errors = filterDiagnosticsForReporting(
     instance,
     loaderContext.context,
-    dedupeDiagnostics(diagnostics),
+    dedupeDiagnostics(diagnostics).filter(
+      diagnostic =>
+        diagnostic.fileName !== undefined ||
+        !configDiagnostics.some(
+          configDiagnostic =>
+            configDiagnostic.code === diagnostic.code &&
+            configDiagnostic.text === diagnostic.text,
+        ),
+    ),
   ).map(diagnostic =>
     buildTypeScriptError(
       instance,
@@ -334,24 +377,6 @@ function getTranspileOnlyEmit(
       fileName,
     ),
   );
-  if (!typeScriptInstance.transpileConfigDiagnosticsReported) {
-    errors.push(
-      ...filterDiagnosticsForReporting(
-        instance,
-        loaderContext.context,
-        typeScriptInstance.transpileConfigDiagnostics ?? [],
-      ).map(diagnostic =>
-        buildTypeScriptError(
-          instance,
-          diagnostic,
-          loaderContext.context,
-          loaderContext._module,
-          typeScriptInstance.configFilePath,
-        ),
-      ),
-    );
-    typeScriptInstance.transpileConfigDiagnosticsReported = true;
-  }
 
   // No type-check to wait for, so report immediately, matching classic.
   reportTypeScriptErrors(loaderContext, errors);
@@ -414,7 +439,6 @@ function getTranspileConfig(
     } else {
       typeScriptInstance.transpileConfigDiagnostics = [];
     }
-    typeScriptInstance.transpileConfigDiagnosticsReported = false;
     typeScriptInstance.pendingInvalidation = false;
     typeScriptInstance.pendingChangedFiles = undefined;
     typeScriptInstance.pendingRemovedFiles = undefined;
@@ -472,8 +496,7 @@ function reportConfigFileParsingErrors(
 
 /**
  * transpileDeclaration returns raw text, not a named output file, so the
- * output path is computed here. Emitted directly rather than via
- * `pendingDeclarationFiles`: transpileOnly never registers addPostCompileHooks.
+ * output path is computed here, and the file is emitted directly.
  */
 function recordTranspileOnlyDeclarationFile(
   instance: TSInstance,
@@ -625,14 +648,27 @@ function updateSnapshot(
     ? ({ invalidateAll: true } as const)
     : pendingChangedOrRemovedFiles
       ? {
-          changed: mapApiFacingFileNames(
-            typeScriptInstance.pendingChangedFiles &&
-              new Set(
-                [...typeScriptInstance.pendingChangedFiles].filter(
-                  fileName => !createdFiles.has(fileName),
+          changed: [
+            ...(mapApiFacingFileNames(
+              typeScriptInstance.pendingChangedFiles &&
+                new Set(
+                  [...typeScriptInstance.pendingChangedFiles].filter(
+                    fileName => !createdFiles.has(fileName),
+                  ),
                 ),
-              ),
-          ),
+            ) ?? []),
+            // The config files are build dependencies, which webpack's
+            // watcher doesn't report, so the API would never re-read them.
+            // Naming an unchanged file costs nothing measurable.
+            // `configFileNames` is unset until a build gets past parsing the
+            // config, so the root config is always named too.
+            ...new Set(
+              [
+                typeScriptInstance.configFilePath,
+                ...(typeScriptInstance.configFileNames ?? []),
+              ].map(fileName => path.resolve(fileName)),
+            ),
+          ],
           created: mapApiFacingFileNames(createdFiles),
           deleted: mapApiFacingFileNames(
             typeScriptInstance.pendingRemovedFiles,
@@ -1525,6 +1561,86 @@ export function recheckAllTransitiveDependants(
       }
     }
   }
+}
+
+/**
+ * Errors about where `tsc` would write its output (TS5011, TS5055, TS5056,
+ * TS6059). ts-loader hands its output to webpack instead, and classic
+ * didn't report them when type checking. (transpileOnly does report them.)
+ */
+const emitLayoutDiagnosticCodes = [5011, 5055, 5056, 6059];
+
+/**
+ * Records compiler option errors (e.g. a removed option). They belong to no
+ * source file, so no per-file call returns them; classic reported them via
+ * `getCompilerOptionsDiagnostics`. They go on the compilation, not a module:
+ * webpack keeps a module's errors until that module is rebuilt.
+ *
+ * `getGlobalDiagnostics()` is deliberately not called: it checks the whole
+ * program (about 200ms per rebuild of a 300-file project).
+ */
+export function recordProgramDiagnostics(
+  instance: TSInstance,
+  compilation: webpack.Compilation,
+) {
+  const typeScriptInstance = instance.typeScriptApiInstance;
+  const { snapshot, configFilePath } = typeScriptInstance;
+  const { transpileOnly } = instance.loaderOptions;
+  // What the errors are read from; they only change when it does.
+  const source = transpileOnly ? typeScriptInstance.transpileConfig : snapshot;
+  if (source === undefined) {
+    return;
+  }
+
+  if (typeScriptInstance.programErrorsSource !== source) {
+    const context = compilation.compiler.context;
+    typeScriptInstance.programErrors = filterDiagnosticsForReporting(
+      instance,
+      context,
+      transpileOnly
+        ? (typeScriptInstance.transpileConfigDiagnostics ?? [])
+        : getTypeCheckProgramDiagnostics(snapshot!, typeScriptInstance),
+    ).map(diagnostic =>
+      buildTypeScriptError(
+        instance,
+        diagnostic,
+        context,
+        undefined,
+        configFilePath,
+      ),
+    );
+    typeScriptInstance.programErrorsSource = source;
+  }
+
+  // Set every build: recheckAllTransitiveDependants drops entries for files
+  // that are neither a module nor a source file.
+  const key = instance.resolvedFilePathCache(configFilePath);
+  const errors = typeScriptInstance.programErrors ?? [];
+  if (errors.length > 0) {
+    instance.pendingDiagnostics.set(key, { fileName: configFilePath, errors });
+  } else {
+    instance.pendingDiagnostics.delete(key);
+  }
+}
+
+function getTypeCheckProgramDiagnostics(
+  snapshot: Snapshot,
+  typeScriptInstance: TypeScriptInstance,
+): Diagnostic[] {
+  const { configOverrides, orphanProgram, configFilePath } = typeScriptInstance;
+  // With config overrides, the synthetic program is the one with the
+  // overridden options.
+  const program =
+    configOverrides === undefined
+      ? snapshot.getConfiguredProject(configFilePath)?.program
+      : orphanProgram && snapshot.getProject(orphanProgram.id)?.program;
+  // A config that fails to parse is already reported as a hard failure.
+  if (!program || program.getConfigFileParsingDiagnostics().length > 0) {
+    return [];
+  }
+  return dedupeDiagnostics(program.getProgramDiagnostics()).filter(
+    diagnostic => !emitLayoutDiagnosticCodes.includes(diagnostic.code),
+  );
 }
 
 /**

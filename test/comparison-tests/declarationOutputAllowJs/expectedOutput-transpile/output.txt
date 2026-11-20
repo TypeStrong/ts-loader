@@ -1,10 +1,11 @@
 asset bundle.js 2.13 KiB [emitted] (name: main)
-./app.ts 64 bytes [built] [code generated] [1 error]
+./app.ts 64 bytes [built] [code generated]
 
 ERROR in tsconfig.json
-./app.ts tsconfig.json
+tsconfig.json
 [90m[tsl] [39m[1m[31mERROR[39m[22m
-[1m[31m      TS5055: Cannot write file 'sub/dep.js' because it would overwrite input file.[39m[22m
+[1m[31m      TS5055: Cannot write file 'sub/dep.js' because it would overwrite input file.
+  Adding a tsconfig.json file will help organize projects that contain both TypeScript and JavaScript files. Learn more at https://aka.ms/tsconfig.[39m[22m
 ts-loader-default_dfd9021fe3d972f9
 
 webpack compiled with 1 error
