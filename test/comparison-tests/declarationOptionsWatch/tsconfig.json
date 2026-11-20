@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"declaration": true,
+		"declarationDir": ".output"
+	},
+	"files": [
+		"app.ts",
+		"unbundled.ts"
+	]
+}

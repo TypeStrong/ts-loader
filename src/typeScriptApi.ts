@@ -28,7 +28,6 @@ import {
 import type {
   ConfigOverrides,
   LoaderOptions,
-  PendingDeclarationFile,
   SyntheticProgram,
   TypeScriptInstance,
   TSInstance,
@@ -102,7 +101,55 @@ function parseConfigWithOverrides(
       ? { configFileName: configFilePath }
       : { configDirectory: context },
   );
-  return error ? { ...parsedConfig, errors: [error] } : parsedConfig;
+  return {
+    ...parsedConfig,
+    options: removeOrphanedOptions(parsedConfig.options, compilerOptions),
+    ...(error ? { errors: [error] } : {}),
+  };
+}
+
+/**
+ * Each option with the options it needs at least one of (TS5051, TS5069).
+ * Ordered so that an option dropped here is seen by the entries after it.
+ */
+const dependentOptions: readonly (readonly [string, ...string[]])[] = [
+  ['declarationMap', 'declaration', 'composite'],
+  ['declarationDir', 'declaration', 'composite'],
+  ['emitDeclarationOnly', 'declaration', 'composite'],
+  ['inlineSources', 'sourceMap', 'inlineSourceMap'],
+  ['sourceRoot', 'sourceMap', 'inlineSourceMap'],
+  ['mapRoot', 'sourceMap', 'declarationMap'],
+];
+
+/**
+ * When the `compilerOptions` loader option names an option and leaves it
+ * off, the options that then have nothing they need are dropped with it, so
+ * one override is enough. An option the override sets itself is kept, and
+ * so errors if it lacks what it needs.
+ */
+function removeOrphanedOptions(
+  options: CompilerOptions,
+  overrides: Record<string, unknown>,
+): CompilerOptions {
+  const remaining: Record<string, unknown> = { ...options };
+  // The options the override is responsible for being off: the ones it
+  // names, and each one dropped here because of them.
+  const turnedOff = new Set(Object.keys(overrides));
+  for (const [dependentOption, ...neededOptions] of dependentOptions) {
+    if (
+      !(dependentOption in overrides) &&
+      neededOptions.some(option => turnedOff.has(option)) &&
+      !neededOptions.some(option => remaining[option])
+    ) {
+      // Only an option that was set carries the chain on: an unset one
+      // wasn't turned off by anything.
+      if (dependentOption in remaining) {
+        turnedOff.add(dependentOption);
+      }
+      delete remaining[dependentOption];
+    }
+  }
+  return remaining;
 }
 
 /** `undefined` unless `compilerOptions` or `context` is set. */
@@ -295,13 +342,6 @@ export function getTypeScriptEmit(
 
   // Its dependants are rechecked once per build by recheckAllTransitiveDependants.
   typeScriptInstance.changedFilesThisBuild.add(apiFileName);
-
-  if (
-    program.getCompilerOptions().declaration ||
-    program.getCompilerOptions().composite
-  ) {
-    recordProjectDeclarationFiles(instance, program);
-  }
 
   return { outputText, sourceMapText, configParseErrorMessage: undefined };
 }
@@ -644,50 +684,61 @@ function updateSnapshot(
     typeScriptInstance,
     resolvedFilePathCache,
   );
-  const fileNotifications = typeScriptInstance.pendingInvalidation
-    ? ({ invalidateAll: true } as const)
-    : pendingChangedOrRemovedFiles
-      ? {
-          changed: [
-            ...(mapApiFacingFileNames(
-              typeScriptInstance.pendingChangedFiles &&
-                new Set(
-                  [...typeScriptInstance.pendingChangedFiles].filter(
-                    fileName => !createdFiles.has(fileName),
-                  ),
-                ),
-            ) ?? []),
-            // The config files are build dependencies, which webpack's
-            // watcher doesn't report, so the API would never re-read them.
-            // Naming an unchanged file costs nothing measurable.
-            // `configFileNames` is unset until a build gets past parsing the
-            // config, so the root config is always named too.
-            ...new Set(
-              [
-                typeScriptInstance.configFilePath,
-                ...(typeScriptInstance.configFileNames ?? []),
-              ].map(fileName => path.resolve(fileName)),
-            ),
-          ],
-          created: mapApiFacingFileNames(createdFiles),
-          deleted: mapApiFacingFileNames(
-            typeScriptInstance.pendingRemovedFiles,
-          ),
-        }
-      : changedFileNames && changedFileNames.size > 0
+  const newlyIncludedFileNames = findNewlyIncludedFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+  );
+  // A newly included file needs the full rescan: naming it as created adds
+  // it to the project on Linux, but was seen to do nothing on Windows.
+  const fileNotifications =
+    typeScriptInstance.pendingInvalidation || newlyIncludedFileNames.length > 0
+      ? ({ invalidateAll: true } as const)
+      : pendingChangedOrRemovedFiles
         ? {
-            changed: [...changedFileNames].map(fileName =>
-              path.resolve(fileName),
+            changed: [
+              ...(mapApiFacingFileNames(
+                typeScriptInstance.pendingChangedFiles &&
+                  new Set(
+                    [...typeScriptInstance.pendingChangedFiles].filter(
+                      fileName => !createdFiles.has(fileName),
+                    ),
+                  ),
+              ) ?? []),
+              // The config files are build dependencies, which webpack's
+              // watcher doesn't report, so the API would never re-read them.
+              // Naming an unchanged file costs nothing measurable.
+              // `configFileNames` is unset until a build gets past parsing the
+              // config, so the root config is always named too.
+              ...new Set(
+                [
+                  typeScriptInstance.configFilePath,
+                  ...(typeScriptInstance.configFileNames ?? []),
+                ].map(fileName => path.resolve(fileName)),
+              ),
+            ],
+            created: mapApiFacingFileNames(createdFiles),
+            deleted: mapApiFacingFileNames(
+              typeScriptInstance.pendingRemovedFiles,
             ),
           }
-        : undefined;
+        : changedFileNames && changedFileNames.size > 0
+          ? {
+              changed: [...changedFileNames].map(fileName =>
+                path.resolve(fileName),
+              ),
+            }
+          : undefined;
   // directImportsCache: a full rescan could change any file, and a created
   // file can satisfy imports that previously failed to resolve, so clear it
   // all. Otherwise only the listed files' own entries can be stale (for
   // `changedFileNames` they were already rewritten by their own compile -
   // see registerResolvedImportDependencies). projectFileNamesCache
   // self-validates, so it's never cleared.
-  if (typeScriptInstance.pendingInvalidation || createdFiles.size > 0) {
+  if (
+    typeScriptInstance.pendingInvalidation ||
+    createdFiles.size > 0 ||
+    newlyIncludedFileNames.length > 0
+  ) {
     typeScriptInstance.directImportsCache.clear();
   } else if (pendingChangedOrRemovedFiles) {
     for (const rawFileName of [
@@ -737,20 +788,13 @@ function findCreatedFiles(
   resolvedFilePathCache: ResolvedFilePathCache,
 ): ReadonlySet<string> {
   const changedFiles = typeScriptInstance.pendingChangedFiles;
-  // The orphan program contains the whole primary project too.
-  const lastKnownFileNames = typeScriptInstance.projectFileNamesCache.get(
-    resolvedFilePathCache(
-      typeScriptInstance.orphanProgram?.id ?? typeScriptInstance.configFilePath,
-    ),
-  )?.sourceFileNames;
-  if (!changedFiles || !lastKnownFileNames) {
+  const knownFileNames = getLastKnownFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+  );
+  if (!changedFiles || !knownFileNames) {
     return new Set();
   }
-  const knownFileNames = new Set(
-    lastKnownFileNames.map(fileName =>
-      toComparablePath(resolvedFilePathCache, fileName),
-    ),
-  );
   return new Set(
     [...changedFiles].filter(
       fileName =>
@@ -762,6 +806,57 @@ function findCreatedFiles(
           ),
         ),
     ),
+  );
+}
+
+/**
+ * The files the config includes that the primary program didn't contain
+ * when its file list was last read. Nothing watches a file that webpack
+ * doesn't bundle until it's in the program, so the watcher can't report its
+ * creation, and the API doesn't look for new files by itself.
+ */
+function findNewlyIncludedFileNames(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): string[] {
+  const knownFileNames = getLastKnownFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+  );
+  // Only the first snapshot update of a rebuild has pending changes.
+  if (!typeScriptInstance.pendingChangedFiles || !knownFileNames) {
+    return [];
+  }
+  return (
+    getOverriddenConfig(typeScriptInstance) ??
+    typeScriptInstance.api.parseConfigFile(typeScriptInstance.configFilePath)
+  ).fileNames.filter(
+    fileName =>
+      !knownFileNames.has(toComparablePath(resolvedFilePathCache, fileName)) &&
+      // A `files` entry that doesn't exist can never join the program, and
+      // would otherwise force the rescan on every rebuild.
+      fs.existsSync(fileName),
+  );
+}
+
+/** Comparable names; `undefined` before the file list has been read. */
+function getLastKnownFileNames(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): ReadonlySet<string> | undefined {
+  // The orphan program contains the whole primary project too.
+  const lastKnownFileNames = typeScriptInstance.projectFileNamesCache.get(
+    resolvedFilePathCache(
+      typeScriptInstance.orphanProgram?.id ?? typeScriptInstance.configFilePath,
+    ),
+  )?.sourceFileNames;
+  return (
+    lastKnownFileNames &&
+    new Set(
+      lastKnownFileNames.map(fileName =>
+        toComparablePath(resolvedFilePathCache, fileName),
+      ),
+    )
   );
 }
 
@@ -1497,7 +1592,12 @@ export function recheckAllTransitiveDependants(
     );
     if (
       !comparableWatcherChangedFiles ||
-      comparableWatcherChangedFiles.has(comparableFileName)
+      comparableWatcherChangedFiles.has(comparableFileName) ||
+      // Never checked: a file created since the last build that the config
+      // includes. Nothing watched it yet, so the watcher didn't report it.
+      !instance.pendingDiagnostics.has(
+        instance.resolvedFilePathCache(projectFileName),
+      )
     ) {
       filesToCheck.set(comparableFileName, projectFileName);
     }
@@ -1546,6 +1646,55 @@ export function recheckAllTransitiveDependants(
       fileName,
       errors,
     });
+  }
+
+  const compilerOptions = graphProgram.getCompilerOptions();
+  // Recorded declarations were emitted with the options of the time; a
+  // tsconfig.json change can move or reword all of them, or turn them off.
+  const declarationOptions = JSON.stringify(compilerOptions);
+  if (instance.declarationOptions !== declarationOptions) {
+    instance.pendingDeclarationFiles.clear();
+    instance.declarationOptions = declarationOptions;
+  }
+  if (compilerOptions.declaration || compilerOptions.composite) {
+    const declarationFilePathRegex = compilerOptions.allowJs
+      ? constants.dtsTsTsxJsJsxRegex
+      : constants.dtsTsTsxRegex;
+    const comparableChangedFileNames = new Set(
+      [...changedFileNames].map(fileName =>
+        toComparablePath(instance.resolvedFilePathCache, fileName),
+      ),
+    );
+    // A dependant's declarations can change with the types it imports, so
+    // every rechecked file is emitted again, along with files not emitted yet.
+    const staleFileNames = projectFileNames.filter(projectFileName => {
+      const comparableFileName = toComparablePath(
+        instance.resolvedFilePathCache,
+        projectFileName,
+      );
+      return (
+        declarationFilePathRegex.test(projectFileName) &&
+        (comparableChangedFileNames.has(comparableFileName) ||
+          filesToCheck.has(comparableFileName) ||
+          !instance.pendingDeclarationFiles.has(
+            instance.resolvedFilePathCache(projectFileName),
+          ))
+      );
+    });
+    for (const program of new Set([primaryProgram, graphProgram])) {
+      recordDeclarationFiles(
+        instance,
+        program,
+        staleFileNames.filter(
+          fileName =>
+            (primaryFileNames.has(
+              toComparablePath(instance.resolvedFilePathCache, fileName),
+            )
+              ? primaryProgram
+              : graphProgram) === program,
+        ),
+      );
+    }
   }
 
   for (const pendingByFile of [
@@ -1754,46 +1903,37 @@ function toComparablePath(
 }
 
 /**
- * Records declarations for the whole project, not just the current file
- * (e.g. an allowJs .js file never reaches the loader) - matching classic's
- * `provideDeclarationFilesToWebpack`.
+ * Records the declarations of `fileNames`, in batched requests. Called from the
+ * end-of-build recheck for the whole project, not per compiled file (e.g. an
+ * allowJs .js file never reaches the loader) - matching classic's
+ * `provideDeclarationFilesToWebpack`. Emitting every project file on each
+ * loader call made a 300-file build with `declaration` take 16s, not 1.2s.
  */
-function recordProjectDeclarationFiles(instance: TSInstance, program: Program) {
-  const filePathRegex = program.getCompilerOptions().allowJs
-    ? constants.dtsTsTsxJsJsxRegex
-    : constants.dtsTsTsxRegex;
-
-  for (const projectFileName of program.getSourceFileNames()) {
-    if (!filePathRegex.test(projectFileName)) {
-      continue;
-    }
-
-    const sourceFile = program.getSourceFile(projectFileName);
-
-    if (
-      !sourceFile ||
-      program.isSourceFileDefaultLibrary(sourceFile) ||
-      program.isSourceFileFromExternalLibrary(sourceFile)
-    ) {
-      continue;
-    }
-
-    const declarationEmit = program.getDeclarationEmit([projectFileName]);
-    const declarationFiles: PendingDeclarationFile[] = [];
-
-    for (const [
-      declarationFileName,
-      declarationOutputFile,
-    ] of declarationEmit.outputFiles) {
-      declarationFiles.push({
-        fileName: declarationFileName,
-        text: declarationOutputFile.text,
-      });
-    }
-
-    instance.pendingDeclarationFiles.set(
-      instance.resolvedFilePathCache(projectFileName),
-      declarationFiles,
+function recordDeclarationFiles(
+  instance: TSInstance,
+  program: Program,
+  fileNames: readonly string[],
+) {
+  if (fileNames.length === 0) {
+    return;
+  }
+  const { api } = instance.typeScriptApiInstance;
+  // In chunks, to bound the size of a request and of its response.
+  for (let start = 0; start < fileNames.length; start += 1000) {
+    const chunk = fileNames.slice(start, start + 1000);
+    const declarationEmits = api.batch(
+      ...chunk.map(fileName => program.getDeclarationEmit.gen([fileName])),
     );
+    chunk.forEach((fileName, index) => {
+      instance.pendingDeclarationFiles.set(
+        instance.resolvedFilePathCache(fileName),
+        [...declarationEmits[index].outputFiles].map(
+          ([declarationFileName, declarationOutputFile]) => ({
+            fileName: declarationFileName,
+            text: declarationOutputFile.text,
+          }),
+        ),
+      );
+    });
   }
 }
