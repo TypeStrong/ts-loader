@@ -24,6 +24,10 @@ More fixes for the TypeScript 7.1 API integration:
 - In watch mode, a file created under the tsconfig's `include` that webpack doesn't bundle is now type checked. Its errors appear on the next rebuild.
 - When the `compilerOptions` loader option turns off an option that others in `tsconfig.json` depend on, those are dropped too, so the override alone doesn't cause TS5051 or TS5069. This covers `sourceMap`, `inlineSourceMap` and `declarationMap` (for `inlineSources`, `sourceRoot`, `mapRoot`) and `declaration` (for `declarationMap`, `declarationDir`, `emitDeclarationOnly`).
 
+- [Only parse the config for new files when a project folder has changed](https://github.com/TypeStrong/ts-loader/pull/1729) - thanks @johnnyreilly
+
+Looking for newly created files no longer costs a config parse on every rebuild; it cost a few milliseconds per rebuild, mostly on Windows.
+
 ## 10.0.0-beta.0
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
