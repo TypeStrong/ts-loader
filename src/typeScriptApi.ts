@@ -679,6 +679,10 @@ function updateSnapshot(
     typeScriptInstance,
     resolvedFilePathCache,
   );
+  const newlyIncludedFileNames = findNewlyIncludedFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+  );
   const fileNotifications = typeScriptInstance.pendingInvalidation
     ? ({ invalidateAll: true } as const)
     : pendingChangedOrRemovedFiles
@@ -704,7 +708,10 @@ function updateSnapshot(
               ].map(fileName => path.resolve(fileName)),
             ),
           ],
-          created: mapApiFacingFileNames(createdFiles),
+          created: emptyToUndefined([
+            ...(mapApiFacingFileNames(createdFiles) ?? []),
+            ...newlyIncludedFileNames,
+          ]),
           deleted: mapApiFacingFileNames(
             typeScriptInstance.pendingRemovedFiles,
           ),
@@ -722,7 +729,11 @@ function updateSnapshot(
   // `changedFileNames` they were already rewritten by their own compile -
   // see registerResolvedImportDependencies). projectFileNamesCache
   // self-validates, so it's never cleared.
-  if (typeScriptInstance.pendingInvalidation || createdFiles.size > 0) {
+  if (
+    typeScriptInstance.pendingInvalidation ||
+    createdFiles.size > 0 ||
+    newlyIncludedFileNames.length > 0
+  ) {
     typeScriptInstance.directImportsCache.clear();
   } else if (pendingChangedOrRemovedFiles) {
     for (const rawFileName of [
@@ -762,39 +773,25 @@ function updateSnapshot(
 }
 
 /**
- * The TypeScript/JavaScript files that the primary program didn't contain
- * when its file list was last read (see getProjectFileNames):
- * - files in `pendingChangedFiles` - created, or restored after a deletion,
- *   rather than edited, since webpack's watcher reports both as modified.
- * - files the config now includes. Nothing watches a file that webpack
- *   doesn't bundle until it's in the program, so the watcher can't report
- *   its creation, and the API only adds it to the project when told.
+ * The TypeScript/JavaScript files in `pendingChangedFiles` that the primary
+ * program didn't contain when its file list was last read (see
+ * getProjectFileNames) - created, or restored after a deletion, rather than
+ * edited, since webpack's watcher reports both as modified.
  */
 function findCreatedFiles(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
 ): ReadonlySet<string> {
   const changedFiles = typeScriptInstance.pendingChangedFiles;
-  // The orphan program contains the whole primary project too.
-  const lastKnownFileNames = typeScriptInstance.projectFileNamesCache.get(
-    resolvedFilePathCache(
-      typeScriptInstance.orphanProgram?.id ?? typeScriptInstance.configFilePath,
-    ),
-  )?.sourceFileNames;
-  if (!changedFiles || !lastKnownFileNames) {
+  const knownFileNames = getLastKnownFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+  );
+  if (!changedFiles || !knownFileNames) {
     return new Set();
   }
-  const knownFileNames = new Set(
-    lastKnownFileNames.map(fileName =>
-      toComparablePath(resolvedFilePathCache, fileName),
-    ),
-  );
-  const configFileNames = (
-    getOverriddenConfig(typeScriptInstance) ??
-    typeScriptInstance.api.parseConfigFile(typeScriptInstance.configFilePath)
-  ).fileNames;
   return new Set(
-    [...changedFiles, ...configFileNames].filter(
+    [...changedFiles].filter(
       fileName =>
         constants.tsTsxJsJsxRegex.test(fileName) &&
         !knownFileNames.has(
@@ -805,6 +802,59 @@ function findCreatedFiles(
         ),
     ),
   );
+}
+
+/**
+ * The files the config includes that the primary program didn't contain
+ * when its file list was last read. Nothing watches a file that webpack
+ * doesn't bundle until it's in the program, so the watcher can't report its
+ * creation, and the API only adds it to the project when told. Names are
+ * kept exactly as the API spells them.
+ */
+function findNewlyIncludedFileNames(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): string[] {
+  const knownFileNames = getLastKnownFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+  );
+  // Only the first snapshot update of a rebuild has pending changes.
+  if (!typeScriptInstance.pendingChangedFiles || !knownFileNames) {
+    return [];
+  }
+  return (
+    getOverriddenConfig(typeScriptInstance) ??
+    typeScriptInstance.api.parseConfigFile(typeScriptInstance.configFilePath)
+  ).fileNames.filter(
+    fileName =>
+      !knownFileNames.has(toComparablePath(resolvedFilePathCache, fileName)),
+  );
+}
+
+/** Comparable names; `undefined` before the file list has been read. */
+function getLastKnownFileNames(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): ReadonlySet<string> | undefined {
+  // The orphan program contains the whole primary project too.
+  const lastKnownFileNames = typeScriptInstance.projectFileNamesCache.get(
+    resolvedFilePathCache(
+      typeScriptInstance.orphanProgram?.id ?? typeScriptInstance.configFilePath,
+    ),
+  )?.sourceFileNames;
+  return (
+    lastKnownFileNames &&
+    new Set(
+      lastKnownFileNames.map(fileName =>
+        toComparablePath(resolvedFilePathCache, fileName),
+      ),
+    )
+  );
+}
+
+function emptyToUndefined(fileNames: string[]): string[] | undefined {
+  return fileNames.length === 0 ? undefined : fileNames;
 }
 
 /** `undefined` for an empty set, so the field is omitted from the request. */
