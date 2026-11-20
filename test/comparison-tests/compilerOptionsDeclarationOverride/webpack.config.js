@@ -13,7 +13,7 @@ module.exports = {
                 test: /\.ts$/,
                 loader: 'ts-loader',
                 options: {
-                    // tsconfig.json also sets declarationMap, which needs declaration
+                    // tsconfig.json also sets declarationMap, which needs declaration, and mapRoot, which then needs declarationMap
                     compilerOptions: { declaration: false }
                 }
             }

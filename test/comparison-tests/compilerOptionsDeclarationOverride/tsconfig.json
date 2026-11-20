@@ -2,7 +2,8 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"declaration": true,
-		"declarationMap": true
+		"declarationMap": true,
+		"mapRoot": "maps"
 	},
 	"files": [
 		"app.ts"

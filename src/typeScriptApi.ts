@@ -132,13 +132,17 @@ function removeOrphanedOptions(
   overrides: Record<string, unknown>,
 ): CompilerOptions {
   const remaining: Record<string, unknown> = { ...options };
+  // The options the override is responsible for being off: the ones it
+  // names, and each one dropped here because of them.
+  const turnedOff = new Set(Object.keys(overrides));
   for (const [dependentOption, ...neededOptions] of dependentOptions) {
     if (
       !(dependentOption in overrides) &&
-      neededOptions.some(option => option in overrides) &&
+      neededOptions.some(option => turnedOff.has(option)) &&
       !neededOptions.some(option => remaining[option])
     ) {
       delete remaining[dependentOption];
+      turnedOff.add(dependentOption);
     }
   }
   return remaining;
