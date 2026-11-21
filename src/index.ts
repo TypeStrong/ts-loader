@@ -191,6 +191,7 @@ function getTypeScriptInstance(
       loaderOptions,
       configFilePath,
       useCaseSensitiveFileNames,
+      loader._compiler?.outputPath,
     ),
     pendingDiagnostics: new Map(),
     pendingDeclarationFiles: new Map(),

@@ -43,6 +43,7 @@ export function createTypeScriptInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
   useCaseSensitiveFileNames: boolean,
+  outputPath: string | undefined,
 ): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
   // No `fs` callbacks: the API reads disk directly, with webpack's content
@@ -55,6 +56,7 @@ export function createTypeScriptInstance(
     configFilePath: path.resolve(configFilePath),
     configOverrides: getConfigOverrides(loaderOptions),
     useCaseSensitiveFileNames,
+    outputPath,
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
     primaryProjectOpened: false,
@@ -189,6 +191,7 @@ export function restartTypeScriptApiIfDead(instance: TSInstance): boolean {
       instance.loaderOptions,
       previous.configFilePath,
       previous.useCaseSensitiveFileNames,
+      previous.outputPath,
     ),
     // Their dependants still need the end-of-build recheck.
     changedFilesThisBuild: previous.changedFilesThisBuild,
@@ -680,13 +683,20 @@ function updateSnapshot(
   const pendingChangedOrRemovedFiles =
     typeScriptInstance.pendingChangedFiles ??
     typeScriptInstance.pendingRemovedFiles;
+  // Only the first snapshot update of a rebuild has pending changes, and so
+  // anything to compare with the file list.
+  const knownFileNames = typeScriptInstance.pendingChangedFiles
+    ? getLastKnownFileNames(typeScriptInstance, resolvedFilePathCache)
+    : undefined;
   const createdFiles = findCreatedFiles(
     typeScriptInstance,
     resolvedFilePathCache,
+    knownFileNames,
   );
   const newlyIncludedFileNames = findNewlyIncludedFileNames(
     typeScriptInstance,
     resolvedFilePathCache,
+    knownFileNames,
   );
   // A newly included file needs the full rescan: naming it as created adds
   // it to the project on Linux, but was seen to do nothing on Windows.
@@ -786,12 +796,9 @@ function updateSnapshot(
 function findCreatedFiles(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
+  knownFileNames: ReadonlySet<string> | undefined,
 ): ReadonlySet<string> {
   const changedFiles = typeScriptInstance.pendingChangedFiles;
-  const knownFileNames = getLastKnownFileNames(
-    typeScriptInstance,
-    resolvedFilePathCache,
-  );
   if (!changedFiles || !knownFileNames) {
     return new Set();
   }
@@ -818,17 +825,21 @@ function findCreatedFiles(
 function findNewlyIncludedFileNames(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
+  knownFileNames: ReadonlySet<string> | undefined,
 ): string[] {
-  const knownFileNames = getLastKnownFileNames(
-    typeScriptInstance,
-    resolvedFilePathCache,
-  );
-  // Only the first snapshot update of a rebuild has pending changes.
-  if (!typeScriptInstance.pendingChangedFiles || !knownFileNames) {
+  if (!knownFileNames) {
+    return [];
+  }
+  // With config overrides the config has been parsed for this build anyway.
+  const overriddenConfig = getOverriddenConfig(typeScriptInstance);
+  if (
+    overriddenConfig === undefined &&
+    !haveProjectDirectoriesChanged(typeScriptInstance, resolvedFilePathCache)
+  ) {
     return [];
   }
   return (
-    getOverriddenConfig(typeScriptInstance) ??
+    overriddenConfig ??
     typeScriptInstance.api.parseConfigFile(typeScriptInstance.configFilePath)
   ).fileNames.filter(
     fileName =>
@@ -837,6 +848,185 @@ function findNewlyIncludedFileNames(
       // would otherwise force the rescan on every rebuild.
       fs.existsSync(fileName),
   );
+}
+
+/**
+ * Whether a file may have been created since the last call: creating one
+ * changes the modified time of its directory. Parsing the config to look
+ * for new files lists every directory it covers; a stat per directory is
+ * cheaper, and almost always says no.
+ *
+ * Watched: every directory under the config file's, since `include` can
+ * match one that holds no project file yet. Where that can't cover every
+ * place a file could appear, this always answers yes.
+ */
+function haveProjectDirectoriesChanged(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+): boolean {
+  const projectFileNames = typeScriptInstance.projectFileNamesCache.get(
+    resolvedFilePathCache(
+      typeScriptInstance.orphanProgram?.id ?? typeScriptInstance.configFilePath,
+    ),
+  )?.result;
+  if (!projectFileNames) {
+    return true;
+  }
+  const configDirectory = path.dirname(typeScriptInstance.configFilePath);
+  let directories = typeScriptInstance.projectDirectories;
+  if (directories?.fileNames !== projectFileNames) {
+    // The first check, or files came or went: decide again whether the
+    // config's directory covers the project.
+    const covered = isCoveredByDirectory(configDirectory, projectFileNames);
+    // webpack's output directory gains files on rebuilds, which would mean a
+    // parse each time; it's left out unless the project has files in it.
+    const { outputPath } = typeScriptInstance;
+    const skippedDirectory =
+      outputPath !== undefined &&
+      !projectFileNames.some(fileName => isInDirectory(outputPath, fileName))
+        ? outputPath
+        : undefined;
+    const unwatchable = directories?.unwatchable ?? false;
+    const keptTimes =
+      covered &&
+      !unwatchable &&
+      directories?.skippedDirectory === skippedDirectory
+        ? directories?.modifiedTimes
+        : undefined;
+    directories = {
+      fileNames: projectFileNames,
+      modifiedTimes: keptTimes,
+      skippedDirectory,
+      unwatchable,
+    };
+    typeScriptInstance.projectDirectories = directories;
+    if (keptTimes === undefined) {
+      if (covered && !unwatchable) {
+        const walkedTimes = new Map<string, number>();
+        if (addDirectoryTree(configDirectory, walkedTimes, skippedDirectory)) {
+          directories.modifiedTimes = walkedTimes;
+        } else {
+          directories.unwatchable = true;
+        }
+      }
+      return true;
+    }
+  }
+  const { modifiedTimes } = directories;
+  if (modifiedTimes === undefined) {
+    return true;
+  }
+  let changed = false;
+  // Directories added along the way are visited too, and are up to date.
+  for (const [directory, previousModifiedTime] of modifiedTimes) {
+    const modifiedTime = getModifiedTime(directory);
+    if (modifiedTime === previousModifiedTime) {
+      continue;
+    }
+    changed = true;
+    if (modifiedTime === -1) {
+      modifiedTimes.delete(directory);
+    } else if (
+      !addDirectoryTree(directory, modifiedTimes, directories.skippedDirectory)
+    ) {
+      // A new directory always changes its parent's time, so listing the
+      // changed ones again keeps the tree complete.
+      directories.modifiedTimes = undefined;
+      directories.unwatchable = true;
+      return true;
+    }
+  }
+  return changed;
+}
+
+/** Beyond this many directories a stat of each is no longer a clear win. */
+const maxWatchedDirectories = 5000;
+
+/**
+ * Whether every place a new project file could appear is in the tree that
+ * addDirectoryTree walks from `directory`.
+ */
+function isCoveredByDirectory(
+  directory: string,
+  projectFileNames: readonly string[],
+): boolean {
+  return projectFileNames.every(
+    fileName =>
+      isInDirectory(directory, fileName) &&
+      !path
+        .relative(directory, path.resolve(fileName))
+        .split(path.sep)
+        .some(isSkippedDirectoryName),
+  );
+}
+
+function isInDirectory(directory: string, fileName: string): boolean {
+  const relativePath = path.relative(directory, path.resolve(fileName));
+  return !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
+}
+
+function isSkippedDirectoryName(name: string): boolean {
+  return name === 'node_modules' || name === '.git';
+}
+
+/**
+ * Records the modified time of `directory` and of every directory under it
+ * that isn't recorded yet, leaving out `skippedDirectory`. Returns false if
+ * the tree can't be watched: it is too large, or holds a link to a directory,
+ * whose contents this won't see. The caller doesn't try again after that: a
+ * walk that fails is a walk of most of the tree.
+ */
+function addDirectoryTree(
+  directory: string,
+  modifiedTimes: Map<string, number>,
+  skippedDirectory: string | undefined,
+): boolean {
+  modifiedTimes.set(directory, getModifiedTime(directory));
+  if (modifiedTimes.size > maxWatchedDirectories) {
+    return false;
+  }
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(directory, { withFileTypes: true });
+  } catch {
+    // gone since it was listed; its parent's time has changed too
+    return true;
+  }
+  for (const entry of entries) {
+    const child = path.join(directory, entry.name);
+    if (entry.isSymbolicLink()) {
+      if (isDirectory(child)) {
+        return false;
+      }
+    } else if (
+      entry.isDirectory() &&
+      !isSkippedDirectoryName(entry.name) &&
+      !modifiedTimes.has(child) &&
+      (skippedDirectory === undefined ||
+        path.relative(skippedDirectory, child) !== '') &&
+      !addDirectoryTree(child, modifiedTimes, skippedDirectory)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isDirectory(fileName: string): boolean {
+  try {
+    return fs.statSync(fileName).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
+/** -1 for a directory that is gone. */
+function getModifiedTime(directory: string): number {
+  try {
+    return fs.statSync(directory).mtimeMs;
+  } catch {
+    return -1;
+  }
 }
 
 /** Comparable names; `undefined` before the file list has been read. */

@@ -87,6 +87,17 @@ export interface ConfigOverrides {
   context?: string;
 }
 
+interface ProjectDirectories {
+  /** The file list the check was last set up for. */
+  fileNames: readonly string[];
+  /** `undefined` where the directories can't be watched - see addDirectoryTree. */
+  modifiedTimes: Map<string, number> | undefined;
+  /** webpack's output directory, when it's left out of the walk. */
+  skippedDirectory: string | undefined;
+  /** A walk has failed; kept for the life of the instance. */
+  unwatchable: boolean;
+}
+
 export interface TypeScriptInstance {
   api: API;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
@@ -100,6 +111,8 @@ export interface TypeScriptInstance {
   /** Parsed with `configOverrides` applied; cleared before each build. */
   overriddenConfig?: ParsedCommandLine;
   useCaseSensitiveFileNames: boolean;
+  /** webpack's `output.path` - see haveProjectDirectoriesChanged. */
+  outputPath: string | undefined;
   transpileConfig?: ParsedCommandLine;
   transpileConfigDiagnostics?: readonly Diagnostic[];
   /** The primary project's config files, as last read - see updateSnapshot. */
@@ -136,6 +149,11 @@ export interface TypeScriptInstance {
    * kept across builds and pruned by updateSnapshot.
    */
   directImportsCache: Map<FilePath, readonly string[]>;
+  /**
+   * The directories new project files could appear in, with their modified
+   * times as last seen - see haveProjectDirectoriesChanged.
+   */
+  projectDirectories?: ProjectDirectories;
   /** Keyed by project (primary or orphan program) - see getProjectFileNames. */
   projectFileNamesCache: Map<
     FilePath,
