@@ -92,6 +92,10 @@ interface ProjectDirectories {
   fileNames: readonly string[];
   /** `undefined` where the directories can't be watched - see addDirectoryTree. */
   modifiedTimes: Map<string, number> | undefined;
+  /** webpack's output directory, when it's left out of the walk. */
+  skippedDirectory: string | undefined;
+  /** A walk has failed; kept for the life of the instance. */
+  unwatchable: boolean;
 }
 
 export interface TypeScriptInstance {
@@ -107,6 +111,8 @@ export interface TypeScriptInstance {
   /** Parsed with `configOverrides` applied; cleared before each build. */
   overriddenConfig?: ParsedCommandLine;
   useCaseSensitiveFileNames: boolean;
+  /** webpack's `output.path` - see haveProjectDirectoriesChanged. */
+  outputPath: string | undefined;
   transpileConfig?: ParsedCommandLine;
   transpileConfigDiagnostics?: readonly Diagnostic[];
   /** The primary project's config files, as last read - see updateSnapshot. */

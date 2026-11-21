@@ -43,6 +43,7 @@ export function createTypeScriptInstance(
   loaderOptions: LoaderOptions,
   configFilePath: string,
   useCaseSensitiveFileNames: boolean,
+  outputPath: string | undefined,
 ): TypeScriptInstance {
   const typeScriptApiModule = loadTypeScriptApiModule(loaderOptions.compiler);
   // No `fs` callbacks: the API reads disk directly, with webpack's content
@@ -55,6 +56,7 @@ export function createTypeScriptInstance(
     configFilePath: path.resolve(configFilePath),
     configOverrides: getConfigOverrides(loaderOptions),
     useCaseSensitiveFileNames,
+    outputPath,
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
     primaryProjectOpened: false,
@@ -189,6 +191,7 @@ export function restartTypeScriptApiIfDead(instance: TSInstance): boolean {
       instance.loaderOptions,
       previous.configFilePath,
       previous.useCaseSensitiveFileNames,
+      previous.outputPath,
     ),
     // Their dependants still need the end-of-build recheck.
     changedFilesThisBuild: previous.changedFilesThisBuild,
@@ -875,13 +878,36 @@ function haveProjectDirectoriesChanged(
     // The first check, or files came or went: decide again whether the
     // config's directory covers the project.
     const covered = isCoveredByDirectory(configDirectory, projectFileNames);
-    const keptTimes = covered ? directories?.modifiedTimes : undefined;
-    directories = { fileNames: projectFileNames, modifiedTimes: keptTimes };
+    // webpack's output directory gains files on rebuilds, which would mean a
+    // parse each time; it's left out unless the project has files in it.
+    const { outputPath } = typeScriptInstance;
+    const skippedDirectory =
+      outputPath !== undefined &&
+      !projectFileNames.some(fileName => isInDirectory(outputPath, fileName))
+        ? outputPath
+        : undefined;
+    const unwatchable = directories?.unwatchable ?? false;
+    const keptTimes =
+      covered &&
+      !unwatchable &&
+      directories?.skippedDirectory === skippedDirectory
+        ? directories?.modifiedTimes
+        : undefined;
+    directories = {
+      fileNames: projectFileNames,
+      modifiedTimes: keptTimes,
+      skippedDirectory,
+      unwatchable,
+    };
     typeScriptInstance.projectDirectories = directories;
     if (keptTimes === undefined) {
-      const walkedTimes = new Map<string, number>();
-      if (covered && addDirectoryTree(configDirectory, walkedTimes)) {
-        directories.modifiedTimes = walkedTimes;
+      if (covered && !unwatchable) {
+        const walkedTimes = new Map<string, number>();
+        if (addDirectoryTree(configDirectory, walkedTimes, skippedDirectory)) {
+          directories.modifiedTimes = walkedTimes;
+        } else {
+          directories.unwatchable = true;
+        }
       }
       return true;
     }
@@ -900,10 +926,13 @@ function haveProjectDirectoriesChanged(
     changed = true;
     if (modifiedTime === -1) {
       modifiedTimes.delete(directory);
-    } else if (!addDirectoryTree(directory, modifiedTimes)) {
+    } else if (
+      !addDirectoryTree(directory, modifiedTimes, directories.skippedDirectory)
+    ) {
       // A new directory always changes its parent's time, so listing the
       // changed ones again keeps the tree complete.
       directories.modifiedTimes = undefined;
+      directories.unwatchable = true;
       return true;
     }
   }
@@ -921,14 +950,19 @@ function isCoveredByDirectory(
   directory: string,
   projectFileNames: readonly string[],
 ): boolean {
-  return projectFileNames.every(fileName => {
-    const relativePath = path.relative(directory, path.resolve(fileName));
-    return (
-      !relativePath.startsWith('..') &&
-      !path.isAbsolute(relativePath) &&
-      !relativePath.split(path.sep).some(isSkippedDirectoryName)
-    );
-  });
+  return projectFileNames.every(
+    fileName =>
+      isInDirectory(directory, fileName) &&
+      !path
+        .relative(directory, path.resolve(fileName))
+        .split(path.sep)
+        .some(isSkippedDirectoryName),
+  );
+}
+
+function isInDirectory(directory: string, fileName: string): boolean {
+  const relativePath = path.relative(directory, path.resolve(fileName));
+  return !relativePath.startsWith('..') && !path.isAbsolute(relativePath);
 }
 
 function isSkippedDirectoryName(name: string): boolean {
@@ -937,12 +971,15 @@ function isSkippedDirectoryName(name: string): boolean {
 
 /**
  * Records the modified time of `directory` and of every directory under it
- * that isn't recorded yet. Returns false if the tree can't be watched: it is
- * too large, or holds a link to a directory, whose contents this won't see.
+ * that isn't recorded yet, leaving out `skippedDirectory`. Returns false if
+ * the tree can't be watched: it is too large, or holds a link to a directory,
+ * whose contents this won't see. The caller doesn't try again after that: a
+ * walk that fails is a walk of most of the tree.
  */
 function addDirectoryTree(
   directory: string,
   modifiedTimes: Map<string, number>,
+  skippedDirectory: string | undefined,
 ): boolean {
   modifiedTimes.set(directory, getModifiedTime(directory));
   if (modifiedTimes.size > maxWatchedDirectories) {
@@ -965,7 +1002,9 @@ function addDirectoryTree(
       entry.isDirectory() &&
       !isSkippedDirectoryName(entry.name) &&
       !modifiedTimes.has(child) &&
-      !addDirectoryTree(child, modifiedTimes)
+      (skippedDirectory === undefined ||
+        path.relative(skippedDirectory, child) !== '') &&
+      !addDirectoryTree(child, modifiedTimes, skippedDirectory)
     ) {
       return false;
     }
