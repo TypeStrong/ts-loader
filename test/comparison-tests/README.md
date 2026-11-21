@@ -74,6 +74,8 @@ patch0 is applied:
 
 A patch can also delete a file: an empty file named `<file>.__deleted__` (e.g. `patch0/dep.ts.__deleted__`) deletes `<file>` when that patch is applied. See `deletedFileWatch` for an example.
 
+By default the patches are built by the same compiler, watching, as rebuilds. With `"newCompilerPerPatch": true` in the test's `test.json`, each patch is built by a new compiler instead, as a new process would build it: nothing is kept from the build before but what webpack wrote to its persistent cache. See `persistentCacheErrors` for an example.
+
 ## Skipped tests
 
 To skip a test, add a `test.json` file to its directory with the reason, which is printed when the test is skipped:

@@ -20,6 +20,7 @@ import { createFileSystemLayer } from 'typescript/fs';
 import * as constants from './constants';
 import {
   buildTypeScriptError,
+  cachedModuleHasTSLoaderErrors,
   dedupeDiagnostics,
   determineModulesByFile,
   filterDiagnosticsForReporting,
@@ -648,10 +649,26 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
     return require(specifier) as TypeScriptApiModule;
   } catch (error) {
     throw new Error(
-      `Could not load the TypeScript API from "${specifier}": ${
+      `ts-loader needs TypeScript 7.1 or later; ${describeInstalledCompiler(
+        compilerPackage,
+      )}. For earlier versions of TypeScript, use ts-loader 9.${
+        constants.EOL
+      }Could not load "${specifier}": ${
         error instanceof Error ? error.message : String(error)
       }`,
     );
+  }
+}
+
+function describeInstalledCompiler(compilerPackage: string): string {
+  try {
+    const { version } = require(`${compilerPackage}/package.json`) as {
+      version: string;
+    };
+    return `"${compilerPackage}" is version ${version}`;
+  } catch {
+    // not installed, or its `exports` hide package.json
+    return `"${compilerPackage}" could not be loaded`;
   }
 }
 
@@ -1770,7 +1787,26 @@ export function recheckAllTransitiveDependants(
     );
   }
   for (const projectFileName of projectFileNames) {
-    if (modulesByFile.has(instance.resolvedFilePathCache(projectFileName))) {
+    const projectFilePath = instance.resolvedFilePathCache(projectFileName);
+    const fileModules = modulesByFile.get(projectFilePath);
+    if (fileModules !== undefined) {
+      // A module webpack restored from its persistent cache brings the
+      // errors an earlier process gave it; only a check says if they still hold.
+      if (
+        !instance.pendingDiagnostics.has(projectFilePath) &&
+        fileModules.some(fileModule =>
+          cachedModuleHasTSLoaderErrors(
+            compilation,
+            fileModule,
+            instance.loaderOptions,
+          ),
+        )
+      ) {
+        filesToCheck.set(
+          toComparablePath(instance.resolvedFilePathCache, projectFileName),
+          projectFileName,
+        );
+      }
       continue;
     }
     // No loader call ever registers an unbundled file with webpack's
