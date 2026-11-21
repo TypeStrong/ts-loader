@@ -2,10 +2,6 @@
 
 ## 10.0.0-beta.1
 
-- [Restore the `compilerOptions` and `context` loader options](https://github.com/TypeStrong/ts-loader/pull/1727) - thanks @johnnyreilly
-
-Both were removed in 10.0.0-beta.0 and work again as they did in v9. `compilerOptions` overrides compiler options from `tsconfig.json`. `context` is an absolute path that relative paths in the TypeScript config are resolved against; with it set, a relative `extends` in the root config is also resolved against it.
-
 - [Report full error messages and option errors, and survive a dead compiler process](https://github.com/TypeStrong/ts-loader/pull/1726) - thanks @johnnyreilly
 
 Fixes for the TypeScript 7.1 API integration:
@@ -15,6 +11,10 @@ Fixes for the TypeScript 7.1 API integration:
 - With `transpileOnly`, a compiler option error is reported once per build, not once per file as well.
 - In watch mode, a change to `tsconfig.json` is picked up on the next rebuild when type checking. Before, the TypeScript project kept the options it started with.
 - If the TypeScript compiler process dies, ts-loader starts a new one and adds a warning to the build. Before, every later build of a watch session failed.
+
+- [Restore the `compilerOptions` and `context` loader options](https://github.com/TypeStrong/ts-loader/pull/1727) - thanks @johnnyreilly
+
+Both were removed in 10.0.0-beta.0 and work again as they did in v9. `compilerOptions` overrides compiler options from `tsconfig.json`. `context` is an absolute path that relative paths in the TypeScript config are resolved against; with it set, a relative `extends` in the root config is also resolved against it.
 
 - [Emit declarations once per build, check new files, and drop orphaned source map options](https://github.com/TypeStrong/ts-loader/pull/1728) - thanks @johnnyreilly
 
