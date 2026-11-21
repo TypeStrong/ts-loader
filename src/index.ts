@@ -71,6 +71,11 @@ function successLoader(
   try {
     const options = getLoaderOptions(loaderContext);
     const instance = getTypeScriptInstance(options, loaderContext);
+    // Kept with the module in webpack's persistent cache - see
+    // isRestoredModuleOfInstance.
+    if (loaderContext._module?.buildInfo !== undefined) {
+      loaderContext._module.buildInfo.tsLoaderInstance = options.instance;
+    }
     const rawFilePath = path.normalize(loaderContext.resourcePath);
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
     const fileVersion = updateFileInCache(filePath, contents, instance);
@@ -444,8 +449,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'allowTsInNodeModules',
   'projectReferences',
-  // Accepted for backwards compatibility but inert: the TypeScript 7 API has
-  // no custom resolver hook. See test/execution-tests/resolveModuleName.
+  // Accepted for backwards compatibility but inert: they aren't passed on to
+  // the TypeScript 7 API. See test/execution-tests/resolveModuleName.
   'resolveModuleName',
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',

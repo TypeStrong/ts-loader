@@ -23,6 +23,7 @@ import {
   dedupeDiagnostics,
   determineModulesByFile,
   filterDiagnosticsForReporting,
+  isRestoredModuleOfInstance,
   reportTypeScriptErrors,
 } from './diagnostics';
 import type {
@@ -647,12 +648,38 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   try {
     return require(specifier) as TypeScriptApiModule;
   } catch (error) {
+    const loadError = `Could not load the TypeScript API from "${specifier}": ${
+      error instanceof Error ? error.message : String(error)
+    }`;
+    const version = getCompilerVersion(compilerPackage);
+    // A new enough compiler failed to load for some other reason.
     throw new Error(
-      `Could not load the TypeScript API from "${specifier}": ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+      version !== undefined && isTypeScript71OrLater(version)
+        ? loadError
+        : `ts-loader needs TypeScript 7.1 or later; "${compilerPackage}" ${
+            version === undefined
+              ? 'could not be loaded'
+              : `is version ${version}`
+          }. For earlier versions of TypeScript, use ts-loader 9.${
+            constants.EOL
+          }${loadError}`,
     );
   }
+}
+
+/** `undefined` if it isn't installed, or its `exports` hide package.json. */
+function getCompilerVersion(compilerPackage: string): string | undefined {
+  try {
+    return (require(`${compilerPackage}/package.json`) as { version?: string })
+      .version;
+  } catch {
+    return undefined;
+  }
+}
+
+function isTypeScript71OrLater(version: string): boolean {
+  const [major, minor] = version.split('.').map(Number);
+  return major > 7 || (major === 7 && minor >= 1);
 }
 
 type SnapshotChanges = Pick<
@@ -1770,7 +1797,28 @@ export function recheckAllTransitiveDependants(
     );
   }
   for (const projectFileName of projectFileNames) {
-    if (modulesByFile.has(instance.resolvedFilePathCache(projectFileName))) {
+    const projectFilePath = instance.resolvedFilePathCache(projectFileName);
+    const fileModules = modulesByFile.get(projectFilePath);
+    if (fileModules !== undefined) {
+      // A module webpack restored from its persistent cache was last checked
+      // by an earlier process. Its errors may no longer hold, and a file it
+      // reaches only through type-only imports may have changed since
+      // without webpack seeing a reason to rebuild it.
+      if (
+        !instance.pendingDiagnostics.has(projectFilePath) &&
+        fileModules.some(fileModule =>
+          isRestoredModuleOfInstance(
+            compilation,
+            fileModule,
+            instance.loaderOptions,
+          ),
+        )
+      ) {
+        filesToCheck.set(
+          toComparablePath(instance.resolvedFilePathCache, projectFileName),
+          projectFileName,
+        );
+      }
       continue;
     }
     // No loader call ever registers an unbundled file with webpack's

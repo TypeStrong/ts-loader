@@ -480,7 +480,7 @@ See also: [microsoft/TypeScript#12358](https://github.com/Microsoft/TypeScript/i
 
 These v9 options are still accepted so existing configs keep working, but they currently do nothing:
 
-- **`resolveModuleName` and `resolveTypeReferenceDirective`** - custom module resolution functions (used for things like Yarn Plug'n'Play). TypeScript's native API has no custom module resolution hook yet.
+- **`resolveModuleName` and `resolveTypeReferenceDirective`** - custom module resolution functions (used for things like Yarn Plug'n'Play). TypeScript's native API can take custom resolvers ([microsoft/TypeScript#64299](https://github.com/microsoft/TypeScript/pull/64299)), but ts-loader doesn't pass these options on to it yet.
 - **`getCustomTransformers`** - custom TypeScript transformers. TypeScript's native API doesn't support custom transformers yet.
 - **`projectReferences`** - in v10, TypeScript's native API follows [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in your `tsconfig.json` without this option. v10 does not build referenced projects to disk the way `tsc --build` does. For v9 behaviour, see the [Project References Guide](REFERENCES.md).
 

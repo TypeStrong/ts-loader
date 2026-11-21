@@ -104,15 +104,31 @@ function createTest(test, testPath, options) {
         // Need to wait > FS_ACCURACY as defined in watchpack.
         // See PR 1109 for details: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(() => {
-            const compiler = webpack(createWebpackConfig(paths, options));
-            if (!compiler) {
-                done(new Error('webpack did not return a compiler'));
-                return;
-            }
-            testState.watcher = compiler.watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
+            testState.config = createWebpackConfig(paths, options);
+            testState.startWatching = () => {
+                const compiler = webpack(testState.config);
+                if (!compiler) {
+                    done(new Error('webpack did not return a compiler'));
+                    return;
+                }
+                testState.compiler = compiler;
+                testState.watcher = compiler.watch({ aggregateTimeout: 1500 }, createWebpackWatchHandler(done, paths, testState, options, test));
+            };
+            testState.startWatching();
         }, 200);
 
     };
+}
+
+/**
+ * Whether the test's `test.json` asks for each patch to be built by a new
+ * compiler - as a new process would, with nothing kept but webpack's
+ * persistent cache - and not by a rebuild of the one watching.
+ */
+function usesNewCompilerPerPatch() {
+    const testConfigPath = path.join(testPath, 'test.json');
+    return fs.existsSync(testConfigPath) &&
+        JSON.parse(fs.readFileSync(testConfigPath, 'utf8')).newCompilerPerPatch === true;
 }
 
 function createTestState() {
@@ -121,7 +137,14 @@ function createTestState() {
         iteration: 0,
         lastHash: undefined,
         /** @type {any} */
-        watcher: undefined
+        watcher: undefined,
+        /** @type {any} */
+        compiler: undefined,
+        /** @type {any} */
+        config: undefined,
+        /** @type {() => void} */
+        startWatching: () => {},
+        newCompilerPerPatch: usesNewCompilerPerPatch()
     };
 }
 
@@ -431,8 +454,17 @@ function copyPatchOrEndTest(testStagingPath, watcher, testState, done) {
         // can get inconsistent results if copying right away
         // Probably due to the reaons in PR 1109: https://github.com/TypeStrong/ts-loader/pull/1109
         setTimeout(() => {
-            copySync(patchPath, testStagingPath);
-            applyPatchDeletions(patchPath, testStagingPath);
+            if (!testState.newCompilerPerPatch) {
+                copySync(patchPath, testStagingPath);
+                applyPatchDeletions(patchPath, testStagingPath);
+                return;
+            }
+            // Closing the compiler is what writes webpack's persistent cache
+            watcher.close(() => testState.compiler.close(() => {
+                copySync(patchPath, testStagingPath);
+                applyPatchDeletions(patchPath, testStagingPath);
+                testState.startWatching();
+            }));
         }, 1000);
     }
     else {
