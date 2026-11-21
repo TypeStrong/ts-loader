@@ -320,17 +320,20 @@ function removeCompilationTSLoaderErrors(
 }
 
 /**
- * Whether a module webpack took from its cache, not built in this
- * compilation, holds errors from ts-loader.
+ * Whether webpack took the module from its cache, not built it in this
+ * compilation, and this ts-loader instance is the one that compiled it. A
+ * module cached before `tsLoaderInstance` was recorded is only recognised by
+ * the errors it holds.
  */
-export function cachedModuleHasTSLoaderErrors(
+export function isRestoredModuleOfInstance(
   compilation: webpack.Compilation,
   module: webpack.Module,
   loaderOptions: LoaderOptions,
 ) {
   return (
     !wasModuleBuilt(compilation, module) &&
-    moduleHasTSLoaderErrors(module, loaderOptions)
+    (module.buildInfo?.tsLoaderInstance === loaderOptions.instance ||
+      moduleHasTSLoaderErrors(module, loaderOptions))
   );
 }
 

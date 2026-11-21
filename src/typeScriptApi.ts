@@ -20,10 +20,10 @@ import { createFileSystemLayer } from 'typescript/fs';
 import * as constants from './constants';
 import {
   buildTypeScriptError,
-  cachedModuleHasTSLoaderErrors,
   dedupeDiagnostics,
   determineModulesByFile,
   filterDiagnosticsForReporting,
+  isRestoredModuleOfInstance,
   reportTypeScriptErrors,
 } from './diagnostics';
 import type {
@@ -648,28 +648,38 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   try {
     return require(specifier) as TypeScriptApiModule;
   } catch (error) {
+    const loadError = `Could not load the TypeScript API from "${specifier}": ${
+      error instanceof Error ? error.message : String(error)
+    }`;
+    const version = getCompilerVersion(compilerPackage);
+    // A new enough compiler failed to load for some other reason.
     throw new Error(
-      `ts-loader needs TypeScript 7.1 or later; ${describeInstalledCompiler(
-        compilerPackage,
-      )}. For earlier versions of TypeScript, use ts-loader 9.${
-        constants.EOL
-      }Could not load "${specifier}": ${
-        error instanceof Error ? error.message : String(error)
-      }`,
+      version !== undefined && isTypeScript71OrLater(version)
+        ? loadError
+        : `ts-loader needs TypeScript 7.1 or later; "${compilerPackage}" ${
+            version === undefined
+              ? 'could not be loaded'
+              : `is version ${version}`
+          }. For earlier versions of TypeScript, use ts-loader 9.${
+            constants.EOL
+          }${loadError}`,
     );
   }
 }
 
-function describeInstalledCompiler(compilerPackage: string): string {
+/** `undefined` if it isn't installed, or its `exports` hide package.json. */
+function getCompilerVersion(compilerPackage: string): string | undefined {
   try {
-    const { version } = require(`${compilerPackage}/package.json`) as {
-      version: string;
-    };
-    return `"${compilerPackage}" is version ${version}`;
+    return (require(`${compilerPackage}/package.json`) as { version?: string })
+      .version;
   } catch {
-    // not installed, or its `exports` hide package.json
-    return `"${compilerPackage}" could not be loaded`;
+    return undefined;
   }
+}
+
+function isTypeScript71OrLater(version: string): boolean {
+  const [major, minor] = version.split('.').map(Number);
+  return major > 7 || (major === 7 && minor >= 1);
 }
 
 type SnapshotChanges = Pick<
@@ -1790,12 +1800,14 @@ export function recheckAllTransitiveDependants(
     const projectFilePath = instance.resolvedFilePathCache(projectFileName);
     const fileModules = modulesByFile.get(projectFilePath);
     if (fileModules !== undefined) {
-      // A module webpack restored from its persistent cache brings the
-      // errors an earlier process gave it; only a check says if they still hold.
+      // A module webpack restored from its persistent cache was last checked
+      // by an earlier process. Its errors may no longer hold, and a file it
+      // reaches only through type-only imports may have changed since
+      // without webpack seeing a reason to rebuild it.
       if (
         !instance.pendingDiagnostics.has(projectFilePath) &&
         fileModules.some(fileModule =>
-          cachedModuleHasTSLoaderErrors(
+          isRestoredModuleOfInstance(
             compilation,
             fileModule,
             instance.loaderOptions,

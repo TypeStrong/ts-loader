@@ -4,7 +4,7 @@
 
 - [Keep type errors when webpack's persistent cache is used, and say which TypeScript version is needed](https://github.com/TypeStrong/ts-loader/pull/1731) - thanks @johnnyreilly
 
-- With `cache: { type: 'filesystem' }`, a build that compiled some files and took the rest from the cache dropped the type errors of the files it took from the cache. The build could pass with type errors in it. Those errors are now reported, and are checked again first, so one that has since been fixed goes away.
+- With `cache: { type: 'filesystem' }`, a build that compiled some files and took the rest from the cache dropped the type errors of the files it took from the cache. The build could pass with type errors in it. Files taken from the cache are now type checked again in such a build, so their errors are reported, including ones that have appeared or gone since they were cached. A build that takes every file from the cache doesn't run ts-loader, and still reports the errors the cache holds.
 - When the installed TypeScript is older than 7.1, the error now says so, names the version found, and points to ts-loader 9. Before, it only said that `typescript/sync` could not be found.
 
 ## 10.0.0-beta.1
