@@ -1,0 +1,1 @@
+A folder with no TypeScript in it yet; the next patch adds some.

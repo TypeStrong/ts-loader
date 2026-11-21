@@ -88,9 +88,10 @@ export interface ConfigOverrides {
 }
 
 interface ProjectDirectories {
-  /** The file list the directories were derived from. */
+  /** The file list the check was last set up for. */
   fileNames: readonly string[];
-  modifiedTimes: Map<string, number | undefined>;
+  /** `undefined` where the directories can't be watched - see addDirectoryTree. */
+  modifiedTimes: Map<string, number> | undefined;
 }
 
 export interface TypeScriptInstance {

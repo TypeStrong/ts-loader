@@ -850,11 +850,12 @@ function findNewlyIncludedFileNames(
 /**
  * Whether a file may have been created since the last call: creating one
  * changes the modified time of its directory. Parsing the config to look
- * for new files lists every directory, which cost a few ms per rebuild on
- * Windows; a stat per directory is cheaper, and almost always says no.
+ * for new files lists every directory it covers; a stat per directory is
+ * cheaper, and almost always says no.
  *
- * Watched: each project file's directory and its parents up to the config
- * file's directory, so a new folder is noticed through its parent.
+ * Watched: every directory under the config file's, since `include` can
+ * match one that holds no project file yet. Where that can't cover every
+ * place a file could appear, this always answers yes.
  */
 function haveProjectDirectoriesChanged(
   typeScriptInstance: TypeScriptInstance,
@@ -868,59 +869,116 @@ function haveProjectDirectoriesChanged(
   if (!projectFileNames) {
     return true;
   }
-  const previous = typeScriptInstance.projectDirectories;
-  let directories = previous;
-  if (previous?.fileNames !== projectFileNames) {
-    // The first check, or files came or went. Times already seen are kept;
-    // a directory that is new here has none, and so counts as changed.
-    directories = {
-      fileNames: projectFileNames,
-      modifiedTimes: new Map(
-        [
-          ...getDirectoriesToWatch(
-            path.dirname(typeScriptInstance.configFilePath),
-            projectFileNames,
-          ),
-        ].map(directory => [directory, previous?.modifiedTimes.get(directory)]),
-      ),
-    };
+  const configDirectory = path.dirname(typeScriptInstance.configFilePath);
+  let directories = typeScriptInstance.projectDirectories;
+  if (directories?.fileNames !== projectFileNames) {
+    // The first check, or files came or went: decide again whether the
+    // config's directory covers the project.
+    const covered = isCoveredByDirectory(configDirectory, projectFileNames);
+    const keptTimes = covered ? directories?.modifiedTimes : undefined;
+    directories = { fileNames: projectFileNames, modifiedTimes: keptTimes };
     typeScriptInstance.projectDirectories = directories;
+    if (keptTimes === undefined) {
+      const walkedTimes = new Map<string, number>();
+      if (covered && addDirectoryTree(configDirectory, walkedTimes)) {
+        directories.modifiedTimes = walkedTimes;
+      }
+      return true;
+    }
+  }
+  const { modifiedTimes } = directories;
+  if (modifiedTimes === undefined) {
+    return true;
   }
   let changed = false;
-  for (const [directory, previousModifiedTime] of directories!.modifiedTimes) {
+  // Directories added along the way are visited too, and are up to date.
+  for (const [directory, previousModifiedTime] of modifiedTimes) {
     const modifiedTime = getModifiedTime(directory);
-    if (modifiedTime !== previousModifiedTime) {
-      directories!.modifiedTimes.set(directory, modifiedTime);
-      changed = true;
+    if (modifiedTime === previousModifiedTime) {
+      continue;
+    }
+    changed = true;
+    if (modifiedTime === -1) {
+      modifiedTimes.delete(directory);
+    } else if (!addDirectoryTree(directory, modifiedTimes)) {
+      // A new directory always changes its parent's time, so listing the
+      // changed ones again keeps the tree complete.
+      directories.modifiedTimes = undefined;
+      return true;
     }
   }
   return changed;
 }
 
-function getDirectoriesToWatch(
-  configDirectory: string,
-  fileNames: readonly string[],
-): Set<string> {
-  const directories = new Set([configDirectory]);
-  for (const fileName of fileNames) {
-    let directory = path.dirname(path.resolve(fileName));
-    // Up to the config's directory or, for a file outside it, to the
-    // directory they share. Stops early at a directory already walked.
-    const relativeToConfig = path.relative(configDirectory, directory);
-    const stopDirectory = path.resolve(
-      configDirectory,
-      ...relativeToConfig.split(path.sep).filter(part => part === '..'),
+/** Beyond this many directories a stat of each is no longer a clear win. */
+const maxWatchedDirectories = 5000;
+
+/**
+ * Whether every place a new project file could appear is in the tree that
+ * addDirectoryTree walks from `directory`.
+ */
+function isCoveredByDirectory(
+  directory: string,
+  projectFileNames: readonly string[],
+): boolean {
+  return projectFileNames.every(fileName => {
+    const relativePath = path.relative(directory, path.resolve(fileName));
+    return (
+      !relativePath.startsWith('..') &&
+      !path.isAbsolute(relativePath) &&
+      !relativePath.split(path.sep).some(isSkippedDirectoryName)
     );
-    while (
-      !directories.has(directory) &&
-      path.relative(stopDirectory, directory) !== '' &&
-      path.dirname(directory) !== directory
+  });
+}
+
+function isSkippedDirectoryName(name: string): boolean {
+  return name === 'node_modules' || name === '.git';
+}
+
+/**
+ * Records the modified time of `directory` and of every directory under it
+ * that isn't recorded yet. Returns false if the tree can't be watched: it is
+ * too large, or holds a link to a directory, whose contents this won't see.
+ */
+function addDirectoryTree(
+  directory: string,
+  modifiedTimes: Map<string, number>,
+): boolean {
+  modifiedTimes.set(directory, getModifiedTime(directory));
+  if (modifiedTimes.size > maxWatchedDirectories) {
+    return false;
+  }
+  let entries: fs.Dirent[];
+  try {
+    entries = fs.readdirSync(directory, { withFileTypes: true });
+  } catch {
+    // gone since it was listed; its parent's time has changed too
+    return true;
+  }
+  for (const entry of entries) {
+    const child = path.join(directory, entry.name);
+    if (entry.isSymbolicLink()) {
+      if (isDirectory(child)) {
+        return false;
+      }
+    } else if (
+      entry.isDirectory() &&
+      !isSkippedDirectoryName(entry.name) &&
+      !modifiedTimes.has(child) &&
+      !addDirectoryTree(child, modifiedTimes)
     ) {
-      directories.add(directory);
-      directory = path.dirname(directory);
+      return false;
     }
   }
-  return directories;
+  return true;
+}
+
+function isDirectory(fileName: string): boolean {
+  try {
+    return fs.statSync(fileName).isDirectory();
+  } catch {
+    return false;
+  }
 }
 
 /** -1 for a directory that is gone. */
