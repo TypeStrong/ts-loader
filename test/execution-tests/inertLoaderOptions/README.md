@@ -1,0 +1,3 @@
+On the TypeScript 7 API, ts-loader accepts the `resolveTypeReferenceDirective` and `getCustomTransformers` loader options for backwards compatibility, but doesn't use them (see `validLoaderOptions` in `src/index.ts`).
+
+This test checks that a build using both, along with `resolveModuleName` (which is used), still succeeds and its code runs. Each option is set to something that would work if it were used, so the test keeps passing if the API adds these hooks later. The `loaderOptions` test covers what `getCustomTransformers` actually does, and is skipped until then; the `resolveModuleName` test covers that option.

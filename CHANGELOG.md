@@ -1,5 +1,44 @@
 # Changelog
 
+## 10.0.0-beta.2
+
+- [Keep type errors when webpack's persistent cache is used, and say which TypeScript version is needed](https://github.com/TypeStrong/ts-loader/pull/1731) - thanks @johnnyreilly
+
+- With `cache: { type: 'filesystem' }`, a build that compiled some files and took the rest from the cache dropped the type errors of the files it took from the cache. The build could pass with type errors in it. Files taken from the cache are now type checked again in such a build, so their errors are reported, including ones that have appeared or gone since they were cached. A build that takes every file from the cache doesn't run ts-loader, and still reports the errors the cache holds.
+- When the installed TypeScript is older than 7.1, the error now says so, names the version found, and points to ts-loader 9. Before, it only said that `typescript/sync` could not be found.
+
+- [Support `resolveModuleName` via the TypeScript 7.1 module resolver API](https://github.com/TypeStrong/ts-loader/pull/1715) - thanks @johnnyreilly
+
+The `resolveModuleName` loader option works again when type checking; it was accepted but ignored in the earlier betas. It differs from v9: `containingFile` is a placeholder name in the importing file's directory, `compilerHost` is `undefined`, and only `resolvedFileName`, `originalPath` and `packageId` of the result are used. `resolveTypeReferenceDirective` is still ignored.
+
+## 10.0.0-beta.1
+
+- [Report full error messages and option errors, and survive a dead compiler process](https://github.com/TypeStrong/ts-loader/pull/1726) - thanks @johnnyreilly
+
+Fixes for the TypeScript 7.1 API integration:
+
+- Error messages include their elaboration again (the indented "Types of parameters ... are incompatible" lines), which 10.0.0-beta.0 dropped.
+- Compiler option errors, such as an option TypeScript 7 has removed, are reported when type checking and not only with `transpileOnly`.
+- With `transpileOnly`, a compiler option error is reported once per build, not once per file as well.
+- In watch mode, a change to `tsconfig.json` is picked up on the next rebuild when type checking. Before, the TypeScript project kept the options it started with.
+- If the TypeScript compiler process dies, ts-loader starts a new one and adds a warning to the build. Before, every later build of a watch session failed.
+
+- [Restore the `compilerOptions` and `context` loader options](https://github.com/TypeStrong/ts-loader/pull/1727) - thanks @johnnyreilly
+
+Both were removed in 10.0.0-beta.0 and work again as they did in v9. `compilerOptions` overrides compiler options from `tsconfig.json`. `context` is an absolute path that relative paths in the TypeScript config are resolved against; with it set, a relative `extends` in the root config is also resolved against it.
+
+- [Emit declarations once per build, check new files, and drop orphaned source map options](https://github.com/TypeStrong/ts-loader/pull/1728) - thanks @johnnyreilly
+
+More fixes for the TypeScript 7.1 API integration:
+
+- With `declaration` or `composite`, builds are much faster: declarations are emitted once per build, not for every project file on every file compiled. A 300-file build went from 16s to 1.2s.
+- In watch mode, a file created under the tsconfig's `include` that webpack doesn't bundle is now type checked. Its errors appear on the next rebuild.
+- When the `compilerOptions` loader option turns off an option that others in `tsconfig.json` depend on, those are dropped too, so the override alone doesn't cause TS5051 or TS5069. This covers `sourceMap`, `inlineSourceMap` and `declarationMap` (for `inlineSources`, `sourceRoot`, `mapRoot`) and `declaration` (for `declarationMap`, `declarationDir`, `emitDeclarationOnly`).
+
+- [Only parse the config for new files when a project folder has changed](https://github.com/TypeStrong/ts-loader/pull/1729) - thanks @johnnyreilly
+
+Looking for newly created files no longer costs a config parse on every rebuild; it cost a few milliseconds per rebuild, mostly on Windows.
+
 ## 10.0.0-beta.0
 
 - [Support TypeScript 7.1 API](https://github.com/TypeStrong/ts-loader/pull/1704) - thanks @johnnyreilly
@@ -11,8 +50,8 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 - Minimum supported TypeScript version is now 7.1+ (up from 3.6.3+). Until TypeScript 7.1 has a stable release, that means the 7.1 beta or later.
 - Minimum supported Node.js version is now 22.x+ (up from 12.x+).
 - The `compiler` option must now resolve to a package exposing a `<compiler>/sync` entry point (the TypeScript native API). Drop-in classic-API compilers (e.g. `ttypescript`) are no longer supported.
-- Removed the `compilerOptions` loader option; the native API resolves a project's compiler options purely from its on-disk tsconfig.json, with no per-loader-instance override hook. Set compiler options in `tsconfig.json` instead.
-- Removed the `context` loader option; the native API always resolves relative paths against the config file's own directory, with no basePath override exposed to let a tsconfig live outside the project root.
+- Removed the `compilerOptions` loader option. (Restored in 10.0.0-beta.1.)
+- Removed the `context` loader option. (Restored in 10.0.0-beta.1.)
 - Removed the `happyPackMode` loader option - HappyPack / thread-loader based parallelisation is no longer supported this way.
 - Removed the `experimentalFileCaching` loader option; there's no equivalent under the native API's own caching model.
 - Removed the `experimentalWatchApi` loader option, now that the native API supersedes TypeScript's classic watch API.
@@ -22,7 +61,7 @@ This is a ground-up rewrite of ts-loader's compilation engine. Instead of drivin
 
 ### Not supported yet
 
-- `getCustomTransformers` is still accepted for backwards compatibility but are now inert. The native API doesn't expose equivalent extension points for custom transformes. It is possible that the API will support these in future, and so the options have been left in place for now, but they will be removed if the API never exposes them.
+- `getCustomTransformers` is still accepted for backwards compatibility but is now inert. The native API doesn't expose equivalent extension points for custom transformers. It is possible that the API will support these in future, and so the option has been left in place for now, but it will be removed if the API never exposes them.
 - `resolveModuleName` and `resolveTypeReferenceDirective` are still accepted for backwards compatibility but are now inert. Support for custom resolvers is available: https://github.com/microsoft/TypeScript/pull/64299 - however it is not clear this is a feature generally used by ts-loader users and so has not been implemented at present.
 - Project references in `tsconfig.json` are followed by the native API. The `projectReferences` loader option is accepted but has no effect, and v10 doesn't build referenced projects to disk the way `tsc --build` does.
 
