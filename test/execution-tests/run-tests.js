@@ -1,52 +1,54 @@
 'use strict';
 
-// var Server = require('karma').Server;
-var fs = require('fs');
-var path = require('path');
-var execSync = require('child_process').execSync;
-var typescript = require('typescript');
-var webpack = require('webpack');
-var semver = require('semver');
-var pathExists = require('../pathExists');
+const fs = require('fs');
+const path = require('path');
+const execSync = require('child_process').execSync;
+const execFileSync = require('child_process').execFileSync;
+const webpack = require('webpack');
+const pathExists = require('../pathExists');
+const { getSkipReason } = require('../testConfig');
 
 process.env.NODE_ENV = 'test';
 
 // Parse command line arguments
-var indexOfSingleTest = process.argv.indexOf('--single-test');
-var singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
-var watch = process.argv.indexOf('--watch') !== -1 && !!singleTestToRun;
+const indexOfSingleTest = process.argv.indexOf('--single-test');
+const singleTestToRun = indexOfSingleTest !== -1 && process.argv[indexOfSingleTest + 1];
+const watch = process.argv.indexOf('--watch') !== -1 && !!singleTestToRun;
 const indexOfTestCriteria = process.argv.indexOf('--match-test');
 const testCriteria =
   indexOfTestCriteria !== -1 && new RegExp(process.argv[indexOfTestCriteria + 1]);
 
-var passingTests = [];
-var failingTests = [];
+const passingTests = [];
+const failingTests = [];
 
-var start = new Date().getTime();
+const start = new Date().getTime();
 console.log('Starting to run test suites...\n');
 
-var testDir = __dirname;
+const testDir = __dirname;
 
 if (singleTestToRun) {
-    runTests(singleTestToRun);
+    // The same skips as a full run, so --watch, --debug and the VS Code launch config respect them too
+    const testName = getTestNameFromPath(singleTestToRun);
+    if (isRunnableTest(testName)) {
+        runTests(testName);
+    }
 }
 else {
     // loop through each test directory triggering a test run as child process
     fs.readdirSync(testDir)
         .filter(isTestDirectory)
-        .filter(isHighEnoughTypeScriptVersion)
-        .filter(isNotLoaderOptionsTest)
         .filter(
             /**
              * @param {string} testName
              */ testName =>
                 testCriteria ? !!testName.match(testCriteria) : true
         )
-        // .filter(isNotBabelTest)
+        // After --match-test, so only the selected tests' test.json can skip or fail them
+        .filter(isRunnableTest)
         .forEach(runTests);
 }
 
-var end = new Date().getTime();
+const end = new Date().getTime();
 console.log('\n-------------------------------------------------------------------------\n');
 console.log((passingTests.length + failingTests.length) + ' test suites took ' + ((end - start) / 1000) + ' seconds to run.\n');
 if (passingTests.length > 0) {
@@ -64,73 +66,51 @@ else {
 // --------------------------------------------------------------
 
 function isTestDirectory (testName) {
-    var testPath = path.join(testDir, testName);
+    const testPath = path.join(testDir, testName);
     return fs.statSync(testPath).isDirectory();
 }
 
-function isHighEnoughTypeScriptVersion (testName) {
-    var minTsVersionAndTestName = testName.split('_');
-    if (minTsVersionAndTestName.length === 2) {
-        var minTsVersion = minTsVersionAndTestName[0];
-        if (semver.lt(typescript.version, minTsVersion)) {
-            console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
-            return false;
-        }
-    } else if (minTsVersionAndTestName.length === 3) {
-        var minTsVersion = minTsVersionAndTestName[0];
-        if (semver.lt(typescript.version, minTsVersion)) {
-            console.log('Skipping test ' + testName + ' as its minimum version of ' + minTsVersion + ' is greater than our current version of TypeScript: ' + typescript.version);
-            return false;
-        }
-        var minWebpackVersion = minTsVersionAndTestName[1];
-        if (semver.lt(webpack.version, minWebpackVersion)) {
-            console.log('Skipping test ' + testName + ' as its minimum version of ' + minWebpackVersion + ' is greater than our current version of webpack: ' + webpack.version);
-            return false;
-        }
-    }
-    return true;
-}
-
-/** Temporarily exclude loaderOptions until custom transformers work with the default native API path */
-function isNotLoaderOptionsTest (testName) {
-    var isLoaderOptionsTest = testName === 'loaderOptions';
-    if (isLoaderOptionsTest) {
-        console.log('Skipping test ' + testName + ' while the default native API path does not yet support its custom transformer coverage.');
+/**
+ * Applies the rules in a test's `test.json` (see test/testConfig.js). An invalid
+ * test.json fails that test rather than stopping the whole run.
+ * @param {string} testName
+ */
+function isRunnableTest (testName) {
+    let skipReason;
+    try {
+        skipReason = getSkipReason(path.join(testDir, testName), webpack.version);
+    } catch (err) {
+        console.log('Failing test ' + testName + ' as its test.json is invalid: ' + (err instanceof Error ? err.message : err));
+        failingTests.push(testName);
         return false;
     }
-    return true;
-}
-
-/** Temporarily exclude Babel dependent tests */
-function isNotBabelTest (testName) {
-    var isBabelTest = testName.includes('babel');
-    if (isBabelTest) {
-        console.log('Skipping test ' + testName + ' as it requires babel.  Dropping these tests until babel-loader support for webpack for is in place.');
+    if (skipReason) {
+        console.log('Skipping test ' + testName + ': ' + skipReason);
         return false;
     }
     return true;
 }
 
 function getTestNameFromPath (testNameOrPath) {
-    var tsLoaderPath = path.resolve(__dirname, '../..');
-    var tsLoaderBasename = path.basename(tsLoaderPath);
-    var executionTestsRelativeRoot = path.relative(tsLoaderPath, __dirname);
-    var executionTestsAbsoluteRoot = path.join(tsLoaderPath, executionTestsRelativeRoot);
+    const tsLoaderPath = path.resolve(__dirname, '../..');
+    const tsLoaderBasename = path.basename(tsLoaderPath);
+    const executionTestsRelativeRoot = path.relative(tsLoaderPath, __dirname);
+    const executionTestsAbsoluteRoot = path.join(tsLoaderPath, executionTestsRelativeRoot);
     // It wasn’t a path in execution-tests; assume it was a test name
     if (testNameOrPath.indexOf(path.join(tsLoaderBasename, executionTestsRelativeRoot)) === -1) {
         return testNameOrPath;
     }
-    // E.g. 3.0.1_projectReferences/lib/index.ts
-    var testPathRelativeToExecutionTests = path.relative(executionTestsAbsoluteRoot, testNameOrPath);
+    // E.g. projectReferences/lib/index.ts
+    const testPathRelativeToExecutionTests = path.relative(executionTestsAbsoluteRoot, testNameOrPath);
     return testPathRelativeToExecutionTests.split(path.sep)[0];
 }
 
+/** @param {string} testName a test folder's name (not a path) */
 function runTests(testName) {
-    testName = getTestNameFromPath(testName);
     console.log('\n-------------------------------------------------------------------------\n');
     console.log('RUNNING THIS TEST SUITE: ' + testName +'\n\n');
 
-    var testPath = path.join(testDir, testName);
+    const testPath = path.join(testDir, testName);
 
     if (!pathExists(testPath)) {
         console.log('TEST DOES NOT EXIST AT THIS LOCATION: ' + testPath);
@@ -138,8 +118,8 @@ function runTests(testName) {
         return;
     }
 
-    var karmaConfPath = path.join(testPath, 'karma.conf.js');
-    var debug = process.argv.indexOf('--debug') > -1;
+    const hasSpecs = pathExists(path.join(testPath, 'main.js'));
+    const debug = process.argv.indexOf('--debug') > -1;
 
     if (pathExists(path.join(testPath, 'pnpm-lock.yaml'))) {
         console.log('npm install -g pnpm into ' + testPath);
@@ -154,22 +134,17 @@ function runTests(testName) {
     }
 
     try {
-        if (pathExists(karmaConfPath)) {
-            var karmaPath = path.resolve(__dirname, '../../node_modules/karma/bin/karma');
-            var singleRunOrWatch = watch ? '' : ' --single-run';
-            var program = debug ? 'node --inspect-brk=5858 ' + karmaPath : 'karma';
-            execSync(program + ' start --reporters mocha' + singleRunOrWatch + ' --browsers ChromeHeadlessNoSandbox', { cwd: testPath, stdio: 'inherit' });
-
-            passingTests.push(testName);
+        const nodeArgs = debug ? ['--inspect-brk=5858'] : [];
+        if (hasSpecs) {
+            const watchArgs = watch ? ['--watch'] : [];
+            execFileSync(process.execPath, nodeArgs.concat(path.join(__dirname, 'run-specs.js'), watchArgs), { cwd: testPath, stdio: 'inherit' });
         } else {
             console.log('running webpack compilation');
-            var webpackPath = path.resolve(__dirname, '../../node_modules/webpack/bin/webpack.js');
-            var program = debug ? 'node --inspect-brk=5858 ' + webpackPath : 'webpack';
-            execSync(`${program} --bail`, { cwd: testPath, stdio: 'inherit' });
-            passingTests.push(testName);
+            execFileSync(process.execPath, nodeArgs.concat(path.join(__dirname, 'run-webpack.js')), { cwd: testPath, stdio: 'inherit' });
         }
+        passingTests.push(testName);
     }
-    catch (err) {
+    catch (_err) {
         failingTests.push(testName);
     }
 }

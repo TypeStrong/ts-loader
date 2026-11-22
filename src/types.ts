@@ -48,6 +48,8 @@ export interface LoaderOptions {
   instance: string;
   compiler: string;
   configFile: string;
+  context?: string;
+  compilerOptions?: Record<string, unknown>;
   transpileOnly: boolean;
   ignoreDiagnostics: number[];
   reportFiles: string[];
@@ -102,13 +104,42 @@ export interface SyntheticProgram {
   configuration: string;
 }
 
+export interface ConfigOverrides {
+  compilerOptions: Record<string, unknown>;
+  context?: string;
+}
+
+interface ProjectDirectories {
+  /** The file list the check was last set up for. */
+  fileNames: readonly string[];
+  /** `undefined` where the directories can't be watched - see addDirectoryTree. */
+  modifiedTimes: Map<string, number> | undefined;
+  /** webpack's output directory, when it's left out of the walk. */
+  skippedDirectory: string | undefined;
+  /** A walk has failed; kept for the life of the instance. */
+  unwatchable: boolean;
+}
+
 export interface TypeScriptInstance {
   api: API;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
+  /**
+   * The `compilerOptions`/`context` loader options, when either is set, or
+   * when `resolveModuleName` is. The project the API opens from
+   * tsconfig.json can't take them, so every file is then compiled in the
+   * synthetic program - see getOverriddenConfig.
+   */
+  configOverrides?: ConfigOverrides;
+  /** Parsed with `configOverrides` applied; cleared before each build. */
+  overriddenConfig?: ParsedCommandLine;
+  useCaseSensitiveFileNames: boolean;
+  /** webpack's `output.path` - see haveProjectDirectoriesChanged. */
+  outputPath: string | undefined;
   transpileConfig?: ParsedCommandLine;
   transpileConfigDiagnostics?: readonly Diagnostic[];
-  transpileConfigDiagnosticsReported?: boolean;
+  /** The primary project's config files, as last read - see updateSnapshot. */
+  configFileNames?: readonly string[];
   /**
    * The current snapshot, refreshed by updateSnapshot and layered onto per
    * file by layerFileContents.
@@ -141,6 +172,11 @@ export interface TypeScriptInstance {
    * kept across builds and pruned by updateSnapshot.
    */
   directImportsCache: Map<FilePath, readonly string[]>;
+  /**
+   * The directories new project files could appear in, with their modified
+   * times as last seen - see haveProjectDirectoriesChanged.
+   */
+  projectDirectories?: ProjectDirectories;
   /** Keyed by project (primary or orphan program) - see getProjectFileNames. */
   projectFileNamesCache: Map<
     FilePath,
@@ -163,6 +199,9 @@ export interface TypeScriptInstance {
   customResolveModuleName?: CustomResolveModuleName;
   /** See getCustomModuleResolver. */
   customModuleResolver?: { resolver: ModuleResolver; configuration: string };
+  /** What `programErrors` was read from - see recordProgramDiagnostics. */
+  programErrorsSource?: Snapshot | ParsedCommandLine;
+  programErrors?: webpack.WebpackError[];
 }
 
 interface PendingTypeScriptDiagnostics {
@@ -170,7 +209,7 @@ interface PendingTypeScriptDiagnostics {
   errors: webpack.WebpackError[];
 }
 
-export interface PendingDeclarationFile {
+interface PendingDeclarationFile {
   fileName: string;
   text: string;
 }
@@ -188,4 +227,6 @@ export interface TSInstance {
   typeScriptApiInstance: TypeScriptInstance;
   pendingDiagnostics: Map<FilePath, PendingTypeScriptDiagnostics>;
   pendingDeclarationFiles: Map<FilePath, PendingDeclarationFile[]>;
+  /** The compiler options `pendingDeclarationFiles` was emitted with, serialized. */
+  declarationOptions?: string;
 }

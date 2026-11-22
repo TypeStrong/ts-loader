@@ -1,0 +1,3 @@
+{
+  "skip": "noLib is a very niche use case, and not worth supporting on the TypeScript 7 API"
+}

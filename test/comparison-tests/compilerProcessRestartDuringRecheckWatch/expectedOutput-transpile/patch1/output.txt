@@ -1,0 +1,13 @@
+asset bundle.js 3.85 KiB [emitted] (name: main)
+cached modules 712 bytes [cached] 4 modules
+./other.ts 120 bytes [built] [code generated] [1 warning]
+
+WARNING in ./other.ts
+Module Warning (from ../../index.js):
+The TypeScript compiler process stopped unexpectedly and was restarted.
+ @ ./app.ts 5:16-34
+
+1 warning has detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack compiled with 1 warning

@@ -62,15 +62,15 @@ export function reportPendingTypeScriptDiagnostics(
     return;
   }
 
-  removeCompilationTSLoaderErrors(compilation, instance.loaderOptions);
-
   const modulesByFile = determineModulesByFile(compilation, instance);
 
-  for (const { fileName, errors } of instance.pendingDiagnostics.values()) {
-    if (errors.length === 0) {
-      continue;
-    }
+  // transpileOnly reports a file's errors on its module straight away, and
+  // only the config's errors arrive here; there is nothing to replace.
+  if (!instance.loaderOptions.transpileOnly) {
+    removeCompilationTSLoaderErrors(compilation, instance);
+  }
 
+  for (const { fileName, errors } of instance.pendingDiagnostics.values()) {
     const associatedModules = modulesByFile.get(
       instance.resolvedFilePathCache(fileName),
     );
@@ -81,7 +81,10 @@ export function reportPendingTypeScriptDiagnostics(
     }
 
     associatedModules.forEach(module => {
-      removeModuleTSLoaderError(module, instance.loaderOptions);
+      // Also with no errors to report: the module may hold ones since fixed.
+      if (moduleHasTSLoaderErrors(module, instance.loaderOptions)) {
+        removeModuleTSLoaderError(module, instance.loaderOptions);
+      }
 
       if (!moduleHasWebpackErrors(module)) {
         errors.forEach(error => addErrorToModule(module, error));
@@ -230,7 +233,7 @@ export function buildTypeScriptError(
     code: diagnostic.code,
     severity: (diagnosticCategoryNames[diagnostic.category] ??
       'error') as Severity,
-    content: diagnostic.text,
+    content: flattenDiagnosticMessageText(diagnostic),
     file: diagnosticFile,
     line: start === undefined ? 0 : start.line,
     character: start === undefined ? 0 : start.character,
@@ -290,14 +293,71 @@ export function determineModulesByFile(
   return modulesByFile;
 }
 
+/**
+ * Removes the errors `pendingDiagnostics` is about to report again. An error
+ * stays if its module has no entry there and wasn't built: webpack restored
+ * the module from its persistent cache, and the error with it, so nothing
+ * else reports it.
+ */
 function removeCompilationTSLoaderErrors(
   compilation: webpack.Compilation,
+  instance: TSInstance,
+) {
+  compilation.errors = compilation.errors.filter(error => {
+    const webpackError = error as webpack.WebpackError;
+    if (!isTSLoaderModuleError(webpackError, instance.loaderOptions)) {
+      return true;
+    }
+    const module = webpackError.module as webpack.NormalModule | undefined;
+    return (
+      !!module?.resource &&
+      !wasModuleBuilt(compilation, module) &&
+      !instance.pendingDiagnostics.has(
+        instance.resolvedFilePathCache(module.resource),
+      )
+    );
+  });
+}
+
+/**
+ * Whether webpack took the module from its cache, not built it in this
+ * compilation, and this ts-loader instance is the one that compiled it. A
+ * module cached before `tsLoaderInstance` was recorded is only recognised by
+ * the errors it holds.
+ */
+export function isRestoredModuleOfInstance(
+  compilation: webpack.Compilation,
+  module: webpack.Module,
   loaderOptions: LoaderOptions,
 ) {
-  compilation.errors = compilation.errors.filter(
-    error =>
-      !isTSLoaderModuleError(error as webpack.WebpackError, loaderOptions),
+  return (
+    !wasModuleBuilt(compilation, module) &&
+    (module.buildInfo?.tsLoaderInstance === loaderOptions.instance ||
+      moduleHasTSLoaderErrors(module, loaderOptions))
   );
+}
+
+/** Always true on webpack 4, which has no persistent cache to restore from. */
+function wasModuleBuilt(
+  compilation: webpack.Compilation,
+  module: webpack.Module,
+) {
+  return !isWebpack5 || compilation.builtModules.has(module);
+}
+
+function moduleHasTSLoaderErrors(
+  module: webpack.Module,
+  loaderOptions: LoaderOptions,
+) {
+  const errors: Iterable<webpack.WebpackError> = isWebpack5
+    ? (module.getErrors() ?? [])
+    : ((module as unknown as { errors?: webpack.WebpackError[] }).errors ?? []);
+  for (const error of errors) {
+    if (isTSLoaderModuleError(error, loaderOptions)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function removeModuleTSLoaderError(
@@ -357,6 +417,24 @@ function defaultErrorFormatter(error: ErrorInfo, colors: Colors) {
     constants.EOL +
     messageColor(`      TS${error.code}: ${error.content}`)
   );
+}
+
+/**
+ * The API keeps a message's elaboration in `messageChain`, not in `text`.
+ * Same layout as classic's `flattenDiagnosticMessageText`.
+ */
+function flattenDiagnosticMessageText(
+  diagnostic: Diagnostic,
+  indent = 0,
+): string {
+  let result =
+    indent === 0
+      ? diagnostic.text
+      : constants.EOL + '  '.repeat(indent) + diagnostic.text;
+  for (const chained of diagnostic.messageChain ?? []) {
+    result += flattenDiagnosticMessageText(chained, indent + 1);
+  }
+  return result;
 }
 
 export function dedupeDiagnostics(diagnostics: readonly Diagnostic[]) {

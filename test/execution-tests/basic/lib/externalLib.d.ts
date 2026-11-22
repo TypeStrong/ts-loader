@@ -1,4 +1,4 @@
-declare module externalLib {
+declare namespace externalLib {
   export function doSomething(arg: any): void;
 }
 

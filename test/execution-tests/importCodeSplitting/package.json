@@ -1,0 +1,9 @@
+{
+  "name": "import-code-splitting",
+  "license": "MIT",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "tslib": "^1.9.0"
+  }
+}

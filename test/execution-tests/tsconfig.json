@@ -1,0 +1,4 @@
+{
+  "extends": "../tsconfig.base.json",
+  "files": ["../run-tests.js", "run-tests.js", "run-specs.js", "run-webpack.js"]
+}

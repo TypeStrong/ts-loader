@@ -1,1 +1,2 @@
-export default 'c';
+const c = 'c';
+export default c;

@@ -1,8 +1,8 @@
-This test shows how to do simple code splitting with TypeScript and webpack.
+This test shows code splitting with TypeScript, Babel and webpack, both ways webpack supports:
 
-See the comments in `app.ts` for a quick overview of the process.
+- the dynamic `import()` syntax (`test/app.tests.ts`), which needs `"module": "esnext"` so TypeScript leaves `import()` for webpack
+- webpack's own `require.ensure` (`test/requireEnsure.tests.ts`)
 
-More information can be found at these sites:
-- https://www.typescriptlang.org/docs/handbook/modules.html#dynamic-module-loading-in-nodejs
+More information:
 - https://webpack.js.org/guides/code-splitting/
-- https://github.com/webpack/webpack/tree/master/examples/code-splitting
+- https://github.com/tc39/proposal-dynamic-import

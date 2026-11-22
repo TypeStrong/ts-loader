@@ -1,0 +1,4 @@
+asset bundle.js 3.47 KiB [emitted] (name: main)
+cached modules 981 bytes [cached] 1 module
+./dep.ts 121 bytes [built] [code generated]
+webpack compiled successfully

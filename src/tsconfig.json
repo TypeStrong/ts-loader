@@ -7,11 +7,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
-    "module": "commonjs",
-    "moduleResolution": "bundler",
+    "module": "node20",
     "declaration": true,
     "outDir": "../dist",
-    "declarationDir": "../dist",
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true

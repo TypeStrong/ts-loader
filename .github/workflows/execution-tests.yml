@@ -28,7 +28,7 @@ jobs:
 
       - name: install webpack 4
         if: matrix.webpack == 4
-        run: npm install -D webpack@^4.47.0 karma-webpack@^4.0.2
+        run: npm install -D webpack@^4.47.0
 
       - name: test
         run: npm run execution-tests
@@ -57,7 +57,7 @@ jobs:
 
       - name: install webpack 4
         if: matrix.webpack == 4
-        run: npm install -D webpack@^4.47.0 karma-webpack@^4.0.2
+        run: npm install -D webpack@^4.47.0
 
       - name: test
         run: npm run execution-tests
@@ -87,7 +87,7 @@ jobs:
 
       - name: install webpack 4
         if: matrix.webpack == 4
-        run: npm install -D webpack@^4.47.0 karma-webpack@^4.0.2
+        run: npm install -D webpack@^4.47.0
         working-directory: C:\source\ts-loader
 
       - name: test

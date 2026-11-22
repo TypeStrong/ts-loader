@@ -1,0 +1,9 @@
+{
+  "name": "allow-js-import-types",
+  "license": "MIT",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "mathutils": "file:../../testPackages/mathutils"
+  }
+}

@@ -12,6 +12,8 @@ import {
   createTypeScriptInstance,
   getTypeScriptEmit,
   recheckAllTransitiveDependants,
+  recordProgramDiagnostics,
+  restartTypeScriptApiIfDead,
 } from './typeScriptApi';
 import type {
   FilePath,
@@ -69,11 +71,21 @@ function successLoader(
   try {
     const options = getLoaderOptions(loaderContext);
     const instance = getTypeScriptInstance(options, loaderContext);
+    // Kept with the module in webpack's persistent cache - see
+    // isRestoredModuleOfInstance.
+    if (loaderContext._module?.buildInfo !== undefined) {
+      loaderContext._module.buildInfo.tsLoaderInstance = options.instance;
+    }
     const rawFilePath = path.normalize(loaderContext.resourcePath);
     const filePath = appendSuffixesIfRequired(rawFilePath, options);
     const fileVersion = updateFileInCache(filePath, contents, instance);
     const { outputText, sourceMapText, configParseErrorMessage } =
-      getTypeScriptEmit(filePath, contents, instance, loaderContext);
+      getTypeScriptEmitRestartingDeadApi(
+        filePath,
+        contents,
+        instance,
+        loaderContext,
+      );
 
     if (configParseErrorMessage !== undefined) {
       return configParseErrorMessage;
@@ -94,6 +106,46 @@ function successLoader(
     callback(error instanceof Error ? error : new Error(String(error)));
   }
   return undefined;
+}
+
+/**
+ * Without this, a `tsgo` process that died (crashed, or was killed) would
+ * fail every build for the rest of a watch session.
+ */
+function getTypeScriptEmitRestartingDeadApi(
+  filePath: string,
+  contents: string,
+  instance: TSInstance,
+  loaderContext: webpack.LoaderContext<LoaderOptions>,
+) {
+  try {
+    return getTypeScriptEmit(filePath, contents, instance, loaderContext);
+  } catch (error) {
+    if (!restartTypeScriptApiIfDead(instance)) {
+      throw error;
+    }
+    loaderContext.emitWarning(
+      withCause(
+        new Error(
+          'The TypeScript compiler process stopped unexpectedly and was restarted.',
+        ),
+        error,
+      ),
+    );
+    // If the file itself is what kills the compiler, this throws again.
+    return getTypeScriptEmit(filePath, contents, instance, loaderContext);
+  }
+}
+
+/**
+ * Puts the underlying error where webpack shows it as the error's details
+ * (`stats.errorDetails`), keeping TypeScript-internal text out of the message.
+ */
+function withCause(error: Error, cause: unknown) {
+  error.stack = `${error.message}\n${
+    cause instanceof Error ? (cause.stack ?? cause.message) : String(cause)
+  }`;
+  return error;
 }
 
 function getTypeScriptInstance(
@@ -144,6 +196,7 @@ function getTypeScriptInstance(
       loaderOptions,
       configFilePath,
       useCaseSensitiveFileNames,
+      loader._compiler?.outputPath,
     ),
     pendingDiagnostics: new Map(),
     pendingDeclarationFiles: new Map(),
@@ -162,6 +215,7 @@ function getTypeScriptInstance(
   // Fires once per build/rebuild: tells the next build's first compile what
   // may be stale (see `pendingInvalidation`/`pendingChangedFiles` in types.ts).
   compiler.hooks.compile.tap('ts-loader', () => {
+    instance.typeScriptApiInstance.overriddenConfig = undefined;
     // `modifiedFiles`/`removedFiles` are undefined on the first build and on
     // webpack 4 - only then is a full rescan needed.
     if (
@@ -222,9 +276,7 @@ function getTypeScriptInstance(
     compiler.hooks.shutdown.tap('ts-loader', disposeTypeScriptApiInstance);
   }
 
-  if (!loaderOptions.transpileOnly) {
-    addPostCompileHooks(loader, instance);
-  }
+  addPostCompileHooks(loader, instance);
 
   setTSInstanceInCache(compiler, loaderOptions.instance, instance);
   log.logInfo(`Using ${loaderOptions.compiler} API with ${configFilePath}`);
@@ -249,7 +301,28 @@ function addPostCompileHooks(
 ) {
   const report = (compilation: webpack.Compilation) => {
     if (!compilation.compiler.isChild()) {
-      recheckAllTransitiveDependants(instance, compilation);
+      // The recheck empties this set before it does any work.
+      const changedFiles = instance.typeScriptApiInstance.changedFilesThisBuild;
+      try {
+        recheckAllTransitiveDependants(instance, compilation);
+        recordProgramDiagnostics(instance, compilation);
+      } catch (error) {
+        if (!restartTypeScriptApiIfDead(instance)) {
+          throw error;
+        }
+        // Still owed: webpack won't rebuild these files' dependants itself,
+        // so the next build's recheck has to cover them.
+        instance.typeScriptApiInstance.changedFilesThisBuild = changedFiles;
+        // A plain Error: webpack 4 has no WebpackError.
+        compilation.errors.push(
+          withCause(
+            new Error(
+              "ts-loader: the TypeScript compiler process stopped unexpectedly during type checking and was restarted, so this build's type errors may be incomplete.",
+            ),
+            error,
+          ) as webpack.WebpackError,
+        );
+      }
       reportPendingTypeScriptDiagnostics(instance, compilation);
       emitPendingDeclarationFiles(instance, compilation);
     }
@@ -364,6 +437,8 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'instance',
   'compiler',
   'configFile',
+  'context',
+  'compilerOptions',
   'transpileOnly',
   'ignoreDiagnostics',
   'errorFormatter',
@@ -394,6 +469,15 @@ Please take a look at the options you are supplying; the following are valid opt
 ${validLoaderOptions.join(' / ')}
 `);
     }
+  }
+
+  if (
+    loaderOptions.context !== undefined &&
+    !path.isAbsolute(loaderOptions.context)
+  ) {
+    throw new Error(
+      `Option 'context' has to be an absolute path. Given '${loaderOptions.context}'.`,
+    );
   }
 }
 

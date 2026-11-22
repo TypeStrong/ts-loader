@@ -12,10 +12,19 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
           cache: npm
 
       - uses: ./.github/actions/build-ts-loader
 
       - name: lint
         run: npm run lint
+
+      - name: type-check comparison test harness
+        run: npm run check:comparison-tests
+
+      - name: type-check execution test harness
+        run: npm run check:execution-tests
+
+      - name: type-check benchmark tests
+        run: npm run check:benchmark-tests

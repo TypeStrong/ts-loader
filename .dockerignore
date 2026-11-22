@@ -1,6 +1,0 @@
-.devcontainer
-.github
-.vscode
-.test
-node_modules
-examples

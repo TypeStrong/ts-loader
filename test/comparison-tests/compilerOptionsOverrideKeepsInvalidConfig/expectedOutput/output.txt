@@ -1,0 +1,10 @@
+asset bundle.js 1.33 KiB [emitted] (name: main)
+./app.ts 123 bytes [built] [code generated]
+
+ERROR in tsconfig.json
+tsconfig.json
+[90m[tsl] [39m[1m[31mERROR[39m[22m
+[1m[31m      TS5069: Option 'mapRoot' cannot be specified without specifying option 'sourceMap' or option 'declarationMap'.[39m[22m
+ts-loader-default_bb524548f3678555
+
+webpack compiled with 1 error

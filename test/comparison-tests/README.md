@@ -26,7 +26,7 @@ module.exports = {
 
 ```
 
-You can run all the tests in the Comparison Test Pack with `npm run comparison-tests`. You can also go into an individual test directory and manually build a project using `webpack` or `webpack --watch`. This can be useful both when developing the test and also when fixing an issue or adding a feature.
+You can run all the tests in the Comparison Test Pack with `npm run comparison-tests`. You can also go into an individual test directory and manually build a project using `npx webpack-cli` or `npx webpack-cli --watch` (webpack-cli is no longer a devDependency, so `npx` fetches it). This can be useful both when developing the test and also when fixing an issue or adding a feature.
 
 Each test should have an `expectedOutput` directory which contains any webpack filesystem output (typically `bundle.js` and possibly `bundle.js.map`) and any console output. stdout should go in `output.txt` and stderr should go in `err.txt`.
 
@@ -73,6 +73,20 @@ patch0 is applied:
 - test/someFeature/expectedOutput/patch0/output.txt - *output after applying patch*
 
 A patch can also delete a file: an empty file named `<file>.__deleted__` (e.g. `patch0/dep.ts.__deleted__`) deletes `<file>` when that patch is applied. See `deletedFileWatch` for an example.
+
+By default the patches are built by the same compiler, watching, as rebuilds. With `"newCompilerPerPatch": true` in the test's `test.json`, each patch is built by a new compiler instead, as a new process would build it: nothing is kept from the build before but what webpack wrote to its persistent cache. See `persistentCacheErrors` for an example.
+
+## Skipped tests
+
+To skip a test, add a `test.json` file to its directory with the reason, which is printed when the test is skipped:
+
+```json
+{
+  "skip": "the TypeScript 7 API does not yet support custom transformers (getCustomTransformers)"
+}
+```
+
+A `"minWebpack": 5` field skips the test on older webpack instead. These are the same rules the execution tests use (see [`test/testConfig.js`](../testConfig.js)), and `--single-test` applies them too. An invalid `test.json` fails that test.
 
 ## Flaky tests
 

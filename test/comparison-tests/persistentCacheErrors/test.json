@@ -1,0 +1,4 @@
+{
+  "minWebpack": 5,
+  "newCompilerPerPatch": true
+}
