@@ -207,8 +207,11 @@ export interface TypeScriptInstance {
    */
   watcherChangedFiles: Set<string> | undefined;
   customResolveModuleName?: CustomResolveModuleName;
-  /** By import (name and directory) - see recordResolveModuleNameErrors. */
-  resolveModuleNameErrors: Map<string, string>;
+  /** By import (mode, name and directory) - see recordResolveModuleNameErrors. */
+  resolveModuleNameErrors: Map<
+    string,
+    { moduleName: string; containingDirectory: string; message: string }
+  >;
   /**
    * What the `resolveModuleName` option gave for each import (mode, name and
    * directory) in this build; cleared before each build, as files can come
