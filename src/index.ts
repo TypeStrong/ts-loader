@@ -13,6 +13,7 @@ import {
   getTypeScriptEmit,
   recheckAllTransitiveDependants,
   recordProgramDiagnostics,
+  recordResolveModuleNameErrors,
   restartTypeScriptApiIfDead,
 } from './typeScriptApi';
 import type {
@@ -21,6 +22,7 @@ import type {
   LoaderOptionsCache,
   LogLevel,
   ResolvedFilePathCache,
+  ResolveModuleNameContext as LoaderResolveModuleNameContext,
   TSFile,
   TSInstance,
 } from './types';
@@ -323,6 +325,7 @@ function addPostCompileHooks(
           ) as webpack.WebpackError,
         );
       }
+      recordResolveModuleNameErrors(instance, compilation);
       reportPendingTypeScriptDiagnostics(instance, compilation);
       emitPendingDeclarationFiles(instance, compilation);
     }
@@ -747,4 +750,5 @@ export = loader;
 namespace loader {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface Options extends LoaderOptions {}
+  export type ResolveModuleNameContext = LoaderResolveModuleNameContext;
 }

@@ -13,6 +13,7 @@ import type {
   ParsedCommandLine,
   Program,
   Snapshot,
+  StaticModuleResolution,
   SyntheticProjectId,
 } from 'typescript/sync';
 import type { StringLiteralLikeNode } from 'typescript/ast';
@@ -68,6 +69,7 @@ export function createTypeScriptInstance(
     changedFilesThisBuild: new Set(),
     watcherChangedFiles: undefined,
     customResolveModuleName: loaderOptions.resolveModuleName,
+    resolveModuleNameErrors: new Map(),
   };
 }
 
@@ -1397,13 +1399,40 @@ function getCustomModuleResolver(
           resolutionMode,
           { snapshot: options.snapshot },
         ).resolvedModule;
-      // From the API's callback, nothing means "unresolved".
-      const resolvedModule =
-        customResolveModuleName(moduleName, containingDirectory, {
-          resolutionMode,
-          compilerOptions,
-          resolveDefault,
-        }) ?? resolveDefault();
+      // An error thrown out of the callback takes the compiler process
+      // with it, so it's caught and reported at the end of the build.
+      const request = `${moduleName}\0${containingDirectory}`;
+      let resolvedModule: StaticModuleResolution | undefined;
+      try {
+        const result: unknown = customResolveModuleName(
+          moduleName,
+          containingDirectory,
+          { resolutionMode, compilerOptions, resolveDefault },
+        );
+        const problem = describeInvalidResolution(result);
+        if (problem === undefined) {
+          resolvedModule = result as StaticModuleResolution | undefined;
+          typeScriptInstance.resolveModuleNameErrors.delete(request);
+        } else {
+          typeScriptInstance.resolveModuleNameErrors.set(
+            request,
+            `resolving '${moduleName}', the 'resolveModuleName' option returned ${problem}`,
+          );
+        }
+      } catch (error) {
+        typeScriptInstance.resolveModuleNameErrors.set(
+          request,
+          `resolving '${moduleName}', the 'resolveModuleName' option threw: ${
+            error instanceof Error ? error.message : String(error)
+          }${
+            // What a ts-loader 9 function does when it calls `parentResolver`.
+            error instanceof TypeError ? `. ${resolveModuleNameSignature}` : ''
+          }`,
+        );
+      }
+      // From the API's callback, nothing means "unresolved", whatever the
+      // resolver's `moduleResolutions.fallback`.
+      resolvedModule ??= resolveDefault();
       return resolvedModule
         ? {
             resolvedFileName: resolvedModule.resolvedFileName,
@@ -1415,6 +1444,44 @@ function getCustomModuleResolver(
   });
   typeScriptInstance.customModuleResolver = { resolver, configuration };
   return resolver;
+}
+
+const resolveModuleNameSignature =
+  "In ts-loader 10 it is called with (moduleName, containingDirectory, context) and returns { resolvedFileName } or undefined; ts-loader 9's signature is no longer supported. See https://github.com/TypeStrong/ts-loader#resolvemodulename";
+
+/** `undefined` for a result the `resolveModuleName` option may return. */
+function describeInvalidResolution(result: unknown): string | undefined {
+  if (result === undefined || result === null) {
+    return undefined;
+  }
+  if (typeof result !== 'object') {
+    return `a ${typeof result}, not an object with a 'resolvedFileName'`;
+  }
+  if ('resolvedModule' in result) {
+    return `an object with a 'resolvedModule', as ts-loader 9 expected. ${resolveModuleNameSignature}`;
+  }
+  return typeof (result as { resolvedFileName?: unknown }).resolvedFileName ===
+    'string'
+    ? undefined
+    : "an object with no 'resolvedFileName' string";
+}
+
+/**
+ * Reports what went wrong in the `resolveModuleName` option. An entry stays
+ * until the same import resolves without one: the API caches resolutions, so
+ * a rebuild may not ask again.
+ */
+export function recordResolveModuleNameErrors(
+  instance: TSInstance,
+  compilation: webpack.Compilation,
+) {
+  for (const message of new Set(
+    instance.typeScriptApiInstance.resolveModuleNameErrors.values(),
+  )) {
+    compilation.errors.push(
+      new Error(`ts-loader: ${message}`) as webpack.WebpackError,
+    );
+  }
 }
 
 /**

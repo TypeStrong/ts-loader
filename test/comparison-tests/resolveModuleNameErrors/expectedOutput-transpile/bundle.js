@@ -7,6 +7,7 @@
  * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
  */
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
 /***/ "./app.ts":
@@ -15,29 +16,37 @@
   \****************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
-"use strict";
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.wrong = exports.def = void 0;\nconst baz_1 = __webpack_require__(/*! baz */ \"./baz-pkg/index.js\");\nconst greeting_1 = __webpack_require__(/*! ./greeting */ \"./greeting.ts\");\nexports.def = (0, baz_1.makeHello)(3, 4);\n// No longer an error once patch0 makes 'hello' a string in foo-pkg, a file\n// TypeScript only reaches through the custom resolver.\nexports.wrong = exports.def.hello;\nconsole.log(greeting_1.greeting, exports.def, exports.wrong);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nconst throws_1 = __webpack_require__(/*! throws */ \"throws\");\nconst legacy_1 = __webpack_require__(/*! legacy */ \"legacy\");\nconst text_1 = __webpack_require__(/*! text */ \"text\");\nconsole.log(throws_1.a, legacy_1.b, text_1.c);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 
-/***/ "./baz-pkg/index.js":
-/*!**************************!*\
-  !*** ./baz-pkg/index.js ***!
-  \**************************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ "legacy":
+/*!*************************!*\
+  !*** external "legacy" ***!
+  \*************************/
+/***/ ((module) => {
 
-eval("{exports.makeHello = function (hello, world) {\n  return { hello: hello, world: world };\n};\n\n\n//# sourceURL=webpack:///./baz-pkg/index.js?\n}");
+module.exports = legacy;
 
 /***/ }),
 
-/***/ "./greeting.ts":
-/*!*********************!*\
-  !*** ./greeting.ts ***!
-  \*********************/
-/***/ ((__unused_webpack_module, exports) => {
+/***/ "text":
+/*!***********************!*\
+  !*** external "text" ***!
+  \***********************/
+/***/ ((module) => {
 
-"use strict";
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.greeting = void 0;\nexports.greeting = 'hello';\n\n\n//# sourceURL=webpack:///./greeting.ts?\n}");
+module.exports = text;
+
+/***/ }),
+
+/***/ "throws":
+/*!*************************!*\
+  !*** external "throws" ***!
+  \*************************/
+/***/ ((module) => {
+
+module.exports = throws;
 
 /***/ })
 
@@ -71,7 +80,7 @@ eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexp
 /******/ 	
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
-/******/ 	// This entry module is referenced by other modules so it can't be inlined
+/******/ 	// This entry module can't be inlined because the eval devtool is used.
 /******/ 	var __webpack_exports__ = __webpack_require__("./app.ts");
 /******/ 	
 /******/ })()

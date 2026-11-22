@@ -16,7 +16,7 @@
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
-eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.wrong = exports.def = void 0;\nconst baz_1 = __webpack_require__(/*! baz */ \"./baz-pkg/index.js\");\nconst greeting_1 = __webpack_require__(/*! ./greeting */ \"./greeting.ts\");\nexports.def = (0, baz_1.makeHello)(3, 4);\n// No longer an error once patch0 makes 'hello' a string in foo-pkg, a file\n// TypeScript only reaches through the custom resolver.\nexports.wrong = exports.def.hello;\nconsole.log(greeting_1.greeting, exports.def, exports.wrong);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
+eval("{\nObject.defineProperty(exports, \"__esModule\", ({ value: true }));\nexports.wrong = exports.def = void 0;\nconst baz_1 = __webpack_require__(/*! baz */ \"./baz-pkg/index.js\");\nconst greeting_1 = __webpack_require__(/*! ./greeting */ \"./greeting.ts\");\nexports.def = (0, baz_1.makeHello)(1, 2);\n// Deliberate type error: only reported this way if 'baz' and 'foo' resolved\n// through the custom resolver - otherwise it's a TS2307 \"Cannot find module\".\nexports.wrong = exports.def.hello;\nconsole.log(greeting_1.greeting, exports.def, exports.wrong);\n\n\n//# sourceURL=webpack:///./app.ts?\n}");
 
 /***/ }),
 

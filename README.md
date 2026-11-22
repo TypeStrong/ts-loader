@@ -503,6 +503,8 @@ options: {
 
 The signature changed in v10. v9 called the function with `(moduleName, containingFile, compilerOptions, compilerHost, parentResolver)`; TypeScript's native API says which directory an import is in, not which file, and has no compiler host. ts-loader reports an error if the function takes more than three parameters.
 
+If the function throws, or returns something other than an object with a `resolvedFileName` (or `undefined`), ts-loader reports an error that names the option and resolves that import as TypeScript would. In a TypeScript webpack config, the type of `context` is `loader.ResolveModuleNameContext`, with `loader` being the default import of `ts-loader`.
+
 ### Options with no effect in v10
 
 These v9 options are still accepted so existing configs keep working, but they currently do nothing:

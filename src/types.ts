@@ -68,7 +68,7 @@ export interface LoaderOptions {
   useCaseSensitiveFileNames?: boolean;
 }
 
-interface ResolveModuleNameContext {
+export interface ResolveModuleNameContext {
   /** Whether the import is resolved as ESM or CommonJS, where that matters. */
   resolutionMode: ResolutionMode | undefined;
   compilerOptions: CompilerOptions;
@@ -207,6 +207,8 @@ export interface TypeScriptInstance {
    */
   watcherChangedFiles: Set<string> | undefined;
   customResolveModuleName?: CustomResolveModuleName;
+  /** By import (name and directory) - see recordResolveModuleNameErrors. */
+  resolveModuleNameErrors: Map<string, string>;
   /** See getCustomModuleResolver. */
   customModuleResolver?: { resolver: ModuleResolver; configuration: string };
   /** What `programErrors` was read from - see recordProgramDiagnostics. */

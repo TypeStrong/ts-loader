@@ -1,0 +1,6 @@
+asset bundle.js 2.9 KiB [emitted] (name: main)
+./app.ts 228 bytes [built] [code generated]
+external "throws" 42 bytes [built] [code generated]
+external "legacy" 42 bytes [built] [code generated]
+external "text" 42 bytes [built] [code generated]
+webpack compiled successfully

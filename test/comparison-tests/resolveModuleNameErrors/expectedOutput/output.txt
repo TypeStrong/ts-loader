@@ -1,0 +1,31 @@
+asset bundle.js 2.9 KiB [emitted] (name: main)
+./app.ts 228 bytes [built] [code generated] [3 errors]
+external "throws" 42 bytes [built] [code generated]
+external "legacy" 42 bytes [built] [code generated]
+external "text" 42 bytes [built] [code generated]
+
+ERROR in ts-loader: resolving 'throws', the 'resolveModuleName' option threw: boom from the resolver
+
+ERROR in ts-loader: resolving 'legacy', the 'resolveModuleName' option returned an object with a 'resolvedModule', as ts-loader 9 expected. In ts-loader 10 it is called with (moduleName, containingDirectory, context) and returns { resolvedFileName } or undefined; ts-loader 9's signature is no longer supported. See https://github.com/TypeStrong/ts-loader#resolvemodulename
+
+ERROR in ts-loader: resolving 'text', the 'resolveModuleName' option returned a string, not an object with a 'resolvedFileName'
+
+ERROR in app.ts
+./app.ts 1:18-26
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,19)[39m[22m
+[1m[31m      TS2307: Cannot find module 'throws' or its corresponding type declarations.[39m[22m
+
+ERROR in app.ts
+./app.ts 2:18-26
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(2,19)[39m[22m
+[1m[31m      TS2307: Cannot find module 'legacy' or its corresponding type declarations.[39m[22m
+
+ERROR in app.ts
+./app.ts 3:18-24
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,19)[39m[22m
+[1m[31m      TS2307: Cannot find module 'text' or its corresponding type declarations.[39m[22m
+
+3 errors have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack compiled with 6 errors
