@@ -478,17 +478,30 @@ See also: [microsoft/TypeScript#12358](https://github.com/Microsoft/TypeScript/i
 
 #### resolveModuleName
 
-| Type                                                                                                                                                                                                                                       | Default Value |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
-| `(moduleName: string, containingFile: string, compilerOptions: CompilerOptions, compilerHost: undefined, parentResolver: (moduleName: string, containingFile: string) => ResolveModuleNameResult) => ResolveModuleNameResult \| undefined` | `undefined`   |
+| Type                                                                                                                                                                              | Default Value |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `(moduleName: string, containingDirectory: string, context: ResolveModuleNameContext) => { resolvedFileName: string; originalPath?: string; packageId?: PackageId } \| undefined` | `undefined`   |
 
-A function that resolves the modules TypeScript imports, for projects where TypeScript's own resolution isn't enough. Call `parentResolver` for TypeScript's default resolution; returning `undefined` leaves the module unresolved. It has no effect with `transpileOnly`, which resolves nothing.
+A function that resolves the modules TypeScript imports, for projects where TypeScript's own resolution isn't enough. Return the file a module resolves to, or `undefined` to leave it to TypeScript's own resolution. It has no effect with `transpileOnly`, which resolves nothing.
 
-It differs from v9 in these ways:
+```javascript
+options: {
+  resolveModuleName: (moduleName, containingDirectory, context) => {
+    if (moduleName === 'foo') {
+      // resolve 'foo' as TypeScript would resolve this path
+      return context.resolveDefault(path.join(__dirname, 'packages/foo'));
+    }
+  },
+}
+```
 
-- `containingFile` is a placeholder file name in the importing file's directory. TypeScript's native API says which directory an import is in, not which file. A resolver that uses `path.dirname(containingFile)` works; one that looks at the file's name doesn't.
-- `compilerHost` is `undefined`.
-- Of the result, only `resolvedFileName`, `originalPath` and `packageId` are used.
+`context` has:
+
+- `resolveDefault(moduleName?, containingDirectory?)` - TypeScript's own resolution. Both arguments default to the ones being resolved.
+- `resolutionMode` - whether the import is resolved as ESM or CommonJS, where that matters.
+- `compilerOptions` - the compiler options in use.
+
+The signature changed in v10. v9 called the function with `(moduleName, containingFile, compilerOptions, compilerHost, parentResolver)`; TypeScript's native API says which directory an import is in, not which file, and has no compiler host. ts-loader reports an error if the function takes more than three parameters.
 
 ### Options with no effect in v10
 

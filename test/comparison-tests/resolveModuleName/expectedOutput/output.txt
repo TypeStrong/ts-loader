@@ -7,6 +7,6 @@ ERROR in app.ts
 ./app.ts 9:13-18
 [90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(9,14)[39m[22m
 [1m[31m      TS2322: Type 'number' is not assignable to type 'string'.[39m[22m
-ts-loader-default_eeec513dbe97e166
+ts-loader-default_234df123486ca03c
 
 webpack compiled with 1 error

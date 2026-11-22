@@ -13,12 +13,11 @@ module.exports = {
     module: {
         rules: [
             { test: /\.ts$/, loader: 'ts-loader', options: {
-                resolveModuleName: (moduleName, containingFile, compilerOptions, compilerHost, parentResolver) => {
+                resolveModuleName: (moduleName, containingDirectory, context) => {
                     switch (moduleName) {
-                        case 'foo': return parentResolver(path.join(__dirname, 'foo-pkg'), containingFile, compilerOptions, compilerHost);
-                        case 'bar': return parentResolver(path.join(__dirname, 'bar-pkg'), containingFile, compilerOptions, compilerHost);
-                        case 'baz': return parentResolver(path.join(__dirname, 'baz-pkg'), containingFile, compilerOptions, compilerHost);
-                        default: return parentResolver(moduleName, containingFile, compilerOptions, compilerHost);
+                        case 'foo': return context.resolveDefault(path.join(__dirname, 'foo-pkg'));
+                        case 'bar': return context.resolveDefault(path.join(__dirname, 'bar-pkg'));
+                        case 'baz': return context.resolveDefault(path.join(__dirname, 'baz-pkg'));
                     }
                 },
             } }

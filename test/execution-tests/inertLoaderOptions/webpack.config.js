@@ -17,8 +17,8 @@ module.exports = {
                 options: {
                     // Each defers to TypeScript's own behaviour, so the build works
                     // whether or not ts-loader uses them
-                    resolveModuleName: (moduleName, containingFile, compilerOptions, compilerHost, parentResolver) =>
-                        parentResolver(moduleName, containingFile, compilerOptions, compilerHost),
+                    resolveModuleName: (moduleName, containingDirectory, context) =>
+                        context.resolveDefault(),
                     resolveTypeReferenceDirective: (typeDirectiveName, containingFile, compilerOptions, compilerHost, parentResolver) =>
                         parentResolver(typeDirectiveName, containingFile, compilerOptions, compilerHost),
                     getCustomTransformers: () => ({ before: [], after: [] }),

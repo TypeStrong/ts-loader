@@ -30,7 +30,6 @@ import {
 import type {
   ConfigOverrides,
   LoaderOptions,
-  ParentModuleResolver,
   SyntheticProgram,
   TypeScriptInstance,
   TSInstance,
@@ -1356,11 +1355,11 @@ function serializeOrphanProgramParams(
 }
 
 /**
- * Adapts the `resolveModuleName` loader option (classic ts-loader's
- * signature) to the API's resolver callback. Only synthetic programs accept
- * a resolver, so with this option set every file compiles in the orphan
- * program (see prepareSnapshotForFile). Recreated when compiler options
- * change, since the default resolution behind `parentResolver` depends on them.
+ * Adapts the `resolveModuleName` loader option to the API's resolver
+ * callback. Only synthetic programs accept a resolver, so with this option
+ * set every file compiles in the orphan program (see getConfigOverrides).
+ * Recreated when compiler options change, since the default resolution
+ * behind `resolveDefault` depends on them.
  */
 function getCustomModuleResolver(
   typeScriptInstance: TypeScriptInstance,
@@ -1388,28 +1387,23 @@ function getCustomModuleResolver(
       resolutionMode,
       options,
     ) {
-      const parentResolver: ParentModuleResolver = (
-        parentModuleName,
-        containingFile,
+      const resolveDefault = (
+        defaultModuleName = moduleName,
+        defaultContainingDirectory = containingDirectory,
       ) =>
         defaultResolver.resolveModuleName(
-          parentModuleName,
-          path.dirname(containingFile),
+          defaultModuleName,
+          defaultContainingDirectory,
           resolutionMode,
           { snapshot: options.snapshot },
-        );
-      // The API only says which directory the import is in, not which file.
-      const containingFile = path.join(
-        containingDirectory,
-        constants.unknownContainingFileName,
-      );
-      const resolvedModule = customResolveModuleName(
-        moduleName,
-        containingFile,
-        compilerOptions,
-        undefined,
-        parentResolver,
-      )?.resolvedModule;
+        ).resolvedModule;
+      // From the API's callback, nothing means "unresolved".
+      const resolvedModule =
+        customResolveModuleName(moduleName, containingDirectory, {
+          resolutionMode,
+          compilerOptions,
+          resolveDefault,
+        }) ?? resolveDefault();
       return resolvedModule
         ? {
             resolvedFileName: resolvedModule.resolvedFileName,

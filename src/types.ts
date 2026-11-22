@@ -5,8 +5,10 @@ import type {
   Diagnostic,
   ModuleResolver,
   ParsedCommandLine,
-  ResolveModuleNameResult,
+  ResolutionMode,
+  ResolvedModule,
   Snapshot,
+  StaticModuleResolution,
   SyntheticProjectId,
 } from 'typescript/sync';
 import type * as webpack from 'webpack';
@@ -66,23 +68,31 @@ export interface LoaderOptions {
   useCaseSensitiveFileNames?: boolean;
 }
 
-export interface ParentModuleResolver {
-  (moduleName: string, containingFile: string): ResolveModuleNameResult;
+interface ResolveModuleNameContext {
+  /** Whether the import is resolved as ESM or CommonJS, where that matters. */
+  resolutionMode: ResolutionMode | undefined;
+  compilerOptions: CompilerOptions;
+  /**
+   * TypeScript's own resolution; `moduleName` and `containingDirectory`
+   * default to the ones being resolved.
+   */
+  resolveDefault(
+    moduleName?: string,
+    containingDirectory?: string,
+  ): ResolvedModule | undefined;
 }
 
 /**
- * Classic ts-loader's signature. `containingFile` is a placeholder in the
- * right directory (the API doesn't say which file is importing), and there's
- * no `compilerHost`.
+ * Not classic ts-loader's signature: the API says which directory an import
+ * is in, not which file, and has no compiler host. Returning `undefined`
+ * leaves the module to TypeScript's own resolution.
  */
 interface CustomResolveModuleName {
   (
     moduleName: string,
-    containingFile: string,
-    compilerOptions: CompilerOptions,
-    compilerHost: undefined,
-    parentResolver: ParentModuleResolver,
-  ): ResolveModuleNameResult | undefined;
+    containingDirectory: string,
+    context: ResolveModuleNameContext,
+  ): StaticModuleResolution | undefined;
 }
 
 export interface LoaderOptionsCache {

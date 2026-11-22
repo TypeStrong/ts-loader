@@ -471,6 +471,17 @@ ${validLoaderOptions.join(' / ')}
     }
   }
 
+  // v9 called it with (moduleName, containingFile, compilerOptions,
+  // compilerHost, parentResolver); such a function would run, and misresolve.
+  if (
+    typeof loaderOptions.resolveModuleName === 'function' &&
+    loaderOptions.resolveModuleName.length > 3
+  ) {
+    throw new Error(
+      `The 'resolveModuleName' option has a new signature in ts-loader 10: (moduleName, containingDirectory, context). The function supplied takes ${loaderOptions.resolveModuleName.length} parameters, as ts-loader 9's did. See https://github.com/TypeStrong/ts-loader#resolvemodulename`,
+    );
+  }
+
   if (
     loaderOptions.context !== undefined &&
     !path.isAbsolute(loaderOptions.context)

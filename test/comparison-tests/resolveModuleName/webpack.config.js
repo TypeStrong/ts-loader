@@ -15,12 +15,11 @@ module.exports = {
             {
                 test: /\.ts$/, loader: 'ts-loader', options: {
                     // 'foo' and 'baz' are only resolvable by TypeScript via this;
-                    // everything else falls through to the default resolution.
-                    resolveModuleName: (moduleName, containingFile, compilerOptions, compilerHost, parentResolver) => {
+                    // everything else is left to the default resolution.
+                    resolveModuleName: (moduleName, containingDirectory, context) => {
                         switch (moduleName) {
-                            case 'foo': return parentResolver(path.join(__dirname, 'foo-pkg'), containingFile, compilerOptions, compilerHost);
-                            case 'baz': return parentResolver(path.join(__dirname, 'baz-pkg'), containingFile, compilerOptions, compilerHost);
-                            default: return parentResolver(moduleName, containingFile, compilerOptions, compilerHost);
+                            case 'foo': return context.resolveDefault(path.join(__dirname, 'foo-pkg'));
+                            case 'baz': return context.resolveDefault(path.join(__dirname, 'baz-pkg'));
                         }
                     },
                 }
