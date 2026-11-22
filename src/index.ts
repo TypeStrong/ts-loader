@@ -218,6 +218,7 @@ function getTypeScriptInstance(
   // may be stale (see `pendingInvalidation`/`pendingChangedFiles` in types.ts).
   compiler.hooks.compile.tap('ts-loader', () => {
     instance.typeScriptApiInstance.overriddenConfig = undefined;
+    instance.typeScriptApiInstance.resolveModuleNameCache.clear();
     // `modifiedFiles`/`removedFiles` are undefined on the first build and on
     // webpack 4 - only then is a full rescan needed.
     if (

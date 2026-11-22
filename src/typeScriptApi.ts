@@ -70,6 +70,7 @@ export function createTypeScriptInstance(
     watcherChangedFiles: undefined,
     customResolveModuleName: loaderOptions.resolveModuleName,
     resolveModuleNameErrors: new Map(),
+    resolveModuleNameCache: new Map(),
   };
 }
 
@@ -1380,6 +1381,7 @@ function getCustomModuleResolver(
 
   // A resolver replaced here may still back the current snapshot's program,
   // so it isn't disposed; api.close() releases it.
+  typeScriptInstance.resolveModuleNameCache.clear();
   const { api } = typeScriptInstance;
   const defaultResolver = api.createModuleResolver(compilerOptions);
   const resolver = api.createModuleResolver(compilerOptions, {
@@ -1389,6 +1391,12 @@ function getCustomModuleResolver(
       resolutionMode,
       options,
     ) {
+      // The API asks once per import, not once per name and directory.
+      const { resolveModuleNameCache } = typeScriptInstance;
+      const request = `${resolutionMode}\0${moduleName}\0${containingDirectory}`;
+      if (resolveModuleNameCache.has(request)) {
+        return resolveModuleNameCache.get(request);
+      }
       const resolveDefault = (
         defaultModuleName = moduleName,
         defaultContainingDirectory = containingDirectory,
@@ -1401,7 +1409,6 @@ function getCustomModuleResolver(
         ).resolvedModule;
       // An error thrown out of the callback takes the compiler process
       // with it, so it's caught and reported at the end of the build.
-      const request = `${moduleName}\0${containingDirectory}`;
       let resolvedModule: StaticModuleResolution | undefined;
       try {
         const result: unknown = customResolveModuleName(
@@ -1433,13 +1440,13 @@ function getCustomModuleResolver(
       // From the API's callback, nothing means "unresolved", whatever the
       // resolver's `moduleResolutions.fallback`.
       resolvedModule ??= resolveDefault();
-      return resolvedModule
-        ? {
-            resolvedFileName: resolvedModule.resolvedFileName,
-            originalPath: resolvedModule.originalPath,
-            packageId: resolvedModule.packageId,
-          }
-        : undefined;
+      const resolution = resolvedModule && {
+        resolvedFileName: resolvedModule.resolvedFileName,
+        originalPath: resolvedModule.originalPath,
+        packageId: resolvedModule.packageId,
+      };
+      resolveModuleNameCache.set(request, resolution);
+      return resolution;
     },
   });
   typeScriptInstance.customModuleResolver = { resolver, configuration };

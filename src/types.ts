@@ -209,6 +209,12 @@ export interface TypeScriptInstance {
   customResolveModuleName?: CustomResolveModuleName;
   /** By import (name and directory) - see recordResolveModuleNameErrors. */
   resolveModuleNameErrors: Map<string, string>;
+  /**
+   * What the `resolveModuleName` option gave for each import (mode, name and
+   * directory) in this build; cleared before each build, as files can come
+   * and go between them.
+   */
+  resolveModuleNameCache: Map<string, StaticModuleResolution | undefined>;
   /** See getCustomModuleResolver. */
   customModuleResolver?: { resolver: ModuleResolver; configuration: string };
   /** What `programErrors` was read from - see recordProgramDiagnostics. */
