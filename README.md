@@ -92,7 +92,7 @@ Type checking takes longer as your project grows, because TypeScript checks ever
 
 To get both speed and type checking, use `transpileOnly: true` together with [fork-ts-checker-webpack-plugin](https://github.com/TypeStrong/fork-ts-checker-webpack-plugin), which type checks in a separate process.
 
-> **Note:** fork-ts-checker-webpack-plugin may not support TypeScript 7 yet. Check its documentation before relying on it with `ts-loader` v10.
+> **Note:** TypeScript 7 needs fork-ts-checker-webpack-plugin v10, which is currently an alpha (`npm install -D fork-ts-checker-webpack-plugin@alpha`). For a complete working setup, see [examples/fork-ts-checker-webpack-plugin](examples/fork-ts-checker-webpack-plugin/).
 
 ### Sourcemaps
 
