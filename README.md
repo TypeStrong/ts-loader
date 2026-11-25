@@ -476,11 +476,55 @@ By default, `ts-loader` won't compile `.ts` files in `node_modules`. You shouldn
 
 See also: [microsoft/TypeScript#12358](https://github.com/Microsoft/TypeScript/issues/12358).
 
+#### resolveModuleName
+
+| Type                                                                                                                                                                              | Default Value |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `(moduleName: string, containingDirectory: string, context: ResolveModuleNameContext) => { resolvedFileName: string; originalPath?: string; packageId?: PackageId } \| undefined` | `undefined`   |
+
+A function that resolves the modules TypeScript imports, for projects where TypeScript's own resolution isn't enough. Return the file a module resolves to, or `undefined` to leave it to TypeScript's own resolution. It has no effect with `transpileOnly`, which resolves nothing.
+
+This option is new in the v10 betas, and its signature may still change before v10.0.0.
+
+```javascript
+options: {
+  resolveModuleName: (moduleName, containingDirectory, context) => {
+    if (moduleName === 'foo') {
+      // resolve 'foo' as TypeScript would resolve this path
+      return context.resolveDefault(path.join(__dirname, 'packages/foo'));
+    }
+  },
+}
+```
+
+`context` has:
+
+- `resolveDefault(moduleName?, containingDirectory?)` - TypeScript's own resolution. Both arguments default to the ones being resolved.
+- `resolutionMode` - whether the import is resolved as ESM or CommonJS, where that matters.
+- `compilerOptions` - the compiler options in use.
+
+The signature changed in v10. v9 called the function with `(moduleName, containingFile, compilerOptions, compilerHost, parentResolver)`; TypeScript's native API says which directory an import is in, not which file, and has no compiler host. ts-loader reports an error if the function takes more than three parameters.
+
+If the function throws, or returns something other than an object with a `resolvedFileName` (or `undefined`), ts-loader reports an error that names the option and resolves that import as TypeScript would. In a TypeScript webpack config, the type of `context` is `loader.ResolveModuleNameContext`, with `loader` being the default import of `ts-loader`.
+
+What it costs:
+
+- TypeScript calls the function from its own process, and each call is a round trip to Node: about 0.1ms a call on the projects measured, before any work the function does. Imports inside the type declarations in `node_modules` are resolved through it too.
+- A rebuild that only changes a file's contents doesn't call it; TypeScript keeps the resolutions it has.
+- A rebuild that adds or removes an import makes TypeScript resolve every import again. On a 300-module project that rebuild took two to three times as long as without the option.
+- Keep the function cheap, and return `undefined` early for the names it doesn't handle.
+
+Known limits:
+
+- An error in the function while resolving an import that TypeScript adds itself isn't reported by naming the option. That is `tslib` under `importHelpers`, and probably the JSX runtime under `jsx: react-jsx`. TypeScript's own error (for example TS2354) is still reported.
+- A v9 function has to be rewritten, including one supplied by a plugin such as a Yarn Plug'n'Play helper. The new signature has not been tested with any such plugin.
+- A module can't be marked as deliberately unresolved: `undefined` always means "use TypeScript's own resolution".
+
 ### Options with no effect in v10
 
 These v9 options are still accepted so existing configs keep working, but they currently do nothing:
 
-- **`resolveModuleName` and `resolveTypeReferenceDirective`** - custom module resolution functions (used for things like Yarn Plug'n'Play). TypeScript's native API can take custom resolvers ([microsoft/TypeScript#64299](https://github.com/microsoft/TypeScript/pull/64299)), but ts-loader doesn't pass these options on to it yet.
+- **`resolveTypeReferenceDirective`** - a custom resolver for type reference directives (used for things like Yarn Plug'n'Play). TypeScript's native API has no hook for it. `resolveModuleName` does work; see [resolveModuleName](#resolvemodulename).
 - **`getCustomTransformers`** - custom TypeScript transformers. TypeScript's native API doesn't support custom transformers yet.
 - **`projectReferences`** - in v10, TypeScript's native API follows [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in your `tsconfig.json` without this option. v10 does not build referenced projects to disk the way `tsc --build` does. For v9 behaviour, see the [Project References Guide](REFERENCES.md).
 

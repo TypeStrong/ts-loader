@@ -13,6 +13,7 @@ import {
   getTypeScriptEmit,
   recheckAllTransitiveDependants,
   recordProgramDiagnostics,
+  recordResolveModuleNameErrors,
   restartTypeScriptApiIfDead,
 } from './typeScriptApi';
 import type {
@@ -21,6 +22,7 @@ import type {
   LoaderOptionsCache,
   LogLevel,
   ResolvedFilePathCache,
+  ResolveModuleNameContext as LoaderResolveModuleNameContext,
   TSFile,
   TSInstance,
 } from './types';
@@ -216,6 +218,7 @@ function getTypeScriptInstance(
   // may be stale (see `pendingInvalidation`/`pendingChangedFiles` in types.ts).
   compiler.hooks.compile.tap('ts-loader', () => {
     instance.typeScriptApiInstance.overriddenConfig = undefined;
+    instance.typeScriptApiInstance.resolveModuleNameCache.clear();
     // `modifiedFiles`/`removedFiles` are undefined on the first build and on
     // webpack 4 - only then is a full rescan needed.
     if (
@@ -323,6 +326,7 @@ function addPostCompileHooks(
           ) as webpack.WebpackError,
         );
       }
+      recordResolveModuleNameErrors(instance, compilation);
       reportPendingTypeScriptDiagnostics(instance, compilation);
       emitPendingDeclarationFiles(instance, compilation);
     }
@@ -449,9 +453,9 @@ const validLoaderOptions: ValidLoaderOptions[] = [
   'reportFiles',
   'allowTsInNodeModules',
   'projectReferences',
-  // Accepted for backwards compatibility but inert: they aren't passed on to
-  // the TypeScript 7 API. See test/execution-tests/resolveModuleName.
   'resolveModuleName',
+  // Accepted for backwards compatibility but inert: the TypeScript 7 API has
+  // no type-reference-directive resolver hook.
   'resolveTypeReferenceDirective',
   'useCaseSensitiveFileNames',
 ];
@@ -469,6 +473,17 @@ Please take a look at the options you are supplying; the following are valid opt
 ${validLoaderOptions.join(' / ')}
 `);
     }
+  }
+
+  // v9 called it with (moduleName, containingFile, compilerOptions,
+  // compilerHost, parentResolver); such a function would run, and misresolve.
+  if (
+    typeof loaderOptions.resolveModuleName === 'function' &&
+    loaderOptions.resolveModuleName.length > 3
+  ) {
+    throw new Error(
+      `The 'resolveModuleName' option has a new signature in ts-loader 10: (moduleName, containingDirectory, context). The function supplied takes ${loaderOptions.resolveModuleName.length} parameters, as ts-loader 9's did. See https://github.com/TypeStrong/ts-loader#resolvemodulename`,
+    );
   }
 
   if (
@@ -736,4 +751,5 @@ export = loader;
 namespace loader {
   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
   export interface Options extends LoaderOptions {}
+  export type ResolveModuleNameContext = LoaderResolveModuleNameContext;
 }

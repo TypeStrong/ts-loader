@@ -9,9 +9,11 @@ import type {
   CreateSnapshotParams,
   Diagnostic,
   EmitOutput,
+  ModuleResolver,
   ParsedCommandLine,
   Program,
   Snapshot,
+  StaticModuleResolution,
   SyntheticProjectId,
 } from 'typescript/sync';
 import type { StringLiteralLikeNode } from 'typescript/ast';
@@ -66,6 +68,9 @@ export function createTypeScriptInstance(
     projectFileNamesCache: new Map(),
     changedFilesThisBuild: new Set(),
     watcherChangedFiles: undefined,
+    customResolveModuleName: loaderOptions.resolveModuleName,
+    resolveModuleNameErrors: new Map(),
+    resolveModuleNameCache: new Map(),
   };
 }
 
@@ -73,8 +78,12 @@ function getConfigOverrides(
   loaderOptions: LoaderOptions,
 ): ConfigOverrides | undefined {
   const compilerOptions = loaderOptions.compilerOptions ?? {};
+  // A custom resolver needs the synthetic program as well: the API takes
+  // one there, but not on the project it opens from tsconfig.json.
   return loaderOptions.context === undefined &&
-    Object.keys(compilerOptions).length === 0
+    Object.keys(compilerOptions).length === 0 &&
+    (loaderOptions.resolveModuleName === undefined ||
+      loaderOptions.transpileOnly)
     ? undefined
     : { compilerOptions, context: loaderOptions.context };
 }
@@ -1257,7 +1266,7 @@ function ensureOrphanProgram(
     orphanRootFileNames.set(canonicalFileName, fileName);
   }
   const program = orphanProgramParams(typeScriptInstance, primaryConfig);
-  const configuration = JSON.stringify(program);
+  const configuration = serializeOrphanProgramParams(program);
   if (orphanProgram) {
     orphanProgram.configuration = configuration;
     return {
@@ -1294,7 +1303,7 @@ function reconfigureOrphanProgramIfStale(
   orphanProgram: SyntheticProgram,
 ): { snapshot: Snapshot; syntheticProgramId: SyntheticProjectId } {
   const program = orphanProgramParams(typeScriptInstance, primaryConfig);
-  const configuration = JSON.stringify(program);
+  const configuration = serializeOrphanProgramParams(program);
   if (orphanProgram.configuration === configuration) {
     return {
       snapshot: typeScriptInstance.snapshot!,
@@ -1325,8 +1334,236 @@ function orphanProgramParams(
       ]),
     ].sort(),
     compilerOptions: primaryConfig.options,
-    options: { projectReferences: primaryConfig.projectReferences },
+    options: {
+      projectReferences: primaryConfig.projectReferences,
+      moduleResolver: getCustomModuleResolver(
+        typeScriptInstance,
+        primaryConfig.options,
+      ),
+    },
   };
+}
+
+/** `ModuleResolver` holds the API client, so it's serialized by id. */
+function serializeOrphanProgramParams(
+  program: ReturnType<typeof orphanProgramParams>,
+): string {
+  return JSON.stringify({
+    ...program,
+    options: {
+      ...program.options,
+      moduleResolver: program.options.moduleResolver?.id,
+    },
+  });
+}
+
+/**
+ * Adapts the `resolveModuleName` loader option to the API's resolver
+ * callback. Only synthetic programs accept a resolver, so with this option
+ * set every file compiles in the orphan program (see getConfigOverrides).
+ * Recreated when compiler options change, since the default resolution
+ * behind `resolveDefault` depends on them.
+ */
+function getCustomModuleResolver(
+  typeScriptInstance: TypeScriptInstance,
+  compilerOptions: CompilerOptions,
+): ModuleResolver | undefined {
+  const customResolveModuleName = typeScriptInstance.customResolveModuleName;
+  if (!customResolveModuleName) {
+    return undefined;
+  }
+  const configuration = JSON.stringify(compilerOptions);
+  if (
+    typeScriptInstance.customModuleResolver?.configuration === configuration
+  ) {
+    return typeScriptInstance.customModuleResolver.resolver;
+  }
+
+  // A resolver replaced here may still back the current snapshot's program,
+  // so it isn't disposed; api.close() releases it.
+  typeScriptInstance.resolveModuleNameCache.clear();
+  const { api } = typeScriptInstance;
+  const defaultResolver = api.createModuleResolver(compilerOptions);
+  const resolver = api.createModuleResolver(compilerOptions, {
+    resolveModuleName(
+      moduleName,
+      containingDirectory,
+      resolutionMode,
+      options,
+    ) {
+      // The API asks once per import, not once per name and directory.
+      const { resolveModuleNameCache } = typeScriptInstance;
+      const request = `${resolutionMode}\0${moduleName}\0${containingDirectory}`;
+      if (resolveModuleNameCache.has(request)) {
+        return resolveModuleNameCache.get(request);
+      }
+      const resolveDefault = (
+        defaultModuleName = moduleName,
+        defaultContainingDirectory = containingDirectory,
+      ) =>
+        defaultResolver.resolveModuleName(
+          defaultModuleName,
+          defaultContainingDirectory,
+          resolutionMode,
+          { snapshot: options.snapshot },
+        ).resolvedModule;
+      // An error thrown out of the callback takes the compiler process
+      // with it, so it's caught and reported at the end of the build.
+      let resolvedModule: StaticModuleResolution | undefined;
+      try {
+        const result: unknown = customResolveModuleName(
+          moduleName,
+          containingDirectory,
+          { resolutionMode, compilerOptions, resolveDefault },
+        );
+        const problem = describeInvalidResolution(result);
+        if (problem === undefined) {
+          resolvedModule = result as StaticModuleResolution | undefined;
+          typeScriptInstance.resolveModuleNameErrors.delete(request);
+        } else {
+          typeScriptInstance.resolveModuleNameErrors.set(request, {
+            moduleName,
+            containingDirectory,
+            message: `resolving '${moduleName}', the 'resolveModuleName' option returned ${problem}`,
+          });
+        }
+      } catch (error) {
+        typeScriptInstance.resolveModuleNameErrors.set(request, {
+          moduleName,
+          containingDirectory,
+          message: `resolving '${moduleName}', the 'resolveModuleName' option threw: ${
+            error instanceof Error ? error.message : String(error)
+          }${
+            // What a ts-loader 9 function does when it calls `parentResolver`.
+            error instanceof TypeError ? `. ${resolveModuleNameSignature}` : ''
+          }`,
+        });
+      }
+      // From the API's callback, nothing means "unresolved", whatever the
+      // resolver's `moduleResolutions.fallback`.
+      resolvedModule ??= resolveDefault();
+      const resolution = resolvedModule && {
+        resolvedFileName: resolvedModule.resolvedFileName,
+        originalPath: resolvedModule.originalPath,
+        packageId: resolvedModule.packageId,
+      };
+      resolveModuleNameCache.set(request, resolution);
+      return resolution;
+    },
+  });
+  typeScriptInstance.customModuleResolver = { resolver, configuration };
+  return resolver;
+}
+
+const resolveModuleNameSignature =
+  "In ts-loader 10 it is called with (moduleName, containingDirectory, context) and returns { resolvedFileName } or undefined; ts-loader 9's signature is no longer supported. See https://github.com/TypeStrong/ts-loader#resolvemodulename";
+
+/** `undefined` for a result the `resolveModuleName` option may return. */
+function describeInvalidResolution(result: unknown): string | undefined {
+  if (result === undefined || result === null) {
+    return undefined;
+  }
+  if (typeof result !== 'object') {
+    return `a ${typeof result}, not an object with a 'resolvedFileName'`;
+  }
+  if ('resolvedModule' in result) {
+    return `an object with a 'resolvedModule', as ts-loader 9 expected. ${resolveModuleNameSignature}`;
+  }
+  return typeof (result as { resolvedFileName?: unknown }).resolvedFileName ===
+    'string'
+    ? undefined
+    : "an object with no 'resolvedFileName' string";
+}
+
+/**
+ * Reports what went wrong in the `resolveModuleName` option. The API caches
+ * resolutions, so a rebuild may not ask again and an entry can't simply be
+ * dropped each build; it stays for as long as a file in its directory still
+ * has the import.
+ */
+export function recordResolveModuleNameErrors(
+  instance: TSInstance,
+  compilation: webpack.Compilation,
+) {
+  const typeScriptInstance = instance.typeScriptApiInstance;
+  const { resolveModuleNameErrors, orphanProgram, snapshot } =
+    typeScriptInstance;
+  if (resolveModuleNameErrors.size === 0) {
+    return;
+  }
+  const program =
+    orphanProgram && snapshot?.getProject(orphanProgram.id)?.program;
+  if (program) {
+    const importsByDirectory = getImportedNamesByDirectory(
+      typeScriptInstance,
+      instance.resolvedFilePathCache,
+      program,
+      new Set(
+        [...resolveModuleNameErrors.values()].map(error =>
+          toComparablePath(
+            instance.resolvedFilePathCache,
+            error.containingDirectory,
+          ),
+        ),
+      ),
+    );
+    for (const [request, error] of resolveModuleNameErrors) {
+      if (
+        !importsByDirectory
+          .get(
+            toComparablePath(
+              instance.resolvedFilePathCache,
+              error.containingDirectory,
+            ),
+          )
+          ?.has(error.moduleName)
+      ) {
+        resolveModuleNameErrors.delete(request);
+      }
+    }
+  }
+  for (const message of new Set(
+    [...resolveModuleNameErrors.values()].map(error => error.message),
+  )) {
+    compilation.errors.push(
+      new Error(`ts-loader: ${message}`) as webpack.WebpackError,
+    );
+  }
+}
+
+/** The module names imported by the program's files in each of `directories`. */
+function getImportedNamesByDirectory(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  program: Program,
+  directories: ReadonlySet<string>,
+): Map<string, Set<string>> {
+  const fileNames = program
+    .getSourceFileNames()
+    .filter(fileName =>
+      directories.has(
+        toComparablePath(resolvedFilePathCache, path.dirname(fileName)),
+      ),
+    );
+  const importsByDirectory = new Map<string, Set<string>>();
+  if (fileNames.length === 0) {
+    return importsByDirectory;
+  }
+  const sourceFiles = typeScriptInstance.api.batch(
+    ...fileNames.map(fileName => program.getSourceFile.gen(fileName)),
+  );
+  sourceFiles.forEach((sourceFile, index) => {
+    const directory = toComparablePath(
+      resolvedFilePathCache,
+      path.dirname(fileNames[index]),
+    );
+    const names = importsByDirectory.get(directory) ?? new Set<string>();
+    importsByDirectory.set(directory, names);
+    for (const specifierNode of sourceFile?.imports ?? []) {
+      names.add((specifierNode as StringLiteralLikeNode).text);
+    }
+  });
+  return importsByDirectory;
 }
 
 /**

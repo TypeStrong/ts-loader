@@ -7,6 +7,10 @@
 - With `cache: { type: 'filesystem' }`, a build that compiled some files and took the rest from the cache dropped the type errors of the files it took from the cache. The build could pass with type errors in it. Files taken from the cache are now type checked again in such a build, so their errors are reported, including ones that have appeared or gone since they were cached. A build that takes every file from the cache doesn't run ts-loader, and still reports the errors the cache holds.
 - When the installed TypeScript is older than 7.1, the error now says so, names the version found, and points to ts-loader 9. Before, it only said that `typescript/sync` could not be found.
 
+- [Support `resolveModuleName` via the TypeScript 7.1 module resolver API](https://github.com/TypeStrong/ts-loader/pull/1715) - thanks @johnnyreilly
+
+The `resolveModuleName` loader option works again when type checking; it was accepted but ignored in the earlier betas. Its signature has changed from v9: it is called with `(moduleName, containingDirectory, context)`, returns `{ resolvedFileName, originalPath?, packageId? }`, and returning `undefined` leaves the module to TypeScript's own resolution. `context.resolveDefault()` replaces `parentResolver`. A function that takes more than three parameters, as a v9 one does, is reported as an error. `resolveTypeReferenceDirective` is still ignored.
+
 ## 10.0.0-beta.1
 
 - [Report full error messages and option errors, and survive a dead compiler process](https://github.com/TypeStrong/ts-loader/pull/1726) - thanks @johnnyreilly

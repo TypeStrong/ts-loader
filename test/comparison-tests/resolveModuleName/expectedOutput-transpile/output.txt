@@ -1,0 +1,5 @@
+asset bundle.js 3.34 KiB [emitted] (name: main)
+./app.ts 482 bytes [built] [code generated]
+./baz-pkg/index.js 90 bytes [built] [code generated]
+./greeting.ts 132 bytes [built] [code generated]
+webpack compiled successfully

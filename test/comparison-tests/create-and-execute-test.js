@@ -58,6 +58,7 @@ describe(testToRun, () => {
         // transpileOnly never watches unbundled files (or files only reached via a type-only import), so their patches trigger no rebuild
         testToRun === 'unbundledFileErrorsWatch' ||
         testToRun === 'contextOptionWatch' ||
+        testToRun === 'resolveModuleName' ||
         testToRun === 'pathsAliasWatch') { return; }
 
     it('should work with transpileOnly', createTest(testToRun, testPath, { transpileOnly: true }), TEST_TIMEOUT);

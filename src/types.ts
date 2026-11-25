@@ -1,9 +1,14 @@
 import type { Colors } from './colors';
 import type {
   API,
+  CompilerOptions,
   Diagnostic,
+  ModuleResolver,
   ParsedCommandLine,
+  ResolutionMode,
+  ResolvedModule,
   Snapshot,
+  StaticModuleResolution,
   SyntheticProjectId,
 } from 'typescript/sync';
 import type * as webpack from 'webpack';
@@ -58,9 +63,36 @@ export interface LoaderOptions {
     string | ((program: unknown, getProgram: () => unknown) => unknown);
   allowTsInNodeModules: boolean;
   projectReferences?: boolean;
-  resolveModuleName?: (...args: unknown[]) => unknown;
+  resolveModuleName?: CustomResolveModuleName;
   resolveTypeReferenceDirective?: (...args: unknown[]) => unknown;
   useCaseSensitiveFileNames?: boolean;
+}
+
+export interface ResolveModuleNameContext {
+  /** Whether the import is resolved as ESM or CommonJS, where that matters. */
+  resolutionMode: ResolutionMode | undefined;
+  compilerOptions: CompilerOptions;
+  /**
+   * TypeScript's own resolution; `moduleName` and `containingDirectory`
+   * default to the ones being resolved.
+   */
+  resolveDefault(
+    moduleName?: string,
+    containingDirectory?: string,
+  ): ResolvedModule | undefined;
+}
+
+/**
+ * Not classic ts-loader's signature: the API says which directory an import
+ * is in, not which file, and has no compiler host. Returning `undefined`
+ * leaves the module to TypeScript's own resolution.
+ */
+interface CustomResolveModuleName {
+  (
+    moduleName: string,
+    containingDirectory: string,
+    context: ResolveModuleNameContext,
+  ): StaticModuleResolution | undefined;
 }
 
 export interface LoaderOptionsCache {
@@ -103,9 +135,10 @@ export interface TypeScriptInstance {
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
   /**
-   * The `compilerOptions`/`context` loader options, when either is set. The
-   * project the API opens from tsconfig.json can't take them, so every file
-   * is then compiled in the synthetic program - see getOverriddenConfig.
+   * The `compilerOptions`/`context` loader options, when either is set, or
+   * when `resolveModuleName` is. The project the API opens from
+   * tsconfig.json can't take them, so every file is then compiled in the
+   * synthetic program - see getOverriddenConfig.
    */
   configOverrides?: ConfigOverrides;
   /** Parsed with `configOverrides` applied; cleared before each build. */
@@ -173,6 +206,20 @@ export interface TypeScriptInstance {
    * unbundled project file is rechecked then.
    */
   watcherChangedFiles: Set<string> | undefined;
+  customResolveModuleName?: CustomResolveModuleName;
+  /** By import (mode, name and directory) - see recordResolveModuleNameErrors. */
+  resolveModuleNameErrors: Map<
+    string,
+    { moduleName: string; containingDirectory: string; message: string }
+  >;
+  /**
+   * What the `resolveModuleName` option gave for each import (mode, name and
+   * directory) in this build; cleared before each build, as files can come
+   * and go between them.
+   */
+  resolveModuleNameCache: Map<string, StaticModuleResolution | undefined>;
+  /** See getCustomModuleResolver. */
+  customModuleResolver?: { resolver: ModuleResolver; configuration: string };
   /** What `programErrors` was read from - see recordProgramDiagnostics. */
   programErrorsSource?: Snapshot | ParsedCommandLine;
   programErrors?: webpack.WebpackError[];
