@@ -15,6 +15,6 @@ npm run build
 Notes:
 
 - This uses the `ts-loader` v10 beta, the `fork-ts-checker-webpack-plugin` v10 alpha and the TypeScript 7.1 beta. Once they have stable releases, swap them for `"ts-loader": "^10.0.0"`, `"fork-ts-checker-webpack-plugin": "^10.0.0"` and `"typescript": "^7.1.0"`.
-- `webpack.config.js` differs from [examples/simple](../simple/) in two ways: `ts-loader` has `transpileOnly: true`, and `ForkTsCheckerWebpackPlugin` is in `plugins`.
+- `webpack.config.js` differs from [examples/simple](../simple/) in one way: `ForkTsCheckerWebpackPlugin` is in `plugins`. `ts-loader` detects the plugin and sets `transpileOnly: true` for you, so the commented-out `options` line is only there to illustrate that and can be deleted.
 - Type errors are reported by the plugin. A production build fails on them. The dev server shows them after the bundle is ready, so a rebuild doesn't wait for the type check.
 - To see it work, change `name: 'TypeScript 7'` to `name: 7` in `src/index.ts`.

@@ -9,8 +9,10 @@ export default {
       {
         test: /\.ts$/,
         loader: 'ts-loader',
-        // ts-loader only transpiles; the plugin reports the type errors
-        options: { transpileOnly: true },
+        // ts-loader detects fork-ts-checker-webpack-plugin and sets `transpileOnly`
+        // for you, so it only transpiles and the plugin reports the type errors.
+        // This line is only here to illustrate that, and can be deleted.
+        // options: { transpileOnly: true },
       },
     ],
   },
