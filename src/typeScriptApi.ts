@@ -649,13 +649,14 @@ function computeDeclarationFilePath(
 }
 
 function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
-  const specifier = `${compilerPackage}/sync`;
+  let specifier = `${compilerPackage}/sync`;
 
   // Loaded here, not by a top-level import: on a Node.js or TypeScript that
   // can't load them, that would fail before the errors below could explain.
   try {
     const { API } = require(specifier) as Pick<TypeScriptApiModule, 'API'>;
-    const { createFileSystemLayer } = require(`${compilerPackage}/fs`) as Pick<
+    specifier = `${compilerPackage}/fs`;
+    const { createFileSystemLayer } = require(specifier) as Pick<
       TypeScriptApiModule,
       'createFileSystemLayer'
     >;

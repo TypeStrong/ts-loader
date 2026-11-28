@@ -324,6 +324,8 @@ Only report errors in files matching these glob patterns. Useful when some type 
 }
 ```
 
+Write patterns with `/` on every platform, Windows included: a `\` in a pattern escapes the next character, so a pattern built with `path.join` matches nothing on Windows. A `*` doesn't cross folders, so `*.ts` only matches files directly in the folder the patterns are relative to; use `**/*.ts` to match files in sub-folders too.
+
 #### appendTsSuffixTo / appendTsxSuffixTo
 
 | Type                   | Default Value |

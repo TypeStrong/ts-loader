@@ -10,7 +10,7 @@
 - [Stop per-file work growing with the project; fix `reportFiles` on Windows and the minimum Node.js version](https://github.com/TypeStrong/ts-loader/pull/1734) - thanks @johnnyreilly
 
 - Type-checked builds of large projects are much faster. For every file it compiled, ts-loader fetched the project's whole file list twice and created a new TypeScript snapshot, so build time grew with the square of the project's size. The list is now kept while it can't have changed, and a file only gets a snapshot update when its contents are new to TypeScript. A 4,800-file cold build went from 67s to 11s; a 300-file one from 1.6s to 1.2s. This applies to files that reach ts-loader as they are on disk. Where another loader changes a file first (Babel, Vue, a preprocessor), that file is handled as before, so such projects gain little.
-- On Windows, `reportFiles` patterns with a folder in them, such as `src/**/*.ts` or `!src/skip.ts`, now match. Before, only patterns without a `/` did. Patterns now work as they do on other platforms, so one without a folder, such as `*.ts` or `!skip.ts`, no longer matches files in sub-folders on Windows; use `**/*.ts` for that.
+- On Windows, `reportFiles` patterns with a folder in them, such as `src/**/*.ts` or `!src/skip.ts`, now match. Before, only patterns without a `/` did. Patterns now work as they do on other platforms, so one without a folder, such as `*.ts` or `!skip.ts`, no longer matches files in sub-folders on Windows; use `**/*.ts` for that. Patterns must be written with `/`; one written with `\` still matches nothing.
 - The minimum Node.js version is 22.12, not 22.0: earlier versions can't load TypeScript's API, and now get an error that says so.
 
 ## 10.0.0-beta.1
