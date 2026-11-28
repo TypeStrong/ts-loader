@@ -107,6 +107,12 @@ interface ProjectDirectories {
 
 export type CreateFileSystemLayer = typeof createFileSystemLayer;
 
+export interface FileLayer {
+  /** Api-facing, real-cased. */
+  fileName: string;
+  contents: string;
+}
+
 export interface TypeScriptInstance {
   api: API;
   createFileSystemLayer: CreateFileSystemLayer;
@@ -140,15 +146,16 @@ export interface TypeScriptInstance {
    */
   orphanRootFileNames: Map<FilePath, string>;
   /**
-   * The contents every compiled file was last layered with, by api-facing
-   * name: what a restarted process has to be sent again.
+   * The layers a restarted process has to be sent again: those of files that
+   * were compiled with contents that aren't on disk (another loader ran
+   * first, or the file only exists as a layer).
    */
-  fileLayers: Map<string, string>;
+  fileLayers: Map<FilePath, FileLayer>;
   /**
-   * The entries of `fileLayers` not sent to the API yet, to layer in the next
-   * snapshot update - see layerFileContents.
+   * The files compiled since the last snapshot update, to layer in the next
+   * one - see layerFileContents.
    */
-  unsentFileLayers: Map<string, string>;
+  unsentFileLayers: Map<FilePath, FileLayer>;
   primaryProjectOpened: boolean;
   /**
    * Forces a full rescan (`invalidateAll`) on the first updateSnapshot of a

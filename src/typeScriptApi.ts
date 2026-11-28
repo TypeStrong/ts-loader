@@ -202,9 +202,13 @@ export function restartTypeScriptApiIfDead(instance: TSInstance): boolean {
     ),
     // Their dependants still need the end-of-build recheck.
     changedFilesThisBuild: previous.changedFilesThisBuild,
-    // The new process has none of the layers the old one was sent.
+    // The new process has none of the layers the old one was sent. It
+    // reads every other file from disk.
     fileLayers: previous.fileLayers,
-    unsentFileLayers: new Map(previous.fileLayers),
+    unsentFileLayers: new Map([
+      ...previous.fileLayers,
+      ...previous.unsentFileLayers,
+    ]),
   };
   return true;
 }
@@ -670,12 +674,9 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
       error instanceof Error ? error.message : String(error)
     }`;
     // `typescript/sync` is an ES module, which Node.js before 22.12 can't
-    // `require`. Later versions give the same code when it's turned off.
+    // `require`. Whatever the error there, the fix is a newer Node.js.
     const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
-    if (
-      (error as NodeJS.ErrnoException).code === 'ERR_REQUIRE_ESM' &&
-      (nodeMajor < 22 || (nodeMajor === 22 && nodeMinor < 12))
-    ) {
+    if (nodeMajor < 22 || (nodeMajor === 22 && nodeMinor < 12)) {
       throw new Error(
         `ts-loader needs Node.js 22.12 or later; this is Node.js ${
           process.versions.node
@@ -732,6 +733,7 @@ function updateSnapshot(
   changedFileNames?: ReadonlySet<string>,
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
+  const removedFileNames = typeScriptInstance.pendingRemovedFiles;
   // Which files the API should re-read, most conservative first:
   // 1. `pendingInvalidation` - nothing known (first build, webpack 4): rescan all.
   // 2. `pendingChangedFiles`/`pendingRemovedFiles` - webpack 5's watcher list.
@@ -826,6 +828,11 @@ function updateSnapshot(
   // https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
   // The API also echoes this casing back into diagnostics.
   const apiFacingFileName = path.resolve(fileName);
+  forgetRemovedFileLayers(
+    typeScriptInstance,
+    resolvedFilePathCache,
+    removedFileNames,
+  );
   const params: CreateSnapshotParams = {
     ...changes,
     openFiles: [apiFacingFileName],
@@ -1172,9 +1179,15 @@ function layerFileContents(
   fileName: string,
   contents: string,
 ): Snapshot {
-  forgetRemovedFileLayers(typeScriptInstance);
-  typeScriptInstance.fileLayers.set(fileName, contents);
-  typeScriptInstance.unsentFileLayers.set(fileName, contents);
+  const layerKey = resolvedFilePathCache(fileName);
+  const fileLayer = { fileName, contents };
+  typeScriptInstance.unsentFileLayers.set(layerKey, fileLayer);
+  // A restarted process can read the others for itself.
+  if (hasContentsOnDisk(fileName, contents)) {
+    typeScriptInstance.fileLayers.delete(layerKey);
+  } else {
+    typeScriptInstance.fileLayers.set(layerKey, fileLayer);
+  }
   if (
     typeScriptInstance.snapshot === undefined ||
     typeScriptInstance.pendingInvalidation ||
@@ -1212,12 +1225,31 @@ function layerFileContents(
   return snapshot;
 }
 
-/** So that a restarted process isn't handed files that are gone. */
-function forgetRemovedFileLayers(typeScriptInstance: TypeScriptInstance) {
-  for (const removedFileName of typeScriptInstance.pendingRemovedFiles ?? []) {
-    const fileName = toApiFacingFileName(removedFileName);
-    typeScriptInstance.fileLayers.delete(fileName);
-    typeScriptInstance.unsentFileLayers.delete(fileName);
+function hasContentsOnDisk(fileName: string, contents: string): boolean {
+  try {
+    return fs.readFileSync(fileName, 'utf8') === contents;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A layer outlives its file, so a removed file's has to go before the next
+ * update or restart hands it to the API. `removedFileNames` are webpack's
+ * names: a layer's own may also carry the suffix of appendTsSuffixTo,
+ * appendTsxSuffixTo or toApiFacingFileName.
+ */
+function forgetRemovedFileLayers(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  removedFileNames: ReadonlySet<string> | undefined,
+) {
+  for (const removedFileName of removedFileNames ?? []) {
+    for (const suffix of ['', '.ts', '.tsx']) {
+      const layerKey = resolvedFilePathCache(removedFileName + suffix);
+      typeScriptInstance.fileLayers.delete(layerKey);
+      typeScriptInstance.unsentFileLayers.delete(layerKey);
+    }
   }
 }
 
@@ -1226,7 +1258,11 @@ function layerUnsentFiles(typeScriptInstance: TypeScriptInstance) {
   const { unsentFileLayers, createFileSystemLayer } = typeScriptInstance;
   return unsentFileLayers.size === 0
     ? undefined
-    : createFileSystemLayer([...unsentFileLayers]);
+    : createFileSystemLayer(
+        [...unsentFileLayers.values()].map(
+          ({ fileName, contents }): [string, string] => [fileName, contents],
+        ),
+      );
 }
 
 /**

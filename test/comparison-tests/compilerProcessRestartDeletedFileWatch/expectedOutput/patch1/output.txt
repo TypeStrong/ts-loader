@@ -1,0 +1,17 @@
+asset bundle.js 1.33 KiB [emitted] (name: main)
+./app.ts 123 bytes [built] [code generated] [1 warning] [1 error]
+
+WARNING in ./app.ts
+Module Warning (from ../../index.js):
+The TypeScript compiler process stopped unexpectedly and was restarted.
+
+1 warning has detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+ERROR in app.ts
+./app.ts 1:23-28
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(1,24)[39m[22m
+[1m[31m      TS2307: Cannot find module './b' or its corresponding type declarations.[39m[22m
+ts-loader-restart
+
+webpack compiled with 1 error and 1 warning
