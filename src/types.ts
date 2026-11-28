@@ -107,7 +107,7 @@ interface ProjectDirectories {
 
 export type CreateFileSystemLayer = typeof createFileSystemLayer;
 
-export interface FileLayer {
+interface FileLayer {
   /** Api-facing, real-cased. */
   fileName: string;
   contents: string;
