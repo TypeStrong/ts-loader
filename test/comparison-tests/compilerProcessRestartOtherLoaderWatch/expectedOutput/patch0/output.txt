@@ -1,0 +1,18 @@
+asset bundle.js 2.59 KiB [emitted] (name: main)
+cached modules 116 bytes [cached] 1 module
+./app.ts 155 bytes [built] [code generated] [1 warning] [1 error]
+
+WARNING in ./app.ts
+Module Warning (from ../../index.js):
+The TypeScript compiler process stopped unexpectedly and was restarted.
+
+1 warning has detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+ERROR in app.ts
+./app.ts 3:6-11
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(3,7)[39m[22m
+[1m[31m      TS2322: Type 'string' is not assignable to type 'number'.[39m[22m
+ts-loader-restart
+
+webpack compiled with 1 error and 1 warning

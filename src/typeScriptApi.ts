@@ -15,7 +15,6 @@ import type {
   SyntheticProjectId,
 } from 'typescript/sync';
 import type { StringLiteralLikeNode } from 'typescript/ast';
-import { createFileSystemLayer } from 'typescript/fs';
 
 import * as constants from './constants';
 import {
@@ -28,7 +27,9 @@ import {
 } from './diagnostics';
 import type {
   ConfigOverrides,
+  CreateFileSystemLayer,
   LoaderOptions,
+  SourceFileNames,
   SyntheticProgram,
   TypeScriptInstance,
   TSInstance,
@@ -38,6 +39,7 @@ import { isWebpack5 } from './loaderUtils';
 
 interface TypeScriptApiModule {
   API: new (options?: APIOptions) => API;
+  createFileSystemLayer: CreateFileSystemLayer;
 }
 
 export function createTypeScriptInstance(
@@ -54,16 +56,20 @@ export function createTypeScriptInstance(
 
   return {
     api,
+    createFileSystemLayer: typeScriptApiModule.createFileSystemLayer,
     configFilePath: path.resolve(configFilePath),
     configOverrides: getConfigOverrides(loaderOptions),
     useCaseSensitiveFileNames,
     outputPath,
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
+    fileLayers: new Map(),
+    unsentFileLayers: new Map(),
     primaryProjectOpened: false,
     pendingInvalidation: true,
     directImportsCache: new Map(),
     projectFileNamesCache: new Map(),
+    sourceFileNamesCache: new Map(),
     changedFilesThisBuild: new Set(),
     watcherChangedFiles: undefined,
   };
@@ -196,6 +202,13 @@ export function restartTypeScriptApiIfDead(instance: TSInstance): boolean {
     ),
     // Their dependants still need the end-of-build recheck.
     changedFilesThisBuild: previous.changedFilesThisBuild,
+    // The new process has none of the layers the old one was sent. It
+    // reads every other file from disk.
+    fileLayers: previous.fileLayers,
+    unsentFileLayers: new Map([
+      ...previous.fileLayers,
+      ...previous.unsentFileLayers,
+    ]),
   };
   return true;
 }
@@ -318,6 +331,7 @@ export function getTypeScriptEmit(
     fileName,
     apiFileName,
     projectKey,
+    project.id,
     configFileNames,
     instance,
   );
@@ -643,14 +657,32 @@ function computeDeclarationFilePath(
 }
 
 function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
-  const specifier = `${compilerPackage}/sync`;
+  let specifier = `${compilerPackage}/sync`;
 
+  // Loaded here, not by a top-level import: on a Node.js or TypeScript that
+  // can't load them, that would fail before the errors below could explain.
   try {
-    return require(specifier) as TypeScriptApiModule;
+    const { API } = require(specifier) as Pick<TypeScriptApiModule, 'API'>;
+    specifier = `${compilerPackage}/fs`;
+    const { createFileSystemLayer } = require(specifier) as Pick<
+      TypeScriptApiModule,
+      'createFileSystemLayer'
+    >;
+    return { API, createFileSystemLayer };
   } catch (error) {
     const loadError = `Could not load the TypeScript API from "${specifier}": ${
       error instanceof Error ? error.message : String(error)
     }`;
+    // `typescript/sync` is an ES module, which Node.js before 22.12 can't
+    // `require`. Whatever the error there, the fix is a newer Node.js.
+    const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
+    if (nodeMajor < 22 || (nodeMajor === 22 && nodeMinor < 12)) {
+      throw new Error(
+        `ts-loader needs Node.js 22.12 or later; this is Node.js ${
+          process.versions.node
+        }.${constants.EOL}${loadError}`,
+      );
+    }
     const version = getCompilerVersion(compilerPackage);
     // A new enough compiler failed to load for some other reason.
     throw new Error(
@@ -688,7 +720,6 @@ type SnapshotChanges = Pick<
   | 'createPrograms'
   | 'reconfigurePrograms'
   | 'removePrograms'
-  | 'fileSystem'
   | 'ensurePrograms'
 >;
 
@@ -702,6 +733,7 @@ function updateSnapshot(
   changedFileNames?: ReadonlySet<string>,
 ) {
   const previousSnapshot = typeScriptInstance.snapshot;
+  const removedFileNames = typeScriptInstance.pendingRemovedFiles;
   // Which files the API should re-read, most conservative first:
   // 1. `pendingInvalidation` - nothing known (first build, webpack 4): rescan all.
   // 2. `pendingChangedFiles`/`pendingRemovedFiles` - webpack 5's watcher list.
@@ -796,10 +828,16 @@ function updateSnapshot(
   // https://github.com/microsoft/TypeScript/pull/64204#issuecomment-5791438694.
   // The API also echoes this casing back into diagnostics.
   const apiFacingFileName = path.resolve(fileName);
+  forgetRemovedFileLayers(
+    typeScriptInstance,
+    resolvedFilePathCache,
+    removedFileNames,
+  );
   const params: CreateSnapshotParams = {
     ...changes,
     openFiles: [apiFacingFileName],
     fileNotifications,
+    fileSystem: layerUnsentFiles(typeScriptInstance),
   };
   // The API keeps no "latest snapshot" of its own, so each one must be built
   // via `update` on the previous to keep its cache
@@ -808,8 +846,12 @@ function updateSnapshot(
     ? previousSnapshot.update(params)
     : typeScriptInstance.api.createSnapshot(params);
 
+  // Only now: a failed update must leave them owed.
+  typeScriptInstance.unsentFileLayers.clear();
   typeScriptInstance.snapshot = snapshot;
   previousSnapshot?.dispose?.();
+  // Notifications, a new root or new options can all change a program's files.
+  typeScriptInstance.sourceFileNamesCache.clear();
 
   return snapshot;
 }
@@ -1125,6 +1167,11 @@ function openPrimaryProject(
  * https://github.com/microsoft/TypeScript/issues/63875#issuecomment-5513828692).
  * That refresh carries the layer in the same request because opening a
  * layer-only file fails if the layer arrives later.
+ *
+ * A snapshot update costs time that grows with the project, and usually the
+ * API has read the same text from disk as webpack did. Such a file's layer
+ * waits for the next update anything else needs - the end-of-build recheck
+ * at the latest, which would otherwise re-read the file from disk.
  */
 function layerFileContents(
   typeScriptInstance: TypeScriptInstance,
@@ -1132,10 +1179,15 @@ function layerFileContents(
   fileName: string,
   contents: string,
 ): Snapshot {
-  const fileLayer: SnapshotChanges = {
-    fileSystem: createFileSystemLayer([[fileName, contents]]),
-    ensurePrograms: true,
-  };
+  const layerKey = resolvedFilePathCache(fileName);
+  const fileLayer = { fileName, contents };
+  typeScriptInstance.unsentFileLayers.set(layerKey, fileLayer);
+  // A restarted process can read the others for itself.
+  if (hasContentsOnDisk(fileName, contents)) {
+    typeScriptInstance.fileLayers.delete(layerKey);
+  } else {
+    typeScriptInstance.fileLayers.set(layerKey, fileLayer);
+  }
   if (
     typeScriptInstance.snapshot === undefined ||
     typeScriptInstance.pendingInvalidation ||
@@ -1147,14 +1199,125 @@ function layerFileContents(
       resolvedFilePathCache,
       fileName,
       undefined,
-      fileLayer,
+      { ensurePrograms: true },
     ).snapshot;
   }
   const previousSnapshot = typeScriptInstance.snapshot;
-  const snapshot = previousSnapshot.update(fileLayer);
+  if (
+    snapshotHasContents(
+      typeScriptInstance,
+      previousSnapshot,
+      fileName,
+      contents,
+    )
+  ) {
+    return previousSnapshot;
+  }
+  const snapshot = previousSnapshot.update({
+    fileSystem: layerUnsentFiles(typeScriptInstance),
+    ensurePrograms: true,
+  });
+  typeScriptInstance.unsentFileLayers.clear();
   typeScriptInstance.snapshot = snapshot;
   previousSnapshot.dispose();
+  // New contents can add or drop imports, and so files.
+  typeScriptInstance.sourceFileNamesCache.clear();
   return snapshot;
+}
+
+function hasContentsOnDisk(fileName: string, contents: string): boolean {
+  try {
+    return fs.readFileSync(fileName, 'utf8') === contents;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A layer outlives its file, so a removed file's has to go before the next
+ * update or restart hands it to the API. `removedFileNames` are webpack's
+ * names: a layer's own may also carry the suffix of appendTsSuffixTo,
+ * appendTsxSuffixTo or toApiFacingFileName.
+ */
+function forgetRemovedFileLayers(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  removedFileNames: ReadonlySet<string> | undefined,
+) {
+  for (const removedFileName of removedFileNames ?? []) {
+    for (const suffix of ['', '.ts', '.tsx']) {
+      const layerKey = resolvedFilePathCache(removedFileName + suffix);
+      typeScriptInstance.fileLayers.delete(layerKey);
+      typeScriptInstance.unsentFileLayers.delete(layerKey);
+    }
+  }
+}
+
+/** The caller clears `unsentFileLayers` once its update has gone through. */
+function layerUnsentFiles(typeScriptInstance: TypeScriptInstance) {
+  const { unsentFileLayers, createFileSystemLayer } = typeScriptInstance;
+  return unsentFileLayers.size === 0
+    ? undefined
+    : createFileSystemLayer(
+        [...unsentFileLayers.values()].map(
+          ({ fileName, contents }): [string, string] => [fileName, contents],
+        ),
+      );
+}
+
+/**
+ * Every program that holds the file has to agree: the file is compiled in
+ * one of them, and a program can lag behind the snapshot's files.
+ */
+function snapshotHasContents(
+  typeScriptInstance: TypeScriptInstance,
+  snapshot: Snapshot,
+  fileName: string,
+  contents: string,
+): boolean {
+  const { configFilePath, orphanProgram } = typeScriptInstance;
+  const primaryText = snapshot
+    .getConfiguredProject(configFilePath)
+    ?.program.getSourceFile(fileName)?.text;
+  if (primaryText !== undefined && primaryText !== contents) {
+    return false;
+  }
+  const orphanText =
+    orphanProgram &&
+    snapshot.getProject(orphanProgram.id)?.program.getSourceFile(fileName)
+      ?.text;
+  return orphanText === undefined
+    ? primaryText !== undefined
+    : orphanText === contents;
+}
+
+/**
+ * `program.getSourceFileNames()`, which costs a round trip that grows with
+ * the project, fetched once for as long as the program's files can't have
+ * changed - see where `sourceFileNamesCache` is cleared. Asking for it on
+ * every compiled file was over half the time of a 4800-file build.
+ */
+function getSourceFileNames(
+  typeScriptInstance: TypeScriptInstance,
+  resolvedFilePathCache: ResolvedFilePathCache,
+  projectId: string,
+  program: Program,
+): SourceFileNames {
+  const { sourceFileNamesCache } = typeScriptInstance;
+  let cached = sourceFileNamesCache.get(projectId);
+  if (cached === undefined) {
+    const fileNames = program.getSourceFileNames();
+    cached = {
+      fileNames,
+      comparableFileNames: new Set(
+        fileNames.map(fileName =>
+          toComparablePath(resolvedFilePathCache, fileName),
+        ),
+      ),
+    };
+    sourceFileNamesCache.set(projectId, cached);
+  }
+  return cached;
 }
 
 function prepareSnapshotForFile(
@@ -1365,6 +1528,7 @@ function registerTypeScriptDependencies(
   fileName: string,
   apiFileName: string,
   projectKey: string,
+  projectId: string,
   configFileNames: readonly string[],
   instance: TSInstance,
 ) {
@@ -1385,6 +1549,7 @@ function registerTypeScriptDependencies(
     instance.typeScriptApiInstance,
     instance.resolvedFilePathCache,
     projectKey,
+    projectId,
     program,
   )) {
     if (otherFileName === apiFileName) {
@@ -1399,19 +1564,17 @@ function registerTypeScriptDependencies(
   // transpileOnly never looks at another file's types, so a dependency's
   // content can't affect this file's transpiled output.
   if (!instance.loaderOptions.transpileOnly) {
-    const comparableSourceFileNames = new Set(
-      program
-        .getSourceFileNames()
-        .map(fileName =>
-          toComparablePath(instance.resolvedFilePathCache, fileName),
-        ),
-    );
     registerResolvedImportDependencies(
       instance.typeScriptApiInstance,
       instance.resolvedFilePathCache,
       program,
       apiFileName,
-      comparableSourceFileNames,
+      getSourceFileNames(
+        instance.typeScriptApiInstance,
+        instance.resolvedFilePathCache,
+        projectId,
+        program,
+      ).comparableFileNames,
       addDependency,
     );
   }
@@ -1440,20 +1603,26 @@ function registerTypeScriptDependencies(
 /**
  * A project's source file names, excluding default-lib and external-library
  * files. Classifying a file costs two API round trips, so the result is
- * cached per project. `getSourceFileNames()` is a single round trip, so it's
- * fetched every time and compared against the list the cached result came
- * from: content-only edits leave it unchanged (cache hit), adding/removing a
- * file changes it (reclassify). That self-check means the cache never needs
- * invalidating, unlike `directImportsCache`.
+ * cached per project and compared against the source file list the cached
+ * result came from (see getSourceFileNames): content-only edits leave it
+ * unchanged (cache hit), adding/removing a file changes it (reclassify). That
+ * self-check means the cache never needs invalidating, unlike
+ * `directImportsCache`.
  */
 function getProjectFileNames(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   projectKey: string,
+  projectId: string,
   program: Program,
 ): readonly string[] {
   const cachedFilePath = resolvedFilePathCache(projectKey);
-  const sourceFileNames = program.getSourceFileNames();
+  const sourceFileNames = getSourceFileNames(
+    typeScriptInstance,
+    resolvedFilePathCache,
+    projectId,
+    program,
+  ).fileNames;
   const cached = typeScriptInstance.projectFileNamesCache.get(cachedFilePath);
   if (cached && sameFileNames(cached.sourceFileNames, sourceFileNames)) {
     return cached.result;
@@ -1477,6 +1646,9 @@ function getProjectFileNames(
 
 /** Order-insensitive. */
 function sameFileNames(a: readonly string[], b: readonly string[]): boolean {
+  if (a === b) {
+    return true;
+  }
   if (a.length !== b.length) {
     return false;
   }
@@ -1488,12 +1660,14 @@ function getProjectDtsFileNames(
   typeScriptInstance: TypeScriptInstance,
   resolvedFilePathCache: ResolvedFilePathCache,
   projectKey: string,
+  projectId: string,
   program: Program,
 ): readonly string[] {
   return getProjectFileNames(
     typeScriptInstance,
     resolvedFilePathCache,
     projectKey,
+    projectId,
     program,
   ).filter(otherFileName =>
     constants.dtsDtsxOrDtsDtsxMapRegex.test(otherFileName),
@@ -1742,9 +1916,10 @@ export function recheckAllTransitiveDependants(
   }
   // `primaryProject` may belong to a snapshot the reconfiguration replaced.
   const snapshot = typeScriptInstance.snapshot!;
-  const primaryProgram = snapshot.getConfiguredProject(
+  const currentPrimaryProject = snapshot.getConfiguredProject(
     typeScriptInstance.configFilePath,
-  )!.program;
+  )!;
+  const primaryProgram = currentPrimaryProject.program;
   const orphanProjectProgram = orphanProgram
     ? snapshot.getProject(orphanProgram.id)?.program
     : undefined;
@@ -1754,21 +1929,23 @@ export function recheckAllTransitiveDependants(
   const graphProjectKey =
     (orphanProjectProgram && orphanProgram?.id) ??
     typeScriptInstance.configFilePath;
+  const graphProjectId =
+    (orphanProjectProgram && orphanProgram?.id) ?? currentPrimaryProject.id;
 
   const projectFileNames = getProjectFileNames(
     typeScriptInstance,
     instance.resolvedFilePathCache,
     graphProjectKey,
+    graphProjectId,
     graphProgram,
   );
 
-  const comparableSourceFileNames = new Set(
-    graphProgram
-      .getSourceFileNames()
-      .map(fileName =>
-        toComparablePath(instance.resolvedFilePathCache, fileName),
-      ),
-  );
+  const comparableSourceFileNames = getSourceFileNames(
+    typeScriptInstance,
+    instance.resolvedFilePathCache,
+    graphProjectId,
+    graphProgram,
+  ).comparableFileNames;
 
   const comparableWatcherChangedFiles = watcherChangedFiles
     ? new Set(
@@ -1851,13 +2028,12 @@ export function recheckAllTransitiveDependants(
       ? new Set<string>()
       : graphProgram === primaryProgram
         ? comparableSourceFileNames
-        : new Set(
-            primaryProgram
-              .getSourceFileNames()
-              .map(fileName =>
-                toComparablePath(instance.resolvedFilePathCache, fileName),
-              ),
-          );
+        : getSourceFileNames(
+            typeScriptInstance,
+            instance.resolvedFilePathCache,
+            currentPrimaryProject.id,
+            primaryProgram,
+          ).comparableFileNames;
 
   for (const [comparableFileName, fileName] of filesToCheck) {
     const program = primaryFileNames.has(comparableFileName)
@@ -2044,17 +2220,18 @@ function findExistingProjectFile(
   if (overriddenConfig !== undefined) {
     return overriddenConfig.fileNames.find(fileName => fs.existsSync(fileName));
   }
-  const program = typeScriptInstance.snapshot?.getConfiguredProject(
+  const project = typeScriptInstance.snapshot?.getConfiguredProject(
     typeScriptInstance.configFilePath,
-  )?.program;
-  if (!program) {
+  );
+  if (!project) {
     return undefined;
   }
   return getProjectFileNames(
     typeScriptInstance,
     resolvedFilePathCache,
     typeScriptInstance.configFilePath,
-    program,
+    project.id,
+    project.program,
   ).find(fileName => fs.existsSync(fileName));
 }
 

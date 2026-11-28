@@ -6,6 +6,7 @@ import type {
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
+import type { createFileSystemLayer } from 'typescript/fs';
 import type * as webpack from 'webpack';
 
 export interface ErrorInfo {
@@ -82,6 +83,12 @@ export interface SyntheticProgram {
   configuration: string;
 }
 
+export interface SourceFileNames {
+  fileNames: readonly string[];
+  /** The same names in the form toComparablePath gives. */
+  comparableFileNames: ReadonlySet<string>;
+}
+
 export interface ConfigOverrides {
   compilerOptions: Record<string, unknown>;
   context?: string;
@@ -98,8 +105,17 @@ interface ProjectDirectories {
   unwatchable: boolean;
 }
 
+export type CreateFileSystemLayer = typeof createFileSystemLayer;
+
+interface FileLayer {
+  /** Api-facing, real-cased. */
+  fileName: string;
+  contents: string;
+}
+
 export interface TypeScriptInstance {
   api: API;
+  createFileSystemLayer: CreateFileSystemLayer;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
   /**
@@ -129,6 +145,17 @@ export interface TypeScriptInstance {
    * canonical key -> api-facing name.
    */
   orphanRootFileNames: Map<FilePath, string>;
+  /**
+   * The layers a restarted process has to be sent again: those of files that
+   * were compiled with contents that aren't on disk (another loader ran
+   * first, or the file only exists as a layer).
+   */
+  fileLayers: Map<FilePath, FileLayer>;
+  /**
+   * The files compiled since the last snapshot update, to layer in the next
+   * one - see layerFileContents.
+   */
+  unsentFileLayers: Map<FilePath, FileLayer>;
   primaryProjectOpened: boolean;
   /**
    * Forces a full rescan (`invalidateAll`) on the first updateSnapshot of a
@@ -159,6 +186,8 @@ export interface TypeScriptInstance {
     FilePath,
     { sourceFileNames: readonly string[]; result: readonly string[] }
   >;
+  /** Keyed by project id - see getSourceFileNames. */
+  sourceFileNamesCache: Map<string, SourceFileNames>;
   /**
    * Api-facing names of files compiled this build, consumed by
    * recheckAllTransitiveDependants at the end of the build.

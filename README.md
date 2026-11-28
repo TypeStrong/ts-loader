@@ -80,7 +80,7 @@ For a complete working setup, see [examples/simple](examples/simple/).
 
 - TypeScript: 7.1+
 - webpack: 4.x and 5.x
-- Node.js: 22+
+- Node.js: 22.12+
 
 The test suite runs on every pull request on Linux, macOS and Windows, against TypeScript 7.1 and TypeScript@next, on Node.js 22, 24 and 26. If you find a problem the tests don't catch, please [open an issue](https://github.com/TypeStrong/ts-loader/issues), or better yet, send a PR with a test.
 
@@ -323,6 +323,8 @@ Only report errors in files matching these glob patterns. Useful when some type 
   options: { reportFiles: ['src/**/*.{ts,tsx}', '!src/skip.ts'] },
 }
 ```
+
+Write patterns with `/` on every platform, Windows included: a `\` in a pattern escapes the next character, so a pattern built with `path.join` matches nothing on Windows. A `*` doesn't cross folders, so `*.ts` only matches files directly in the folder the patterns are relative to; use `**/*.ts` to match files in sub-folders too.
 
 #### appendTsSuffixTo / appendTsxSuffixTo
 

@@ -149,13 +149,23 @@ export function filterDiagnosticsForReporting(
     if (
       matchesReportFiles !== null &&
       diagnostic.fileName !== undefined &&
-      !matchesReportFiles(path.relative(context, diagnostic.fileName))
+      !matchesReportFiles(
+        toGlobMatchablePath(path.relative(context, diagnostic.fileName)),
+      )
     ) {
       return false;
     }
 
     return true;
   });
+}
+
+/**
+ * picomatch only treats `\` as a separator when told it's on Windows, and
+ * then a pattern can no longer use it to escape a glob character.
+ */
+function toGlobMatchablePath(relativePath: string) {
+  return path.sep === '\\' ? relativePath.replace(/\\/g, '/') : relativePath;
 }
 
 /**
