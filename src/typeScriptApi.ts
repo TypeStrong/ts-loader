@@ -63,6 +63,7 @@ export function createTypeScriptInstance(
     outputPath,
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
+    fileLayers: new Map(),
     unsentFileLayers: new Map(),
     primaryProjectOpened: false,
     pendingInvalidation: true,
@@ -201,6 +202,9 @@ export function restartTypeScriptApiIfDead(instance: TSInstance): boolean {
     ),
     // Their dependants still need the end-of-build recheck.
     changedFilesThisBuild: previous.changedFilesThisBuild,
+    // The new process has none of the layers the old one was sent.
+    fileLayers: previous.fileLayers,
+    unsentFileLayers: new Map(previous.fileLayers),
   };
   return true;
 }
@@ -1168,6 +1172,8 @@ function layerFileContents(
   fileName: string,
   contents: string,
 ): Snapshot {
+  forgetRemovedFileLayers(typeScriptInstance);
+  typeScriptInstance.fileLayers.set(fileName, contents);
   typeScriptInstance.unsentFileLayers.set(fileName, contents);
   if (
     typeScriptInstance.snapshot === undefined ||
@@ -1204,6 +1210,15 @@ function layerFileContents(
   // New contents can add or drop imports, and so files.
   typeScriptInstance.sourceFileNamesCache.clear();
   return snapshot;
+}
+
+/** So that a restarted process isn't handed files that are gone. */
+function forgetRemovedFileLayers(typeScriptInstance: TypeScriptInstance) {
+  for (const removedFileName of typeScriptInstance.pendingRemovedFiles ?? []) {
+    const fileName = toApiFacingFileName(removedFileName);
+    typeScriptInstance.fileLayers.delete(fileName);
+    typeScriptInstance.unsentFileLayers.delete(fileName);
+  }
 }
 
 /** The caller clears `unsentFileLayers` once its update has gone through. */

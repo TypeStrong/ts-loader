@@ -140,8 +140,13 @@ export interface TypeScriptInstance {
    */
   orphanRootFileNames: Map<FilePath, string>;
   /**
-   * Contents of files compiled since the last snapshot update, by api-facing
-   * name, to layer in the next one - see layerFileContents.
+   * The contents every compiled file was last layered with, by api-facing
+   * name: what a restarted process has to be sent again.
+   */
+  fileLayers: Map<string, string>;
+  /**
+   * The entries of `fileLayers` not sent to the API yet, to layer in the next
+   * snapshot update - see layerFileContents.
    */
   unsentFileLayers: Map<string, string>;
   primaryProjectOpened: boolean;
