@@ -15,7 +15,6 @@ import type {
   SyntheticProjectId,
 } from 'typescript/sync';
 import type { StringLiteralLikeNode } from 'typescript/ast';
-import { createFileSystemLayer } from 'typescript/fs';
 
 import * as constants from './constants';
 import {
@@ -28,6 +27,7 @@ import {
 } from './diagnostics';
 import type {
   ConfigOverrides,
+  CreateFileSystemLayer,
   LoaderOptions,
   SourceFileNames,
   SyntheticProgram,
@@ -39,6 +39,7 @@ import { isWebpack5 } from './loaderUtils';
 
 interface TypeScriptApiModule {
   API: new (options?: APIOptions) => API;
+  createFileSystemLayer: CreateFileSystemLayer;
 }
 
 export function createTypeScriptInstance(
@@ -55,6 +56,7 @@ export function createTypeScriptInstance(
 
   return {
     api,
+    createFileSystemLayer: typeScriptApiModule.createFileSystemLayer,
     configFilePath: path.resolve(configFilePath),
     configOverrides: getConfigOverrides(loaderOptions),
     useCaseSensitiveFileNames,
@@ -649,8 +651,15 @@ function computeDeclarationFilePath(
 function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
   const specifier = `${compilerPackage}/sync`;
 
+  // Loaded here, not by a top-level import: on a Node.js or TypeScript that
+  // can't load them, that would fail before the errors below could explain.
   try {
-    return require(specifier) as TypeScriptApiModule;
+    const { API } = require(specifier) as Pick<TypeScriptApiModule, 'API'>;
+    const { createFileSystemLayer } = require(`${compilerPackage}/fs`) as Pick<
+      TypeScriptApiModule,
+      'createFileSystemLayer'
+    >;
+    return { API, createFileSystemLayer };
   } catch (error) {
     const loadError = `Could not load the TypeScript API from "${specifier}": ${
       error instanceof Error ? error.message : String(error)
@@ -816,7 +825,7 @@ function updateSnapshot(
     ...changes,
     openFiles: [apiFacingFileName],
     fileNotifications,
-    fileSystem: takeUnsentFileLayers(typeScriptInstance),
+    fileSystem: layerUnsentFiles(typeScriptInstance),
   };
   // The API keeps no "latest snapshot" of its own, so each one must be built
   // via `update` on the previous to keep its cache
@@ -825,6 +834,8 @@ function updateSnapshot(
     ? previousSnapshot.update(params)
     : typeScriptInstance.api.createSnapshot(params);
 
+  // Only now: a failed update must leave them owed.
+  typeScriptInstance.unsentFileLayers.clear();
   typeScriptInstance.snapshot = snapshot;
   previousSnapshot?.dispose?.();
   // Notifications, a new root or new options can all change a program's files.
@@ -1183,9 +1194,10 @@ function layerFileContents(
     return previousSnapshot;
   }
   const snapshot = previousSnapshot.update({
-    fileSystem: takeUnsentFileLayers(typeScriptInstance),
+    fileSystem: layerUnsentFiles(typeScriptInstance),
     ensurePrograms: true,
   });
+  typeScriptInstance.unsentFileLayers.clear();
   typeScriptInstance.snapshot = snapshot;
   previousSnapshot.dispose();
   // New contents can add or drop imports, and so files.
@@ -1193,14 +1205,12 @@ function layerFileContents(
   return snapshot;
 }
 
-function takeUnsentFileLayers(typeScriptInstance: TypeScriptInstance) {
-  const { unsentFileLayers } = typeScriptInstance;
-  if (unsentFileLayers.size === 0) {
-    return undefined;
-  }
-  const fileSystem = createFileSystemLayer([...unsentFileLayers]);
-  unsentFileLayers.clear();
-  return fileSystem;
+/** The caller clears `unsentFileLayers` once its update has gone through. */
+function layerUnsentFiles(typeScriptInstance: TypeScriptInstance) {
+  const { unsentFileLayers, createFileSystemLayer } = typeScriptInstance;
+  return unsentFileLayers.size === 0
+    ? undefined
+    : createFileSystemLayer([...unsentFileLayers]);
 }
 
 /**

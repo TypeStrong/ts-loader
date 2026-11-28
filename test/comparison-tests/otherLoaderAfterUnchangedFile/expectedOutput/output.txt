@@ -1,0 +1,14 @@
+asset bundle.js 4.52 KiB [emitted] (name: main)
+runtime modules 670 bytes 3 modules
+cacheable modules 135 bytes
+  ./app.ts 91 bytes [built] [code generated] [1 error]
+  ./a.ts 20 bytes [built] [code generated]
+  ./b.ts 24 bytes [built] [code generated]
+
+ERROR in app.ts
+./app.ts 4:6-11
+[90m[tsl] [39m[1m[31mERROR[39m[22m[1m[31m in [39m[22m[1m[36mapp.ts(4,7)[39m[22m
+[1m[31m      TS2322: Type 'string' is not assignable to type 'number'.[39m[22m
+ts-loader-default_db83fb66e6d4c667
+
+webpack compiled with 1 error

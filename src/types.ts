@@ -6,6 +6,7 @@ import type {
   Snapshot,
   SyntheticProjectId,
 } from 'typescript/sync';
+import type { createFileSystemLayer } from 'typescript/fs';
 import type * as webpack from 'webpack';
 
 export interface ErrorInfo {
@@ -104,8 +105,11 @@ interface ProjectDirectories {
   unwatchable: boolean;
 }
 
+export type CreateFileSystemLayer = typeof createFileSystemLayer;
+
 export interface TypeScriptInstance {
   api: API;
+  createFileSystemLayer: CreateFileSystemLayer;
   /** Real-cased, as given to the API - not a canonical key (see FilePath). */
   configFilePath: string;
   /**
