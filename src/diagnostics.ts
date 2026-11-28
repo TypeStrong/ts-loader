@@ -149,13 +149,23 @@ export function filterDiagnosticsForReporting(
     if (
       matchesReportFiles !== null &&
       diagnostic.fileName !== undefined &&
-      !matchesReportFiles(path.relative(context, diagnostic.fileName))
+      !matchesReportFiles(
+        toGlobMatchablePath(path.relative(context, diagnostic.fileName)),
+      )
     ) {
       return false;
     }
 
     return true;
   });
+}
+
+/**
+ * picomatch only treats `\` as a separator when told it's on Windows, and
+ * then a pattern can no longer use it to escape a glob character.
+ */
+function toGlobMatchablePath(relativePath: string) {
+  return path.sep === '\\' ? relativePath.replace(/\\/g, '/') : relativePath;
 }
 
 /**
@@ -181,15 +191,11 @@ function makeReportFilesMatcher(
     }
   }
 
-  // picomatch only works out the platform for itself when given options;
-  // without this, a pattern with a `/` in it never matches a Windows path.
-  const options = { windows: process.platform === 'win32' };
   const matchPositive = picomatch(
     positivePatterns.length > 0 ? positivePatterns : ['**'],
-    options,
   );
   const matchNegative =
-    negativePatterns.length > 0 ? picomatch(negativePatterns, options) : null;
+    negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
 
   return (fileName: string) =>
     matchPositive(fileName) && !(matchNegative && matchNegative(fileName));

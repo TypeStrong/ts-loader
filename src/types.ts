@@ -135,6 +135,11 @@ export interface TypeScriptInstance {
    * canonical key -> api-facing name.
    */
   orphanRootFileNames: Map<FilePath, string>;
+  /**
+   * Contents of files compiled since the last snapshot update, by api-facing
+   * name, to layer in the next one - see layerFileContents.
+   */
+  unsentFileLayers: Map<string, string>;
   primaryProjectOpened: boolean;
   /**
    * Forces a full rescan (`invalidateAll`) on the first updateSnapshot of a

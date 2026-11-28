@@ -61,6 +61,7 @@ export function createTypeScriptInstance(
     outputPath,
     transpileConfig: undefined,
     orphanRootFileNames: new Map(),
+    unsentFileLayers: new Map(),
     primaryProjectOpened: false,
     pendingInvalidation: true,
     directImportsCache: new Map(),
@@ -655,8 +656,12 @@ function loadTypeScriptApiModule(compilerPackage: string): TypeScriptApiModule {
       error instanceof Error ? error.message : String(error)
     }`;
     // `typescript/sync` is an ES module, which Node.js before 22.12 can't
-    // `require`.
-    if ((error as NodeJS.ErrnoException).code === 'ERR_REQUIRE_ESM') {
+    // `require`. Later versions give the same code when it's turned off.
+    const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
+    if (
+      (error as NodeJS.ErrnoException).code === 'ERR_REQUIRE_ESM' &&
+      (nodeMajor < 22 || (nodeMajor === 22 && nodeMinor < 12))
+    ) {
       throw new Error(
         `ts-loader needs Node.js 22.12 or later; this is Node.js ${
           process.versions.node
@@ -700,7 +705,6 @@ type SnapshotChanges = Pick<
   | 'createPrograms'
   | 'reconfigurePrograms'
   | 'removePrograms'
-  | 'fileSystem'
   | 'ensurePrograms'
 >;
 
@@ -812,6 +816,7 @@ function updateSnapshot(
     ...changes,
     openFiles: [apiFacingFileName],
     fileNotifications,
+    fileSystem: takeUnsentFileLayers(typeScriptInstance),
   };
   // The API keeps no "latest snapshot" of its own, so each one must be built
   // via `update` on the previous to keep its cache
@@ -1139,6 +1144,11 @@ function openPrimaryProject(
  * https://github.com/microsoft/TypeScript/issues/63875#issuecomment-5513828692).
  * That refresh carries the layer in the same request because opening a
  * layer-only file fails if the layer arrives later.
+ *
+ * A snapshot update costs time that grows with the project, and usually the
+ * API has read the same text from disk as webpack did. Such a file's layer
+ * waits for the next update anything else needs - the end-of-build recheck
+ * at the latest, which would otherwise re-read the file from disk.
  */
 function layerFileContents(
   typeScriptInstance: TypeScriptInstance,
@@ -1146,10 +1156,7 @@ function layerFileContents(
   fileName: string,
   contents: string,
 ): Snapshot {
-  const fileLayer: SnapshotChanges = {
-    fileSystem: createFileSystemLayer([[fileName, contents]]),
-    ensurePrograms: true,
-  };
+  typeScriptInstance.unsentFileLayers.set(fileName, contents);
   if (
     typeScriptInstance.snapshot === undefined ||
     typeScriptInstance.pendingInvalidation ||
@@ -1161,13 +1168,10 @@ function layerFileContents(
       resolvedFilePathCache,
       fileName,
       undefined,
-      fileLayer,
+      { ensurePrograms: true },
     ).snapshot;
   }
   const previousSnapshot = typeScriptInstance.snapshot;
-  // Usually webpack read the same text from disk as the API did. A snapshot
-  // update costs time that grows with the project, so it's kept for a file
-  // whose contents really are new to the API.
   if (
     snapshotHasContents(
       typeScriptInstance,
@@ -1178,7 +1182,10 @@ function layerFileContents(
   ) {
     return previousSnapshot;
   }
-  const snapshot = previousSnapshot.update(fileLayer);
+  const snapshot = previousSnapshot.update({
+    fileSystem: takeUnsentFileLayers(typeScriptInstance),
+    ensurePrograms: true,
+  });
   typeScriptInstance.snapshot = snapshot;
   previousSnapshot.dispose();
   // New contents can add or drop imports, and so files.
@@ -1186,7 +1193,20 @@ function layerFileContents(
   return snapshot;
 }
 
-/** Whether a program of `snapshot` already holds `fileName` with these contents. */
+function takeUnsentFileLayers(typeScriptInstance: TypeScriptInstance) {
+  const { unsentFileLayers } = typeScriptInstance;
+  if (unsentFileLayers.size === 0) {
+    return undefined;
+  }
+  const fileSystem = createFileSystemLayer([...unsentFileLayers]);
+  unsentFileLayers.clear();
+  return fileSystem;
+}
+
+/**
+ * Every program that holds the file has to agree: the file is compiled in
+ * one of them, and a program can lag behind the snapshot's files.
+ */
 function snapshotHasContents(
   typeScriptInstance: TypeScriptInstance,
   snapshot: Snapshot,
@@ -1194,12 +1214,19 @@ function snapshotHasContents(
   contents: string,
 ): boolean {
   const { configFilePath, orphanProgram } = typeScriptInstance;
-  return [
-    snapshot.getConfiguredProject(configFilePath),
-    orphanProgram && snapshot.getProject(orphanProgram.id),
-  ].some(
-    project => project?.program.getSourceFile(fileName)?.text === contents,
-  );
+  const primaryText = snapshot
+    .getConfiguredProject(configFilePath)
+    ?.program.getSourceFile(fileName)?.text;
+  if (primaryText !== undefined && primaryText !== contents) {
+    return false;
+  }
+  const orphanText =
+    orphanProgram &&
+    snapshot.getProject(orphanProgram.id)?.program.getSourceFile(fileName)
+      ?.text;
+  return orphanText === undefined
+    ? primaryText !== undefined
+    : orphanText === contents;
 }
 
 /**
