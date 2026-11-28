@@ -181,11 +181,15 @@ function makeReportFilesMatcher(
     }
   }
 
+  // picomatch only works out the platform for itself when given options;
+  // without this, a pattern with a `/` in it never matches a Windows path.
+  const options = { windows: process.platform === 'win32' };
   const matchPositive = picomatch(
     positivePatterns.length > 0 ? positivePatterns : ['**'],
+    options,
   );
   const matchNegative =
-    negativePatterns.length > 0 ? picomatch(negativePatterns) : null;
+    negativePatterns.length > 0 ? picomatch(negativePatterns, options) : null;
 
   return (fileName: string) =>
     matchPositive(fileName) && !(matchNegative && matchNegative(fileName));

@@ -37,7 +37,7 @@
     "ts"
   ],
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.12.0"
   },
   "author": "John Reilly <johnny_reilly@hotmail.com> (https://johnnyreilly.com)",
   "contributors": [

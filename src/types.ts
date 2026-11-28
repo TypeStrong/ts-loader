@@ -82,6 +82,12 @@ export interface SyntheticProgram {
   configuration: string;
 }
 
+export interface SourceFileNames {
+  fileNames: readonly string[];
+  /** The same names in the form toComparablePath gives. */
+  comparableFileNames: ReadonlySet<string>;
+}
+
 export interface ConfigOverrides {
   compilerOptions: Record<string, unknown>;
   context?: string;
@@ -159,6 +165,8 @@ export interface TypeScriptInstance {
     FilePath,
     { sourceFileNames: readonly string[]; result: readonly string[] }
   >;
+  /** Keyed by project id - see getSourceFileNames. */
+  sourceFileNamesCache: Map<string, SourceFileNames>;
   /**
    * Api-facing names of files compiled this build, consumed by
    * recheckAllTransitiveDependants at the end of the build.
